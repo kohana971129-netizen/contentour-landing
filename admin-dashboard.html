@@ -4184,6 +4184,10 @@
         }
 
         function custEsc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+
+        // URL 파라미터로 탭 전환 (예: admin-dashboard.html?tab=customers)
+        const _urlTab = new URLSearchParams(location.search).get('tab');
+        if (_urlTab) switchTab(_urlTab);
         </script>
 </body>
 
