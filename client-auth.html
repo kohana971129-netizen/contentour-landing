@@ -612,6 +612,15 @@
             btn.classList.add('loading');
             btn.textContent = '로그인 중...';
 
+            // 데모 계정 체크 (Supabase 시도 건너뜀)
+            if (email.value === 'interpreter@contentour.com' && pw.value === 'password1212') {
+                sessionStorage.setItem('demoMode', 'interpreter');
+                sessionStorage.setItem('demoToken', btoa('contentour-demo-interpreter-' + Date.now()));
+                location.href = 'interpreter-dashboard.html';
+                return;
+            }
+
+            // 실제 Supabase 인증
             if (window.sbClient) {
                 try {
                     const { data: authData, error: authError } = await window.sbClient.auth.signInWithPassword({
@@ -619,15 +628,15 @@
                         password: pw.value
                     });
 
+                    btn.classList.remove('loading');
+                    btn.textContent = '통역사 대시보드 로그인';
+
                     if (!authError && authData && authData.user) {
                         const { data: profile } = await window.sbClient
                             .from('01_회원')
                             .select('role, name')
                             .eq('id', authData.user.id)
                             .single();
-
-                        btn.classList.remove('loading');
-                        btn.textContent = '통역사 대시보드 로그인';
 
                         const role = (profile && profile.role) ? profile.role : 'interpreter';
                         if (role === 'interpreter' || role === 'admin') {
@@ -639,26 +648,18 @@
                     }
 
                     if (authError) {
-                        console.log('통역사 Supabase auth failed, trying demo mode:', authError.message);
+                        showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
                     }
                 } catch (err) {
-                    console.log('통역사 로그인 예외, trying demo mode:', err);
+                    btn.classList.remove('loading');
+                    btn.textContent = '통역사 대시보드 로그인';
+                    showAlert('로그인 처리 중 오류가 발생했습니다.', 'error');
                 }
-            }
-
-            // 데모 모드 폴백
-            setTimeout(() => {
+            } else {
                 btn.classList.remove('loading');
                 btn.textContent = '통역사 대시보드 로그인';
-
-                if (email.value === 'interpreter@contentour.com' && pw.value === 'password1212') {
-                    sessionStorage.setItem('demoMode', 'interpreter');
-                    sessionStorage.setItem('demoToken', btoa('contentour-demo-interpreter-' + Date.now()));
-                    location.href = 'interpreter-dashboard.html';
-                } else {
-                    showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
-                }
-            }, 500);
+                showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
+            }
         });
 
         // ── 회원가입 폼 ──
