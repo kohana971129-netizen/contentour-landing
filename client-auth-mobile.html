@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- AI 크롤링 차단 -->
+    <meta name="robots" content="noai, noimageai">
+    <meta name="GPTBot" content="noindex, nofollow">
+    <meta name="anthropic-ai" content="noindex, nofollow">
+    <meta name="Google-Extended" content="noindex, nofollow">
+    <meta name="CCBot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>고객사 로그인 - 콘텐츄어 통역 운영 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy: #0a2a5e;
+            --navy-dark: #071f45;
+            --blue: #1565c0;
+            --blue-mid: #1976d2;
+            --sky: #4fc3f7;
+            --light-bg: #f0f5ff;
+            --white: #ffffff;
+            --gray-100: #f4f6fb;
+            --gray-200: #e5eaf2;
+            --gray-400: #9daec8;
+            --gray-600: #4a5a75;
+            --text: #0d1b3e;
+            --error: #e53935;
+            --success: #2e7d32;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light-bg);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .auth-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: stretch;
+            min-height: calc(100dvh - 80px);
+        }
+
+        /* ── 왼쪽 브랜드 패널 ── */
+        .brand-panel {
+            width: clamp(340px, 42%, 580px);
+            background: var(--navy);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: clamp(40px, 6vw, 100px);
+            padding: clamp(36px, 4vw, 60px) clamp(28px, 3.5vw, 52px);
+        }
+
+        /* 배경 장식 원 */
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            width: 520px;
+            height: 520px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(21, 101, 192, 0.45) 0%, transparent 70%);
+            top: -120px;
+            right: -160px;
+            pointer-events: none;
+        }
+
+        .brand-panel::after {
+            content: '';
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79, 195, 247, 0.18) 0%, transparent 70%);
+            bottom: -80px;
+            left: -80px;
+            pointer-events: none;
+        }
+
+        /* 격자 패턴 */
+        .grid-overlay {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        .brand-logo-custom {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-logo__mark {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            padding: 4px;
+        }
+
+        .brand-logo__mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .brand-logo__name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .brand-logo__sub {
+            font-size: 0.65rem;
+            color: var(--sky);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .brand-body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-eyebrow {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--sky);
+            margin-bottom: 18px;
+        }
+
+        .brand-headline {
+            font-size: clamp(1.35rem, 2.2vw, 2.1rem);
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.35;
+            margin-bottom: clamp(14px, 1.5vw, 20px);
+        }
+
+        .brand-headline em {
+            font-style: normal;
+            color: var(--sky);
+        }
+
+        .brand-desc {
+            font-size: clamp(0.8rem, 0.95vw, 0.9rem);
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.8;
+            margin-bottom: clamp(20px, 3vw, 40px);
+        }
+
+        .brand-features-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(8px, 1vw, 14px);
+        }
+
+        .brand-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: clamp(10px, 1.2vw, 14px) clamp(12px, 1.5vw, 18px);
+        }
+
+        .brand-feature__icon {
+            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .brand-feature__text {
+            font-size: clamp(0.72rem, 0.85vw, 0.83rem);
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .brand-footer {
+            position: relative;
+            z-index: 1;
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.3);
+            margin-top: auto;
+            /* 하단 고정 */
+        }
+
+        /* ── 오른쪽 폼 패널 ── */
+        .form-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: clamp(36px, 4vw, 60px) clamp(24px, 3vw, 48px);
+            background: var(--white);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: clamp(380px, 36vw, 460px);
+        }
+
+        /* 탭 */
+        .auth-tabs {
+            display: flex;
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 36px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 9px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--gray-400);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .auth-tab.active {
+            background: var(--white);
+            color: var(--navy);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 폼 헤더 */
+        .form-header {
+            margin-bottom: 28px;
+        }
+
+        .form-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .form-subtitle {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+        }
+
+        /* 입력 필드 */
+        .field-group {
+            margin-bottom: 18px;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--gray-600);
+            margin-bottom: 7px;
+            letter-spacing: 0.3px;
+        }
+
+        .field-group .req {
+            color: var(--error);
+            margin-left: 2px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            pointer-events: none;
+            color: var(--gray-400);
+        }
+
+        .field-group input,
+        .field-group select {
+            width: 100%;
+            padding: clamp(12px, 1.4vw, 16px) 14px clamp(12px, 1.4vw, 16px) 42px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: clamp(0.92rem, 1vw, 1rem);
+            color: var(--text);
+            background: var(--gray-100);
+            font-family: inherit;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            min-height: 48px;
+        }
+
+        .field-group input:focus,
+        .field-group select:focus {
+            border-color: var(--blue);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+        }
+
+        .field-group input.error {
+            border-color: var(--error);
+        }
+
+        .field-group .field-error {
+            font-size: 0.75rem;
+            color: var(--error);
+            margin-top: 5px;
+            display: none;
+        }
+
+        .field-group input.error+.field-error {
+            display: block;
+        }
+
+        /* 비밀번호 토글 - 터치 영역 확대 */
+        .pw-toggle {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.05rem;
+            color: var(--gray-400);
+            padding: 8px;
+            line-height: 1;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pw-toggle:hover {
+            color: var(--blue);
+        }
+
+        /* 2열 그리드 */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        /* 기억하기 / 비밀번호 찾기 */
+        .form-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            min-height: 44px;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--blue);
+            cursor: pointer;
+        }
+
+        .remember-me span {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+        }
+
+        .forgot-link {
+            font-size: 0.85rem;
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 600;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        /* 제출 버튼 */
+        .btn-submit-full {
+            width: 100%;
+            padding: clamp(14px, 1.5vw, 18px);
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+            min-height: 52px;
+        }
+
+        .btn-submit-full:hover {
+            background: var(--navy-dark);
+            box-shadow: 0 8px 25px rgba(21, 101, 192, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-submit-full:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit-full.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* 구분선 */
+        .divider-or {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            color: var(--gray-400);
+            font-size: 0.78rem;
+        }
+
+        .divider-or::before,
+        .divider-or::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        /* 소셜 로그인 */
+        .btn-social-auth {
+            width: 100%;
+            padding: clamp(14px, 1.4vw, 16px);
+            background: var(--white);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: clamp(0.88rem, 0.95vw, 0.95rem);
+            font-weight: 600;
+            color: var(--text);
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: border-color 0.2s, background 0.2s;
+            min-height: 52px;
+        }
+
+        .btn-social-auth:hover {
+            border-color: var(--blue);
+            background: var(--light-bg);
+        }
+
+        /* 동의 체크박스 */
+        .consent-container {
+            margin-bottom: 24px;
+            background: var(--gray-100);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .consent-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            min-height: 40px;
+        }
+
+        .consent-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .consent-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            accent-color: var(--blue);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .consent-item label {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            line-height: 1.5;
+        }
+
+        .consent-item a {
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .consent-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* 비밀번호 강도 */
+        .pw-strength-meter {
+            margin-top: 8px;
+            display: none;
+        }
+
+        .pw-strength-meter.visible {
+            display: block;
+        }
+
+        .pw-strength-bar {
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .pw-strength-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+            width: 0%;
+        }
+
+        .pw-strength-text {
+            font-size: 0.72rem;
+            color: var(--gray-400);
+            font-weight: 500;
+        }
+
+        /* 알림 박스 */
+        .alert-banner {
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .alert-banner.show {
+            display: flex;
+        }
+
+        .alert-banner.success {
+            background: #e8f5e9;
+            color: var(--success);
+            border: 1px solid #a5d6a7;
+        }
+
+        .alert-banner.error {
+            background: #ffebee;
+            color: var(--error);
+            border: 1px solid #ef9a9a;
+        }
+
+        /* 숨김 처리 */
+        .form-view-section {
+            display: none;
+        }
+
+        .form-view-section.active {
+            display: block;
+        }
+
+        /* 전환 링크 */
+        .auth-switch-link {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .admin-link-wrapper {
+            margin-top: 8px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-100);
+        }
+
+        .admin-link-wrapper a {
+            color: var(--gray-400);
+            font-size: 0.75rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .admin-link-wrapper a:hover {
+            color: var(--blue);
+        }
+
+        .auth-switch-link a {
+            color: var(--blue);
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .auth-switch-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .form-container {
+            animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ══════════════════════════════════════════
+           반응형 - 유동형 (Fluid Responsive)
+           모든 태블릿/모바일 자연스럽게 대응
+           ══════════════════════════════════════════ */
+
+        /* 태블릿 세로 + 소형 태블릿 가로 (600~900px)
+           iPad Mini 세로, iPad Air 세로, Galaxy Tab 세로 */
+        @media (max-width: 900px) {
+            .auth-wrapper {
+                flex-direction: column;
+            }
+
+            .brand-panel {
+                width: 100%;
+                padding: clamp(28px, 4vw, 40px) clamp(20px, 3vw, 32px);
+                gap: 20px;
+                min-height: auto;
+            }
+
+            .brand-headline {
+                font-size: clamp(1.3rem, 3.5vw, 1.6rem);
+            }
+
+            .brand-desc {
+                font-size: 0.82rem;
+                margin-bottom: 16px;
+            }
+
+            .brand-features-list {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .brand-feature-item {
+                padding: 10px 12px;
+            }
+
+            .brand-feature__icon {
+                font-size: 1rem;
+                min-width: 24px;
+            }
+
+            .brand-feature__text {
+                font-size: 0.74rem;
+            }
+
+            .brand-footer {
+                display: none;
+            }
+
+            .form-panel {
+                padding: clamp(32px, 5vw, 48px) clamp(20px, 4vw, 36px);
+            }
+
+            .form-container {
+                max-width: 520px;
+            }
+        }
+
+        /* 모바일 (580px 이하) */
+        @media (max-width: 580px) {
+            .brand-features-list {
+                grid-template-columns: 1fr;
+            }
+
+            .field-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-container {
+                max-width: 100%;
+            }
+
+            .admin-link-wrapper {
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .admin-link-wrapper span {
+                display: none;
+            }
+        }
+
+        /* 터치 디바이스 최적화 (태블릿 + 모바일) */
+        @media (hover: none) and (pointer: coarse) {
+            .btn-submit-full:hover {
+                background: var(--blue);
+                box-shadow: none;
+                transform: none;
+            }
+
+            .btn-social-auth:hover {
+                border-color: var(--gray-200);
+                background: var(--white);
+            }
+
+            .forgot-link:hover {
+                text-decoration: none;
+            }
+
+            .consent-item a:hover {
+                text-decoration: none;
+            }
+
+            /* 스크롤바 숨김 (태블릿) */
+            .form-panel::-webkit-scrollbar {
+                width: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <header class="nav">
+        <div class="nav__inner">
+            <a class="nav__logo" href="index.html">
+                <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
+            </a>
+            <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
+                <a href="index.html#home">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
+                    </div>
+                </a>
+                <a href="support.html">
+                    <span class="nav__menu-icon">🤝</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">전시회지원</span>
+                        <span class="nav__menu-desc">현장 운영 서비스</span>
+                    </div>
+                </a>
+                <a href="portal.html">
+                    <span class="nav__menu-icon">💻</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">운영시스템</span>
+                        <span class="nav__menu-desc">통역 품질 관리</span>
+                    </div>
+                </a>
+                <a href="performance.html">
+                    <span class="nav__menu-icon">📊</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">성과사례</span>
+                        <span class="nav__menu-desc">실적 및 고객사례</span>
+                    </div>
+                </a>
+                <a href="client-auth-mobile.html" class="is-active nav-client">
+                    <span class="nav__menu-icon">🔐</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">Login</span>
+                        <span class="nav__menu-desc">Client Portal</span>
+                    </div>
+                </a>
+            </nav>
+            <div class="nav-cta">
+                <a href="index.html#contact" class="btn btn-primary btn-nav">견적 문의</a>
+            </div>
+            <button class="nav__toggle" type="button" aria-controls="navMenu" aria-expanded="false"
+                id="mobileMenuToggle">
+                <span class="sr-only">메뉴 열기</span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="auth-wrapper">
+        <!-- ── 왼쪽 브랜드 패널 ── -->
+        <div class="brand-panel">
+            <div class="grid-overlay"></div>
+
+            <div class="brand-logo-custom">
+                <div class="brand-logo__mark">
+                    <img src="assets/logo.png" alt="Logo">
+                </div>
+                <div>
+                    <div class="brand-logo__name">CONTENTOUR</div>
+                    <div class="brand-logo__sub">Client Portal</div>
+                </div>
+            </div>
+
+            <div class="brand-body">
+                <p class="brand-eyebrow">Corporate Service</p>
+                <h1 class="brand-headline">글로벌 비즈니스의 시작,<br><em>콘텐츄어</em>와 함께<br>완성하세요.</h1>
+                <p class="brand-desc">
+                    복잡한 통역사 섭외부터 현장 운영까지.<br>
+                    고객사 전용 포털에서 모든 과정을 통합 관리하세요.
+                </p>
+                <div class="brand-features-list">
+                    <div class="brand-feature-item">
+                        <div class="brand-feature__icon">📁</div>
+                        <div class="brand-feature__text">통역 문의 이력 관리</div>
+                    </div>
+                    <div class="brand-feature-item">
+                        <div class="brand-feature__icon">🔍</div>
+                        <div class="brand-feature__text">검증된 통역사 매칭</div>
+                    </div>
+                    <div class="brand-feature-item">
+                        <div class="brand-feature__icon">📄</div>
+                        <div class="brand-feature__text">상담일지 실시간 확인</div>
+                    </div>
+                    <div class="brand-feature-item">
+                        <div class="brand-feature__icon">💳</div>
+                        <div class="brand-feature__text">간편한 정산 및 증빙</div>
+                    </div>
+                </div>
+
+                <a href="interpreter-apply.html"
+                    style="display:inline-flex; align-items:center; justify-content:center; gap:8px; margin-top:32px; padding:14px 24px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:10px; color:#fff; text-decoration:none; font-weight:700; font-size: 0.95rem; transition:all 0.2s;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.2)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    <span>👩‍💼</span> 통역사 지원하기 →
+                </a>
+            </div>
+
+            <div class="brand-footer">
+                <p><b>콘텐츄어</b> | 대표이사 이수경 | 사업자번호 119-86-68157</p>
+                <p>서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 204호</p>
+                <div style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;">
+                    <a href="terms.html" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.7rem;" onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">서비스 이용약관</a>
+                    <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.7rem;" onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">고객사 이용약관</a>
+                    <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.7rem;" onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">통역사 이용약관</a>
+                    <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" style="color:rgba(255,255,255,0.4);text-decoration:none;font-size:0.7rem;" onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">개인정보처리방침</a>
+                </div>
+                <p style="margin-top:8px;">© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+
+        <!-- ── 오른쪽 폼 패널 ── -->
+        <div class="form-panel">
+            <div class="form-container">
+
+                <!-- 탭 -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">로그인</button>
+                    <button class="auth-tab" id="tab-register" onclick="switchTab('register')">회원가입</button>
+                </div>
+
+                <!-- 알림 배너 -->
+                <div class="alert-banner" id="alertBox"></div>
+
+                <!-- ── 로그인 폼 ── -->
+                <div class="form-view-section active" id="view-login">
+                    <div class="form-header">
+                        <h2 class="form-title">고객사 로그인 👋</h2>
+                        <p class="form-subtitle">등록된 계정으로 접속하여 서비스를 이용하세요.</p>
+                    </div>
+
+                    <form id="loginForm" novalidate>
+                        <div class="field-group">
+                            <label for="login-email">이메일 주소 <span class="req">*</span></label>
+                            <div class="input-wrap">
+                                <span class="input-icon">✉️</span>
+                                <input type="email" id="login-email" placeholder="company@example.com"
+                                    autocomplete="email" required inputmode="email">
+                            </div>
+                            <p class="field-error">올바른 이메일 주소를 입력해주세요.</p>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="login-pw">비밀번호 <span class="req">*</span></label>
+                            <div class="input-wrap">
+                                <span class="input-icon">🔒</span>
+                                <input type="password" id="login-pw" placeholder="비밀번호를 입력하세요"
+                                    autocomplete="current-password" required>
+                                <button type="button" class="pw-toggle"
+                                    onclick="togglePw('login-pw', this)">👁️</button>
+                            </div>
+                            <p class="field-error">비밀번호를 입력해주세요.</p>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="remember-me">
+                                <input type="checkbox" id="remember">
+                                <span>로그인 상태 유지</span>
+                            </label>
+                            <a href="#" class="forgot-link">비밀번호 찾기</a>
+                        </div>
+
+                        <button type="submit" class="btn-submit-full" id="loginBtn">
+                            로그인
+                        </button>
+                    </form>
+
+                    <div class="divider-or">또는</div>
+
+                    <button type="button" class="btn-social-auth" onclick="loginWithGoogle()">
+                        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.34 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                        기업용 구글 계정으로 로그인
+                    </button>
+
+                    <div class="auth-switch-link">
+                        <p>아직 고객사가 아니신가요? <a onclick="switchTab('register')">신규 가입하기</a></p>
+                        <div class="admin-link-wrapper">
+                            <a href="admin-dashboard.html">🔒 시스템 관리자 로그인</a>
+                            <span style="margin:0 8px;color:var(--gray-200);">|</span>
+                            <a href="interpreter-dashboard.html">👩‍💼 통역사 로그인</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── 회원가입 폼 ── -->
+                <div class="form-view-section" id="view-register">
+                    <div class="form-header">
+                        <h2 class="form-title">고객사 등록 신청 🚀</h2>
+                        <p class="form-subtitle">기업 정보를 입력하여 통합 관리 계정을 생성하세요.</p>
+                    </div>
+
+                    <form id="registerForm" novalidate>
+                        <div class="field-group">
+                            <label for="reg-company">회사명 <span class="req">*</span></label>
+                            <div class="input-wrap">
+                                <span class="input-icon">🏢</span>
+                                <input type="text" id="reg-company" placeholder="(주)콘텐츄어" autocomplete="organization"
+                                    required>
+                            </div>
+                            <p class="field-error">회사명을 입력해주세요.</p>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="reg-brn">사업자등록번호 <span class="req">*</span></label>
+                            <div class="input-wrap">
+                                <span class="input-icon">📄</span>
+                                <input type="text" id="reg-brn" placeholder="000-00-00000" required inputmode="numeric">
+                            </div>
+                            <p class="field-error">올바른 사업자등록번호를 입력해주세요.</p>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="reg-name">담당자명 <span class="req">*</span></label>
+                                <div class="input-wrap">
+                                    <span class="input-icon">👤</span>
+                                    <input type="text" id="reg-name" placeholder="홍길동" autocomplete="name" required>
+                                </div>
+                                <p class="field-error">담당자명을 입력해주세요.</p>
+                            </div>
+                            <div class="field-group">
+                                <label for="reg-pos">직함 <span class="req">*</span></label>
+                                <div class="input-wrap">
+                                    <span class="input-icon">🏷️</span>
+                                    <input type="text" id="reg-pos" placeholder="팀장/과장 등" required>
+                                </div>
+                                <p class="field-error">직함을 입력해주세요.</p>
+                            </div>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="reg-email">이메일 주소 <span class="req">*</span></label>
+                            <div class="input-wrap">
+                                <span class="input-icon">✉️</span>
+                                <input type="email" id="reg-email" placeholder="company@example.com"
+                                    autocomplete="email" required inputmode="email">
+                            </div>
+                            <p class="field-error">올바른 이메일 주소를 입력해주세요.</p>
+                        </div>
+
+                        <div class="field-group">
+                            <label for="reg-phone">연락처 <span class="req">*</span></label>
+                            <div class="input-wrap">
+                                <span class="input-icon">📞</span>
+                                <input type="tel" id="reg-phone" placeholder="010-0000-0000" autocomplete="tel"
+                                    required inputmode="tel">
+                            </div>
+                            <p class="field-error">연락처를 입력해주세요.</p>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="reg-pw">비밀번호 <span class="req">*</span></label>
+                                <div class="input-wrap">
+                                    <span class="input-icon">🔒</span>
+                                    <input type="password" id="reg-pw" placeholder="8자 이상" autocomplete="new-password"
+                                        required oninput="checkStrength(this)">
+                                    <button type="button" class="pw-toggle"
+                                        onclick="togglePw('reg-pw', this)">👁️</button>
+                                </div>
+                                <div class="pw-strength-meter" id="pwStrength">
+                                    <div class="pw-strength-bar">
+                                        <div class="pw-strength-fill" id="pwFill"></div>
+                                    </div>
+                                    <div class="pw-strength-text" id="pwText">비밀번호를 입력하세요</div>
+                                </div>
+                                <p class="field-error">비밀번호를 입력해주세요.</p>
+                            </div>
+                            <div class="field-group">
+                                <label for="reg-pw2">비밀번호 확인 <span class="req">*</span></label>
+                                <div class="input-wrap">
+                                    <span class="input-icon">🔒</span>
+                                    <input type="password" id="reg-pw2" placeholder="비밀번호 재입력"
+                                        autocomplete="new-password" required>
+                                    <button type="button" class="pw-toggle"
+                                        onclick="togglePw('reg-pw2', this)">👁️</button>
+                                </div>
+                                <p class="field-error">비밀번호가 일치하지 않습니다.</p>
+                            </div>
+                        </div>
+
+                        <div class="consent-container">
+                            <div class="consent-item">
+                                <input type="checkbox" id="consent-all" onchange="toggleAllConsent(this)">
+                                <label for="consent-all"><strong>전체 동의</strong></label>
+                            </div>
+                            <div class="consent-item">
+                                <input type="checkbox" id="consent-terms" class="consent-check" required>
+                                <label for="consent-terms"><a href="#">이용약관</a> 동의 <span class="req">(필수)</span></label>
+                            </div>
+                            <div class="consent-item">
+                                <input type="checkbox" id="consent-privacy" class="consent-check" required>
+                                <label for="consent-privacy"><a href="#">개인정보 처리방침</a> 동의 <span
+                                        class="req">(필수)</span></label>
+                            </div>
+                            <div class="consent-item">
+                                <input type="checkbox" id="consent-marketing" class="consent-check">
+                                <label for="consent-marketing">마케팅 정보 수신 동의 (선택)</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-submit-full" id="registerBtn">
+                            고객사 가입 신청
+                        </button>
+                    </form>
+
+                    <div class="auth-switch-link">
+                        이미 계정이 있으신가요? <a onclick="switchTab('login')">로그인하기</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── 구글 OAuth 로그인 ──
+        // TODO: Google Cloud Console에서 OAuth 2.0 클라이언트 ID를 발급받아 아래 값을 교체하세요.
+        // 1. https://console.cloud.google.com/ 접속
+        // 2. API 및 서비스 > 사용자 인증 정보 > OAuth 2.0 클라이언트 ID 만들기
+        // 3. 승인된 리디렉션 URI에 REDIRECT_URI 값을 등록
+        const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+        const REDIRECT_URI = window.location.origin + '/oauth/callback';
+
+        function loginWithGoogle() {
+            const params = new URLSearchParams({
+                client_id: GOOGLE_CLIENT_ID,
+                redirect_uri: REDIRECT_URI,
+                response_type: 'code',
+                scope: 'openid email profile',
+                access_type: 'offline',
+                prompt: 'select_account',
+                hd: '*'  // 기업용(Google Workspace) 계정만 허용하려면 도메인 지정 (예: 'contentour.com')
+            });
+            window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+        }
+
+        // ── 탭 전환 ──
+        function switchTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.form-view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('view-' + tab).classList.add('active');
+            clearAlert();
+            // 태블릿: 탭 전환 시 폼 스크롤 상단으로
+            var fp = document.querySelector('.form-panel');
+            if (fp) fp.scrollTop = 0;
+        }
+
+        // ── 비밀번호 토글 ──
+        function togglePw(id, btn) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        // ── 비밀번호 강도 ──
+        function checkStrength(input) {
+            const val = input.value;
+            const wrap = document.getElementById('pwStrength');
+            const fill = document.getElementById('pwFill');
+            const text = document.getElementById('pwText');
+            if (val.length > 0) wrap.classList.add('visible');
+            else wrap.classList.remove('visible');
+
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            const levels = [
+                { w: '0%', bg: '#e5eaf2', label: '비밀번호를 입력하세요' },
+                { w: '25%', bg: '#e53935', label: '😟 매우 약함' },
+                { w: '50%', bg: '#fb8c00', label: '😐 약함' },
+                { w: '75%', bg: '#f9a825', label: '🙂 보통' },
+                { w: '100%', bg: '#2e7d32', label: '💪 강함' },
+            ];
+            const l = levels[score] || levels[0];
+            fill.style.width = l.w;
+            fill.style.background = l.bg;
+            text.textContent = l.label;
+            text.style.color = l.bg;
+        }
+
+        // ── 전체 동의 ──
+        function toggleAllConsent(master) {
+            document.querySelectorAll('.consent-check').forEach(c => c.checked = master.checked);
+        }
+
+        // ── 알림 배너 ──
+        function showAlert(msg, type) {
+            const box = document.getElementById('alertBox');
+            box.textContent = (type === 'success' ? '✅ ' : '⚠️ ') + msg;
+            box.className = 'alert-banner show ' + type;
+            box.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+        function clearAlert() {
+            const box = document.getElementById('alertBox');
+            box.className = 'alert-banner';
+        }
+
+        // ── 로그인 폼 ──
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email');
+            const pw = document.getElementById('login-pw');
+            let valid = true;
+
+            if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+                email.classList.add('error'); valid = false;
+            } else { email.classList.remove('error'); }
+
+            if (!pw.value) {
+                pw.classList.add('error'); valid = false;
+            } else { pw.classList.remove('error'); }
+
+            if (!valid) return;
+
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.textContent = '로그인 중...';
+
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                btn.textContent = '로그인';
+
+                // 테스트용 하드코딩 계정 체크
+                if (email.value === 'demo@contentour.com' && pw.value === 'password1212') {
+                    location.href = 'customer-dashboard.html';
+                } else if (email.value === 'interpreter@contentour.com' && pw.value === 'password1212') {
+                    location.href = 'interpreter-dashboard.html';
+                } else {
+                    showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
+                }
+            }, 1200);
+        });
+
+        // ── 회원가입 폼 ──
+        document.getElementById('registerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const company = document.getElementById('reg-company');
+            const brn = document.getElementById('reg-brn');
+            const name = document.getElementById('reg-name');
+            const pos = document.getElementById('reg-pos');
+            const email = document.getElementById('reg-email');
+            const phone = document.getElementById('reg-phone');
+            const pw = document.getElementById('reg-pw');
+            const pw2 = document.getElementById('reg-pw2');
+            const terms = document.getElementById('consent-terms');
+            const privacy = document.getElementById('consent-privacy');
+            let valid = true;
+
+            [company, name, pos, phone].forEach(f => {
+                if (!f.value.trim()) { f.classList.add('error'); valid = false; }
+                else f.classList.remove('error');
+            });
+
+            // 사업자번호 초보적 검증 (000-00-00000)
+            if (!/^\d{3}-\d{2}-\d{5}$/.test(brn.value)) {
+                brn.classList.add('error'); valid = false;
+            } else brn.classList.remove('error');
+
+            if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+                email.classList.add('error'); valid = false;
+            } else email.classList.remove('error');
+
+            if (!pw.value || pw.value.length < 8) {
+                pw.classList.add('error'); valid = false;
+            } else pw.classList.remove('error');
+
+            if (pw2.value !== pw.value) {
+                pw2.classList.add('error'); valid = false;
+            } else pw2.classList.remove('error');
+
+            if (!terms.checked || !privacy.checked) {
+                showAlert('필수 약관에 동의해주세요.', 'error');
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            const btn = document.getElementById('registerBtn');
+            btn.classList.add('loading');
+            btn.textContent = '가입 신청 처리 중...';
+
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                btn.textContent = '가입 신청 완료';
+                showAlert('고객사 가입 신청이 접수되었습니다! 승인 후 로그인이 가능합니다.', 'success');
+                setTimeout(() => switchTab('login'), 2500);
+            }, 1400);
+        });
+        // ── 화면 방향 변경 대응 (태블릿) ──
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() { window.scrollTo(0, 0); }, 300);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- AI 크롤링 차단 -->
+    <meta name="robots" content="noai, noimageai">
+    <meta name="GPTBot" content="noindex, nofollow">
+    <meta name="anthropic-ai" content="noindex, nofollow">
+    <meta name="Google-Extended" content="noindex, nofollow">
+    <meta name="CCBot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전문 통역사 프로필 - 콘텐츄어</title>
+    <meta name="description" content="콘텐츄어의 검증된 전문 통역사 프로필을 확인하세요. 국가별·분야별 최고의 통역 파트너를 만나보실 수 있습니다.">
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* 페이지 레이아웃 */
+        .interp-page { padding-top: 80px; min-height: 100vh; background: #f5f7fb; }
+        .interp-page__inner { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+
+        /* 페이지 헤더 */
+        .interp-page__header { text-align: center; margin-bottom: 48px; }
+        .interp-page__flag { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+        .interp-page__flag img { width: 48px; height: auto; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .interp-page__country { font-size: 1.1rem; font-weight: 700; color: #1565c0; background: #e8f0fe; padding: 6px 16px; border-radius: 20px; }
+        .interp-page__title { font-size: 2rem; font-weight: 800; color: #0a2a5e; margin-bottom: 12px; }
+        .interp-page__desc { font-size: 0.95rem; color: #666; line-height: 1.7; }
+        .interp-page__count { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; padding: 8px 20px; background: #fff; border-radius: 24px; font-size: 0.85rem; font-weight: 600; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .interp-page__count strong { color: #1565c0; font-size: 1.1rem; }
+
+        /* 필터 바 */
+        .interp-filter { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
+        .interp-filter__btn { padding: 8px 20px; border: 1.5px solid #d0d7e3; border-radius: 24px; background: #fff; font-size: 0.82rem; font-weight: 600; color: #555; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        .interp-filter__btn:hover { border-color: #1565c0; color: #1565c0; }
+        .interp-filter__btn.active { background: #1565c0; color: #fff; border-color: #1565c0; }
+
+        /* 카드 그리드 */
+        .interp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        @media (max-width: 900px) { .interp-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 580px) { .interp-grid { grid-template-columns: 1fr; } }
+
+        /* 프로필 카드 */
+        .profile-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: all 0.25s; cursor: pointer; border: 1.5px solid transparent; }
+        .profile-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(21,101,192,0.12); border-color: #1565c0; }
+        .profile-card__top { display: flex; align-items: center; gap: 14px; padding: 20px 20px 0; }
+        .profile-card__avatar { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 2.5px solid #e8f0fe; }
+        .profile-card__avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-card__info {}
+        .profile-card__name { font-size: 1.05rem; font-weight: 800; color: #0a2a5e; }
+        .profile-card__role { font-size: 0.78rem; color: #1565c0; font-weight: 600; margin-top: 2px; }
+        .profile-card__body { padding: 16px 20px 20px; }
+        .profile-card__intro { font-size: 0.82rem; color: #555; line-height: 1.6; margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .profile-card__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+        .profile-card__tag { font-size: 0.7rem; padding: 4px 10px; background: #f0f4ff; color: #1565c0; border-radius: 12px; font-weight: 600; }
+        .profile-card__tag.field { background: #fff3e0; color: #e65100; }
+        .profile-card__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 14px; border-top: 1px solid #f0f2f5; }
+        .profile-card__stat { text-align: center; }
+        .profile-card__stat-num { font-size: 1rem; font-weight: 800; color: #0a2a5e; }
+        .profile-card__stat-label { font-size: 0.65rem; color: #999; margin-top: 2px; }
+        .profile-card__price { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: linear-gradient(135deg, #e8f0fe, #f0f4ff); border-radius: 10px; margin-bottom: 14px; }
+        .profile-card__price-label { font-size: 0.72rem; font-weight: 600; color: #666; }
+        .profile-card__price-value { font-size: 0.92rem; font-weight: 800; color: #1565c0; }
+        .profile-card__price-unit { font-size: 0.68rem; color: #999; }
+
+        /* 빈 상태 */
+        .interp-empty { text-align: center; padding: 80px 20px; }
+        .interp-empty__icon { font-size: 3rem; margin-bottom: 16px; }
+        .interp-empty__text { font-size: 1.1rem; font-weight: 700; color: #666; margin-bottom: 8px; }
+        .interp-empty__sub { font-size: 0.85rem; color: #999; }
+
+        /* 뒤로가기 */
+        .interp-back { display: inline-flex; align-items: center; gap: 6px; color: #1565c0; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-bottom: 24px; transition: opacity 0.15s; }
+        .interp-back:hover { opacity: 0.7; }
+
+        /* 국가 탭 (전체 보기 모드) */
+        .country-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+        .country-tab { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border: 1.5px solid #d0d7e3; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #333; font-size: 0.82rem; font-weight: 600; }
+        .country-tab img { width: 24px; height: auto; border-radius: 2px; }
+        .country-tab:hover { border-color: #1565c0; background: #f0f4ff; }
+        .country-tab.active { background: #1565c0; color: #fff; border-color: #1565c0; }
+
+        /* CTA 배너 */
+        .interp-cta { background: linear-gradient(135deg, #0a2a5e, #1565c0); border-radius: 16px; padding: 40px; text-align: center; margin-top: 48px; }
+        .interp-cta__title { font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+        .interp-cta__desc { font-size: 0.88rem; color: rgba(255,255,255,0.7); margin-bottom: 20px; }
+        .interp-cta__btn { display: inline-block; padding: 14px 36px; background: #fff; color: #1565c0; font-size: 0.9rem; font-weight: 700; border-radius: 12px; text-decoration: none; transition: transform 0.2s; }
+        .interp-cta__btn:hover { transform: translateY(-2px); }
+
+        /* 모달 스타일 (index.html과 동일) */
+        .ip-card__price { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: linear-gradient(135deg, #e8f0fe, #f0f4ff); border-radius: 8px; margin: 8px 0 4px; }
+        .ip-card__price-label { font-size: 0.7rem; font-weight: 600; color: #666; }
+        .ip-card__price-value { font-size: 0.88rem; font-weight: 800; color: #1565c0; letter-spacing: -0.3px; }
+        .ip-card__price-unit { font-size: 0.68rem; color: #999; }
+        .ip-modal__price-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ip-modal__price-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f5f8ff; border-radius: 10px; border: 1px solid #e3ecf7; }
+        .ip-modal__price-type { font-size: 0.82rem; font-weight: 600; color: #333; }
+        .ip-modal__price-val { font-size: 1rem; font-weight: 800; color: #1565c0; }
+        .ip-modal__price-val small { font-size: 0.7rem; font-weight: 500; color: #999; margin-left: 2px; }
+        .ip-modal__price-note { font-size: 0.72rem; color: #999; margin-top: 10px; }
+        @media (max-width: 520px) { .ip-modal__price-table { grid-template-columns: 1fr; } }
+
+        /* 직접 견적 의뢰 폼 */
+        .diq { background: #f0f4ff; border-radius: 14px; padding: 24px; margin-top: 8px; }
+        .diq__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+        .diq__interp { display: flex; align-items: center; gap: 12px; }
+        .diq__photo { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #1565c0; }
+        .diq__name { font-size: 0.9rem; font-weight: 800; color: #0a2a5e; }
+        .diq__role { font-size: 0.72rem; color: #666; }
+        .diq__title { font-size: 0.95rem; font-weight: 800; color: #1565c0; }
+        .diq__form { display: flex; flex-direction: column; gap: 12px; }
+        .diq__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .diq__field { display: flex; flex-direction: column; gap: 4px; }
+        .diq__field label { font-size: 0.75rem; font-weight: 700; color: #333; }
+        .diq__req { color: #e53935; }
+        .diq__full { width: 100%; }
+        .diq__field input, .diq__field select, .diq__field textarea {
+            padding: 10px 12px; border: 1px solid #d0d7e3; border-radius: 8px; font-size: 0.82rem;
+            font-family: inherit; outline: none; transition: border-color 0.15s; background: #fff;
+        }
+        .diq__field input:focus, .diq__field select:focus, .diq__field textarea:focus { border-color: #1565c0; }
+        .diq__field textarea { resize: vertical; }
+        .diq__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+        .diq__cancel { padding: 10px 22px; background: #fff; border: 1px solid #d0d7e3; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; color: #666; transition: all 0.15s; }
+        .diq__cancel:hover { border-color: #999; color: #333; }
+        .diq__submit { padding: 10px 28px; background: #1565c0; color: #fff; border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+        .diq__submit:hover { background: #0d47a1; }
+        .diq__success { text-align: center; padding: 20px 0; }
+        .diq__success-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .diq__success-title { font-size: 1.1rem; font-weight: 800; color: #1565c0; margin-bottom: 10px; }
+        .diq__success-info { font-size: 0.85rem; color: #444; line-height: 1.7; margin-bottom: 16px; }
+        .diq__success-detail { background: #f0f4ff; border-radius: 10px; padding: 14px 18px; display: inline-block; text-align: left; font-size: 0.8rem; color: #555; line-height: 1.8; }
+        @media (max-width: 520px) {
+            .diq__row { grid-template-columns: 1fr; }
+            .diq__head { flex-direction: column; align-items: flex-start; }
+            .diq { padding: 16px; }
+        }
+
+        @media (max-width: 580px) {
+            .interp-page__title { font-size: 1.5rem; }
+            .interp-page__inner { padding: 24px 16px 60px; }
+            .interp-cta { padding: 28px 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <header class="nav">
+        <div class="nav__inner">
+            <a class="nav__logo" href="index.html">
+                <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
+            </a>
+            <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
+                <a href="index.html#home">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
+                    </div>
+                </a>
+                <a href="support.html">
+                    <span class="nav__menu-icon">🤝</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">전시회지원</span>
+                        <span class="nav__menu-desc">현장 운영 서비스</span>
+                    </div>
+                </a>
+                <a href="portal.html">
+                    <span class="nav__menu-icon">💻</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">운영시스템</span>
+                        <span class="nav__menu-desc">통역 품질 관리</span>
+                    </div>
+                </a>
+                <a href="performance.html">
+                    <span class="nav__menu-icon">📊</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">성과사례</span>
+                        <span class="nav__menu-desc">실적 및 고객사례</span>
+                    </div>
+                </a>
+                <a href="client-auth.html" class="nav-client">
+                    <span class="nav__menu-icon">🔐</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">Login</span>
+                        <span class="nav__menu-desc">Client Portal</span>
+                    </div>
+                </a>
+            </nav>
+            <div class="nav-cta">
+                <a href="index.html#contact" class="btn btn-primary btn-nav">견적 문의</a>
+            </div>
+            <button class="nav__toggle" type="button" aria-controls="navMenu" aria-expanded="false" id="mobileMenuToggle">
+                <span class="sr-only">메뉴 열기</span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="interp-page">
+        <div class="interp-page__inner">
+            <a href="index.html" class="interp-back">&larr; 서비스 페이지로 돌아가기</a>
+
+            <div class="interp-page__header" id="pageHeader">
+                <!-- JS에서 동적 렌더링 -->
+            </div>
+
+            <!-- 국가 탭 -->
+            <div class="country-tabs" id="countryTabs"></div>
+
+            <!-- 분야 필터 -->
+            <div class="interp-filter" id="fieldFilter"></div>
+
+            <!-- 통역사 그리드 -->
+            <div class="interp-grid" id="interpGrid"></div>
+
+            <!-- CTA -->
+            <div class="interp-cta">
+                <div class="interp-cta__title">원하는 통역사를 찾으셨나요?</div>
+                <div class="interp-cta__desc">프로필을 클릭하면 상세 정보 확인 및 직접 견적 의뢰가 가능합니다.</div>
+                <a href="index.html#contact" class="interp-cta__btn">견적 문의하기</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-professional">
+        <div class="footer-container-pro">
+            <div class="footer-logo-box">
+                <img src="assets/footer_logo.png" alt="CONTENTOUR Logo" class="footer-logo">
+            </div>
+            <div class="footer-info">
+                <div class="footer-info__row">
+                    <span><b>상호명</b> 콘텐츄어</span>
+                    <span class="divider">|</span>
+                    <span><b>주소</b> 서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 204호</span>
+                    <span class="divider">|</span>
+                    <span><b>대표이사</b> 이수경</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>메일</b> info@contentour.co.kr</span>
+                    <span class="divider">|</span>
+                    <span><b>전화</b> 02-868-1522</span>
+                    <span class="divider">|</span>
+                    <span><b>팩스</b> 02-869-3082</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>사업자등록번호</b> 119-86-68157</span>
+                    <span class="divider">|</span>
+                    <span><b>통신판매업신고번호</b> 제 2017-서울 구로-0321호</span>
+                </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
+                <a href="terms.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;">서비스 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;">개인정보처리방침</a>
+            </div>
+            <div class="footer-bottom-pro" style="margin-top:20px;">
+                <p>&copy; 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 통역사 상세 모달 -->
+    <div class="ip-modal-overlay" id="ipModalOverlay" onclick="if(event.target===this)closeIpModal()">
+        <div class="ip-modal" onclick="event.stopPropagation()">
+            <div class="ip-modal__header" id="ipModalHeader"></div>
+            <div class="ip-modal__body" id="ipModalBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // ═══════════════════════════
+        // 국가별 통역사 데이터 (index.html과 동일)
+        // ═══════════════════════════
+        var interpData = {
+            us: {
+                country: '미국', flag: 'us', lang: '영어 (English)',
+                interpreters: [
+                    { name: 'James Kim', photo: 'https://randomuser.me/api/portraits/men/32.jpg', role: '영어 전문 통역사', intro: 'IT/반도체 분야 전문. CES, SEMICON 등 미국 주요 전시회 다수 경험.', tags: ['영어', 'IT/반도체'], fieldTag: '제조/기술', cases: 35, rating: 4.8, years: 8, satisfaction: 97, prices: { booth: [350000,400000], meeting: [400000,450000], conference: [500000,550000], operation: [380000,420000] },
+                        bio: '미국 캘리포니아 소재, IT 및 반도체 산업 전문 통역사입니다. 8년간 CES, SEMICON West, Embedded World 등 북미 주요 기술 전시회에서 한국 기업의 부스 상주 통역과 바이어 미팅 동행을 전담해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'CES 2025 (라스베이거스)', sub: '삼성전자 부스 상주 통역 · 4일' },
+                            { year: '2024', text: 'SEMICON West 2024 (샌프란시스코)', sub: 'SK하이닉스 바이어 미팅 동행 · 3일' },
+                            { year: '2024', text: 'CES 2024 (라스베이거스)', sub: 'LG전자 부스 통역 · 4일' },
+                            { year: '2023', text: 'Embedded World 2023 (뉘른베르크)', sub: '현대모비스 기술 미팅 · 3일' }
+                        ]
+                    },
+                    { name: 'Sarah Park', photo: 'https://randomuser.me/api/portraits/women/44.jpg', role: '영어 비즈니스 통역', intro: '의료기기, 바이오 분야 전문. 미국 현지 거주 경력 12년.', tags: ['영어', '의료/바이오'], fieldTag: '헬스케어', cases: 28, rating: 4.9, years: 10, satisfaction: 99, prices: { booth: [380000,420000], meeting: [430000,480000], conference: [530000,580000], operation: [400000,440000] },
+                        bio: '미국 뉴저지 거주, 의료기기 및 바이오 산업 전문 통역사입니다. 10년간 MEDICA, MD&M West, BIO International 등 헬스케어 분야 전시회에서 활동해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'MD&M West 2025 (애너하임)', sub: '오송첨단의료산업진흥재단 · 3일' },
+                            { year: '2024', text: 'BIO International 2024 (샌디에이고)', sub: '셀트리온 비즈니스 미팅 · 4일' },
+                            { year: '2024', text: 'FIME 2024 (마이애미)', sub: '메디톡스 부스 상주 통역 · 3일' },
+                            { year: '2023', text: 'MEDICA 2023 (뒤셀도르프)', sub: '바이오니아 바이어 미팅 · 4일' }
+                        ]
+                    },
+                    { name: 'David Lee', photo: 'https://randomuser.me/api/portraits/men/75.jpg', role: '영어 전시 통역사', intro: '자동차, 에너지 산업 전문. NAIAS, Solar Power 등 참여.', tags: ['영어', '자동차/에너지'], fieldTag: '모빌리티', cases: 22, rating: 4.7, years: 6, satisfaction: 95, prices: { booth: [330000,380000], meeting: [380000,420000], conference: [470000,520000], operation: [360000,400000] },
+                        bio: '미국 디트로이트 소재, 자동차 및 에너지 산업 전문 통역사입니다. NAIAS(디트로이트 오토쇼), Solar Power International 등에서 한국 자동차 부품사 및 에너지 기업의 바이어 상담을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'NAIAS 2025 (디트로이트)', sub: '현대자동차 부스 통역 · 5일' },
+                            { year: '2024', text: 'Solar Power International (라스베이거스)', sub: '한화큐셀 · 3일' },
+                            { year: '2024', text: 'Battery Show NA (노비)', sub: 'LG에너지솔루션 · 3일' }
+                        ]
+                    },
+                    { name: 'Emily Chen', photo: 'https://randomuser.me/api/portraits/women/65.jpg', role: '영어 기술 통역사', intro: '항공/방위 산업 전문. AUSA, DSEI America 등 참여 경험.', tags: ['영어', '항공/방위'], fieldTag: '방위산업', cases: 18, rating: 4.8, years: 7, satisfaction: 96, prices: { booth: [380000,430000], meeting: [430000,480000], conference: [530000,580000], operation: [400000,440000] },
+                        bio: '워싱턴 D.C. 소재, 항공 및 방위 산업 전문 통역사입니다. AUSA, DSEI America, Sea Air Space 등 미국 방산 전시회에서 한국 방산 기업의 기술 시연과 바이어 미팅을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'AUSA 2025 (워싱턴 D.C.)', sub: '한화에어로스페이스 · 4일' },
+                            { year: '2024', text: 'Sea Air Space 2024 (내셔널 하버)', sub: 'LIG넥스원 · 3일' },
+                            { year: '2024', text: 'SHOT Show 2024 (라스베이거스)', sub: '풍산 · 3일' }
+                        ]
+                    },
+                    { name: 'Michael Yoon', photo: 'https://randomuser.me/api/portraits/men/45.jpg', role: '영어 비즈니스 통역', intro: '금융/핀테크 분야 전문. Money20/20, Fintech Festival 등 참여.', tags: ['영어', '금융/핀테크'], fieldTag: '금융', cases: 15, rating: 4.6, years: 5, satisfaction: 94, prices: { booth: [320000,370000], meeting: [370000,420000], conference: [470000,520000], operation: [350000,390000] },
+                        bio: '뉴욕 소재, 금융 및 핀테크 분야 전문 통역사입니다. Money20/20, LendIt Fintech, Consensus 등 금융 기술 전시회에서 한국 핀테크 기업의 투자자 미팅과 피칭 통역을 지원합니다.',
+                        history: [
+                            { year: '2025', text: 'Money20/20 2025 (라스베이거스)', sub: '토스 투자자 미팅 · 3일' },
+                            { year: '2024', text: 'Consensus 2024 (오스틴)', sub: '업비트 · 3일' }
+                        ]
+                    },
+                    { name: 'Jessica Hwang', photo: 'https://randomuser.me/api/portraits/women/28.jpg', role: '영어 전시 통역사', intro: '식품/농업 분야 전문. Fancy Food Show, Natural Products Expo 참여.', tags: ['영어', '식품/농업'], fieldTag: '식품', cases: 20, rating: 4.7, years: 6, satisfaction: 95, prices: { booth: [300000,350000], meeting: [350000,400000], conference: [450000,500000], operation: [330000,370000] },
+                        bio: '시카고 소재, 식품 및 농업 분야 전문 통역사입니다. Fancy Food Show, Natural Products Expo West 등에서 한국 식품 기업의 미국 시장 진출 상담을 지원합니다.',
+                        history: [
+                            { year: '2025', text: 'Natural Products Expo West 2025 (애너하임)', sub: 'CJ제일제당 · 4일' },
+                            { year: '2024', text: 'Fancy Food Show 2024 (뉴욕)', sub: '농심 부스 통역 · 3일' },
+                            { year: '2024', text: 'IFT FIRST 2024 (시카고)', sub: '삼양식품 · 3일' }
+                        ]
+                    }
+                ]
+            },
+            jp: {
+                country: '일본', flag: 'jp', lang: '일본어 (日本語)',
+                interpreters: [
+                    { name: '야마다 켄지', photo: 'https://randomuser.me/api/portraits/men/41.jpg', role: '일본어 수석 통역사', intro: '기계/제조 분야 전문. JIMTOF, SIMTOS 등 일본 산업 전시회 전문가.', tags: ['일본어', '제조/기계'], fieldTag: '제조산업', cases: 42, rating: 4.9, years: 12, satisfaction: 98, prices: { booth: [400000,450000], meeting: [450000,500000], conference: [550000,600000], operation: [420000,460000] },
+                        bio: '도쿄 소재, 기계 및 제조 산업 분야 수석 통역사입니다. 12년간 JIMTOF, Japan IT Week, CEATEC 등 일본 주요 산업 전시회에서 한국 제조 기업의 기술 상담과 바이어 미팅을 전담해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'SIMTOS 2025 (KINTEX)', sub: '두산공작기계 부스 통역 · 5일' },
+                            { year: '2024', text: 'JIMTOF 2024 (도쿄 빅사이트)', sub: '한화정밀기계 바이어 미팅 · 4일' },
+                            { year: '2024', text: 'Japan IT Week (도쿄)', sub: '삼성SDS 기술 상담 · 3일' }
+                        ]
+                    },
+                    { name: '스즈키 아키코', photo: 'https://randomuser.me/api/portraits/women/33.jpg', role: '일본어 비즈니스 통역', intro: '화장품, 식품 산업 전문. 일본 현지 네트워크 보유.', tags: ['일본어', '뷰티/식품'], fieldTag: '소비재', cases: 31, rating: 4.8, years: 9, satisfaction: 96, prices: { booth: [350000,400000], meeting: [400000,450000], conference: [500000,550000], operation: [380000,420000] },
+                        bio: '오사카 소재, 화장품 및 식품 산업 전문 통역사입니다. COSME TOKYO, FOODEX JAPAN 등 일본 소비재 전시회에서 한국 뷰티 브랜드와 식품 기업의 일본 시장 진출을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'COSME TOKYO 2025 (도쿄 빅사이트)', sub: '아모레퍼시픽 바이어 상담 · 3일' },
+                            { year: '2024', text: 'FOODEX JAPAN 2024 (마쿠하리)', sub: 'CJ제일제당 부스 통역 · 4일' }
+                        ]
+                    },
+                    { name: '田中 유미', photo: 'https://randomuser.me/api/portraits/women/68.jpg', role: '일본어 전시 통역사', intro: '전자/IT 분야 전문. CEATEC, Inter BEE 등 참여 경험 다수.', tags: ['일본어', '전자/IT'], fieldTag: 'IT/전자', cases: 26, rating: 4.7, years: 7, satisfaction: 94, prices: { booth: [330000,380000], meeting: [380000,430000], conference: [480000,530000], operation: [360000,400000] },
+                        bio: '도쿄 소재, 전자 및 IT 분야 전문 통역사입니다. CEATEC, Inter BEE, Embedded Technology 등 일본 기술 전시회에서 한국 전자 기업의 제품 시연 통역과 기술 미팅을 지원하고 있습니다.',
+                        history: [
+                            { year: '2025', text: 'CEATEC 2025 (마쿠하리 멧세)', sub: 'SK텔레콤 기술 시연 · 3일' },
+                            { year: '2024', text: 'Inter BEE 2024 (마쿠하리)', sub: 'KBS미디어 · 3일' }
+                        ]
+                    }
+                ]
+            },
+            cn: {
+                country: '중국', flag: 'cn', lang: '중국어 (中文)',
+                interpreters: [
+                    { name: 'Li Mei', photo: 'https://randomuser.me/api/portraits/women/52.jpg', role: '중국어 수석 통역사', intro: '무역/유통 분야 전문. Canton Fair, CIIE 등 중국 최대 전시회 경험.', tags: ['중국어', '무역/유통'], fieldTag: '무역', cases: 38, rating: 4.8, years: 11, satisfaction: 97, prices: { booth: [330000,380000], meeting: [380000,430000], conference: [480000,530000], operation: [360000,400000] },
+                        bio: '상하이 소재, 무역 및 유통 분야 수석 통역사입니다. 11년간 Canton Fair, CIIE, East China Fair 등 중국 최대 규모 전시회에서 한국 기업의 중국 시장 진출을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'Canton Fair 2025 (광저우)', sub: '(주)태림산업 부스 상주 · 5일' },
+                            { year: '2024', text: 'CIIE 2024 (상하이)', sub: 'CJ제일제당 바이어 상담 · 4일' }
+                        ]
+                    },
+                    { name: '왕 지아', photo: 'https://randomuser.me/api/portraits/men/22.jpg', role: '중국어 비즈니스 통역', intro: '건축/인테리어 분야 전문. 상하이, 광저우 현지 경험 풍부.', tags: ['중국어', '건축/인테리어'], fieldTag: '건설', cases: 24, rating: 4.7, years: 8, satisfaction: 95, prices: { booth: [300000,350000], meeting: [350000,400000], conference: [450000,500000], operation: [340000,380000] },
+                        bio: '광저우 소재, 건축 및 인테리어 분야 전문 통역사입니다. CBD Fair, Ceramics China 등 중국 건자재 전시회에서 한국 건축 자재 기업의 바이어 상담을 담당해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'CBD Fair 2025 (광저우)', sub: '한샘 부스 통역 · 4일' },
+                            { year: '2024', text: 'Ceramics China 2024 (포산)', sub: '대림바스 · 3일' }
+                        ]
+                    },
+                    { name: 'Zhang Wei', photo: 'https://randomuser.me/api/portraits/men/55.jpg', role: '중국어 기술 통역사', intro: '반도체, 디스플레이 산업 전문. SEMICON China 다수 참여.', tags: ['중국어', '반도체'], fieldTag: 'IT/반도체', cases: 19, rating: 4.6, years: 5, satisfaction: 93, prices: { booth: [280000,330000], meeting: [330000,380000], conference: [430000,480000], operation: [320000,360000] },
+                        bio: '상하이 소재, 반도체 및 디스플레이 산업 전문 기술 통역사입니다. SEMICON China, Display Innovation China 등에서 한국 반도체 장비사의 기술 상담과 제품 시연을 지원합니다.',
+                        history: [
+                            { year: '2025', text: 'SEMICON China 2025 (상하이)', sub: 'SK하이닉스 기술 시연 · 3일' },
+                            { year: '2024', text: 'FPD China 2024 (상하이)', sub: 'LG디스플레이 · 3일' }
+                        ]
+                    }
+                ]
+            },
+            de: {
+                country: '독일', flag: 'de', lang: '독일어 (Deutsch)',
+                interpreters: [
+                    { name: 'Hans Muller', photo: 'https://randomuser.me/api/portraits/men/61.jpg', role: '독일어 전문 통역사', intro: '의료기기, 약품 분야 전문. MEDICA, COMPAMED 등 독일 전시회 전문.', tags: ['독일어', '의료기기'], fieldTag: '헬스케어', cases: 29, rating: 4.9, years: 14, satisfaction: 99, prices: { booth: [400000,450000], meeting: [450000,500000], conference: [550000,600000], operation: [420000,470000] },
+                        bio: '뒤셀도르프 소재, 의료기기 및 제약 분야 수석 통역사입니다. 14년간 MEDICA, COMPAMED, REHACARE 등 독일 최대 의료 전시회에서 한국 의료기기 기업의 유럽 시장 진출을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'MEDICA 2025 (뒤셀도르프)', sub: '(주)바이오메드 부스 통역 · 4일' },
+                            { year: '2024', text: 'COMPAMED 2024 (뒤셀도르프)', sub: '인바디 바이어 미팅 · 3일' }
+                        ]
+                    },
+                    { name: 'Franz Weber', photo: 'https://randomuser.me/api/portraits/men/36.jpg', role: '독일어 산업 통역사', intro: '자동차 부품, 기계 분야. IAA, Hannover Messe 참여 경험.', tags: ['독일어', '자동차/기계'], fieldTag: '자동차', cases: 21, rating: 4.7, years: 9, satisfaction: 96, prices: { booth: [350000,400000], meeting: [400000,450000], conference: [500000,550000], operation: [390000,430000] },
+                        bio: '뮌헨 소재, 자동차 부품 및 기계 산업 전문 통역사입니다. IAA, Hannover Messe, Automechanika 등 독일 산업 전시회에서 한국 자동차 부품사의 유럽 OEM 미팅을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'Hannover Messe 2025 (하노버)', sub: '두산로보틱스 · 5일' },
+                            { year: '2024', text: 'IAA Transportation 2024 (하노버)', sub: '현대모비스 · 4일' }
+                        ]
+                    },
+                    { name: 'Anna Schmidt', photo: 'https://randomuser.me/api/portraits/women/26.jpg', role: '독일어 비즈니스 통역', intro: '에너지, 환경 분야 전문. 프랑크푸르트 현지 거주.', tags: ['독일어', '에너지/환경'], fieldTag: '에너지', cases: 17, rating: 4.8, years: 6, satisfaction: 97, prices: { booth: [330000,380000], meeting: [380000,430000], conference: [480000,530000], operation: [360000,400000] },
+                        bio: '프랑크푸르트 소재, 에너지 및 환경 분야 전문 통역사입니다. Intersolar Europe, E-world 등에서 한국 에너지 기업의 유럽 파트너 미팅을 지원하고 있습니다.',
+                        history: [
+                            { year: '2025', text: 'Intersolar Europe 2025 (뮌헨)', sub: '한화큐셀 바이어 미팅 · 3일' },
+                            { year: '2024', text: 'E-world 2024 (에센)', sub: '한국전력 · 3일' }
+                        ]
+                    }
+                ]
+            },
+            vn: {
+                country: '베트남', flag: 'vn', lang: '베트남어 (Tiếng Việt)',
+                interpreters: [
+                    { name: 'Nguyen Thu', photo: 'https://randomuser.me/api/portraits/women/71.jpg', role: '베트남어 수석 통역사', intro: '제조/섬유 산업 전문. 호치민 현지 거주, VietnamExpo 등 다수 참여.', tags: ['베트남어', '제조/섬유'], fieldTag: '제조', cases: 25, rating: 4.7, years: 7, satisfaction: 95, prices: { booth: [250000,300000], meeting: [300000,350000], conference: [400000,450000], operation: [290000,330000] },
+                        bio: '호치민 소재, 제조 및 섬유 산업 전문 통역사입니다. VietnamExpo, Saigon Tex 등 베트남 주요 산업 전시회에서 한국 제조 기업의 현지 파트너 발굴과 바이어 상담을 지원하고 있습니다.',
+                        history: [
+                            { year: '2025', text: 'VietnamExpo 2025 (호치민)', sub: '(주)효성 부스 통역 · 4일' },
+                            { year: '2024', text: 'Saigon Tex 2024 (호치민)', sub: '한국 섬유 공동관 · 3일' }
+                        ]
+                    },
+                    { name: 'Tran Linh', photo: 'https://randomuser.me/api/portraits/men/18.jpg', role: '베트남어 비즈니스 통역', intro: 'IT/전자 분야 전문. 하노이, 다낭 전시회 경험 보유.', tags: ['베트남어', 'IT/전자'], fieldTag: 'IT', cases: 18, rating: 4.6, years: 5, satisfaction: 93, prices: { booth: [230000,280000], meeting: [270000,320000], conference: [370000,420000], operation: [260000,300000] },
+                        bio: '하노이 소재, IT 및 전자 분야 전문 통역사입니다. Vietnam ICT COMM, NEPCON Vietnam 등에서 한국 IT 기업의 베트남 시장 진출 상담을 지원합니다.',
+                        history: [
+                            { year: '2025', text: 'Vietnam ICT COMM 2025 (하노이)', sub: '네이버 바이어 상담 · 3일' },
+                            { year: '2024', text: 'NEPCON Vietnam 2024 (하노이)', sub: 'LG이노텍 · 3일' }
+                        ]
+                    }
+                ]
+            },
+            ae: {
+                country: '아랍에미레이트', flag: 'ae', lang: '아랍어 (العربية)',
+                interpreters: [
+                    { name: 'Ahmed Hassan', photo: 'https://randomuser.me/api/portraits/men/83.jpg', role: '아랍어 전문 통역사', intro: '건설/인프라 분야 전문. WETEX, Big 5 Dubai 등 UAE 전시회 경험.', tags: ['아랍어', '건설/인프라'], fieldTag: '건설', cases: 20, rating: 4.7, years: 8, satisfaction: 96, prices: { booth: [350000,400000], meeting: [400000,450000], conference: [500000,550000], operation: [390000,430000] },
+                        bio: '두바이 소재, 건설 및 인프라 분야 전문 통역사입니다. Big 5 Dubai, WETEX, Cityscape Global 등 중동 최대 건설 전시회에서 한국 건설사와 플랜트 기업의 중동 진출을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'Big 5 Dubai 2025 (두바이)', sub: '현대건설 부스 통역 · 4일' },
+                            { year: '2024', text: 'WETEX 2024 (두바이)', sub: '한국수자원공사 · 3일' }
+                        ]
+                    },
+                    { name: 'Fatima Al-Sayed', photo: 'https://randomuser.me/api/portraits/women/85.jpg', role: '아랍어 비즈니스 통역', intro: '에너지/석유화학 분야 전문. ADIPEC 등 참여.', tags: ['아랍어', '에너지'], fieldTag: '에너지', cases: 15, rating: 4.8, years: 6, satisfaction: 97, prices: { booth: [370000,420000], meeting: [420000,470000], conference: [520000,570000], operation: [400000,440000] },
+                        bio: '아부다비 소재, 에너지 및 석유화학 분야 전문 통역사입니다. ADIPEC, World Future Energy Summit 등 중동 에너지 전시회에서 한국 에너지 기업의 기술 미팅과 계약 협상을 지원합니다.',
+                        history: [
+                            { year: '2025', text: 'ADIPEC 2025 (아부다비)', sub: 'SK이노베이션 바이어 미팅 · 4일' },
+                            { year: '2024', text: 'World Future Energy Summit (아부다비)', sub: '한화솔루션 · 3일' }
+                        ]
+                    }
+                ]
+            },
+            th: {
+                country: '태국', flag: 'th', lang: '태국어 (ภาษาไทย)',
+                interpreters: [
+                    { name: 'Somchai Prasert', photo: 'https://randomuser.me/api/portraits/men/47.jpg', role: '태국어 전문 통역사', intro: '식품/농업 분야 전문. THAIFEX, Bangkok Gems 등 참여.', tags: ['태국어', '식품/농업'], fieldTag: '식품', cases: 22, rating: 4.6, years: 7, satisfaction: 94, prices: { booth: [250000,300000], meeting: [300000,350000], conference: [400000,450000], operation: [280000,320000] },
+                        bio: '방콕 소재, 식품 및 농업 분야 전문 통역사입니다. THAIFEX, Bangkok Gems & Jewelry Fair, PROPAK ASIA 등 태국 주요 전시회에서 한국 식품 기업의 동남아 시장 진출을 지원해왔습니다.',
+                        history: [
+                            { year: '2025', text: 'THAIFEX 2025 (방콕)', sub: 'CJ제일제당 부스 통역 · 4일' },
+                            { year: '2024', text: 'Bangkok Gems Fair (방콕)', sub: '한국 주얼리 공동관 · 3일' }
+                        ]
+                    },
+                    { name: 'Ploy Rattana', photo: 'https://randomuser.me/api/portraits/women/15.jpg', role: '태국어 비즈니스 통역', intro: '자동차/전자 분야 전문. 방콕 현지 거주.', tags: ['태국어', '자동차/전자'], fieldTag: '자동차', cases: 16, rating: 4.7, years: 5, satisfaction: 95, prices: { booth: [230000,280000], meeting: [280000,330000], conference: [380000,430000], operation: [270000,310000] },
+                        bio: '방콕 소재, 자동차 및 전자 분야 전문 통역사입니다. Bangkok International Motor Show, METALEX 등에서 한국 자동차 부품사의 태국 현지 OEM 미팅을 지원하고 있습니다.',
+                        history: [
+                            { year: '2025', text: 'Bangkok Motor Show 2025', sub: '현대자동차 · 5일' },
+                            { year: '2024', text: 'METALEX 2024 (방콕)', sub: '두산공작기계 · 3일' }
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // ═══════════════════════════
+        // URL 파라미터 파싱
+        // ═══════════════════════════
+        var params = new URLSearchParams(window.location.search);
+        var currentCountry = params.get('country') || 'us';
+        var currentField = '전체';
+
+        // 유효한 국가 코드 확인
+        if (!interpData[currentCountry]) currentCountry = 'us';
+
+        function fmtPrice(arr) {
+            var v = Array.isArray(arr) ? arr[0] : arr;
+            return '\u20A9' + v.toLocaleString() + '~';
+        }
+
+        // ═══════════════════════════
+        // 페이지 렌더링
+        // ═══════════════════════════
+        function renderPage() {
+            var d = interpData[currentCountry];
+            var interpreters = d.interpreters;
+
+            // 페이지 타이틀 업데이트
+            document.title = d.country + ' 전문 통역사 - 콘텐츄어';
+
+            // 헤더
+            document.getElementById('pageHeader').innerHTML =
+                '<div class="interp-page__flag">' +
+                    '<img src="https://flagcdn.com/w80/' + d.flag + '.png" srcset="https://flagcdn.com/w160/' + d.flag + '.png 2x" alt="' + d.country + '">' +
+                    '<span class="interp-page__country">' + d.lang + '</span>' +
+                '</div>' +
+                '<h1 class="interp-page__title">' + d.country + ' 전문 통역사</h1>' +
+                '<p class="interp-page__desc">' + d.country + ' 현지 전시회 통역 전문가들의 프로필을 확인하세요.<br>검증된 경력과 전문 분야를 갖춘 파트너를 만나보실 수 있습니다.</p>' +
+                '<div class="interp-page__count">등록 통역사 <strong>' + interpreters.length + '</strong>명</div>';
+
+            // 국가 탭
+            var tabsHtml = '';
+            var codes = ['us', 'jp', 'cn', 'de', 'vn', 'ae', 'th'];
+            codes.forEach(function(code) {
+                var cd = interpData[code];
+                var isActive = code === currentCountry ? ' active' : '';
+                tabsHtml += '<a href="interpreters.html?country=' + code + '" class="country-tab' + isActive + '">' +
+                    '<img src="https://flagcdn.com/w40/' + cd.flag + '.png" alt="' + cd.country + '">' +
+                    '<span>' + cd.country + '</span>' +
+                '</a>';
+            });
+            document.getElementById('countryTabs').innerHTML = tabsHtml;
+
+            // 분야 필터 태그 수집
+            var fields = ['전체'];
+            interpreters.forEach(function(p) {
+                if (p.fieldTag && fields.indexOf(p.fieldTag) === -1) {
+                    fields.push(p.fieldTag);
+                }
+            });
+
+            var filterHtml = '';
+            fields.forEach(function(f) {
+                var isActive = f === currentField ? ' active' : '';
+                filterHtml += '<button class="interp-filter__btn' + isActive + '" onclick="filterByField(\'' + f + '\')">' + f + '</button>';
+            });
+            document.getElementById('fieldFilter').innerHTML = filterHtml;
+
+            // 필터링
+            var filtered = interpreters;
+            if (currentField !== '전체') {
+                filtered = interpreters.filter(function(p) { return p.fieldTag === currentField; });
+            }
+
+            // 카드 렌더링
+            if (filtered.length === 0) {
+                document.getElementById('interpGrid').innerHTML =
+                    '<div class="interp-empty" style="grid-column:1/-1;">' +
+                        '<div class="interp-empty__icon">🔍</div>' +
+                        '<div class="interp-empty__text">해당 분야의 통역사가 없습니다</div>' +
+                        '<div class="interp-empty__sub">다른 분야를 선택해보세요</div>' +
+                    '</div>';
+                return;
+            }
+
+            var gridHtml = '';
+            filtered.forEach(function(p, idx) {
+                // 원래 인덱스 찾기
+                var origIdx = interpreters.indexOf(p);
+                gridHtml += '<div class="profile-card" onclick="openIpModal(\'' + currentCountry + '\',' + origIdx + ')">' +
+                    '<div class="profile-card__top">' +
+                        '<div class="profile-card__avatar"><img src="' + p.photo + '" alt="' + p.name + '"></div>' +
+                        '<div class="profile-card__info">' +
+                            '<div class="profile-card__name">' + p.name + '</div>' +
+                            '<div class="profile-card__role">' + p.role + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="profile-card__body">' +
+                        '<div class="profile-card__intro">' + (p.bio || p.intro) + '</div>' +
+                        '<div class="profile-card__tags">' +
+                            p.tags.map(function(t) { return '<span class="profile-card__tag">' + t + '</span>'; }).join('') +
+                            '<span class="profile-card__tag field">' + p.fieldTag + '</span>' +
+                        '</div>' +
+                        '<div class="profile-card__price">' +
+                            '<span class="profile-card__price-label">부스 통역</span>' +
+                            '<span class="profile-card__price-value">' + fmtPrice(p.prices.booth) + '</span>' +
+                            '<span class="profile-card__price-unit">/일</span>' +
+                        '</div>' +
+                        '<div class="profile-card__stats">' +
+                            '<div class="profile-card__stat"><div class="profile-card__stat-num">' + p.cases + '건</div><div class="profile-card__stat-label">파견 실적</div></div>' +
+                            '<div class="profile-card__stat"><div class="profile-card__stat-num">' + p.rating + '</div><div class="profile-card__stat-label">평점</div></div>' +
+                            '<div class="profile-card__stat"><div class="profile-card__stat-num">' + p.years + '년</div><div class="profile-card__stat-label">경력</div></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            });
+            document.getElementById('interpGrid').innerHTML = gridHtml;
+        }
+
+        function filterByField(field) {
+            currentField = field;
+            renderPage();
+        }
+
+        // ═══════════════════════════
+        // 상세 모달
+        // ═══════════════════════════
+        function openIpModal(countryCode, idx) {
+            var d = interpData[countryCode];
+            if (!d) return;
+            var p = d.interpreters[idx];
+            if (!p) return;
+
+            document.getElementById('ipModalHeader').innerHTML =
+                '<button class="ip-modal__close" onclick="closeIpModal()">&times;</button>' +
+                '<div class="ip-modal__photo"><img src="' + p.photo + '" alt="' + p.name + '"></div>' +
+                '<div class="ip-modal__header-info">' +
+                    '<div class="ip-modal__name">' + p.name + '</div>' +
+                    '<div class="ip-modal__role-text">' + p.role + '</div>' +
+                    '<div class="ip-modal__flag">' +
+                        '<img src="https://flagcdn.com/w40/' + d.flag + '.png" alt="' + d.country + '"> ' + d.country + ' · ' + d.lang +
+                    '</div>' +
+                '</div>';
+
+            var html = '';
+
+            html += '<div class="ip-modal__stats">' +
+                '<div class="ip-modal__stat"><div class="ip-modal__stat-num">' + p.years + '년</div><div class="ip-modal__stat-label">통역 경력</div></div>' +
+                '<div class="ip-modal__stat"><div class="ip-modal__stat-num">' + p.cases + '건</div><div class="ip-modal__stat-label">파견 실적</div></div>' +
+                '<div class="ip-modal__stat"><div class="ip-modal__stat-num">' + p.rating + '</div><div class="ip-modal__stat-label">평점</div></div>' +
+                '<div class="ip-modal__stat"><div class="ip-modal__stat-num">' + p.satisfaction + '%</div><div class="ip-modal__stat-label">만족도</div></div>' +
+            '</div>';
+
+            html += '<div class="ip-modal__section">' +
+                '<div class="ip-modal__section-title">소개</div>' +
+                '<div class="ip-modal__bio">' + (p.bio || p.intro) + '</div>' +
+            '</div>';
+
+            html += '<div class="ip-modal__section">' +
+                '<div class="ip-modal__section-title">전문 분야</div>' +
+                '<div class="ip-modal__tags">' +
+                    p.tags.map(function(t) { return '<span class="ip-modal__tag">' + t + '</span>'; }).join('') +
+                    '<span class="ip-modal__tag field">' + p.fieldTag + '</span>' +
+                '</div>' +
+            '</div>';
+
+            html += '<div class="ip-modal__section">' +
+                '<div class="ip-modal__section-title">통역 단가 (1일 기준)</div>' +
+                '<div class="ip-modal__price-table">' +
+                    '<div class="ip-modal__price-row"><span class="ip-modal__price-type">🎯 부스 상주 통역</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.booth) + '<small>/일</small></span></div>' +
+                    '<div class="ip-modal__price-row"><span class="ip-modal__price-type">🤝 미팅 동행 통역</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.meeting) + '<small>/일</small></span></div>' +
+                    '<div class="ip-modal__price-row"><span class="ip-modal__price-type">🎤 컨퍼런스 통역</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.conference) + '<small>/일</small></span></div>' +
+                    '<div class="ip-modal__price-row"><span class="ip-modal__price-type">⚡ 현장 운영 지원</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.operation) + '<small>/일</small></span></div>' +
+                '</div>' +
+                '<div class="ip-modal__price-note">* 표시 금액은 기본 단가 범위이며, 전시 규모·기간·전문성에 따라 추가 금액이 발생할 수 있습니다.</div>' +
+            '</div>';
+
+            html += '<div class="ip-modal__section">' +
+                '<div class="ip-modal__section-title">주요 전시회 통역 경력</div>' +
+                '<div class="ip-modal__history">' +
+                    p.history.map(function(h) {
+                        return '<div class="ip-modal__history-item">' +
+                            '<span class="ip-modal__history-year">' + h.year + '</span>' +
+                            '<div>' +
+                                '<div class="ip-modal__history-text">' + h.text + '</div>' +
+                                '<div class="ip-modal__history-sub">' + h.sub + '</div>' +
+                            '</div>' +
+                        '</div>';
+                    }).join('') +
+                '</div>' +
+            '</div>';
+
+            html += '<div class="ip-modal__cta" id="ipCtaArea">' +
+                '<button class="ip-modal__cta-btn" onclick="showDirectInquiry(\'' + p.name.replace(/'/g,"\\'") + '\',\'' + d.lang.replace(/'/g,"\\'") + '\',\'' + (p.fieldTag||'').replace(/'/g,"\\'") + '\',\'' + d.country.replace(/'/g,"\\'") + '\',\'' + (p.photo||'').replace(/'/g,"\\'") + '\',\'' + (p.role||'').replace(/'/g,"\\'") + '\')">이 통역사에게 직접 견적 의뢰</button>' +
+            '</div>';
+
+            document.getElementById('ipModalBody').innerHTML = html;
+            document.getElementById('ipModalOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showDirectInquiry(name, lang, field, country, photo, role) {
+            var area = document.getElementById('ipCtaArea');
+            if (!area) return;
+            area.innerHTML =
+            '<div class="diq">' +
+              '<div class="diq__head">' +
+                '<div class="diq__interp">' +
+                  '<img src="' + photo + '" class="diq__photo">' +
+                  '<div><div class="diq__name">' + name + '</div><div class="diq__role">' + role + ' · ' + lang + '</div></div>' +
+                '</div>' +
+                '<div class="diq__title">직접 견적 의뢰</div>' +
+              '</div>' +
+              '<div class="diq__form">' +
+                '<div class="diq__row">' +
+                  '<div class="diq__field"><label>회사명 <span class="diq__req">*</span></label><input type="text" id="diq-company" placeholder="예: (주)콘텐츄어"></div>' +
+                  '<div class="diq__field"><label>담당자명 <span class="diq__req">*</span></label><input type="text" id="diq-name" placeholder="예: 홍길동"></div>' +
+                '</div>' +
+                '<div class="diq__row">' +
+                  '<div class="diq__field"><label>이메일 <span class="diq__req">*</span></label><input type="email" id="diq-email" placeholder="예: gildong@company.com"></div>' +
+                  '<div class="diq__field"><label>연락처 <span class="diq__req">*</span></label><input type="tel" id="diq-phone" placeholder="예: 010-0000-0000"></div>' +
+                '</div>' +
+                '<div class="diq__row">' +
+                  '<div class="diq__field"><label>전시회명 <span class="diq__req">*</span></label><input type="text" id="diq-expo" placeholder="예: CES 2026"></div>' +
+                  '<div class="diq__field"><label>개최지</label><input type="text" id="diq-location" value="' + country + '" placeholder="예: 미국 / 라스베이거스"></div>' +
+                '</div>' +
+                '<div class="diq__row">' +
+                  '<div class="diq__field"><label>전시 기간</label><input type="text" id="diq-period" placeholder="예: 2026.01.06 ~ 01.09"></div>' +
+                  '<div class="diq__field"><label>통역 형태</label>' +
+                    '<select id="diq-type"><option value="">선택</option><option value="부스 상주">부스 상주(상담 통역)</option><option value="미팅 동행">미팅 동행</option><option value="현장 운영">현장 운영</option><option value="기타">기타</option></select>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="diq__field diq__full"><label>요청 내용 <span class="diq__req">*</span></label>' +
+                  '<textarea id="diq-message" rows="4" placeholder="통역사에게 전달할 요청 사항을 자유롭게 작성해주세요."></textarea>' +
+                '</div>' +
+                '<div class="diq__actions">' +
+                  '<button class="diq__cancel" onclick="cancelDirectInquiry(\'' + name.replace(/'/g,"\\'") + '\',\'' + lang.replace(/'/g,"\\'") + '\',\'' + (field||'').replace(/'/g,"\\'") + '\',\'' + country.replace(/'/g,"\\'") + '\',\'' + (photo||'').replace(/'/g,"\\'") + '\',\'' + (role||'').replace(/'/g,"\\'") + '\')">취소</button>' +
+                  '<button class="diq__submit" onclick="submitDirectInquiry(\'' + name.replace(/'/g,"\\'") + '\',\'' + lang.replace(/'/g,"\\'") + '\',\'' + (field||'').replace(/'/g,"\\'") + '\')">견적 의뢰 보내기</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+            area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelDirectInquiry(name, lang, field, country, photo, role) {
+            var area = document.getElementById('ipCtaArea');
+            if (!area) return;
+            area.innerHTML = '<button class="ip-modal__cta-btn" onclick="showDirectInquiry(\'' + name.replace(/'/g,"\\'") + '\',\'' + lang.replace(/'/g,"\\'") + '\',\'' + (field||'').replace(/'/g,"\\'") + '\',\'' + country.replace(/'/g,"\\'") + '\',\'' + (photo||'').replace(/'/g,"\\'") + '\',\'' + (role||'').replace(/'/g,"\\'") + '\')">이 통역사에게 직접 견적 의뢰</button>';
+        }
+
+        function submitDirectInquiry(interpName, lang, field) {
+            var company = document.getElementById('diq-company').value.trim();
+            var name = document.getElementById('diq-name').value.trim();
+            var email = document.getElementById('diq-email').value.trim();
+            var phone = document.getElementById('diq-phone').value.trim();
+            var expo = document.getElementById('diq-expo').value.trim();
+            var message = document.getElementById('diq-message').value.trim();
+
+            if (!company || !name || !email || !phone || !expo || !message) {
+                alert('필수 항목(*)을 모두 입력해주세요.');
+                return;
+            }
+
+            var inquiry = {
+                id: 'DIQ-' + Date.now(),
+                interpreter: interpName, language: lang, field: field,
+                company: company, name: name, email: email, phone: phone, expo: expo,
+                location: document.getElementById('diq-location').value.trim(),
+                period: document.getElementById('diq-period').value.trim(),
+                type: document.getElementById('diq-type').value,
+                message: message, status: 'pending',
+                createdAt: new Date().toISOString(),
+                createdAtKR: new Date().toLocaleString('ko-KR')
+            };
+
+            var inquiries = [];
+            try { inquiries = JSON.parse(localStorage.getItem('contentour_direct_inquiries') || '[]'); } catch(e) {}
+            inquiries.unshift(inquiry);
+            localStorage.setItem('contentour_direct_inquiries', JSON.stringify(inquiries));
+            localStorage.setItem('contentour_direct_inquiry_new', JSON.stringify(inquiry));
+
+            var area = document.getElementById('ipCtaArea');
+            area.innerHTML =
+              '<div class="diq__success">' +
+                '<div class="diq__success-icon">&#9989;</div>' +
+                '<div class="diq__success-title">견적 의뢰가 전송되었습니다!</div>' +
+                '<div class="diq__success-info">' +
+                  '<strong>' + interpName + '</strong> 통역사에게 직접 견적 의뢰가 전달되었습니다.<br>' +
+                  '확인 후 빠른 시일 내에 회신드리겠습니다.' +
+                '</div>' +
+                '<div class="diq__success-detail">' +
+                  '<div>문의번호: <strong>' + inquiry.id + '</strong></div>' +
+                  '<div>전시회: ' + expo + '</div>' +
+                  '<div>접수시간: ' + inquiry.createdAtKR + '</div>' +
+                '</div>' +
+                '<button class="ip-modal__cta-btn" onclick="closeIpModal()" style="margin-top:16px;">확인</button>' +
+              '</div>';
+        }
+
+        function closeIpModal() {
+            document.getElementById('ipModalOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeIpModal();
+        });
+
+        // 초기 렌더링
+        renderPage();
+    </script>
+</body>
+
+</html>

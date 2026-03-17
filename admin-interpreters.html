@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통역사 관리 - 콘텐츄어 관리자</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy: #0a2a5e;
+            --navy-deep: #061a3e;
+            --blue: #1565c0;
+            --blue-mid: #1976d2;
+            --sky: #4fc3f7;
+            --light-bg: #f0f5ff;
+            --white: #ffffff;
+            --g50: #f8fafc;
+            --g100: #f4f6fb;
+            --g200: #e5eaf2;
+            --g400: #9daec8;
+            --g600: #4a5a75;
+            --text: #0d1b3e;
+            --error: #e53935;
+            --warn: #f57c00;
+            --success: #2e7d32;
+            --sidebar-w: 256px;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: var(--light-bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── 사이드바 ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--navy-deep);
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(21, 101, 192, 0.2) 0%, transparent 70%);
+            top: -50px;
+            right: -100px;
+            pointer-events: none;
+        }
+
+        .sb-logo {
+            padding: 24px 20px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            z-index: 1;
+        }
+
+        .sb-logo__wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sb-logo__mark {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--blue), var(--sky));
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .sb-logo__name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .sb-logo__role {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--sky);
+            background: rgba(79, 195, 247, 0.12);
+            border: 1px solid rgba(79, 195, 247, 0.25);
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+
+        .sb-admin {
+            margin: 12px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sb-admin__name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .sb-admin__email {
+            font-size: 0.68rem;
+            color: var(--g400);
+            margin-top: 2px;
+        }
+
+        .sb-nav {
+            flex: 1;
+            padding: 8px 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sb-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.25);
+            padding: 14px 10px 5px;
+        }
+
+        .sb-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 0.83rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+            margin-bottom: 1px;
+            position: relative;
+        }
+
+        .sb-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+        }
+
+        .sb-item.active {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .sb-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
+            background: var(--sky);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .sb-item__icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sb-item__badge {
+            margin-left: auto;
+            background: var(--error);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 8px;
+        }
+
+        .sb-footer {
+            padding: 14px 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.68rem;
+            color: rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── 메인 ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: var(--white);
+            border-bottom: 1px solid var(--g200);
+            height: 62px;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar__title {
+            font-size: 1.05rem;
+            font-weight: 800;
+        }
+
+        .topbar__right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tb-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--g100);
+            border: 1.5px solid var(--g200);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.15s;
+        }
+
+        .tb-icon:hover {
+            border-color: var(--blue);
+        }
+
+        .tb-admin {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px 6px 6px;
+            background: var(--g100);
+            border: 1.5px solid var(--g200);
+            border-radius: 10px;
+        }
+
+        .tb-avatar {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--blue), var(--sky));
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .content {
+            padding: 24px 28px;
+            flex: 1;
+        }
+
+        /* ── KPI 카드 ── */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--white);
+            border: 1.5px solid var(--g200);
+            border-radius: 14px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .kpi-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .kpi-num {
+            font-size: 1.8rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .kpi-lbl {
+            font-size: 0.72rem;
+            color: var(--g400);
+            margin-top: 3px;
+        }
+
+        /* ── 필터 & 검색 바 ── */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 9px 14px 9px 36px;
+            border: 1.5px solid var(--g200);
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: var(--white);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-wrap input:focus {
+            border-color: var(--blue);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--g400);
+            font-size: 0.9rem;
+        }
+
+        .filter-sel {
+            padding: 9px 14px;
+            border: 1.5px solid var(--g200);
+            border-radius: 9px;
+            font-size: 0.83rem;
+            font-family: inherit;
+            background: var(--white);
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            min-width: 120px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            background: var(--white);
+            border: 1.5px solid var(--g200);
+            border-radius: 10px;
+            padding: 3px;
+        }
+
+        .ftab {
+            padding: 7px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--g400);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .ftab:hover {
+            color: var(--blue);
+        }
+
+        .ftab.on {
+            background: var(--navy);
+            color: #fff;
+        }
+
+        /* ── 통역사 카드 그리드 ── */
+        .interp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .icard {
+            background: var(--white);
+            border: 1.5px solid var(--g200);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .icard:hover {
+            box-shadow: 0 8px 28px rgba(21, 101, 192, 0.12);
+            border-color: var(--blue);
+            transform: translateY(-2px);
+        }
+
+        .icard-head {
+            padding: 18px 20px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .icard-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .icard-name {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .icard-meta {
+            font-size: 0.75rem;
+            color: var(--g400);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .icard-status {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .st-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 800;
+        }
+
+        .st-pending {
+            background: #fff3e0;
+            color: var(--warn);
+        }
+
+        .st-active {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+
+        .st-review {
+            background: #e3f0ff;
+            color: var(--blue);
+        }
+
+        .st-rejected {
+            background: #ffebee;
+            color: var(--error);
+        }
+
+        .icard-langs {
+            padding: 0 20px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .lang-chip {
+            padding: 3px 10px;
+            background: var(--light-bg);
+            border: 1px solid #c5d8f5;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .icard-specs {
+            padding: 0 20px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .spec-chip {
+            padding: 3px 9px;
+            background: var(--g100);
+            border-radius: 10px;
+            font-size: 0.68rem;
+            color: var(--g600);
+        }
+
+        .icard-foot {
+            padding: 12px 20px;
+            border-top: 1px solid var(--g100);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--g50);
+        }
+
+        .icard-date {
+            font-size: 0.7rem;
+            color: var(--g400);
+        }
+
+        .icard-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .ic-btn {
+            padding: 5px 12px;
+            border-radius: 7px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .ic-btn.view {
+            background: var(--light-bg);
+            color: var(--blue);
+            border: 1.5px solid #c5d8f5;
+        }
+
+        .ic-btn.view:hover {
+            background: var(--blue);
+            color: #fff;
+            border-color: var(--blue);
+        }
+
+        .ic-btn.approve {
+            background: #e8f5e9;
+            color: var(--success);
+            border: 1.5px solid #a5d6a7;
+        }
+
+        .ic-btn.approve:hover {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+
+        .ic-btn.reject {
+            background: #ffebee;
+            color: var(--error);
+            border: 1.5px solid #ffcdd2;
+        }
+
+        .ic-btn.reject:hover {
+            background: var(--error);
+            color: #fff;
+            border-color: var(--error);
+        }
+
+        /* ── 상세 모달 ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 26, 62, 0.55);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+        }
+
+        .overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.2);
+            transform: translateY(20px) scale(0.97);
+            transition: transform 0.3s cubic-bezier(0.34, 1.3, 0.64, 1);
+        }
+
+        .overlay.open .modal {
+            transform: none;
+        }
+
+        .modal-head {
+            padding: 22px 28px 18px;
+            background: linear-gradient(135deg, var(--navy), var(--blue-mid));
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .modal-head h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .modal-head p {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .modal-tabs {
+            display: flex;
+            background: var(--g100);
+            border-bottom: 1px solid var(--g200);
+            flex-shrink: 0;
+        }
+
+        .mtab {
+            padding: 11px 22px;
+            border: none;
+            background: transparent;
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: var(--g400);
+            cursor: pointer;
+            font-family: inherit;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s;
+        }
+
+        .mtab.on {
+            color: var(--blue);
+            border-bottom-color: var(--blue);
+            background: var(--white);
+        }
+
+        .modal-body {
+            padding: 24px 28px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .mtab-pane {
+            display: none;
+        }
+
+        .mtab-pane.on {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+
+            to {
+                opacity: 1
+            }
+        }
+
+        /* 상세 정보 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            background: var(--g100);
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 16px;
+        }
+
+        .ig-item label {
+            font-size: 0.66rem;
+            font-weight: 700;
+            color: var(--g400);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .ig-item span {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .detail-sec {
+            font-size: 0.82rem;
+            font-weight: 800;
+            margin: 16px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-sec::before {
+            content: '';
+            width: 4px;
+            height: 14px;
+            background: var(--blue);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .detail-sec::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--g200);
+        }
+
+        .lang-pair-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .lang-pair {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--light-bg);
+            border: 1px solid #c5d8f5;
+            border-radius: 10px;
+            padding: 7px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .spec-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .spec-tag {
+            padding: 5px 12px;
+            background: var(--g100);
+            border: 1px solid var(--g200);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--g600);
+        }
+
+        .spec-tag.hi {
+            background: var(--light-bg);
+            border-color: #c5d8f5;
+            color: var(--blue);
+        }
+
+        .career-card {
+            background: var(--g100);
+            border: 1px solid var(--g200);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+        }
+
+        .career-expo {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .career-info {
+            font-size: 0.75rem;
+            color: var(--g400);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .cert-list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .cert-item-view {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--g100);
+            border-radius: 8px;
+            font-size: 0.82rem;
+        }
+
+        /* 심사 패널 */
+        .review-panel {
+            background: var(--g50);
+            border: 1.5px solid var(--g200);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .review-lbl {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--g600);
+            margin-bottom: 6px;
+        }
+
+        .review-panel textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--g200);
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: var(--white);
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            margin-bottom: 14px;
+        }
+
+        .review-panel textarea:focus {
+            border-color: var(--blue);
+        }
+
+        .review-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rbtn {
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            border: none;
+            flex: 1;
+        }
+
+        .rbtn.approve {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .rbtn.approve:hover {
+            background: #1b5e20;
+            transform: translateY(-1px);
+        }
+
+        .rbtn.reject {
+            background: var(--error);
+            color: #fff;
+        }
+
+        .rbtn.reject:hover {
+            background: #b71c1c;
+            transform: translateY(-1px);
+        }
+
+        .rbtn.hold {
+            background: var(--warn);
+            color: #fff;
+        }
+
+        .rbtn.hold:hover {
+            background: #e65100;
+            transform: translateY(-1px);
+        }
+
+        .modal-foot {
+            padding: 16px 28px;
+            border-top: 1px solid var(--g200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--g50);
+            flex-shrink: 0;
+        }
+
+        .mf-info {
+            font-size: 0.75rem;
+            color: var(--g400);
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 14px;
+        }
+
+        .empty-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--g600);
+            margin-bottom: 6px;
+        }
+
+        .empty-desc {
+            font-size: 0.82rem;
+            color: var(--g400);
+        }
+
+        /* 버튼 */
+        .btn-primary {
+            padding: 9px 20px;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--navy);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            padding: 9px 16px;
+            background: var(--white);
+            border: 1.5px solid var(--g200);
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            color: var(--g600);
+            transition: all 0.15s;
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        /* 토스트 */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--navy);
+            color: #fff;
+            padding: 13px 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34, 1.5, 0.64, 1);
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width:900px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .kpi-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .interp-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 사이드바 -->
+    <aside class="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo__wrap">
+                <div class="sb-logo__mark">CT</div>
+                <div>
+                    <div class="sb-logo__name">CONTENTOUR</div><span class="sb-logo__role">Admin</span>
+                </div>
+            </div>
+        </div>
+        <div class="sb-admin">
+            <div class="sb-admin__name">이수경 관리자</div>
+            <div class="sb-admin__email">admin@contentour.co.kr</div>
+        </div>
+        <nav class="sb-nav">
+            <div class="sb-label">운영 관리</div>
+            <a class="sb-item" href="admin-dashboard.html"><span class="sb-item__icon">📋</span> 문의 목록 & 매칭</a>
+            <a class="sb-item" href="admin-schedule.html"><span class="sb-item__icon">📅</span> 스케줄 캘린더</a>
+            <div class="sb-label">마스터 데이터</div>
+            <a class="sb-item active"><span class="sb-item__icon">👥</span> 통역사 관리</a>
+            <a class="sb-item" href="admin-customers.html"><span class="sb-item__icon">🏢</span> 고객사 관리</a>
+            <div class="sb-label">채용</div>
+            <a class="sb-item" href="interpreter-apply.html" target="_blank"><span class="sb-item__icon">📝</span> 지원
+                페이지 보기</a>
+            <div class="sb-label">설정</div>
+            <a class="sb-item" href="#"><span class="sb-item__icon">⚙️</span> 시스템 설정</a>
+            <a class="sb-item" href="client-auth.html"><span class="sb-item__icon">🚪</span> 로그아웃</a>
+        </nav>
+        <div class="sb-footer">© 2026 CONTENTOUR Co., Ltd.</div>
+    </aside>
+
+    <!-- 메인 -->
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar__title">통역사 관리</div>
+            <div class="topbar__right">
+                <div class="tb-icon">🔔</div>
+                <a href="interpreter-apply.html" target="_blank" style="text-decoration:none;">
+                    <button class="btn-ghost" style="padding:8px 14px;font-size:0.82rem;">🔗 지원 페이지 공유</button>
+                </a>
+                <div class="tb-admin">
+                    <div class="tb-avatar">이</div>
+                    <span style="font-size:0.8rem;font-weight:700;">이수경</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- KPI -->
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:#e3f0ff;">👥</div>
+                    <div>
+                        <div class="kpi-num" style="color:var(--blue);" id="kpi-total">0</div>
+                        <div class="kpi-lbl">전체 통역사</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:#fff3e0;">🔔</div>
+                    <div>
+                        <div class="kpi-num" style="color:var(--warn);" id="kpi-pending">0</div>
+                        <div class="kpi-lbl">신규 접수/심사</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:#e8f5e9;">✅</div>
+                    <div>
+                        <div class="kpi-num" style="color:var(--success);" id="kpi-active">0</div>
+                        <div class="kpi-lbl">활동 중</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background:var(--g100);">🌐</div>
+                    <div>
+                        <div class="kpi-num" style="color:var(--g400);" id="kpi-langs">0</div>
+                        <div class="kpi-lbl">보유 언어 수</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 툴바 -->
+            <div class="toolbar">
+                <div class="search-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="이름, 언어, 전문분야 검색..." oninput="filterInterps(this.value)">
+                </div>
+                <select class="filter-sel" onchange="filterByLang(this.value)" id="langFilter">
+                    <option value="">언어 전체</option>
+                    <option>영어</option>
+                    <option>일본어</option>
+                    <option>독일어</option>
+                    <option>중국어</option>
+                    <option>베트남어</option>
+                    <option>프랑스어</option>
+                </select>
+                <div class="filter-tabs" id="statusTabs">
+                    <button class="ftab on" onclick="filterByStatus('all',this)">전체</button>
+                    <button class="ftab" onclick="filterByStatus('pending',this)">🔔 신규 접수</button>
+                    <button class="ftab" onclick="filterByStatus('review',this)">📥 접수 완료</button>
+                    <button class="ftab" onclick="filterByStatus('active',this)">✅ 활동중</button>
+                    <button class="ftab" onclick="filterByStatus('rejected',this)">❌ 반려</button>
+                </div>
+            </div>
+
+            <!-- 통역사 카드 그리드 -->
+            <div class="interp-grid" id="interpGrid"></div>
+        </div>
+    </div>
+
+    <!-- 상세 모달 -->
+    <div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+            <div class="modal-head">
+                <div>
+                    <h3 id="mName">통역사 상세</h3>
+                    <p id="mSub">지원 정보 및 이력서 검토</p>
+                </div>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-tabs">
+                <button class="mtab on" onclick="switchMTab('info',this)">📋 기본 정보</button>
+                <button class="mtab" onclick="switchMTab('langs',this)">🌐 언어 & 분야</button>
+                <button class="mtab" onclick="switchMTab('career',this)">📂 경력 & 자격증</button>
+                <button class="mtab" onclick="switchMTab('review',this)">⚖️ 심사</button>
+            </div>
+            <div class="modal-body">
+                <div class="mtab-pane on" id="mp-info"></div>
+                <div class="mtab-pane" id="mp-langs"></div>
+                <div class="mtab-pane" id="mp-career"></div>
+                <div class="mtab-pane" id="mp-review"></div>
+            </div>
+            <div class="modal-foot">
+                <div class="mf-info" id="mfInfo"></div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn-ghost" onclick="closeModal()">닫기</button>
+                    <button class="btn-primary" id="mApproveBtn" onclick="approveFromModal()">✅ 승인</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ═══════════════════════════
+        // 샘플 데이터
+        // ═══════════════════════════
+        const interpColors = ['#1565c0', '#0277bd', '#00695c', '#c62828', '#6a1b9a', '#2e7d32', '#4527a0', '#e65100'];
+
+        let interpreters = [
+            {
+                id: 1, nameKo: '야마다 켄지', nameEn: 'Yamada Kenji', nationality: '일본', email: 'yamada@example.com', phone: '010-1234-5678', city: '도쿄', gender: '남성',
+                intro: '일본 현지 전시회 통역 10년 경력. 제조·산업 분야 전문.',
+                langs: [{ from: '한국어', to: '일본어' }, { from: '영어', to: '일본어' }],
+                specs: ['🏭 제조·산업', '⚡ 에너지·환경', '🚗 자동차·모빌리티'],
+                types: ['🏢 부스 상주', '🤝 미팅 동행'], regions: ['🇯🇵 일본', '🇰🇷 한국'],
+                careers: [{ expo: 'CEATEC Japan 2024', location: '일본 도쿄', period: '2024.10', lang: '한국어↔일본어' }, { expo: 'Nano Tech Tokyo 2023', location: '일본 도쿄', period: '2023.01', lang: '한국어↔일본어' }],
+                certs: [{ name: 'JLPT N1', year: '2015' }, { name: '비즈니스 일본어 검정 J1', year: '2018' }],
+                totalExp: '10년 이상', school: '도쿄외국어대학교', major: '한국어학',
+                status: 'active', appliedAt: '2025.09.01', reviewNote: '경력 풍부, 즉시 파견 가능', color: '#1565c0'
+            },
+
+            {
+                id: 2, nameKo: '제임스 김', nameEn: 'James Kim', nationality: '미국', email: 'james@example.com', phone: '010-2345-6789', city: '서울', gender: '남성',
+                intro: '한미 비즈니스 통역 전문가. IT·전자 분야 강점.',
+                langs: [{ from: '한국어', to: '영어' }],
+                specs: ['💻 IT·전자', '🏥 의료·바이오', '💰 금융·투자'],
+                types: ['🏢 부스 상주', '🤝 미팅 동행', '📱 원격 통역'], regions: ['🇺🇸 미국', '🇰🇷 한국', '🌍 전 세계'],
+                careers: [{ expo: 'CES 2025', location: '미국 라스베이거스', period: '2025.01', lang: '한국어↔영어' }, { expo: 'Battery Show NA 2024', location: '미국 디트로이트', period: '2024.10', lang: '한국어↔영어' }],
+                certs: [{ name: '통번역사 2급', year: '2019' }],
+                totalExp: '5~10년', school: '연세대학교', major: '영어영문학',
+                status: 'active', appliedAt: '2025.08.15', reviewNote: '영어권 전시회 파견 최적 인원', color: '#0277bd'
+            },
+
+            {
+                id: 3, nameKo: '한스 뮐러', nameEn: 'Hans Müller', nationality: '독일', email: 'hans@example.com', phone: '010-3456-7890', city: '프랑크푸르트', gender: '남성',
+                intro: '독일 현지 전시회 8년 경력. 의료·에너지 분야 전문.',
+                langs: [{ from: '한국어', to: '독일어' }, { from: '영어', to: '독일어' }],
+                specs: ['🏥 의료·바이오', '⚡ 에너지·환경', '🏭 제조·산업'],
+                types: ['🏢 부스 상주', '🤝 미팅 동행'], regions: ['🇩🇪 독일·유럽'],
+                careers: [{ expo: 'MEDICA 2024', location: '독일 뒤셀도르프', period: '2024.11', lang: '한국어↔독일어' }, { expo: 'Intersolar Europe 2024', location: '독일 뮌헨', period: '2024.06', lang: '한국어↔독일어' }],
+                certs: [{ name: '독어 통번역 자격증', year: '2016' }, { name: '의료기기 전문 통역 수료', year: '2020' }],
+                totalExp: '5~10년', school: '하이델베르크대학교', major: '한국학',
+                status: 'active', appliedAt: '2025.07.20', reviewNote: '독일 의료 전시회 전문', color: '#00695c'
+            },
+
+            {
+                id: 4, nameKo: '응우옌 투', nameEn: 'Nguyen Thu', nationality: '베트남', email: 'nguyen@example.com', phone: '010-4567-8901', city: '하노이', gender: '여성',
+                intro: '베트남 무역·미용 분야 통역. 한베 비즈니스 경험 다수.',
+                langs: [{ from: '한국어', to: '베트남어' }],
+                specs: ['👗 패션·뷰티', '🍽️ 식품·농업', '📦 물류·무역'],
+                types: ['🏢 부스 상주', '🎤 현장 운영'], regions: ['🇻🇳 동남아', '🇰🇷 한국'],
+                careers: [{ expo: 'Beautycare Expo 2024', location: '베트남 하노이', period: '2024.04', lang: '한국어↔베트남어' }],
+                certs: [{ name: '베트남어 능력시험 고급', year: '2017' }],
+                totalExp: '3~5년', school: '하노이외국어대학교', major: '한국어학',
+                status: 'active', appliedAt: '2025.10.01', reviewNote: '동남아 뷰티·식품 전시 전문', color: '#c62828'
+            },
+
+            {
+                id: 5, nameKo: '박서연', nameEn: 'Sarah Park', nationality: '대한민국', email: 'sarah@example.com', phone: '010-5678-9012', city: '서울', gender: '여성',
+                intro: '영어권 의료·에너지 전시회 통역 전문가. 현장 경험 다수.',
+                langs: [{ from: '한국어', to: '영어' }],
+                specs: ['🏥 의료·바이오', '⚡ 에너지·환경', '✈️ 항공·방위'],
+                types: ['🏢 부스 상주', '🤝 미팅 동행', '🎤 현장 운영'], regions: ['🇺🇸 미국', '🌍 전 세계'],
+                careers: [{ expo: 'Arab Health 2025', location: 'UAE 두바이', period: '2025.01', lang: '한국어↔영어' }, { expo: 'IEEE PES T&D 2024', location: '미국 애너하임', period: '2024.05', lang: '한국어↔영어' }],
+                certs: [{ name: '영어 통번역사 1급', year: '2020' }, { name: '의료 전문 통역 수료', year: '2022' }],
+                totalExp: '3~5년', school: '이화여자대학교', major: '영어통번역학',
+                status: 'active', appliedAt: '2025.06.10', reviewNote: '중동·미주 전시회 최적', color: '#4527a0'
+            },
+
+            {
+                id: 6, nameKo: '김민준', nameEn: 'Minjun Kim', nationality: '대한민국', email: 'minjun@example.com', phone: '010-6789-0123', city: '부산', gender: '남성',
+                intro: '일본 제조·IT 분야 통역 지원합니다. 일본 거주 3년 경험.',
+                langs: [{ from: '한국어', to: '일본어' }, { from: '한국어', to: '영어' }],
+                specs: ['💻 IT·전자', '🏭 제조·산업'],
+                types: ['🏢 부스 상주'], regions: ['🇯🇵 일본', '🇺🇸 미국'],
+                careers: [{ expo: '게임쇼 Tokyo 2023', location: '일본 도쿄', period: '2023.09', lang: '한국어↔일본어' }],
+                certs: [{ name: 'JLPT N2', year: '2021' }],
+                totalExp: '1~3년', school: '부산외국어대학교', major: '일본어학',
+                status: 'pending', appliedAt: '2026.03.01', reviewNote: '', color: '#2e7d32'
+            },
+
+            {
+                id: 7, nameKo: '이지은', nameEn: 'Jieun Lee', nationality: '대한민국', email: 'jieun@example.com', phone: '010-7890-1234', city: '서울', gender: '여성',
+                intro: '독일어 프리랜서 통역사. 자동차·건축 전시 경험 있습니다.',
+                langs: [{ from: '한국어', to: '독일어' }, { from: '영어', to: '독일어' }],
+                specs: ['🚗 자동차·모빌리티', '🏗️ 건축·건설'],
+                types: ['🤝 미팅 동행', '📱 원격 통역'], regions: ['🇩🇪 독일·유럽'],
+                careers: [],
+                certs: [{ name: '독어권 통번역사 자격증', year: '2023' }],
+                totalExp: '1년 미만', school: '한국외국어대학교', major: '독일어학',
+                status: 'review', appliedAt: '2026.03.03', reviewNote: '경력 보완 필요, 면접 예정', color: '#e65100'
+            },
+
+            {
+                id: 8, nameKo: '최현우', nameEn: 'Hyunwoo Choi', nationality: '대한민국', email: 'hyunwoo@example.com', phone: '010-8901-2345', city: '인천', gender: '남성',
+                intro: '중국어 비즈니스 통역 전문. 무역·식품 분야 경험.',
+                langs: [{ from: '한국어', to: '중국어' }],
+                specs: ['📦 물류·무역', '🍽️ 식품·농업'],
+                types: ['🏢 부스 상주', '🤝 미팅 동행'], regions: ['🇨🇳 중국', '🇰🇷 한국'],
+                careers: [{ expo: 'CIIE 2024', location: '중국 상하이', period: '2024.11', lang: '한국어↔중국어' }],
+                certs: [{ name: 'HSK 6급', year: '2019' }, { name: 'HSKK 고급', year: '2020' }],
+                totalExp: '3~5년', school: '인하대학교', major: '중국어문학',
+                status: 'pending', appliedAt: '2026.03.04', reviewNote: '', color: '#6a1b9a'
+            },
+
+            {
+                id: 9, nameKo: '고하나', nameEn: 'Hana Ko', nationality: '대한민국', email: 'hana@contentour.co.kr', phone: '010-1111-2222', city: '서울', gender: '여성',
+                intro: '글로벌 비즈니스 통역 전문가입니다. IT 및 전략 컨설팅 분야에서 다수의 통역 경험을 보유하고 있습니다. 콘텐츄어와 함께 성장하고 싶습니다.',
+                langs: [{ from: '한국어', to: '영어' }, { from: '한국어', to: '일본어' }],
+                specs: ['💻 IT·전자', '💰 금융·투자', '🏗️ 건축·건설'],
+                types: ['🏢 부스 상주', '🤝 미팅 동행', '🎤 현장 운영'], regions: ['🇰🇷 한국', '🇯🇵 일본', '🇺🇸 미국', '🌍 전 세계'],
+                careers: [{ expo: 'CES 2024', location: '미국 라스베이거스', period: '2024.01', lang: '한국어↔영어' }],
+                certs: [{ name: '통번역사 1급', year: '2021' }, { name: 'JLPT N1', year: '2020' }],
+                totalExp: '5~10년', school: '서울대학교', major: '언어학',
+                status: 'pending', appliedAt: '2026.03.05', reviewNote: '신규 지원 - 즉시 검토 필요', color: '#1565c0'
+            },
+        ];
+
+        // 로컬 스토리지에서 저장된 상태 복원
+        const INTERP_STORAGE_KEY = 'contentour_interpreters';
+        (function loadSaved() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(INTERP_STORAGE_KEY));
+                if (saved && Array.isArray(saved)) {
+                    // 저장된 데이터로 기존 데이터 덮어쓰기 (ID 매칭)
+                    const savedMap = {};
+                    saved.forEach(s => { savedMap[s.id] = s; });
+                    interpreters = interpreters.map(p => savedMap[p.id] ? { ...p, ...savedMap[p.id] } : p);
+                    // 저장에만 있는 신규 항목 추가
+                    saved.forEach(s => {
+                        if (!interpreters.find(p => p.id === s.id)) interpreters.push(s);
+                    });
+                    console.log('통역사 데이터 복원 완료');
+                }
+            } catch(e) { console.warn('통역사 데이터 로드 실패:', e); }
+        })();
+
+        function saveInterpreters() {
+            try {
+                localStorage.setItem(INTERP_STORAGE_KEY, JSON.stringify(interpreters));
+            } catch(e) { console.warn('통역사 데이터 저장 실패:', e); }
+        }
+
+        let visibleInterps = [...interpreters];
+        let activeId = null;
+        let curStatusFilter = 'all';
+
+        // ═══════════════════════════
+        // 렌더링
+        // ═══════════════════════════
+        function renderKPI() {
+            const total = interpreters.length;
+            const pending = interpreters.filter(x => x.status === 'pending' || x.status === 'review').length;
+            const active = interpreters.filter(x => x.status === 'active').length;
+            const langs = [...new Set(interpreters.flatMap(x => x.langs.map(l => l.to)))].length;
+            document.getElementById('kpi-total').textContent = total;
+            document.getElementById('kpi-pending').textContent = pending;
+            document.getElementById('kpi-active').textContent = active;
+            document.getElementById('kpi-langs').textContent = langs;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('interpGrid');
+            if (!visibleInterps.length) {
+                grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <div class="empty-icon">🔍</div>
+      <div class="empty-title">검색 결과가 없습니다</div>
+      <div class="empty-desc">다른 조건으로 검색해보세요.</div>
+    </div>`; return;
+            }
+            grid.innerHTML = visibleInterps.map(p => `
+    <div class="icard" onclick="openModal('${p.id}')">
+      <div class="icard-head">
+        <div class="icard-avatar" style="background:${p.color};">${p.nameKo.charAt(0)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="icard-name">${p.nameKo} <span style="font-size:0.75rem;font-weight:500;color:var(--g400);">${p.nameEn}</span></div>
+          <div class="icard-meta">
+            <span>🌍 ${p.nationality}</span><span>📍 ${p.city}</span><span>📅 ${p.totalExp}</span>
+          </div>
+        </div>
+        <div class="icard-status"><span class="st-badge ${STATUS_CLASS[p.status]}">${STATUS_LABEL[p.status]}</span></div>
+      </div>
+      <div class="icard-langs">
+        ${p.langs.map(l => `<span class="lang-chip">${l.from} ↔ ${l.to}</span>`).join('')}
+      </div>
+      <div class="icard-specs">
+        ${p.specs.slice(0, 3).map(s => `<span class="spec-chip">${s}</span>`).join('')}
+        ${p.specs.length > 3 ? `<span class="spec-chip">+${p.specs.length - 3}</span>` : ''}
+      </div>
+      <div class="icard-foot">
+        <div class="icard-date">지원일 ${p.appliedAt}</div>
+        <div class="icard-btns">
+          ${p.status === 'pending' || p.status === 'review' ? `
+            <button class="ic-btn approve" onclick="event.stopPropagation();quickApprove('${p.id}')">승인</button>
+            <button class="ic-btn reject"  onclick="event.stopPropagation();quickReject('${p.id}')">반려</button>
+          ` : `<button class="ic-btn view">상세 보기</button>`}
+        </div>
+      </div>
+    </div>`).join('');
+        }
+
+        // ═══════════════════════════
+        // 공통 유틸리티
+        // ═══════════════════════════
+        const STATUS_LABEL = { pending: '🔔 신규 접수', review: '📥 접수 완료', active: '✅ 활동중', rejected: '❌ 반려' };
+        const STATUS_CLASS = { pending: 'st-pending', review: 'st-review', active: 'st-active', rejected: 'st-rejected' };
+        const STATUS_COLOR = {
+            active:   { bg: '#e8f5e9', color: 'var(--success)' },
+            rejected: { bg: '#ffebee', color: 'var(--error)' },
+            pending:  { bg: '#fff3e0', color: 'var(--warn)' },
+            review:   { bg: '#fff3e0', color: 'var(--warn)' }
+        };
+
+        function findInterp(id) {
+            return interpreters.find(x => String(x.id) === String(id));
+        }
+
+        function changeStatus(id, newStatus, toastMsg) {
+            const p = findInterp(id); if (!p) return;
+            const note = document.getElementById('reviewNote')?.value || '';
+            p.status = newStatus;
+            if (note) p.reviewNote = note;
+            updateAll();
+            showToast(toastMsg.replace('{name}', p.nameKo));
+        }
+
+        // ═══════════════════════════
+        // 모달
+        // ═══════════════════════════
+        function openModal(id) {
+            const p = findInterp(id); if (!p) return;
+            activeId = id;
+            document.getElementById('mName').textContent = `${p.nameKo} (${p.nameEn})`;
+            document.getElementById('mSub').textContent = `${p.nationality} · ${p.city} · ${p.totalExp} 경력`;
+            document.getElementById('mfInfo').textContent = `지원일: ${p.appliedAt}`;
+
+            // 기본 정보 탭
+            document.getElementById('mp-info').innerHTML = `
+    <div class="info-grid">
+      <div class="ig-item"><label>이름 (한글)</label><span>${p.nameKo}</span></div>
+      <div class="ig-item"><label>이름 (영문)</label><span>${p.nameEn}</span></div>
+      <div class="ig-item"><label>국적</label><span>${p.nationality}</span></div>
+      <div class="ig-item"><label>거주 도시</label><span>${p.city}</span></div>
+      <div class="ig-item"><label>성별</label><span>${p.gender || '—'}</span></div>
+      <div class="ig-item"><label>총 경력</label><span>${p.totalExp}</span></div>
+      <div class="ig-item"><label>이메일</label><span>${p.email}</span></div>
+      <div class="ig-item"><label>연락처</label><span>${p.phone}</span></div>
+      <div class="ig-item"><label>상태</label><span>${STATUS_LABEL[p.status]}</span></div>
+    </div>
+    <div class="detail-sec">자기소개</div>
+    <div style="background:var(--g100);border-radius:10px;padding:14px 16px;font-size:0.85rem;line-height:1.7;">${p.intro}</div>
+    <div class="detail-sec">학력</div>
+    <div style="background:var(--g100);border-radius:10px;padding:12px 16px;font-size:0.85rem;">
+      ${p.school} · ${p.major}
+    </div>`;
+
+            // 언어 & 분야 탭
+            document.getElementById('mp-langs').innerHTML = `
+    <div class="detail-sec">통역 가능 언어</div>
+    <div class="lang-pair-list">
+      ${p.langs.map(l => `<div class="lang-pair">🌐 ${l.from} ↔ ${l.to}</div>`).join('')}
+    </div>
+    <div class="detail-sec">전문 분야</div>
+    <div class="spec-tags">
+      ${p.specs.map(s => `<span class="spec-tag hi">${s}</span>`).join('')}
+    </div>
+    <div class="detail-sec">통역 형태</div>
+    <div class="spec-tags">
+      ${p.types.map(t => `<span class="spec-tag">${t}</span>`).join('')}
+    </div>
+    <div class="detail-sec">희망 파견 지역</div>
+    <div class="spec-tags">
+      ${p.regions.map(r => `<span class="spec-tag">${r}</span>`).join('')}
+    </div>`;
+
+            // 경력 & 자격증 탭
+            document.getElementById('mp-career').innerHTML = `
+    <div class="detail-sec">전시회 통역 경력</div>
+    ${p.careers.length ? p.careers.map(c => `
+      <div class="career-card">
+        <div class="career-expo">${c.expo}</div>
+        <div class="career-info">
+          <span>📍 ${c.location}</span><span>📅 ${c.period}</span><span>🌐 ${c.lang}</span>
+        </div>
+      </div>`).join('') : '<div style="color:var(--g400);font-size:0.83rem;padding:10px;">등록된 경력 없음</div>'}
+    <div class="detail-sec">자격증 / 수료증</div>
+    <div class="cert-list-view">
+      ${p.certs.length ? p.certs.map(c => `
+        <div class="cert-item-view">
+          <span style="font-weight:700;">🏆 ${c.name}</span>
+          <span style="color:var(--g400);">${c.year}년 취득</span>
+        </div>`).join('') : '<div style="color:var(--g400);font-size:0.83rem;padding:10px;">등록된 자격증 없음</div>'}
+    </div>`;
+
+            // 심사 탭
+            const isApprovable = p.status !== 'active';
+            document.getElementById('mp-review').innerHTML = `
+    <div style="background:${STATUS_COLOR[p.status].bg};border-radius:12px;padding:14px 18px;margin-bottom:18px;font-size:0.85rem;font-weight:700;color:${STATUS_COLOR[p.status].color};">
+      현재 상태: ${STATUS_LABEL[p.status]}
+    </div>
+    <div class="review-panel">
+      <div class="review-lbl">심사 메모 (내부용)</div>
+      <textarea id="reviewNote" placeholder="심사 의견, 메모 등을 입력하세요.">${p.reviewNote || ''}</textarea>
+      <div class="review-lbl" style="margin-bottom:10px;">심사 결정</div>
+      <div class="review-btns">
+        <button class="rbtn approve" onclick="approveInterp(${p.id})">✅ 승인 (활동 등록)</button>
+        <button class="rbtn hold"    onclick="holdInterp(${p.id})">📥 접수 (추가 검토)</button>
+        <button class="rbtn reject"  onclick="rejectInterp(${p.id})">❌ 반려</button>
+      </div>
+    </div>`;
+
+            const approveBtn = document.getElementById('mApproveBtn');
+            if (p.status === 'active') { approveBtn.textContent = '✅ 승인됨'; approveBtn.disabled = true; approveBtn.style.opacity = '0.5'; }
+            else { approveBtn.textContent = '✅ 승인'; approveBtn.disabled = false; approveBtn.style.opacity = '1'; }
+
+            // 첫 탭 활성화
+            document.querySelectorAll('.mtab').forEach(t => t.classList.remove('on'));
+            document.querySelectorAll('.mtab-pane').forEach(p => p.classList.remove('on'));
+            document.querySelectorAll('.mtab')[0].classList.add('on');
+            document.getElementById('mp-info').classList.add('on');
+            document.getElementById('overlay').classList.add('open');
+        }
+
+        function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+        function switchMTab(name, btn) {
+            document.querySelectorAll('.mtab').forEach(t => t.classList.remove('on'));
+            document.querySelectorAll('.mtab-pane').forEach(p => p.classList.remove('on'));
+            btn.classList.add('on');
+            document.getElementById('mp-' + name).classList.add('on');
+        }
+
+        // ═══════════════════════════
+        // 승인 / 보류 / 반려
+        // ═══════════════════════════
+        function approveInterp(id) {
+            changeStatus(id, 'active', '✅ {name} 통역사가 활동 등록되었습니다.');
+            closeModal();
+        }
+        function holdInterp(id) {
+            changeStatus(id, 'review', '📥 {name} 통역사가 접수 완료 상태로 변경되었습니다.');
+            closeModal();
+        }
+        function rejectInterp(id) {
+            changeStatus(id, 'rejected', '❌ {name} 통역사 지원이 반려되었습니다.');
+            closeModal();
+        }
+        function approveFromModal() { if (activeId) approveInterp(activeId); }
+        function quickApprove(id) { changeStatus(id, 'active', '✅ {name} 승인 완료!'); }
+        function quickReject(id) { changeStatus(id, 'rejected', '❌ {name} 반려 처리됨'); }
+
+        // ═══════════════════════════
+        // 필터
+        // ═══════════════════════════
+        function filterInterps(q) {
+            applyFilters(q, document.getElementById('langFilter').value, curStatusFilter);
+        }
+        function filterByLang(l) {
+            applyFilters(document.querySelector('.search-wrap input').value, l, curStatusFilter);
+        }
+        function filterByStatus(s, btn) {
+            curStatusFilter = s;
+            document.querySelectorAll('.ftab').forEach(b => b.classList.remove('on'));
+            btn.classList.add('on');
+            applyFilters(document.querySelector('.search-wrap input').value, document.getElementById('langFilter').value, s);
+        }
+        function applyFilters(q, lang, status) {
+            visibleInterps = interpreters.filter(p => {
+                const matchQ = !q || p.nameKo.includes(q) || p.nameEn.toLowerCase().includes(q.toLowerCase()) || p.specs.some(s => s.includes(q)) || p.langs.some(l => l.to.includes(q));
+                const matchLang = !lang || p.langs.some(l => l.to === lang || l.from === lang);
+                const matchSt = status === 'all' || p.status === status;
+                return matchQ && matchLang && matchSt;
+            });
+            renderGrid();
+        }
+
+        function updateAll() {
+            saveInterpreters();
+            applyFilters(document.querySelector('.search-wrap input')?.value || '', document.getElementById('langFilter')?.value || '', curStatusFilter);
+            renderKPI();
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.textContent = msg;
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ═══════════════════════════
+        // Supabase에서 승인된 통역사 로드
+        // ═══════════════════════════
+        const _sbInterp = window.supabase
+            ? window.supabase.createClient(
+                'https://yvtgfieoeoqhfbofzunk.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2dGdmaWVvZW9xaGZib2Z6dW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NzI4NTksImV4cCI6MjA4NzE0ODg1OX0.49XWIHjMWG2YN8sI58GunPsSl2UyhJgx88mEtV613Pg'
+              )
+            : null;
+
+        async function loadFromDB() {
+            if (!_sbInterp) return;
+            try {
+                // 승인된 지원서 + 프로필 정보 로드
+                const { data: apps } = await _sbInterp
+                    .from('48_통역사지원서')
+                    .select('*')
+                    .in('status', ['approved', 'reviewing', 'pending', 'interview']);
+
+                if (!apps || apps.length === 0) return;
+
+                const existingEmails = interpreters.map(p => p.email);
+
+                apps.forEach(a => {
+                    // 이미 있으면 스킵
+                    if (existingEmails.includes(a.email)) return;
+
+                    const langPairs = (a.language_pairs || []).map(l => ({ from: l.from, to: l.to }));
+                    const statusMap = { approved: 'active', reviewing: 'review', pending: 'pending', interview: 'review', rejected: 'rejected' };
+
+                    interpreters.push({
+                        id: 'db-' + a.id.slice(0, 8),
+                        dbId: a.id,
+                        userId: a.created_user_id || null,
+                        nameKo: a.name_ko,
+                        nameEn: a.name_en || '',
+                        nationality: a.nationality || '',
+                        email: a.email,
+                        phone: a.phone,
+                        city: a.city || '',
+                        gender: a.gender || '',
+                        intro: a.intro || '',
+                        totalExp: a.total_experience || '',
+                        school: a.school || '',
+                        major: a.major || '',
+                        langs: langPairs.length > 0 ? langPairs : [{ from: '-', to: '-' }],
+                        specs: a.specialties || [],
+                        types: a.interpretation_types || [],
+                        regions: a.preferred_regions || [],
+                        careers: (a.careers || []).map(c => ({ expo: c.expo, location: c.location, period: c.period, language: c.language })),
+                        certs: a.certifications || [],
+                        status: statusMap[a.status] || 'pending',
+                        appliedAt: a.created_at ? new Date(a.created_at).toISOString().slice(0, 10).replace(/-/g, '.') : '',
+                        color: interpColors[Math.floor(Math.random() * interpColors.length)],
+                        fromDB: true
+                    });
+                });
+
+                visibleInterps = [...interpreters];
+                updateAll();
+                console.log('DB에서 통역사 ' + apps.length + '명 로드 완료');
+            } catch (err) {
+                console.error('DB 통역사 로드 실패:', err);
+            }
+        }
+
+        // 초기화
+        renderKPI();
+        renderGrid();
+        loadFromDB();
+    </script>
+</body>
+
+</html>

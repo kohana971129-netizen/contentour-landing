@@ -1,0 +1,22 @@
+# Vercel
+.vercel
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Node (향후 사용 시)
+node_modules/
+package-lock.json

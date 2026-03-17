@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>파트너 회원가입 - 콘텐츄어</title>
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            min-height: 100vh;
+            padding: 0;
+            /* 좌우 여백 제거 */
+        }
+
+        .signup-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            padding: 3rem 2.5rem;
+            width: 90%;
+            /* 모바일 대응을 위해 너비 조정 */
+            max-width: 500px;
+            margin: 100px auto 40px;
+            /* 상단 여백 추가 및 중앙 정렬 */
+        }
+
+        .header-box {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-box h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-box p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .footer-links a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <header class="nav">
+        <div class="nav__inner">
+            <a class="nav__logo" href="index.html">
+                <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
+            </a>
+
+            <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
+                <a href="index.html#home">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
+                    </div>
+                </a>
+                <a href="support.html">
+                    <span class="nav__menu-icon">🤝</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">전시회지원</span>
+                        <span class="nav__menu-desc">현장 운영 서비스</span>
+                    </div>
+                </a>
+                <a href="portal.html">
+                    <span class="nav__menu-icon">💻</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">통역운영</span>
+                        <span class="nav__menu-desc">원스톱 관리 시스템</span>
+                    </div>
+                </a>
+                <a href="performance.html">
+                    <span class="nav__menu-icon">📊</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">성과</span>
+                        <span class="nav__menu-desc">성공 사례 데이터</span>
+                    </div>
+                </a>
+                <a href="video.html">
+                    <span class="nav__menu-icon">🎬</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">현장리뷰</span>
+                        <span class="nav__menu-desc">기업 홍보 영상</span>
+                    </div>
+                </a>
+                <a href="client-auth.html" class="nav-client">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">Login</span>
+                        <span class="nav__menu-desc">Client Portal</span>
+                    </div>
+                </a>
+            </nav>
+
+            <div class="nav-cta">
+                <a href="index.html#contact" class="btn btn-primary btn-nav">견적 문의</a>
+            </div>
+
+            <button class="nav__toggle" type="button" aria-controls="navMenu" aria-expanded="false"
+                id="mobileMenuToggle">
+                <span class="sr-only">메뉴 열기</span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="signup-container">
+        <div class="header-box">
+            <h1>🤝 파트너 회원가입</h1>
+            <p>콘텐츄어의 전문 통역 파트너로 함께하세요.</p>
+        </div>
+
+        <form id="signupForm" onsubmit="handleSignup(event)">
+            <div class="form-group">
+                <label for="name">성함 (Full Name)</label>
+                <input type="text" id="name" name="name" placeholder="홍길동" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">이메일 (Email)</label>
+                <input type="email" id="email" name="email" placeholder="example@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="language">주요 통역 언어</label>
+                <select id="language" name="language" required>
+                    <option value="">언어 선택</option>
+                    <option value="en">영어</option>
+                    <option value="jp">일본어</option>
+                    <option value="zh">중국어</option>
+                    <option value="etc">기타</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호 설정</label>
+                <input type="password" id="password" name="password" required minlength="8">
+            </div>
+
+            <button type="submit" class="btn-submit">가입 신청하기</button>
+        </form>
+
+        <div class="footer-links">
+            이미 계정이 있으신가요? <a href="login.html">로그인하기</a>
+        </div>
+    </div>
+
+    <!-- Blue ITQ Section -->
+    <section id="contact" class="blue-itq">
+        <button class="blue-itq__close" id="closeInquiry" aria-label="Close inquiry form">×</button>
+        <div class="blue-itq__wrap">
+            <header class="blue-itq__head">
+                <p class="blue-itq__eyebrow">Interpreter Quote</p>
+                <h2 class="blue-itq__title">글로벌 비즈니스를 위한<br>통역 견적 문의</h2>
+                <p class="blue-itq__sub">
+                    전시 정보만 알려주셔도 1차 견적 범위를 안내드릴 수 있습니다.<br>
+                    영업일 기준 24시간 내 회신을 목표로 합니다.
+                </p>
+
+                <div class="blue-itq__chips">
+                    <span class="chip">🎯 부스 상주 통역</span>
+                    <span class="chip">🤝 미팅 동행 통역</span>
+                    <span class="chip">📋 주최사 커뮤니케이션</span>
+                    <span class="chip">⚡ 24시간 내 견적 회신</span>
+                </div>
+            </header>
+
+            <form class="blue-itq__form" id="interpreterForm">
+                <div class="blue-itq__grid">
+                    <div class="field">
+                        <label for="company">회사명 <span class="req">*</span></label>
+                        <input id="company" name="company" required autocomplete="organization"
+                            placeholder="예: (주)콘텐츄어" />
+                    </div>
+
+                    <div class="field">
+                        <label for="name">담당자명 <span class="req">*</span></label>
+                        <input id="name" name="name" required autocomplete="name" placeholder="예: 홍길동" />
+                    </div>
+
+                    <div class="field">
+                        <label for="email">이메일 <span class="req">*</span></label>
+                        <input id="email" name="email" type="email" required autocomplete="email"
+                            placeholder="예: gildong@company.com" />
+                    </div>
+
+                    <div class="field">
+                        <label for="phone">연락처 <span class="req">*</span></label>
+                        <input id="phone" name="phone" required autocomplete="tel" placeholder="예: 010-0000-0000" />
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="expoName">전시회명 <span class="req">*</span></label>
+                        <input id="expoName" name="expoName" required placeholder="예: H2 & FC EXPO 2026" />
+                    </div>
+
+                    <div class="field">
+                        <label for="location">개최지(국가/도시) <span class="req">*</span></label>
+                        <input id="location" name="location" required placeholder="예: 일본 / 도쿄" />
+                    </div>
+
+                    <div class="field">
+                        <label for="venue">전시장(선택)</label>
+                        <input id="venue" name="venue" placeholder="예: Tokyo Big Sight" />
+                    </div>
+
+                    <div class="field">
+                        <label for="startDate">시작일 <span class="req">*</span></label>
+                        <input id="startDate" name="startDate" type="date" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="endDate">종료일 <span class="req">*</span></label>
+                        <input id="endDate" name="endDate" type="date" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="languages">필요 언어 <span class="req">*</span></label>
+                        <select id="languages" name="languages" required>
+                            <option value="">선택</option>
+                            <option value="KR-EN">한국어 ↔ 영어</option>
+                            <option value="KR-JP">한국어 ↔ 일본어</option>
+                            <option value="KR-CN">한국어 ↔ 중국어</option>
+                            <option value="ETC">기타</option>
+                        </select>
+                        <p class="help">기타 선택 시 요청 내용에 언어를 적어주세요.</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="type">통역 형태 <span class="req">*</span></label>
+                        <select id="type" name="type" required>
+                            <option value="">선택</option>
+                            <option value="BOOTH">부스 상주(상담 통역)</option>
+                            <option value="MEETING">미팅 동행</option>
+                            <option value="ONSITE_OPS">현장 운영/주최사 커뮤니케이션</option>
+                            <option value="OTHER">기타</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="headcount">필요 인원(명)</label>
+                        <input id="headcount" name="headcount" type="number" min="1" placeholder="예: 1" />
+                    </div>
+
+                    <div class="field">
+                        <label for="workingHours">근무 시간(예시)</label>
+                        <input id="workingHours" name="workingHours" placeholder="예: 10:00–18:00" />
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="keywords">전문 분야/제품 키워드(선택)</label>
+                        <input id="keywords" name="keywords" placeholder="예: 배터리, 반도체, 의료기기, 소재 등" />
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="message">요청 내용 <span class="req">*</span></label>
+                        <textarea id="message" name="message" rows="6" required
+                            placeholder="예: 부스 방문객 상담 통역 + 상담일지 작성 보조가 필요합니다. 주최사와 전기/비품 커뮤니케이션도 일부 지원 요청드립니다."></textarea>
+                    </div>
+                </div>
+
+                <div class="blue-itq__foot">
+                    <label class="consent">
+                        <input type="checkbox" name="consent" required />
+                        개인정보 수집 및 이용에 동의합니다. <span class="req">*</span>
+                    </label>
+
+                    <button class="btn" type="submit">통역 섭외 문의 보내기</button>
+                    <p class="note">영업일 기준 24시간 내 1차 회신을 목표로 합니다.</p>
+                    <p id="formStatus" class="status" role="status" aria-live="polite"></p>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-professional">
+        <div class="footer-container-pro">
+            <div class="footer-logo-box">
+                <img src="assets/footer_logo.png" alt="CONTENTOUR Logo" class="footer-logo">
+            </div>
+            <div class="footer-info">
+                <div class="footer-info__row">
+                    <span><b>상호명</b> 콘텐츄어</span>
+                    <span class="divider">|</span>
+                    <span><b>주소</b> 서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 204호</span>
+                    <span class="divider">|</span>
+                    <span><b>대표이사</b> 이수경</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>메일</b> info@contentour.co.kr</span>
+                    <span class="divider">|</span>
+                    <span><b>전화</b> 02-868-1522</span>
+                    <span class="divider">|</span>
+                    <span><b>팩스</b> 02-869-3082</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>사업자등록번호</b> 119-86-68157</span>
+                    <span class="divider">|</span>
+                    <span><b>통신판매업신고번호</b> 제 2017-서울 구로-0321호</span>
+                </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
+                <a href="terms.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">서비스 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">고객사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">통역사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">개인정보처리방침</a>
+            </div>
+            <div class="footer-bottom-pro" style="margin-top:20px;">
+                <p>© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        async function handleSignup(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const language = document.getElementById('language').value;
+            const password = document.getElementById('password').value;
+
+            if (!name || !email || !language || !password) {
+                alert('모든 항목을 입력해주세요.');
+                return;
+            }
+            if (password.length < 8) {
+                alert('비밀번호는 8자 이상이어야 합니다.');
+                return;
+            }
+
+            const btn = event.target.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = '가입 처리 중...'; }
+
+            // ── Supabase 통역사 가입 ──
+            if (supabase) {
+                const { data, error } = await ContentourAuth.registerInterpreter({
+                    email: email,
+                    password: password,
+                    name: name,
+                    language: language
+                });
+
+                if (error) {
+                    if (btn) { btn.disabled = false; btn.textContent = '파트너 가입 신청'; }
+                    if (error.message.includes('already registered')) {
+                        alert('이미 가입된 이메일입니다. 로그인 페이지에서 로그인해주세요.');
+                    } else {
+                        alert('가입 중 오류: ' + error.message);
+                    }
+                    return;
+                }
+
+                alert('통역사 파트너 가입이 완료되었습니다!\n이메일 인증 후 로그인하실 수 있습니다.\n관리자 승인 후 활동이 가능합니다.');
+                window.location.href = 'client-auth.html';
+                return;
+            }
+
+            // ── 데모 모드 ──
+            alert('회원가입 신청이 접수되었습니다. 담당자 승인 후 활동이 가능합니다.');
+            window.location.href = 'login.html';
+        }
+    </script>
+
+</body>
+
+</html>

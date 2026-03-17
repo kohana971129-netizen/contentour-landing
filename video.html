@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>홍보 영상 - 콘텐츄어</title>
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <header class="nav">
+        <div class="nav__inner">
+            <a class="nav__logo" href="index.html">
+                <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
+            </a>
+
+            <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
+                <a href="index.html#home">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
+                    </div>
+                </a>
+                <a href="support.html">
+                    <span class="nav__menu-icon">🤝</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">전시회지원</span>
+                        <span class="nav__menu-desc">현장 운영 서비스</span>
+                    </div>
+                </a>
+                <a href="portal.html">
+                    <span class="nav__menu-icon">💻</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">통역운영</span>
+                        <span class="nav__menu-desc">원스톱 관리 시스템</span>
+                    </div>
+                </a>
+                <a href="performance.html">
+                    <span class="nav__menu-icon">📊</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">성과</span>
+                        <span class="nav__menu-desc">성공 사례 데이터</span>
+                    </div>
+                </a>
+                <a class="is-active" href="video.html">
+                    <span class="nav__menu-icon">🎬</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">현장리뷰</span>
+                        <span class="nav__menu-desc">기업 홍보 영상</span>
+                    </div>
+                </a>
+                <a href="client-auth.html" class="nav-client">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">Login</span>
+                        <span class="nav__menu-desc">Client Portal</span>
+                    </div>
+                </a>
+            </nav>
+
+            <div class="nav-cta">
+                <a href="index.html#contact" class="btn btn-primary btn-nav">견적 문의</a>
+            </div>
+
+            <button class="nav__toggle" type="button" aria-controls="navMenu" aria-expanded="false"
+                id="mobileMenuToggle">
+                <span class="sr-only">메뉴 열기</span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="page">
+        <!-- ④ 고객사 / 참여 전시회 실적 섹션 -->
+        <!-- ④ 대표 고객사례 섹션 -->
+        <section class="client-cases">
+            <div class="client-cases__inner">
+
+                <div class="section-header">
+                    <p class="section-eyebrow">Client Cases</p>
+                    <h2 class="section-title">대표 고객사례</h2>
+                    <p class="section-desc">
+                        콘텐츄어와 함께 해외 전시회에 참가한 기업들의 실제 현장 사례입니다.
+                    </p>
+                </div>
+
+                <div class="case-grid">
+
+                    <a href="https://contentour.co.kr/nano-tech/" class="case-card" target="_blank" rel="noopener">
+                        <div class="case-card__img"
+                            style="background-image: url('https://contentour.co.kr/wp-content/uploads/2026/02/1770078227892-scaled-768x500.jpg')">
+                        </div>
+                        <div class="case-card__body">
+                            <span class="case-card__tag expo">전시회참가</span>
+                            <p class="case-card__title">[태림산업] 일본 도쿄<br>Nano Tech 2026</p>
+                            <span class="case-card__country">🇯🇵 일본 · 2026.02</span>
+                        </div>
+                    </a>
+
+                    <a href="https://contentour.co.kr/the-battery-show/" class="case-card" target="_blank"
+                        rel="noopener">
+                        <div class="case-card__img"
+                            style="background-image: url('https://contentour.co.kr/wp-content/uploads/2026/01/20251008_154636-1-scaled-768x500.jpg')">
+                        </div>
+                        <div class="case-card__body">
+                            <span class="case-card__tag expo">전시회참가</span>
+                            <p class="case-card__title">[제이스텍] 미국 디트로이트<br>The Battery Show NA 2025</p>
+                            <span class="case-card__country">🇺🇸 미국 · 2026.01</span>
+                        </div>
+                    </a>
+
+                    <a href="https://contentour.co.kr/medica/" class="case-card" target="_blank" rel="noopener">
+                        <div class="case-card__img"
+                            style="background-image: url('https://contentour.co.kr/wp-content/uploads/2025/12/KakaoTalk_20251122_205029643_01-scaled-768x500.jpg')">
+                        </div>
+                        <div class="case-card__body">
+                            <span class="case-card__tag buyer">바이어미팅</span>
+                            <p class="case-card__title">[부산TP & 부산경제진흥원]<br>독일 MEDICA 2025</p>
+                            <span class="case-card__country">🇩🇪 독일 · 2025.12</span>
+                        </div>
+                    </a>
+
+                    <a href="https://contentour.co.kr/medical-fair/" class="case-card" target="_blank" rel="noopener">
+                        <div class="case-card__img"
+                            style="background-image: url('https://contentour.co.kr/wp-content/uploads/2025/10/20250910_125519-scaled-768x500.jpg')">
+                        </div>
+                        <div class="case-card__body">
+                            <span class="case-card__tag expo">전시회참가</span>
+                            <p class="case-card__title">[부산TP] 태국 방콕<br>MEDICAL FAIR 2025</p>
+                            <span class="case-card__country">🇹🇭 태국 · 2025.10</span>
+                        </div>
+                    </a>
+
+                    <a href="https://contentour.co.kr/ifa-berlin/" class="case-card" target="_blank" rel="noopener">
+                        <div class="case-card__img"
+                            style="background-image: url('https://contentour.co.kr/wp-content/uploads/2025/09/20250904_140752-scaled-768x500.jpg')">
+                        </div>
+                        <div class="case-card__body">
+                            <span class="case-card__tag booth">부스시공</span>
+                            <p class="case-card__title">[하츠] 독일 베를린<br>IFA Berlin 2025</p>
+                            <span class="case-card__country">🇩🇪 독일 · 2025.09</span>
+                        </div>
+                    </a>
+
+                    <a href="https://contentour.co.kr/%ed%95%9c%ea%b5%ad%ec%a7%84%ea%b3%b5-%eb%8f%85%ec%9d%bc-%ec%8a%88%ed%88%ac%ed%8a%b8%ea%b0%80%eb%a5%b4%ed%8a%b8-%eb%b0%b0%ed%84%b0%eb%a6%ac-%ec%a0%84%ec%8b%9c%ed%9a%8c-the-battery-show-europe/"
+                        class="case-card" target="_blank" rel="noopener">
+                        <div class="case-card__img"
+                            style="background-image: url('https://contentour.co.kr/wp-content/uploads/2025/07/20250603_113502-scaled-768x500.jpg')">
+                        </div>
+                        <div class="case-card__body">
+                            <span class="case-card__tag booth">부스시공</span>
+                            <p class="case-card__title">[한국진공] 독일 슈투트가르트<br>The Battery Show Europe</p>
+                            <span class="case-card__country">🇩🇪 독일 · 2025.07</span>
+                        </div>
+                    </a>
+
+                </div>
+
+                <div class="case-more">
+                    <a href="https://contentour.co.kr/%eb%8c%80%ed%91%9c-%ea%b3%a0%ea%b0%9d%ec%82%ac%eb%a1%80/"
+                        class="btn btn-outline btn-large" target="_blank" rel="noopener">
+                        대표 고객사례 전체 보기 →
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-professional">
+        <div class="footer-container-pro">
+            <div class="footer-logo-box">
+                <img src="assets/footer_logo.png" alt="CONTENTOUR Logo" class="footer-logo">
+            </div>
+            <div class="footer-info">
+                <div class="footer-info__row">
+                    <span><b>상호명</b> 콘텐츄어</span>
+                    <span class="divider">|</span>
+                    <span><b>주소</b> 서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 204호</span>
+                    <span class="divider">|</span>
+                    <span><b>대표이사</b> 이수경</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>메일</b> info@contentour.co.kr</span>
+                    <span class="divider">|</span>
+                    <span><b>전화</b> 02-868-1522</span>
+                    <span class="divider">|</span>
+                    <span><b>팩스</b> 02-869-3082</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>사업자등록번호</b> 119-86-68157</span>
+                    <span class="divider">|</span>
+                    <span><b>통신판매업신고번호</b> 제 2017-서울 구로-0321호</span>
+                </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
+                <a href="terms.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">서비스 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">고객사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">통역사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">개인정보처리방침</a>
+            </div>
+            <div class="footer-bottom-pro" style="margin-top:20px;">
+                <p>© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

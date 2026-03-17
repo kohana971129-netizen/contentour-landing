@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 로그인 - 콘텐츄어</title>
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            min-height: 100vh;
+            padding: 0;
+            /* 좌우 여백 제거 */
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem 2.5rem;
+            width: 90%;
+            /* 모바일 대응을 위해 너비 조정 */
+            max-width: 420px;
+            margin: 100px auto 40px;
+            /* 상단 여백 추가 및 중앙 정렬 */
+        }
+
+        .logo-box {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-box h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo-box p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-signup {
+            width: 100%;
+            padding: 1rem;
+            background: white;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.875rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .back-link a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <header class="nav">
+        <div class="nav__inner">
+            <a class="nav__logo" href="index.html">
+                <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
+            </a>
+
+            <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
+                <a href="index.html#home">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
+                    </div>
+                </a>
+                <a href="support.html">
+                    <span class="nav__menu-icon">🤝</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">전시회지원</span>
+                        <span class="nav__menu-desc">현장 운영 서비스</span>
+                    </div>
+                </a>
+                <a href="portal.html">
+                    <span class="nav__menu-icon">💻</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">통역운영</span>
+                        <span class="nav__menu-desc">원스톱 관리 시스템</span>
+                    </div>
+                </a>
+                <a href="performance.html">
+                    <span class="nav__menu-icon">📊</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">성과</span>
+                        <span class="nav__menu-desc">성공 사례 데이터</span>
+                    </div>
+                </a>
+                <a href="video.html">
+                    <span class="nav__menu-icon">🎬</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">현장리뷰</span>
+                        <span class="nav__menu-desc">기업 홍보 영상</span>
+                    </div>
+                </a>
+                <a href="client-auth.html" class="nav-client">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">Login</span>
+                        <span class="nav__menu-desc">Client Portal</span>
+                    </div>
+                </a>
+            </nav>
+
+            <div class="nav-cta">
+                <a href="index.html#contact" class="btn btn-primary btn-nav">견적 문의</a>
+            </div>
+
+            <button class="nav__toggle" type="button" aria-controls="navMenu" aria-expanded="false"
+                id="mobileMenuToggle">
+                <span class="sr-only">메뉴 열기</span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <div class="login-container">
+        <div class="logo-box">
+            <h1>🔐 관리자 로그인</h1>
+            <p>콘텐츄어 통역사 및 전시 관리 시스템</p>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            아이디 또는 비밀번호가 올바르지 않습니다.
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">아이디</label>
+                <input type="text" id="username" name="username" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn-login">로그인</button>
+            <a href="signup.html" class="btn-signup">파트너 회원가입</a>
+        </form>
+
+        <div class="back-link">
+            <a href="index.html">← 홈페이지로 돌아가기</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-professional">
+        <div class="footer-container-pro">
+            <div class="footer-logo-box">
+                <img src="assets/footer_logo.png" alt="CONTENTOUR Logo" class="footer-logo">
+            </div>
+            <div class="footer-info">
+                <div class="footer-info__row">
+                    <span><b>상호명</b> 콘텐츄어</span>
+                    <span class="divider">|</span>
+                    <span><b>주소</b> 서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 204호</span>
+                    <span class="divider">|</span>
+                    <span><b>대표이사</b> 이수경</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>메일</b> info@contentour.co.kr</span>
+                    <span class="divider">|</span>
+                    <span><b>전화</b> 02-868-1522</span>
+                    <span class="divider">|</span>
+                    <span><b>팩스</b> 02-869-3082</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>사업자등록번호</b> 119-86-68157</span>
+                    <span class="divider">|</span>
+                    <span><b>통신판매업신고번호</b> 제 2017-서울 구로-0321호</span>
+                </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
+                <a href="terms.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">서비스 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">고객사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">통역사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">개인정보처리방침</a>
+            </div>
+            <div class="footer-bottom-pro" style="margin-top:20px;">
+                <p>© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            const btn = event.target.querySelector('button[type="submit"]');
+
+            // 로딩 상태
+            if (btn) { btn.disabled = true; btn.textContent = '로그인 중...'; }
+
+            // ── Supabase 인증 시도 ──
+            if (supabase) {
+                const { data, error } = await ContentourAuth.login(username, password);
+
+                if (!error && data && data.role === 'admin') {
+                    sessionStorage.setItem('isAdminLoggedIn', 'true');
+                    sessionStorage.setItem('adminUsername', data.name || username);
+                    window.location.href = 'admin-dashboard.html';
+                    return;
+                }
+
+                if (!error && data && data.role !== 'admin') {
+                    // 관리자가 아닌 경우 해당 대시보드로 안내
+                    await ContentourAuth.logout();
+                    errorMessage.textContent = '관리자 계정이 아닙니다. 고객/통역사 로그인은 별도 페이지를 이용하세요.';
+                    errorMessage.classList.add('show');
+                    setTimeout(() => errorMessage.classList.remove('show'), 4000);
+                    if (btn) { btn.disabled = false; btn.textContent = '로그인'; }
+                    return;
+                }
+            }
+
+            // ── 데모 모드 (Supabase 미연결 시 기존 하드코딩 유지) ──
+            if (username === 'admin' && password === 'contentour2026') {
+                sessionStorage.setItem('isAdminLoggedIn', 'true');
+                sessionStorage.setItem('adminUsername', username);
+                window.location.href = 'admin-dashboard.html';
+                return;
+            }
+
+            // 로그인 실패
+            errorMessage.textContent = '아이디 또는 비밀번호가 일치하지 않습니다.';
+            errorMessage.classList.add('show');
+            setTimeout(() => errorMessage.classList.remove('show'), 3000);
+            if (btn) { btn.disabled = false; btn.textContent = '로그인'; }
+        }
+
+        // 이미 로그인된 상태 확인
+        (async function() {
+            if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+                window.location.href = 'admin-dashboard.html';
+                return;
+            }
+            if (supabase) {
+                const profile = await ContentourAuth.getUserProfile();
+                if (profile && profile.role === 'admin') {
+                    sessionStorage.setItem('isAdminLoggedIn', 'true');
+                    sessionStorage.setItem('adminUsername', profile.name);
+                    window.location.href = 'admin-dashboard.html';
+                }
+            }
+        })();
+    </script>
+
+</body>
+
+</html>

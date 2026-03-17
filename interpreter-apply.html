@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통역사 지원하기 - CONTENTOUR</title>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --navy: #0a2a5e;
+            --blue: #1565c0;
+            --sky: #4fc3f7;
+            --light: #f0f5ff;
+            --white: #ffffff;
+            --g100: #f4f6fb;
+            --g200: #e5eaf2;
+            --g400: #9daec8;
+            --g600: #4a5a75;
+            --text: #0d1b3e;
+            --success: #2e7d32;
+            --warn: #f57c00;
+            --error: #e53935;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: var(--light);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── 헤더 ── */
+        .header {
+            background: linear-gradient(135deg, var(--navy) 0%, #1a3d7a 100%);
+            padding: 0 40px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo-badge {
+            width: 36px;
+            height: 36px;
+            background: var(--blue);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        .header-logo-text {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .header-logo-sub {
+            font-size: 0.6rem;
+            color: var(--sky);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-link {
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.65);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .header-link:hover {
+            color: #fff;
+        }
+
+        /* ── 히어로 ── */
+        .hero {
+            background: linear-gradient(135deg, var(--navy) 0%, #0e3576 50%, #1565c0 100%);
+            padding: 60px 40px 50px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 5px 16px;
+            background: rgba(79, 195, 247, 0.15);
+            border: 1px solid rgba(79, 195, 247, 0.3);
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--sky);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 12px;
+            line-height: 1.25;
+        }
+
+        .hero p {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 520px;
+            margin: 0 auto 28px;
+            line-height: 1.7;
+        }
+
+        .hero-steps {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .hero-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-step:not(:last-child)::after {
+            content: '→';
+            position: absolute;
+            right: -10px;
+            top: 14px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.9rem;
+        }
+
+        .hero-step-num {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0 auto 6px;
+        }
+
+        .hero-step-lbl {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+        }
+
+        /* ── 폼 컨테이너 ── */
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 36px 20px 60px;
+        }
+
+        /* 진행 표시 */
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .pb-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pb-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 800;
+            transition: all 0.3s;
+        }
+
+        .pb-circle.done {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .pb-circle.active {
+            background: var(--blue);
+            color: #fff;
+            box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.2);
+        }
+
+        .pb-circle.pending {
+            background: var(--g200);
+            color: var(--g400);
+        }
+
+        .pb-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--g400);
+            white-space: nowrap;
+        }
+
+        .pb-label.active {
+            color: var(--blue);
+        }
+
+        .pb-label.done {
+            color: var(--success);
+        }
+
+        .pb-line {
+            flex: 1;
+            height: 2px;
+            background: var(--g200);
+            margin: 0 8px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .pb-line.done {
+            background: var(--success);
+        }
+
+        /* 섹션 카드 */
+        .form-section {
+            background: var(--white);
+            border: 1.5px solid var(--g200);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .fs-head {
+            padding: 20px 26px 16px;
+            border-bottom: 1px solid var(--g200);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fs-head-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .fs-head h3 {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .fs-head p {
+            font-size: 0.78rem;
+            color: var(--g400);
+            margin-top: 2px;
+        }
+
+        .fs-body {
+            padding: 24px 26px;
+        }
+
+        /* 폼 필드 */
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--g600);
+            margin-bottom: 7px;
+        }
+
+        .field label .req {
+            color: var(--error);
+            margin-left: 2px;
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--g200);
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--g100);
+            outline: none;
+            appearance: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: var(--blue);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.08);
+        }
+
+        .field.error input,
+        .field.error select,
+        .field.error textarea {
+            border-color: var(--error);
+            background: #fff8f8;
+        }
+
+        .field-err {
+            font-size: 0.7rem;
+            color: var(--error);
+            margin-top: 5px;
+            display: none;
+        }
+
+        .field.error .field-err {
+            display: block;
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 90px;
+            line-height: 1.65;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .grid3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+        }
+
+        /* 언어 추가 */
+        .lang-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .lang-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            background: var(--g100);
+            border: 1.5px solid var(--g200);
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        .lang-row select {
+            background: #fff;
+            border: 1.5px solid var(--g200);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .lang-row select:focus {
+            border-color: var(--blue);
+        }
+
+        .lang-del {
+            width: 28px;
+            height: 28px;
+            background: #ffebee;
+            border: none;
+            border-radius: 7px;
+            color: var(--error);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            transition: background 0.15s;
+            flex-shrink: 0;
+        }
+
+        .lang-del:hover {
+            background: var(--error);
+            color: #fff;
+        }
+
+        .add-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--light);
+            border: 1.5px dashed #c5d8f5;
+            border-radius: 9px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--blue);
+            cursor: pointer;
+            width: 100%;
+            justify-content: center;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .add-btn:hover {
+            background: #dde8ff;
+            border-color: var(--blue);
+        }
+
+        /* 전문분야 태그 */
+        .tags-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .field-tag {
+            padding: 7px 14px;
+            border: 1.5px solid var(--g200);
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--g600);
+            cursor: pointer;
+            transition: all 0.15s;
+            background: var(--white);
+            font-family: inherit;
+        }
+
+        .field-tag:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .field-tag.selected {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+        }
+
+        /* 경력 추가 */
+        .career-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .career-item {
+            background: var(--g100);
+            border: 1.5px solid var(--g200);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .career-item-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .career-item-head span {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .career-del {
+            padding: 4px 10px;
+            background: #ffebee;
+            border: none;
+            border-radius: 6px;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: inherit;
+        }
+
+        .career-del:hover {
+            background: var(--error);
+            color: #fff;
+        }
+
+        /* 자격증 */
+        .cert-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .cert-row {
+            display: grid;
+            grid-template-columns: 1fr 120px auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .cert-row input {
+            background: var(--white);
+            border: 1.5px solid var(--g200);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .cert-row input:focus {
+            border-color: var(--blue);
+        }
+
+        /* 파일 업로드 */
+        .upload-zone {
+            border: 2px dashed var(--g200);
+            border-radius: 14px;
+            padding: 32px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: var(--g100);
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--blue);
+            background: var(--light);
+        }
+
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .upload-sub {
+            font-size: 0.78rem;
+            color: var(--g400);
+            margin-bottom: 6px;
+        }
+
+        .upload-types {
+            font-size: 0.7rem;
+            color: var(--g400);
+            background: var(--g200);
+            padding: 3px 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .upload-preview {
+            display: none;
+            margin-top: 14px;
+            padding: 12px 14px;
+            background: #e8f5e9;
+            border: 1.5px solid #a5d6a7;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            color: var(--success);
+            font-weight: 700;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-preview.show {
+            display: flex;
+        }
+
+        /* 개인정보 동의 */
+        .consent-box {
+            background: var(--g100);
+            border: 1.5px solid var(--g200);
+            border-radius: 12px;
+            padding: 16px 18px;
+        }
+
+        .consent-text {
+            font-size: 0.78rem;
+            color: var(--g600);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .consent-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .consent-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--blue);
+            flex-shrink: 0;
+            margin-top: 1px;
+            cursor: pointer;
+        }
+
+        /* 하단 버튼 */
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+        }
+
+        .btn-back {
+            padding: 12px 24px;
+            background: var(--white);
+            border: 1.5px solid var(--g200);
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--g600);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn-back:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .btn-next {
+            padding: 12px 32px;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-next:hover {
+            background: var(--navy);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(21, 101, 192, 0.3);
+        }
+
+        .btn-submit {
+            padding: 12px 36px;
+            background: linear-gradient(135deg, var(--blue), var(--navy));
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(10, 42, 94, 0.35);
+        }
+
+        /* 완료 화면 */
+        .complete-card {
+            background: var(--white);
+            border: 1.5px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 52px 40px;
+            text-align: center;
+            display: none;
+        }
+
+        .complete-card.show {
+            display: block;
+            animation: slideUp 0.4s ease;
+        }
+
+        .complete-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .complete-title {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--navy);
+            margin-bottom: 10px;
+        }
+
+        .complete-sub {
+            font-size: 0.92rem;
+            color: var(--g400);
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .complete-info {
+            background: var(--light);
+            border: 1.5px solid #c5d8f5;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+            text-align: left;
+        }
+
+        .complete-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--g200);
+            font-size: 0.85rem;
+        }
+
+        .complete-row:last-child {
+            border-bottom: none;
+        }
+
+        .complete-row-label {
+            color: var(--g400);
+            font-weight: 600;
+        }
+
+        .complete-row-val {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .complete-notice {
+            background: #fff3e0;
+            border: 1.5px solid #ffe082;
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 0.82rem;
+            color: var(--warn);
+            font-weight: 600;
+            text-align: left;
+            line-height: 1.7;
+        }
+
+        /* 토스트 */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--navy);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34, 1.5, 0.64, 1);
+            z-index: 999;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width:640px) {
+
+            .grid2,
+            .grid3 {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .hero-steps {
+                gap: 0;
+            }
+
+            .cert-row {
+                grid-template-columns: 1fr;
+            }
+
+            .lang-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .lang-row .lang-del {
+                grid-column: 2;
+                justify-self: end;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="header-logo">
+            <div class="header-logo-badge">CT</div>
+            <div>
+                <div class="header-logo-text">CONTENTOUR</div>
+                <div class="header-logo-sub">Interpreter Portal</div>
+            </div>
+        </div>
+        <a href="admin-interpreter.html" class="header-link">관리자 로그인 →</a>
+    </header>
+
+    <!-- 히어로 -->
+    <div class="hero">
+        <div class="hero-badge">Interpreter Registration</div>
+        <h1>통역사 지원하기</h1>
+        <p>콘텐츄어와 함께 글로벌 전시회 현장에서 활약하세요.<br>이력서를 제출하면 담당자가 검토 후 연락드립니다.</p>
+        <div class="hero-steps">
+            <div class="hero-step">
+                <div class="hero-step-num">1</div>
+                <div class="hero-step-lbl">기본 정보</div>
+            </div>
+            <div class="hero-step">
+                <div class="hero-step-num">2</div>
+                <div class="hero-step-lbl">언어 & 전문분야</div>
+            </div>
+            <div class="hero-step">
+                <div class="hero-step-num">3</div>
+                <div class="hero-step-lbl">경력 & 자격증</div>
+            </div>
+            <div class="hero-step">
+                <div class="hero-step-num">4</div>
+                <div class="hero-step-lbl">파일 & 제출</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- 진행바 -->
+        <div class="progress-bar" id="progressBar">
+            <div class="pb-step">
+                <div class="pb-circle active" id="pc1">1</div>
+                <div class="pb-label active" id="pl1">기본 정보</div>
+            </div>
+            <div class="pb-line" id="pline1"></div>
+            <div class="pb-step">
+                <div class="pb-circle pending" id="pc2">2</div>
+                <div class="pb-label" id="pl2">언어 & 분야</div>
+            </div>
+            <div class="pb-line" id="pline2"></div>
+            <div class="pb-step">
+                <div class="pb-circle pending" id="pc3">3</div>
+                <div class="pb-label" id="pl3">경력 & 자격증</div>
+            </div>
+            <div class="pb-line" id="pline3"></div>
+            <div class="pb-step">
+                <div class="pb-circle pending" id="pc4">4</div>
+                <div class="pb-label" id="pl4">파일 & 제출</div>
+            </div>
+        </div>
+
+        <!-- STEP 1: 기본 정보 -->
+        <div class="form-section active" id="step1">
+            <div class="fs-head">
+                <div class="fs-head-icon" style="background:#e3f0ff;">👤</div>
+                <div>
+                    <h3>기본 정보</h3>
+                    <p>이름, 국적, 연락처 등 기본 신상 정보를 입력해주세요.</p>
+                </div>
+            </div>
+            <div class="fs-body">
+                <div class="grid2">
+                    <div class="field" id="f-name">
+                        <label>이름 (한글) <span class="req">*</span></label>
+                        <input type="text" id="name-ko" placeholder="예: 홍길동">
+                        <div class="field-err">이름을 입력해주세요.</div>
+                    </div>
+                    <div class="field" id="f-name-en">
+                        <label>이름 (영문) <span class="req">*</span></label>
+                        <input type="text" id="name-en" placeholder="예: Gildong Hong">
+                        <div class="field-err">영문 이름을 입력해주세요.</div>
+                    </div>
+                    <div class="field" id="f-nationality">
+                        <label>국적 <span class="req">*</span></label>
+                        <select id="nationality">
+                            <option value="">선택</option>
+                            <option>대한민국</option>
+                            <option>일본</option>
+                            <option>독일</option>
+                            <option>미국</option>
+                            <option>중국</option>
+                            <option>베트남</option>
+                            <option>프랑스</option>
+                            <option>스페인</option>
+                            <option>기타</option>
+                        </select>
+                        <div class="field-err">국적을 선택해주세요.</div>
+                    </div>
+                    <div class="field" id="f-birth">
+                        <label>생년월일</label>
+                        <input type="date" id="birth">
+                    </div>
+                    <div class="field" id="f-email">
+                        <label>이메일 <span class="req">*</span></label>
+                        <input type="email" id="email" placeholder="example@email.com">
+                        <div class="field-err">올바른 이메일을 입력해주세요.</div>
+                    </div>
+                    <div class="field" id="f-phone">
+                        <label>연락처 <span class="req">*</span></label>
+                        <input type="tel" id="phone" placeholder="010-0000-0000">
+                        <div class="field-err">연락처를 입력해주세요.</div>
+                    </div>
+                    <div class="field" id="f-gender">
+                        <label>성별</label>
+                        <select id="gender">
+                            <option value="">선택 안함</option>
+                            <option>남성</option>
+                            <option>여성</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>거주 도시</label>
+                        <input type="text" id="city" placeholder="예: 서울, 도쿄, 프랑크푸르트">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>자기소개 <span class="req">*</span></label>
+                    <textarea id="intro" placeholder="간단한 자기소개, 통역 경험, 강점 등을 자유롭게 작성해주세요. (최소 50자)" rows="4"></textarea>
+                    <div class="field-err" id="intro-err">자기소개를 50자 이상 작성해주세요.</div>
+                </div>
+                <div class="form-footer">
+                    <a href="index.html" style="text-decoration:none;"><button class="btn-back" type="button">←
+                            메인으로</button></a>
+                    <button class="btn-next" onclick="nextStep(1)">다음 단계 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: 언어 & 전문분야 -->
+        <div class="form-section" id="step2">
+            <div class="fs-head">
+                <div class="fs-head-icon" style="background:#e8f5e9;">🌐</div>
+                <div>
+                    <h3>통역 가능 언어 & 전문 분야</h3>
+                    <p>가능한 언어 쌍과 전문 분야를 모두 선택해주세요.</p>
+                </div>
+            </div>
+            <div class="fs-body">
+                <div class="field">
+                    <label>통역 가능 언어 <span class="req">*</span> <span style="color:var(--g400);font-weight:500;">(복수 추가
+                            가능)</span></label>
+                    <div class="lang-list" id="langList"></div>
+                    <button class="add-btn" onclick="addLang()">+ 언어 추가</button>
+                </div>
+
+                <div class="field" style="margin-top:22px;">
+                    <label>전문 분야 <span class="req">*</span> <span style="color:var(--g400);font-weight:500;">(해당되는 것 모두
+                            선택)</span></label>
+                    <div class="tags-grid" id="specTags">
+                        <button class="field-tag" onclick="toggleTag(this)">🏭 제조·산업</button>
+                        <button class="field-tag" onclick="toggleTag(this)">⚡ 에너지·환경</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🏥 의료·바이오</button>
+                        <button class="field-tag" onclick="toggleTag(this)">💻 IT·전자</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🍽️ 식품·농업</button>
+                        <button class="field-tag" onclick="toggleTag(this)">👗 패션·뷰티</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🏗️ 건축·건설</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🚗 자동차·모빌리티</button>
+                        <button class="field-tag" onclick="toggleTag(this)">✈️ 항공·방위</button>
+                        <button class="field-tag" onclick="toggleTag(this)">💰 금융·투자</button>
+                        <button class="field-tag" onclick="toggleTag(this)">📦 물류·무역</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🎨 문화·예술</button>
+                    </div>
+                </div>
+
+                <div class="field" style="margin-top:22px;">
+                    <label>통역 형태 <span style="color:var(--g400);font-weight:500;">(가능한 것 모두 선택)</span></label>
+                    <div class="tags-grid" id="typeTags">
+                        <button class="field-tag" onclick="toggleTag(this)">🏢 부스 상주</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🤝 미팅 동행</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🎤 현장 운영</button>
+                        <button class="field-tag" onclick="toggleTag(this)">📱 원격 통역</button>
+                    </div>
+                </div>
+
+                <div class="field" style="margin-top:22px;">
+                    <label>희망 파견 지역 <span style="color:var(--g400);font-weight:500;">(가능한 지역 모두 선택)</span></label>
+                    <div class="tags-grid" id="regionTags">
+                        <button class="field-tag" onclick="toggleTag(this)">🇰🇷 한국</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🇯🇵 일본</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🇩🇪 독일·유럽</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🇺🇸 미국</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🇨🇳 중국</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🇻🇳 동남아</button>
+                        <button class="field-tag" onclick="toggleTag(this)">🌍 전 세계</button>
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button class="btn-back" onclick="prevStep(2)">← 이전</button>
+                    <button class="btn-next" onclick="nextStep(2)">다음 단계 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: 경력 & 자격증 -->
+        <div class="form-section" id="step3">
+            <div class="fs-head">
+                <div class="fs-head-icon" style="background:#fff3e0;">📋</div>
+                <div>
+                    <h3>경력 & 자격증</h3>
+                    <p>전시회 통역 경력과 보유 자격증을 입력해주세요.</p>
+                </div>
+            </div>
+            <div class="fs-body">
+                <div class="field">
+                    <label>통역 경력 <span style="color:var(--g400);font-weight:500;">(전시회·비즈니스 통역 경험)</span></label>
+                    <div class="career-list" id="careerList"></div>
+                    <button class="add-btn" onclick="addCareer()">+ 경력 추가</button>
+                </div>
+
+                <div class="field" style="margin-top:22px;">
+                    <label>총 통역 경력</label>
+                    <select id="totalExp">
+                        <option value="">선택</option>
+                        <option>1년 미만</option>
+                        <option>1~3년</option>
+                        <option>3~5년</option>
+                        <option>5~10년</option>
+                        <option>10년 이상</option>
+                    </select>
+                </div>
+
+                <div class="field" style="margin-top:22px;">
+                    <label>자격증 / 수료증 <span style="color:var(--g400);font-weight:500;">(선택)</span></label>
+                    <div class="cert-list" id="certList"></div>
+                    <button class="add-btn" onclick="addCert()">+ 자격증 추가</button>
+                </div>
+
+                <div class="field" style="margin-top:22px;">
+                    <label>학력</label>
+                    <div class="grid2">
+                        <input type="text" id="edu-school" placeholder="대학교/기관명"
+                            style="padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:0.87rem;font-family:inherit;background:var(--g100);outline:none;">
+                        <input type="text" id="edu-major" placeholder="전공/학과"
+                            style="padding:10px 12px;border:1.5px solid var(--g200);border-radius:9px;font-size:0.87rem;font-family:inherit;background:var(--g100);outline:none;">
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button class="btn-back" onclick="prevStep(3)">← 이전</button>
+                    <button class="btn-next" onclick="nextStep(3)">다음 단계 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: 파일 업로드 & 제출 -->
+        <div class="form-section" id="step4">
+            <div class="fs-head">
+                <div class="fs-head-icon" style="background:#f3e5f5;">📎</div>
+                <div>
+                    <h3>파일 업로드 & 최종 제출</h3>
+                    <p>이력서 파일을 첨부하고 지원서를 제출해주세요.</p>
+                </div>
+            </div>
+            <div class="fs-body">
+                <!-- 파일 업로드 -->
+                <div class="field">
+                    <label>이력서 파일 업로드 <span style="color:var(--g400);font-weight:500;">(선택 — 폼 입력만으로도 제출
+                            가능)</span></label>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" onchange="handleFile(this)">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-title">파일을 드래그하거나 클릭하여 업로드</div>
+                        <div class="upload-sub">이력서 파일을 첨부해주세요 (선택사항)</div>
+                        <div class="upload-types">PDF · DOC · DOCX · 최대 10MB</div>
+                    </div>
+                    <div class="upload-preview" id="uploadPreview">
+                        <span>📎</span>
+                        <span id="uploadFileName"></span>
+                        <button onclick="removeFile()"
+                            style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--error);font-size:0.8rem;font-weight:700;">✕
+                            제거</button>
+                    </div>
+                </div>
+
+                <!-- 포트폴리오 URL -->
+                <div class="field" style="margin-top:18px;">
+                    <label>포트폴리오 / 링크드인 URL <span style="color:var(--g400);font-weight:500;">(선택)</span></label>
+                    <input type="url" id="portfolio" placeholder="https://...">
+                </div>
+
+                <!-- 지원 동기 -->
+                <div class="field">
+                    <label>콘텐츄어 지원 동기 <span style="color:var(--g400);font-weight:500;">(선택)</span></label>
+                    <textarea id="motivation" rows="3"
+                        placeholder="콘텐츄어를 선택한 이유, 함께 이루고 싶은 목표 등을 자유롭게 작성해주세요."></textarea>
+                </div>
+
+                <!-- 입력 내용 요약 -->
+                <div
+                    style="background:var(--g100);border:1.5px solid var(--g200);border-radius:14px;padding:18px 20px;margin-bottom:20px;">
+                    <div style="font-size:0.85rem;font-weight:800;margin-bottom:12px;">📋 입력 내용 요약</div>
+                    <div id="summaryContent" style="font-size:0.82rem;color:var(--g600);line-height:1.8;"></div>
+                </div>
+
+                <!-- 개인정보 동의 -->
+                <div class="consent-box">
+                    <div class="consent-text">
+                        콘텐츄어(주)는 통역사 채용을 위해 위의 개인정보를 수집·이용합니다.<br>
+                        <strong>수집 항목:</strong> 이름, 국적, 연락처, 경력, 자격증 등 지원서 기재 정보<br>
+                        <strong>이용 목적:</strong> 통역사 선발, 파견 매칭, 업무 연락<br>
+                        <strong>보유 기간:</strong> 지원일로부터 2년 (채용 시 업무 종료 후 1년)<br>
+                        동의를 거부할 수 있으나, 미동의 시 지원이 불가합니다.
+                    </div>
+                    <label class="consent-check">
+                        <input type="checkbox" id="consent">
+                        위 개인정보 수집·이용에 동의합니다. <span class="req" style="color:var(--error);">*</span>
+                    </label>
+                </div>
+
+                <div class="form-footer">
+                    <button class="btn-back" onclick="prevStep(4)">← 이전</button>
+                    <button class="btn-submit" onclick="submitForm()">🚀 지원서 제출하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 완료 화면 -->
+        <div class="complete-card" id="completeCard">
+            <div class="complete-icon">🎉</div>
+            <div class="complete-title">지원서가 제출되었습니다!</div>
+            <div class="complete-sub">콘텐츄어 담당자가 검토 후 <strong>3~5 영업일 이내</strong>에<br>입력하신 이메일로 연락드릴 예정입니다.</div>
+            <div class="complete-info" id="completeInfo"></div>
+            <div class="complete-notice">
+                📌 <strong>안내사항</strong><br>
+                • 서류 검토 후 적합하신 분께는 화상 면접 안내드립니다.<br>
+                • 합격 통역사님께는 콘텐츄어 통역사 포털 접속 계정을 발급합니다.<br>
+                • 문의: interpreter@contentour.co.kr
+            </div>
+            <a href="index.html" style="text-decoration:none; display:inline-block; margin-top:28px;">
+                <button class="btn-next" style="background:var(--navy); padding:12px 48px;">콘텐츄어 홈으로 가기</button>
+            </a>
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let curStep = 1;
+        let langs = [];
+        let careers = [];
+        let certs = [];
+
+        // ── 초기 데이터 ──
+        window.onload = () => {
+            addLang();
+            addCareer();
+            // 드래그앤드롭
+            const zone = document.getElementById('uploadZone');
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', e => {
+                e.preventDefault(); zone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) handleFileObj(file);
+            });
+        };
+
+        // ── 언어 추가 ──
+        function addLang() {
+            const id = Date.now();
+            langs.push(id);
+            const div = document.createElement('div');
+            div.className = 'lang-row'; div.id = `lang-${id}`;
+            div.innerHTML = `
+    <select id="ls-${id}">
+      <option value="">출발 언어</option>
+      <option>한국어</option><option>일본어</option><option>독일어</option>
+      <option>영어</option><option>중국어</option><option>베트남어</option>
+      <option>프랑스어</option><option>스페인어</option>
+    </select>
+    <select id="lt-${id}">
+      <option value="">도착 언어</option>
+      <option>한국어</option><option>일본어</option><option>독일어</option>
+      <option>영어</option><option>중국어</option><option>베트남어</option>
+      <option>프랑스어</option><option>스페인어</option>
+    </select>
+    <button class="lang-del" onclick="removeLang(${id})">✕</button>`;
+            document.getElementById('langList').appendChild(div);
+        }
+        function removeLang(id) {
+            if (langs.length <= 1) { showToast('⚠️ 최소 1개의 언어가 필요합니다.'); return; }
+            langs = langs.filter(x => x !== id);
+            document.getElementById('lang-' + id).remove();
+        }
+
+        // ── 경력 추가 ──
+        function addCareer() {
+            const id = Date.now();
+            careers.push(id);
+            const div = document.createElement('div');
+            div.className = 'career-item'; div.id = `career-${id}`;
+            div.innerHTML = `
+    <div class="career-item-head">
+      <span>경력 ${careers.length}</span>
+      <button class="career-del" onclick="removeCareer(${id})">✕ 삭제</button>
+    </div>
+    <div class="grid2">
+      <div class="field" style="margin-bottom:10px;">
+        <label>전시회/행사명</label>
+        <input type="text" id="ce-${id}" placeholder="예: MEDICA 2024, CES 2023">
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>개최지</label>
+        <input type="text" id="cl-${id}" placeholder="예: 독일 뒤셀도르프">
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>기간</label>
+        <input type="text" id="cp-${id}" placeholder="예: 2024.11">
+      </div>
+      <div class="field" style="margin-bottom:10px;">
+        <label>사용 언어</label>
+        <input type="text" id="cln-${id}" placeholder="예: 한국어 ↔ 독일어">
+      </div>
+    </div>`;
+            document.getElementById('careerList').appendChild(div);
+        }
+        function removeCareer(id) {
+            careers = careers.filter(x => x !== id);
+            document.getElementById('career-' + id).remove();
+        }
+
+        // ── 자격증 추가 ──
+        function addCert() {
+            const id = Date.now();
+            certs.push(id);
+            const div = document.createElement('div');
+            div.className = 'cert-row'; div.id = `cert-${id}`;
+            div.innerHTML = `
+    <input type="text"  id="cn-${id}" placeholder="자격증명 (예: JLPT N1)">
+    <input type="text"  id="cy-${id}" placeholder="취득연도">
+    <button class="lang-del" onclick="removeCert(${id})">✕</button>`;
+            document.getElementById('certList').appendChild(div);
+        }
+        function removeCert(id) {
+            certs = certs.filter(x => x !== id);
+            document.getElementById('cert-' + id).remove();
+        }
+
+        // ── 태그 토글 ──
+        function toggleTag(el) { el.classList.toggle('selected'); }
+
+        // ── 파일 핸들 ──
+        function handleFile(input) { if (input.files[0]) handleFileObj(input.files[0]); }
+        function handleFileObj(file) {
+            if (file.size > 10 * 1024 * 1024) { showToast('⚠️ 파일 크기는 10MB 이하여야 합니다.'); return; }
+            document.getElementById('uploadFileName').textContent = file.name + " (" + (file.size / 1024).toFixed(0) + "KB)";
+            document.getElementById('uploadPreview').classList.add('show');
+            document.getElementById('uploadZone').style.opacity = '0.5';
+        }
+        function removeFile() {
+            document.getElementById('resumeFile').value = '';
+            document.getElementById('uploadPreview').classList.remove('show');
+            document.getElementById('uploadZone').style.opacity = '1';
+        }
+
+        // ── 단계 이동 ──
+        function nextStep(from) {
+            if (!validateStep(from)) return;
+            goToStep(from + 1);
+        }
+        function prevStep(from) { goToStep(from - 1); }
+
+        function goToStep(n) {
+            document.getElementById('step' + curStep).classList.remove('active');
+            curStep = n;
+            if (n <= 4) {
+                document.getElementById('step' + n).classList.add('active');
+                if (n === 4) buildSummary();
+            }
+            updateProgress();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateProgress() {
+            for (let i = 1; i <= 4; i++) {
+                const c = document.getElementById('pc' + i);
+                const l = document.getElementById('pl' + i);
+                c.className = 'pb-circle ' + (i < curStep ? 'done' : i === curStep ? 'active' : 'pending');
+                l.className = 'pb-label ' + (i < curStep ? 'done' : i === curStep ? 'active' : '');
+                if (i < 4) {
+                    document.getElementById('pline' + i).className = 'pb-line ' + (i < curStep ? 'done' : '');
+                }
+                if (i < curStep) c.textContent = '✓';
+                else c.textContent = i;
+            }
+        }
+
+        // ── 유효성 검사 ──
+        function validateStep(step) {
+            let ok = true;
+            const req = (id, errId) => {
+                const el = document.getElementById(id);
+                const v = el?.value?.trim();
+                const fe = document.getElementById(errId || ('f-' + id));
+                const wrap = el?.closest('.field');
+                if (!v) { if (wrap) wrap.classList.add('error'); ok = false; }
+                else { if (wrap) wrap.classList.remove('error'); }
+            };
+            if (step === 1) {
+                req('name-ko', 'f-name'); req('name-en', 'f-name-en');
+                req('nationality', 'f-nationality'); req('email', 'f-email'); req('phone', 'f-phone');
+                const intro = document.getElementById('intro').value.trim();
+                const introField = document.getElementById('intro')?.closest('.field');
+                if (intro.length < 50) { if (introField) introField.classList.add('error'); ok = false; }
+                else { if (introField) introField.classList.remove('error'); }
+                if (!ok) showToast('⚠️ 필수 항목을 모두 입력해주세요.');
+            }
+            if (step === 2) {
+                const hasLang = langs.some(id => document.getElementById('ls-' + id)?.value && document.getElementById('lt-' + id)?.value);
+                if (!hasLang) { showToast('⚠️ 통역 가능 언어를 1개 이상 입력해주세요.'); ok = false; }
+                const hasSpec = document.querySelectorAll('#specTags .selected').length > 0;
+                if (!hasSpec) { showToast('⚠️ 전문 분야를 1개 이상 선택해주세요.'); ok = false; }
+            }
+            return ok;
+        }
+
+        // ── 요약 생성 ──
+        function buildSummary() {
+            const nameKo = document.getElementById('name-ko').value;
+            const nameEn = document.getElementById('name-en').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const nation = document.getElementById('nationality').value;
+            const langStr = langs.map(id => {
+                const f = document.getElementById(`ls-${id}`)?.value;
+                const t = document.getElementById(`lt-${id}`)?.value;
+                return (f && t) ? `${f} ↔ ${t}` : null;
+            }).filter(Boolean).join(', ');
+            const specs = [...document.querySelectorAll('#specTags .selected')].map(e => e.textContent.trim()).join(', ');
+            document.getElementById('summaryContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;">
+      <div>✅ <b>이름:</b> ${nameKo} (${nameEn})</div>
+      <div>✅ <b>국적:</b> ${nation}</div>
+      <div>✅ <b>이메일:</b> ${email}</div>
+      <div>✅ <b>연락처:</b> ${phone}</div>
+      <div style="grid-column:1/-1;">✅ <b>언어:</b> ${langStr || '—'}</div>
+      <div style="grid-column:1/-1;">✅ <b>전문분야:</b> ${specs || '—'}</div>
+      <div>✅ <b>경력 수:</b> ${careers.length}건</div>
+      <div>✅ <b>자격증:</b> ${certs.length}건</div>
+    </div>`;
+        }
+
+        // ── Supabase 클라이언트 ──
+        const SUPABASE_URL = 'https://yvtgfieoeoqhfbofzunk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2dGdmaWVvZW9xaGZib2Z6dW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NzI4NTksImV4cCI6MjA4NzE0ODg1OX0.49XWIHjMWG2YN8sI58GunPsSl2UyhJgx88mEtV613Pg';
+        const sbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+        // ── 이력서 파일 업로드 ──
+        async function uploadResume(file) {
+            if (!sbClient || !file) return null;
+            const ext = file.name.split('.').pop();
+            const path = `applications/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+            const { data, error } = await sbClient.storage.from('resumes').upload(path, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+            if (error) { console.error('파일 업로드 실패:', error); return null; }
+            return { url: path, name: file.name };
+        }
+
+        // ── 최종 제출 ──
+        async function submitForm() {
+            if (!document.getElementById('consent').checked) {
+                showToast('⚠️ 개인정보 수집·이용 동의가 필요합니다.'); return;
+            }
+
+            // 제출 버튼 비활성화
+            const submitBtn = document.querySelector('.btn-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '제출 중...';
+
+            const nameKo = document.getElementById('name-ko').value.trim();
+            const nameEn = document.getElementById('name-en').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            const langPairs = langs.map(id => ({
+                from: document.getElementById(`ls-${id}`)?.value,
+                to: document.getElementById(`lt-${id}`)?.value
+            })).filter(l => l.from && l.to);
+
+            const specs = [...document.querySelectorAll('#specTags .selected')].map(e => e.textContent.trim());
+            const types = [...document.querySelectorAll('#typeTags .selected')].map(e => e.textContent.trim());
+            const regions = [...document.querySelectorAll('#regionTags .selected')].map(e => e.textContent.trim());
+
+            const careerData = careers.map(id => ({
+                expo: document.getElementById(`ce-${id}`)?.value || '',
+                location: document.getElementById(`cl-${id}`)?.value || '',
+                period: document.getElementById(`cp-${id}`)?.value || '',
+                language: document.getElementById(`cln-${id}`)?.value || ''
+            })).filter(c => c.expo);
+
+            const certData = certs.map(id => ({
+                name: document.getElementById(`cn-${id}`)?.value || '',
+                year: document.getElementById(`cy-${id}`)?.value || ''
+            })).filter(c => c.name);
+
+            // 이력서 파일 업로드
+            let resumeInfo = null;
+            const resumeFile = document.getElementById('resumeFile').files[0];
+            if (resumeFile) {
+                resumeInfo = await uploadResume(resumeFile);
+            }
+
+            // DB 저장 데이터
+            const payload = {
+                name_ko: nameKo,
+                name_en: nameEn,
+                email: email,
+                phone: phone,
+                nationality: document.getElementById('nationality').value,
+                birth_date: document.getElementById('birth').value || null,
+                gender: document.getElementById('gender').value || null,
+                city: document.getElementById('city').value,
+                intro: document.getElementById('intro').value,
+                language_pairs: langPairs,
+                specialties: specs,
+                interpretation_types: types,
+                preferred_regions: regions,
+                careers: careerData,
+                total_experience: document.getElementById('totalExp').value || null,
+                certifications: certData,
+                school: document.getElementById('edu-school').value || null,
+                major: document.getElementById('edu-major').value || null,
+                resume_file_url: resumeInfo?.url || null,
+                resume_file_name: resumeInfo?.name || null,
+                portfolio_url: document.getElementById('portfolio').value || null,
+                motivation: document.getElementById('motivation').value || null,
+                privacy_consent: true,
+                privacy_consent_at: new Date().toISOString()
+            };
+
+            // Supabase에 저장
+            const now6 = new Date();
+            const applicationNumber = 'CT-' + now6.getFullYear().toString().slice(2) +
+                String(now6.getMonth() + 1).padStart(2, '0') +
+                String(now6.getDate()).padStart(2, '0') + '-' +
+                String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+
+            if (sbClient) {
+                const { error } = await sbClient
+                    .from('48_통역사지원서')
+                    .insert(payload);
+
+                if (error) {
+                    console.error('지원서 저장 실패:', error);
+                    showToast('⚠️ 지원서 저장에 실패했습니다. 다시 시도해주세요.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '🚀 지원서 제출하기';
+                    return;
+                }
+            }
+
+            // 완료 화면
+            const langStr = langPairs.map(l => `${l.from} ↔ ${l.to}`).join(', ');
+            const specStr = specs.join(', ');
+            const now = new Date().toLocaleString('ko-KR');
+
+            document.getElementById('progressBar').style.display = 'none';
+            for (let i = 1; i <= 4; i++) document.getElementById('step' + i).style.display = 'none';
+            document.getElementById('completeInfo').innerHTML = `
+    <div class="complete-row"><span class="complete-row-label">지원자</span><span class="complete-row-val">${nameKo}</span></div>
+    <div class="complete-row"><span class="complete-row-label">이메일</span><span class="complete-row-val">${email}</span></div>
+    <div class="complete-row"><span class="complete-row-label">통역 언어</span><span class="complete-row-val">${langStr || '—'}</span></div>
+    <div class="complete-row"><span class="complete-row-label">전문 분야</span><span class="complete-row-val">${specStr || '—'}</span></div>
+    <div class="complete-row"><span class="complete-row-label">제출 일시</span><span class="complete-row-val">${now}</span></div>
+    <div class="complete-row"><span class="complete-row-label">접수 번호</span><span class="complete-row-val" style="color:var(--blue);">${applicationNumber}</span></div>`;
+            document.getElementById('completeCard').classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.textContent = msg;
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+
+</html>

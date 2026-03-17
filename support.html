@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전시회 지원 프로세스 - 콘텐츄어</title>
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- Navigation Header -->
+    <header class="nav">
+        <div class="nav__inner">
+            <a class="nav__logo" href="index.html">
+                <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
+            </a>
+
+            <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
+                <a href="index.html#home">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
+                    </div>
+                </a>
+                <a class="is-active" href="support.html">
+                    <span class="nav__menu-icon">🤝</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">전시회지원</span>
+                        <span class="nav__menu-desc">현장 운영 서비스</span>
+                    </div>
+                </a>
+                <a href="portal.html">
+                    <span class="nav__menu-icon">💻</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">통역운영</span>
+                        <span class="nav__menu-desc">원스톱 관리 시스템</span>
+                    </div>
+                </a>
+                <a href="performance.html">
+                    <span class="nav__menu-icon">📊</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">성과</span>
+                        <span class="nav__menu-desc">성공 사례 데이터</span>
+                    </div>
+                </a>
+                <a href="video.html">
+                    <span class="nav__menu-icon">🎬</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">현장리뷰</span>
+                        <span class="nav__menu-desc">기업 홍보 영상</span>
+                    </div>
+                </a>
+                <a href="client-auth.html" class="nav-client">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">Login</span>
+                        <span class="nav__menu-desc">Client Portal</span>
+                    </div>
+                </a>
+            </nav>
+
+            <div class="nav-cta">
+                <a href="#contact" class="btn btn-primary btn-nav">견적 문의</a>
+            </div>
+
+            <button class="nav__toggle" type="button" aria-controls="navMenu" aria-expanded="false"
+                id="mobileMenuToggle">
+                <span class="sr-only">메뉴 열기</span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="page">
+        <!-- Hero Section for Support -->
+        <section class="hero"
+            style="min-height: 40vh; background: linear-gradient(rgba(26, 32, 44, 0.9), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center;">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>전시회 지원 프로세스</h1>
+                <p>A to Z, 콘텐츄어만의 체계적인 4단계 운영 시스템을 소개합니다.</p>
+            </div>
+        </section>
+
+        <!-- Exhibition Interpreter Summary -->
+        <section class="expo-summary">
+            <div class="expo-summary__inner">
+                <h2 class="expo-summary__title">해외 전시회 현장 통역사, 왜 중요한가요?</h2>
+                <div class="expo-summary__content">
+                    <p>
+                        해외 전시회에서 통역사는 단순 번역을 넘어 <strong>상담 흐름과 성과를 만드는 핵심 인력</strong>입니다.<br />
+                        정확한 커뮤니케이션으로 <strong>리드 전환(미팅·견적·샘플 요청)</strong>을 높이고, 기술·제품 설명의 신뢰를 지키며,
+                        문화 차이로 인한 오해를 줄입니다.<br />
+                        또한 상담 내용을 정리해 <strong>전시 후 팔로업</strong>까지 매끄럽게 연결해 줍니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process Section (Migrated) -->
+        <section id="process" class="process-section">
+            <div class="container">
+                <div class="section-title">
+                    <span class="section-label">Our Process</span>
+                    <h2>완벽한 운영을 위한 4단계 프로세스</h2>
+                    <p class="section-subtitle">모든 단계에서 타협 없는 전문성을 보장합니다.</p>
+                </div>
+
+                <div class="process-grid">
+                    <article class="process-card">
+                        <div class="step-num">01</div>
+                        <h3>맞춤형 인적 구성</h3>
+                        <ul>
+                            <li>산업군별 전문 통역사 매칭</li>
+                            <li>언어별/역할별 최적화 실무진 구성</li>
+                        </ul>
+                    </article>
+                    <article class="process-card">
+                        <div class="step-num">02</div>
+                        <h3>철저한 사전 교육</h3>
+                        <ul>
+                            <li>산업군 및 품목(Glossary) 숙지</li>
+                            <li>비즈니스 에티켓 및 현장 매너 집중 교육</li>
+                        </ul>
+                    </article>
+                    <article class="process-card">
+                        <div class="step-num">03</div>
+                        <h3>현장 운영 및 밀착 관리</h3>
+                        <ul>
+                            <li>현장 운영 지원 부스 운영</li>
+                            <li>예측 불가능한 상황에 대한 즉각 대응</li>
+                        </ul>
+                    </article>
+                    <article class="process-card">
+                        <div class="step-num">04</div>
+                        <h3>성과 보고 및 피드백</h3>
+                        <ul>
+                            <li>상담 일지 기반 정량 성과 대시보드 제공</li>
+                            <li>향후 사업을 위한 리스크 및 개선안 제언</li>
+                        </ul>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="value-prop" style="background: var(--bg-light);">
+            <div class="container">
+                <h2>성공적인 전시 비즈니스를 약속합니다</h2>
+                <p>콘텐츄어의 프로세스는 단순한 인력 지원을 넘어, 고객사의 브랜드 가치를 현장에서 직접 실현하는 데 초점을 맞추고 있습니다.</p>
+                <div style="margin-top: 3rem; text-align: center;">
+                    <a href="#contact" class="btn btn-primary btn-large">지금 바로 문의하기</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Blue ITQ Section -->
+    <section id="contact" class="blue-itq">
+        <button class="blue-itq__close" id="closeInquiry" aria-label="Close inquiry form">×</button>
+        <div class="blue-itq__wrap">
+            <header class="blue-itq__head">
+                <p class="blue-itq__eyebrow">Interpreter Quote</p>
+                <h2 class="blue-itq__title">글로벌 비즈니스를 위한<br>통역 견적 문의</h2>
+                <p class="blue-itq__sub">
+                    전시 정보만 알려주셔도 1차 견적 범위를 안내드릴 수 있습니다.<br>
+                    영업일 기준 24시간 내 회신을 목표로 합니다.
+                </p>
+
+                <div class="blue-itq__chips">
+                    <span class="chip">🎯 부스 상주 통역</span>
+                    <span class="chip">🤝 미팅 동행 통역</span>
+                    <span class="chip">📋 주최사 커뮤니케이션</span>
+                    <span class="chip">⚡ 24시간 내 견적 회신</span>
+                </div>
+            </header>
+
+            <form class="blue-itq__form" id="interpreterForm">
+                <div class="blue-itq__grid">
+                    <div class="field">
+                        <label for="company">회사명 <span class="req">*</span></label>
+                        <input id="company" name="company" required autocomplete="organization"
+                            placeholder="예: (주)콘텐츄어" />
+                    </div>
+
+                    <div class="field">
+                        <label for="name">담당자명 <span class="req">*</span></label>
+                        <input id="name" name="name" required autocomplete="name" placeholder="예: 홍길동" />
+                    </div>
+
+                    <div class="field">
+                        <label for="email">이메일 <span class="req">*</span></label>
+                        <input id="email" name="email" type="email" required autocomplete="email"
+                            placeholder="예: gildong@company.com" />
+                    </div>
+
+                    <div class="field">
+                        <label for="phone">연락처 <span class="req">*</span></label>
+                        <input id="phone" name="phone" required autocomplete="tel" placeholder="예: 010-0000-0000" />
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="expoName">전시회명 <span class="req">*</span></label>
+                        <input id="expoName" name="expoName" required placeholder="예: H2 & FC EXPO 2026" />
+                    </div>
+
+                    <div class="field">
+                        <label for="location">개최지(국가/도시) <span class="req">*</span></label>
+                        <input id="location" name="location" required placeholder="예: 일본 / 도쿄" />
+                    </div>
+
+                    <div class="field">
+                        <label for="venue">전시장(선택)</label>
+                        <input id="venue" name="venue" placeholder="예: Tokyo Big Sight" />
+                    </div>
+
+                    <div class="field">
+                        <label for="startDate">시작일 <span class="req">*</span></label>
+                        <input id="startDate" name="startDate" type="date" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="endDate">종료일 <span class="req">*</span></label>
+                        <input id="endDate" name="endDate" type="date" required />
+                    </div>
+
+                    <div class="field">
+                        <label for="languages">필요 언어 <span class="req">*</span></label>
+                        <select id="languages" name="languages" required>
+                            <option value="">선택</option>
+                            <option value="KR-EN">한국어 ↔ 영어</option>
+                            <option value="KR-JP">한국어 ↔ 일본어</option>
+                            <option value="KR-CN">한국어 ↔ 중국어</option>
+                            <option value="ETC">기타</option>
+                        </select>
+                        <p class="help">기타 선택 시 요청 내용에 언어를 적어주세요.</p>
+                    </div>
+
+                    <div class="field">
+                        <label for="type">통역 형태 <span class="req">*</span></label>
+                        <select id="type" name="type" required>
+                            <option value="">선택</option>
+                            <option value="BOOTH">부스 상주(상담 통역)</option>
+                            <option value="MEETING">미팅 동행</option>
+                            <option value="ONSITE_OPS">현장 운영/주최사 커뮤니케이션</option>
+                            <option value="OTHER">기타</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="headcount">필요 인원(명)</label>
+                        <input id="headcount" name="headcount" type="number" min="1" placeholder="예: 1" />
+                    </div>
+
+                    <div class="field">
+                        <label for="workingHours">근무 시간(예시)</label>
+                        <input id="workingHours" name="workingHours" placeholder="예: 10:00–18:00" />
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="keywords">전문 분야/제품 키워드(선택)</label>
+                        <input id="keywords" name="keywords" placeholder="예: 배터리, 반도체, 의료기기, 소재 등" />
+                    </div>
+
+                    <div class="field span-2">
+                        <label for="message">요청 내용 <span class="req">*</span></label>
+                        <textarea id="message" name="message" rows="6" required
+                            placeholder="예: 부스 방문객 상담 통역 + 상담일지 작성 보조가 필요합니다. 주최사와 전기/비품 커뮤니케이션도 일부 지원 요청드립니다."></textarea>
+                    </div>
+                </div>
+
+                <div class="blue-itq__foot">
+                    <label class="consent">
+                        <input type="checkbox" name="consent" required />
+                        개인정보 수집 및 이용에 동의합니다. <span class="req">*</span>
+                    </label>
+
+                    <button class="btn" type="submit">통역 섭외 문의 보내기</button>
+                    <p class="note">영업일 기준 24시간 내 1차 회신을 목표로 합니다.</p>
+                    <p id="formStatus" class="status" role="status" aria-live="polite"></p>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-professional">
+        <div class="footer-container-pro">
+            <div class="footer-logo-box">
+                <img src="assets/footer_logo.png" alt="CONTENTOUR Logo" class="footer-logo">
+            </div>
+            <div class="footer-info">
+                <div class="footer-info__row">
+                    <span><b>상호명</b> 콘텐츄어</span>
+                    <span class="divider">|</span>
+                    <span><b>주소</b> 서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 204호</span>
+                    <span class="divider">|</span>
+                    <span><b>대표이사</b> 이수경</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>메일</b> info@contentour.co.kr</span>
+                    <span class="divider">|</span>
+                    <span><b>전화</b> 02-868-1522</span>
+                    <span class="divider">|</span>
+                    <span><b>팩스</b> 02-869-3082</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>사업자등록번호</b> 119-86-68157</span>
+                    <span class="divider">|</span>
+                    <span><b>통신판매업신고번호</b> 제 2017-서울 구로-0321호</span>
+                </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
+                <a href="terms.html" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">서비스 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">고객사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">통역사 이용약관</a>
+                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">개인정보처리방침</a>
+            </div>
+            <div class="footer-bottom-pro" style="margin-top:20px;">
+                <p>© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
