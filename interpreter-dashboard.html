@@ -125,10 +125,7 @@
                     <div class="welcome-banner__content">
                         <p class="welcome-banner__greeting">Good morning!</p>
                         <h2 class="welcome-banner__title">안녕하세요, 통역사님</h2>
-                        <p class="welcome-banner__desc">
-                            오늘 예정된 통역 일정 <strong style="color:var(--sky)">1건</strong>이 있습니다.
-                            새로운 배정 요청 <strong style="color:var(--sky)">2건</strong>을 확인해주세요.
-                        </p>
+                        <p class="welcome-banner__desc">데이터를 불러오는 중입니다...</p>
                     </div>
                 </div>
 
@@ -137,173 +134,76 @@
                     <div class="kpi-card">
                         <div class="kpi-icon blue">📋</div>
                         <div>
-                            <div class="kpi-num">2</div>
+                            <div class="kpi-num">-</div>
                             <div class="kpi-label">신규 배정 요청</div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon green">📅</div>
                         <div>
-                            <div class="kpi-num">5</div>
+                            <div class="kpi-num">-</div>
                             <div class="kpi-label">이번 달 예정 일정</div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon orange">📝</div>
                         <div>
-                            <div class="kpi-num">1</div>
+                            <div class="kpi-num">-</div>
                             <div class="kpi-label">미제출 상담일지</div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon purple">💰</div>
                         <div>
-                            <div class="kpi-num">₩1.2M</div>
+                            <div class="kpi-num">-</div>
                             <div class="kpi-label">이번 달 정산 예정</div>
-                            <div class="kpi-change up">+15% vs 지난달</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2열 그리드: 배정 요청 + 다가오는 일정 -->
                 <div class="dashboard-grid">
-                    <!-- 배정 요청 -->
                     <div class="card">
                         <div class="card__head">
-                            <h3>배정 요청 <span class="card__head-badge">2</span></h3>
+                            <h3>배정 요청 <span class="card__head-badge">0</span></h3>
                             <a class="card__head-link" onclick="switchView('assignments')">전체 보기 →</a>
                         </div>
                         <div class="card__body">
-                            <div class="assign-item">
-                                <div class="assign-item__dot dot-new"></div>
-                                <div class="assign-item__info">
-                                    <div class="assign-item__title">SIMTOS 2026 - 제조산업 통역</div>
-                                    <div class="assign-item__meta">
-                                        <span>🏢 (주)삼성전자</span>
-                                        <span>📅 2026.03.15~18</span>
-                                        <span>🌐 한↔영</span>
-                                    </div>
-                                </div>
-                                <div class="assign-item__actions">
-                                    <button class="btn-accept" onclick="handleAccept(this)">수락</button>
-                                    <button class="btn-decline" onclick="handleDecline(this)">거절</button>
-                                </div>
-                            </div>
-                            <div class="assign-item">
-                                <div class="assign-item__dot dot-new"></div>
-                                <div class="assign-item__info">
-                                    <div class="assign-item__title">Seoul Food 2026 - 식품 박람회</div>
-                                    <div class="assign-item__meta">
-                                        <span>🏢 CJ프레시웨이</span>
-                                        <span>📅 2026.03.22~24</span>
-                                        <span>🌐 한↔일</span>
-                                    </div>
-                                </div>
-                                <div class="assign-item__actions">
-                                    <button class="btn-accept" onclick="handleAccept(this)">수락</button>
-                                    <button class="btn-decline" onclick="handleDecline(this)">거절</button>
-                                </div>
-                            </div>
+                            <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
                         </div>
                     </div>
-
-                    <!-- 다가오는 일정 -->
                     <div class="card">
                         <div class="card__head">
                             <h3>다가오는 일정</h3>
                             <a class="card__head-link" onclick="switchView('schedule', event)">캘린더 보기 →</a>
                         </div>
-                        <div class="card__body">
-                            <div class="schedule-item">
-                                <div class="schedule-item__date">
-                                    <div class="schedule-item__month">MAR</div>
-                                    <div class="schedule-item__day">08</div>
-                                </div>
-                                <div class="schedule-item__bar bar-blue"></div>
-                                <div class="schedule-item__info">
-                                    <div class="schedule-item__title">Korea Build 2026</div>
-                                    <div class="schedule-item__detail">KINTEX 제1전시장 | 09:00~18:00<br>한↔영 | (주)현대건설</div>
-                                </div>
-                                <span class="schedule-item__badge badge-dday">D-2</span>
-                            </div>
-                            <div class="schedule-item">
-                                <div class="schedule-item__date">
-                                    <div class="schedule-item__month">MAR</div>
-                                    <div class="schedule-item__day">15</div>
-                                </div>
-                                <div class="schedule-item__bar bar-green"></div>
-                                <div class="schedule-item__info">
-                                    <div class="schedule-item__title">SIMTOS 2026</div>
-                                    <div class="schedule-item__detail">COEX 전관 | 10:00~17:00<br>한↔영 | (주)삼성전자</div>
-                                </div>
-                                <span class="schedule-item__badge badge-soon">D-9</span>
-                            </div>
-                            <div class="schedule-item">
-                                <div class="schedule-item__date">
-                                    <div class="schedule-item__month">MAR</div>
-                                    <div class="schedule-item__day">22</div>
-                                </div>
-                                <div class="schedule-item__bar bar-orange"></div>
-                                <div class="schedule-item__info">
-                                    <div class="schedule-item__title">Seoul Food 2026</div>
-                                    <div class="schedule-item__detail">aT센터 | 09:30~17:30<br>한↔일 | CJ프레시웨이</div>
-                                </div>
-                                <span class="schedule-item__badge badge-normal">D-16</span>
-                            </div>
+                        <div class="card__body schedule-list">
+                            <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2열 그리드: 상담일지 + 정산 -->
                 <div class="dashboard-grid">
-                    <!-- 미제출 상담일지 -->
                     <div class="card">
                         <div class="card__head">
                             <h3>미제출 상담일지</h3>
                             <a class="card__head-link" onclick="switchView('journal')">전체 보기 →</a>
                         </div>
                         <div class="card__body">
-                            <div class="journal-item">
-                                <div class="journal-item__icon draft">📝</div>
-                                <div class="journal-item__info">
-                                    <div class="journal-item__title">Smart Factory Expo 2026</div>
-                                    <div class="journal-item__meta">2026.02.28 완료 | (주)LG전자</div>
-                                </div>
-                                <span class="journal-item__status status-draft">미제출</span>
-                            </div>
-                            <div class="journal-item">
-                                <div class="journal-item__icon done">✅</div>
-                                <div class="journal-item__info">
-                                    <div class="journal-item__title">MWC Korea 2026</div>
-                                    <div class="journal-item__meta">2026.02.20 완료 | SK텔레콤</div>
-                                </div>
-                                <span class="journal-item__status status-submitted">제출 완료</span>
+                            <div class="journal-item" style="justify-content:center;">
+                                <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- 최근 정산 -->
                     <div class="card">
                         <div class="card__head">
                             <h3>최근 정산 내역</h3>
                             <a class="card__head-link" onclick="switchView('settlement')">전체 보기 →</a>
                         </div>
                         <div class="card__body">
-                            <div class="settle-item">
-                                <div class="settle-item__info">
-                                    <div class="settle-item__title">SIMTOS 2026</div>
-                                    <div class="settle-item__meta">2026.03.18 | (주)삼성전자</div>
-                                </div>
-                                <div class="settle-item__amount">₩600,000</div>
-                                <span class="settle-item__status settle-pending">승인 대기</span>
-                            </div>
-                            <div class="settle-item">
-                                <div class="settle-item__info">
-                                    <div class="settle-item__title">MWC Korea 2026</div>
-                                    <div class="settle-item__meta">2026.02.20 | SK텔레콤</div>
-                                </div>
-                                <div class="settle-item__amount">₩450,000</div>
-                                <span class="settle-item__status settle-done">승인 완료</span>
+                            <div class="settle-item" style="justify-content:center;">
+                                <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
                             </div>
                         </div>
                     </div>
@@ -318,16 +218,12 @@
                     <div class="card__body">
                         <div class="profile-progress">
                             <div class="profile-progress__bar">
-                                <div class="profile-progress__fill" style="width: 75%"></div>
+                                <div class="profile-progress__fill" style="width: 0%"></div>
                             </div>
-                            <span class="profile-progress__text">75%</span>
+                            <span class="profile-progress__text">0%</span>
                         </div>
                         <div class="profile-checklist">
-                            <span class="profile-check completed">✅ 기본 정보</span>
-                            <span class="profile-check completed">✅ 통역 언어</span>
-                            <span class="profile-check completed">✅ 전문 분야</span>
-                            <span class="profile-check">⬜ 자격증 등록</span>
-                            <span class="profile-check">⬜ 포트폴리오 링크</span>
+                            <span class="profile-check">⬜ 로딩 중...</span>
                         </div>
                     </div>
                 </div>
@@ -337,27 +233,8 @@
                     <div class="card__head">
                         <h3>최근 알림</h3>
                     </div>
-                    <div class="card__body">
-                        <div class="notice-item">
-                            <div class="notice-item__icon">📋</div>
-                            <div class="notice-item__text"><strong>SIMTOS 2026</strong> 통역 배정 요청이 도착했습니다.</div>
-                            <div class="notice-item__time">30분 전</div>
-                        </div>
-                        <div class="notice-item">
-                            <div class="notice-item__icon">💰</div>
-                            <div class="notice-item__text"><strong>MWC Korea 2026</strong> 정산이 완료되었습니다. (₩450,000)</div>
-                            <div class="notice-item__time">2시간 전</div>
-                        </div>
-                        <div class="notice-item">
-                            <div class="notice-item__icon">📝</div>
-                            <div class="notice-item__text"><strong>Smart Factory Expo 2026</strong> 상담일지 제출을 요청합니다.</div>
-                            <div class="notice-item__time">1일 전</div>
-                        </div>
-                        <div class="notice-item">
-                            <div class="notice-item__icon">📅</div>
-                            <div class="notice-item__text"><strong>Korea Build 2026</strong> 일정이 확정되었습니다. (3/8~10)</div>
-                            <div class="notice-item__time">2일 전</div>
-                        </div>
+                    <div class="card__body notice-list">
+                        <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
                     </div>
                 </div>
 
