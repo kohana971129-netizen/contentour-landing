@@ -14,7 +14,11 @@
             --sky: #4fc3f7;
             --light-bg: #f0f5ff;
             --white: #ffffff;
-            /* --gray-* 는 --g* 와 동일 (하위호환) */
+            --gray-50: #f8fafc;
+            --gray-100: #f4f6fb;
+            --gray-200: #e5eaf2;
+            --gray-400: #9daec8;
+            --gray-600: #4a5a75;
             --g50: #f8fafc;
             --g100: #f4f6fb;
             --g200: #e5eaf2;

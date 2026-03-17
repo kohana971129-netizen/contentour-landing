@@ -14,6 +14,32 @@
 
 <body>
 
+    <!-- ══ 관리자 로그인 오버레이 ══ -->
+    <div id="adminLoginOverlay" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#061a3e,#0a2a5e);display:flex;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:20px;max-width:420px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.3);overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#0a2a5e,#1565c0);padding:32px 28px;text-align:center;color:#fff;">
+                <div style="width:52px;height:52px;background:linear-gradient(135deg,#1565c0,#4fc3f7);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;margin-bottom:14px;">CT</div>
+                <div style="font-size:1.2rem;font-weight:800;">CONTENTOUR 관리자</div>
+                <div style="font-size:0.78rem;opacity:0.7;margin-top:6px;">통역 운영 관리 시스템</div>
+            </div>
+            <div style="padding:28px;">
+                <div id="adminLoginError" style="display:none;background:#ffebee;color:#e53935;padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-bottom:16px;"></div>
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">이메일</label>
+                    <input type="email" id="adminEmail" placeholder="관리자 이메일" style="width:100%;padding:12px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">비밀번호</label>
+                    <input type="password" id="adminPw" placeholder="비밀번호" style="width:100%;padding:12px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')adminLogin()">
+                </div>
+                <button onclick="adminLogin()" id="adminLoginBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">관리자 로그인</button>
+                <div style="text-align:center;margin-top:16px;">
+                    <a href="client-auth.html" style="font-size:0.8rem;color:#9daec8;text-decoration:none;">← 일반 로그인으로 돌아가기</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ══ 사이드바 ══ -->
     <aside class="sidebar" id="sidebar">
         <div class="sb-logo">
@@ -26,7 +52,7 @@
             </div>
         </div>
         <div class="sb-admin">
-            <div class="sb-admin__name">이수경 관리자</div>
+            <div class="sb-admin__name">고하나 관리자</div>
             <div class="sb-admin__email">admin@contentour.co.kr</div>
         </div>
         <nav class="sb-nav">
@@ -72,7 +98,7 @@
             <a class="sb-item" href="#">
                 <span class="sb-item__icon">⚙️</span> 시스템 설정
             </a>
-            <a class="sb-item" href="client-auth.html">
+            <a class="sb-item" href="javascript:void(0)" onclick="adminLogout()">
                 <span class="sb-item__icon">🚪</span> 로그아웃
             </a>
         </nav>
@@ -99,8 +125,8 @@
                     </div>
                     <div class="topbar__icon-btn" title="내보내기" onclick="showToast('📤 데이터 내보내기 준비 중...')">📤</div>
                     <div class="topbar__admin">
-                        <div class="admin-avatar">이</div>
-                        <span class="admin-name">이수경</span>
+                        <div class="admin-avatar">고</div>
+                        <span class="admin-name">고하나</span>
                     </div>
                 </div>
             </div>
@@ -3355,7 +3381,7 @@
                     var isCustomer = m.role === 'customer';
                     var isAdmin = m.role === 'admin';
                     var roleLabel = isAdmin ? '🛡️ 관리자' : (isCustomer ? '👤 고객사' : '🗣️ 통역사');
-                    var roleName = isAdmin ? '이수경' : (isCustomer ? (ch.customer.match(/\(([^)]+)\)/) ? ch.customer.match(/\(([^)]+)\)/)[1] : ch.customer) : ch.interpreter);
+                    var roleName = isAdmin ? '고하나' : (isCustomer ? (ch.customer.match(/\(([^)]+)\)/) ? ch.customer.match(/\(([^)]+)\)/)[1] : ch.customer) : ch.interpreter);
                     var bubbleColor = isAdmin ? '#fff8e1' : (isCustomer ? '#e3f2fd' : '#f3e5f5');
                     var borderColor = isAdmin ? '#ffe082' : (isCustomer ? '#90caf9' : '#ce93d8');
 
@@ -3526,6 +3552,89 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2dGdmaWVvZW9xaGZib2Z6dW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NzI4NTksImV4cCI6MjA4NzE0ODg1OX0.49XWIHjMWG2YN8sI58GunPsSl2UyhJgx88mEtV613Pg'
               )
             : null;
+
+        // ── 관리자 로그인 ──
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const pw = document.getElementById('adminPw').value;
+            const errEl = document.getElementById('adminLoginError');
+            const btn = document.getElementById('adminLoginBtn');
+
+            if (!email || !pw) {
+                errEl.textContent = '이메일과 비밀번호를 입력해주세요.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '로그인 중...';
+            errEl.style.display = 'none';
+
+            try {
+                const { data, error } = await _sb.auth.signInWithPassword({ email, password: pw });
+                if (error) throw error;
+
+                // 관리자 역할 확인
+                const { data: profile, error: pErr } = await _sb
+                    .from('01_회원')
+                    .select('role, name')
+                    .eq('id', data.user.id)
+                    .single();
+
+                if (pErr || !profile || profile.role !== 'admin') {
+                    await _sb.auth.signOut();
+                    throw new Error('관리자 권한이 없는 계정입니다.');
+                }
+
+                // 로그인 성공 → 오버레이 숨기기
+                document.getElementById('adminLoginOverlay').style.display = 'none';
+
+                // 사이드바 이름 업데이트
+                const nameEl = document.querySelector('.sb-admin__name');
+                if (nameEl) nameEl.textContent = profile.name + ' 관리자';
+                const avatarEl = document.querySelector('.admin-avatar');
+                if (avatarEl) avatarEl.textContent = profile.name.charAt(0);
+                const topNameEl = document.querySelector('.admin-name');
+                if (topNameEl) topNameEl.textContent = profile.name;
+
+                // 감사 로그
+                if (typeof CT !== 'undefined' && CT.logAudit) {
+                    CT.logAudit('admin_login', '01_회원', data.user.id, { email });
+                }
+
+            } catch (e) {
+                errEl.textContent = e.message || '로그인에 실패했습니다.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = '관리자 로그인';
+            }
+        }
+
+        async function adminLogout() {
+            if (_sb) await _sb.auth.signOut();
+            location.href = 'client-auth.html';
+        }
+
+        // 이미 로그인된 상태 확인
+        (async function checkExistingSession() {
+            if (!_sb) return;
+            try {
+                const { data: { user } } = await _sb.auth.getUser();
+                if (user) {
+                    const { data: profile } = await _sb.from('01_회원').select('role, name').eq('id', user.id).single();
+                    if (profile && profile.role === 'admin') {
+                        document.getElementById('adminLoginOverlay').style.display = 'none';
+                        const nameEl = document.querySelector('.sb-admin__name');
+                        if (nameEl) nameEl.textContent = profile.name + ' 관리자';
+                        const avatarEl = document.querySelector('.admin-avatar');
+                        if (avatarEl) avatarEl.textContent = profile.name.charAt(0);
+                        const topNameEl = document.querySelector('.admin-name');
+                        if (topNameEl) topNameEl.textContent = profile.name;
+                        return;
+                    }
+                }
+            } catch (e) {}
+        })();
 
         let _allApps = [];
         let _appFilter = 'all';

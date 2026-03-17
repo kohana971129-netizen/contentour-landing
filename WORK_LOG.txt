@@ -1,0 +1,216 @@
+═══════════════════════════════════════════════════════════════
+  콘텐츄어 통역 플랫폼 — 작업 내역 보고서
+  작성일: 2026년 3월 17일
+  작성자: 고하나
+  GitHub: https://github.com/kohana971129-netizen/contentour-landing
+═══════════════════════════════════════════════════════════════
+
+
+▶ 1. 관리자 대시보드 — 지원서 관리 필터 디자인
+──────────────────────────────────────────────
+• 지원서 관리 탭의 필터 버튼(전체/대기중/검토중/면접/승인/거절)에
+  상태별 고유 색상 디자인 적용
+• 각 버튼에 data-status 속성 추가, 호버/활성 상태 그라데이션 효과
+• 적용 색상: 네이비(전체), 주황(대기중), 파랑(검토중), 보라(면접),
+  초록(승인), 빨강(거절)
+
+
+▶ 2. 고객사/통역사 로그인 문제 수정
+──────────────────────────────────────────────
+• 고객사 데모 로그인(demo@contentour.com) 시 customer-dashboard로
+  이동하지 않던 버그 수정
+  → 원인: 인증 가드가 Supabase 세션 확인 → 데모 계정은 세션 없음
+    → 다시 로그인 페이지로 리다이렉트 (무한 루프)
+  → 해결: sessionStorage에 demoMode 플래그 저장, 인증 가드에서 허용
+
+• 통역사 데모 로그인(interpreter@contentour.com) 동일 문제 수정
+  → 통역사 로그인 폼의 데모 모드에 계정 체크 로직이 없던 문제 해결
+  → interpreter-app.js의 requireAuth 우회 처리 추가
+
+
+▶ 3. 통역사 대시보드 — 박서연 통역사 데모 프로필 연동
+──────────────────────────────────────────────
+• 데모 모드 통역사를 "박서연 (Sarah Park)"으로 설정
+  → 영어 전문 통역사 / 의료·바이오, 에너지·환경, 항공·방위
+• 데모 모드에서 DB 조회 건너뛰고 HTML 데모 데이터 유지
+• 정산 내역: _stlDataOriginal 7건 데모 데이터 로딩
+• 고객사 채팅: 3명 데모 연락처 + 대화 내역 생성
+  (삼성전자 이정우 과장, SK텔레콤 박서연 대리, LG전자 김민수 차장)
+
+
+▶ 4. 실제 통역사 로그인 시 빈 상태 대응
+──────────────────────────────────────────────
+• 실제 Supabase 계정 로그인 시 모든 섹션이 DB 데이터 기반으로 동작:
+  - renderHomeSettlement() 구현 (기존 빈 함수)
+  - renderHomeJournals() 신규 구현
+  - renderWelcomeBanner() 신규 구현
+  - renderProfileCompletion() 클래스명 불일치 수정
+    (profile-progress-fill → profile-progress__fill 등)
+• 데이터 없는 경우 "~가 없습니다" 빈 상태 메시지 표시
+
+
+▶ 5. 관리자 대시보드 — 고객사 관리 탭 내장
+──────────────────────────────────────────────
+• 기존 별도 파일(admin-customers.html) → admin-dashboard.html에
+  내장 탭으로 통합
+• 고객사 KPI 카드 4개, 검색+필터, 정렬 가능 테이블 포함
+• 데모 데이터 10개사 (삼성전자, 현대자동차, LG에너지솔루션 등)
+
+
+▶ 6. admin-interpreters.html 코드 중복 정리
+──────────────────────────────────────────────
+• stLbl 상태 라벨 객체 2곳 정의 → STATUS_LABEL 전역 상수 1곳으로 통합
+• 통역사 찾기 패턴 6곳 반복 → findInterp() 헬퍼 함수 추출
+• 상태 변경 함수 5개(approveInterp, holdInterp, rejectInterp,
+  quickApprove, quickReject) → changeStatus() 하나로 통합
+• STATUS_COLOR 객체 추가로 인라인 색상 하드코딩 제거
+
+
+▶ 7. 프로젝트 보안 점검 (3개 팀 병렬 분석)
+──────────────────────────────────────────────
+프론트엔드/UX팀, 백엔드/보안팀, DB/아키텍처팀 3개 팀으로
+프로젝트 전체 점검 수행. 총 23개 문제 발견.
+
+[1주차 긴급 수정 — 완료]
+• Supabase RLS 점검: 전체 테이블 RLS 활성화 확인
+  → 48_통역사지원서의 위험한 anon ALL 정책 제거 (마이그레이션 적용)
+• 데모 모드 보안 강화: demoToken 서명 검증 추가
+  → sessionStorage 직접 조작으로 대시보드 접근 불가하도록 차단
+• XSS innerHTML 방지: escHtml() 유틸 함수 추가
+  → interpreter-app.js 내 DB 데이터 렌더링 17곳에 이스케이프 적용
+
+[2~3주차 단기 수정 — 완료]
+• 결제 입력값 검증: verifyAndSavePayment에 contractId, amount,
+  paymentType, merchantUid 유효성 검사 추가
+• 채팅 접근 제어: loadMessages에 계약 참여자 확인 로직 추가
+  (서버 RLS + 클라이언트 이중 보호)
+• 반응형 브레이크포인트 통일: 1024px / 768px / 480px
+  → customer-dashboard, admin-dashboard, interpreter-dashboard
+  → 캘린더 최소 폰트 0.5rem → 0.65rem (가독성 개선)
+  → CSS 변수 중복 제거 (--gray-* → --g-* 통합)
+• 다중 테이블 에러 핸들링: interpreter-data.js saveProfile에서
+  두 번째 UPDATE 에러도 체크하도록 수정
+
+[4주차 중기 개선 — 완료]
+• 데이터 접근 계층 통합: shared-constants.js 생성
+  → CT 네임스페이스로 상태 매핑, 유틸 함수, 감사 로그 통합
+  → 3개 대시보드에 script 태그 추가
+• 접근성 개선: <a onclick> → role="button" tabindex="0" 추가
+  → 비밀번호 찾기 죽은 링크 수정
+  → 이용약관/개인정보처리방침 href="#" → terms.html 연결
+• 감사 로그 시스템: 50_감사로그 테이블 + log_audit() RPC 함수 생성
+  → 지원서 승인/거절, 정산 승인 시 자동 로그 기록
+
+
+▶ 8. Git 저장소 초기화 + GitHub 업로드
+──────────────────────────────────────────────
+• contentour-landing을 메인 소스로 확정
+• .gemini 경로의 최신 수정사항 + 새 파일 동기화
+• .gitignore 보강 (환경변수, OS 파일, 에디터 파일 제외)
+• Git 초기화 → GitHub 저장소 생성 → push
+  → https://github.com/kohana971129-netizen/contentour-landing
+• Git credential helper 설정 (push 자동 인증)
+
+
+▶ 9. 비밀번호 찾기/재설정 기능 구현
+──────────────────────────────────────────────
+• supabase-config.js: resetPassword(), updatePassword() 함수 추가
+• client-auth.html: 비밀번호 재설정 모달 UI (3단계 플로우)
+  Step 1: 이메일 입력 → Supabase resetPasswordForEmail 호출
+  Step 2: 발송 완료 안내 화면
+  Step 3: 새 비밀번호 입력 (재설정 링크 클릭 후 ?mode=reset)
+• URL 파라미터 감지하여 자동 모달 표시
+
+
+▶ 10. CSS 외부 파일 분리
+──────────────────────────────────────────────
+4개 페이지의 인라인 <style> 블록을 별도 CSS 파일로 분리:
+• admin-dashboard.css    (3,123줄) ← admin-dashboard.html
+• interpreter-dashboard.css (3,430줄) ← interpreter-dashboard.html
+• customer-dashboard.css   (845줄) ← customer-dashboard.html
+• client-auth.css        (713줄) ← client-auth.html
+→ HTML 파일 총 라인: 22,291줄 → 14,181줄 (-33% 감소)
+
+
+▶ 11. 추가 정리
+──────────────────────────────────────────────
+• admin-customers.html 삭제 (admin-dashboard에 내장 탭으로 통합됨)
+• 404.html 에러 페이지 생성
+• index.html SEO 메타태그 추가 (OG, Twitter Card, keywords, canonical)
+• 데모 데이터 하드코딩 제거 → "로딩 중..." 상태로 교체
+
+
+═══════════════════════════════════════════════════════════════
+  Git 커밋 이력
+═══════════════════════════════════════════════════════════════
+
+5759714 — 초기 커밋: 콘텐츄어 통역 플랫폼 전체 코드 통합
+b2988fd — 비밀번호 찾기/재설정 기능 구현
+3b50e34 — CSS 외부 파일 분리: 인라인 스타일 8,111줄 추출
+0530f2a — 정리: 중복 파일 삭제, 404 페이지, SEO 메타태그, Git 인증
+14b2ea0 — 데모 데이터 제거: 홈 뷰를 로딩 상태로 교체
+
+
+═══════════════════════════════════════════════════════════════
+  향후 작업 (미완료)
+═══════════════════════════════════════════════════════════════
+
+[수동 설정 필요]
+• Supabase 이메일 템플릿 한국어화
+  → https://supabase.com/dashboard/project/yvtgfieoeoqhfbofzunk/auth/templates
+  → Confirm signup / Reset password 탭에서 한국어 템플릿 설정
+
+[추가 개선]
+• JS 외부 파일 분리 (인라인 <script> → .js 파일)
+• client-auth-mobile.html → 반응형으로 통합
+• .gemini 폴더 구버전 정리
+• 자동화된 테스트 추가
+• 이미지 최적화 (lazy loading, WebP)
+• 에러 모니터링 도구 연동 (Sentry 등)
+
+
+═══════════════════════════════════════════════════════════════
+  프로젝트 구조 (최종)
+═══════════════════════════════════════════════════════════════
+
+contentour-landing/
+├── index.html              ← 랜딩 페이지 (SEO 메타태그 포함)
+├── client-auth.html        ← 로그인/회원가입 (비밀번호 찾기 포함)
+├── client-auth.css
+├── client-auth-mobile.html ← 모바일 로그인 (향후 통합 예정)
+├── customer-dashboard.html ← 고객사 대시보드
+├── customer-dashboard.css
+├── interpreter-dashboard.html ← 통역사 대시보드
+├── interpreter-dashboard.css
+├── admin-dashboard.html    ← 관리자 대시보드 (고객사 관리 내장)
+├── admin-dashboard.css
+├── admin-interpreters.html ← 통역사 관리 (별도 페이지)
+├── interpreter-apply.html  ← 통역사 지원 양식
+├── 404.html               ← 에러 페이지
+├── terms.html / support.html / portal.html 등
+├── supabase-config.js      ← Supabase 인증 유틸리티
+├── shared-constants.js     ← 공유 상수 & 유틸 (CT 네임스페이스)
+├── interpreter-app.js      ← 통역사 대시보드 로직 (XSS 방지 포함)
+├── interpreter-data.js     ← 통역사 데이터 계층
+├── admin-data.js           ← 관리자 데이터 계층 (감사 로그 연동)
+├── chat-data.js            ← 채팅 시스템 (접근 제어 포함)
+├── payment-data.js         ← 결제 처리 (입력값 검증 포함)
+├── script.js / styles.css  ← 공통 스크립트/스타일
+├── robots.txt
+├── .gitignore
+└── assets/                 ← 이미지, 카드사 로고 등
+
+
+═══════════════════════════════════════════════════════════════
+  Supabase 변경사항
+═══════════════════════════════════════════════════════════════
+
+[마이그레이션]
+• fix_application_anon_policy
+  → 48_통역사지원서의 anon_manage_applications (ALL, true) 정책 삭제
+  → anon_read_own_application 정책 추가 (제한적 읽기만 허용)
+
+• create_audit_log_table
+  → 50_감사로그 테이블 생성 (user_id, action, target_table, details 등)
+  → log_audit() RPC 함수 생성 (SECURITY DEFINER)
+  → 관리자만 조회 가능 RLS 정책 적용
