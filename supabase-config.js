@@ -180,6 +180,28 @@
             return profile;
         },
 
+        // 비밀번호 재설정 이메일 발송
+        async resetPassword(email) {
+            if (!sb) return { error: { message: 'Supabase가 초기화되지 않았습니다.' } };
+
+            const { data, error } = await sb.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/client-auth.html?mode=reset'
+            });
+
+            return { data, error };
+        },
+
+        // 새 비밀번호 설정 (재설정 링크 클릭 후)
+        async updatePassword(newPassword) {
+            if (!sb) return { error: { message: 'Supabase가 초기화되지 않았습니다.' } };
+
+            const { data, error } = await sb.auth.updateUser({
+                password: newPassword
+            });
+
+            return { data, error };
+        },
+
         // Google OAuth 로그인
         async loginWithGoogle() {
             if (!sb) return { error: { message: 'Supabase가 초기화되지 않았습니다.' } };

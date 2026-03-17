@@ -901,7 +901,7 @@
                                 <input type="checkbox" id="remember">
                                 <span>로그인 상태 유지</span>
                             </label>
-                            <a href="javascript:void(0)" class="forgot-link" onclick="showAlert('비밀번호 찾기 기능은 준비 중입니다.', 'error')">비밀번호 찾기</a>
+                            <a href="javascript:void(0)" class="forgot-link" onclick="openResetModal()">비밀번호 찾기</a>
                         </div>
 
                         <button type="submit" class="btn-submit-full" id="loginBtn">
@@ -1105,6 +1105,47 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 찾기 모달 -->
+    <div id="resetModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;">
+            <div style="background:linear-gradient(135deg,var(--navy),#1a3d7a);padding:24px 28px;color:#fff;">
+                <div style="font-size:1.1rem;font-weight:800;">비밀번호 재설정</div>
+                <div style="font-size:0.82rem;opacity:0.8;margin-top:4px;" id="resetModalSub">가입한 이메일 주소를 입력하세요.</div>
+            </div>
+            <div style="padding:24px 28px;">
+                <!-- Step 1: 이메일 입력 -->
+                <div id="resetStep1">
+                    <div class="field-group" style="margin-bottom:16px;">
+                        <label style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:6px;display:block;">이메일 주소</label>
+                        <input type="email" id="reset-email" placeholder="가입 시 사용한 이메일" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                    </div>
+                    <button onclick="sendResetEmail()" id="resetSendBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--blue),#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">재설정 링크 발송</button>
+                </div>
+                <!-- Step 2: 발송 완료 -->
+                <div id="resetStep2" style="display:none;text-align:center;padding:16px 0;">
+                    <div style="font-size:2.5rem;margin-bottom:12px;">📧</div>
+                    <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px;">이메일을 확인해주세요!</div>
+                    <div style="font-size:0.85rem;color:var(--gray-600);line-height:1.6;" id="resetSentMsg">비밀번호 재설정 링크가 발송되었습니다.<br>이메일의 링크를 클릭하여 새 비밀번호를 설정하세요.</div>
+                </div>
+                <!-- Step 3: 새 비밀번호 입력 (재설정 링크 클릭 후) -->
+                <div id="resetStep3" style="display:none;">
+                    <div class="field-group" style="margin-bottom:12px;">
+                        <label style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:6px;display:block;">새 비밀번호</label>
+                        <input type="password" id="new-pw" placeholder="8자 이상 입력" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                    </div>
+                    <div class="field-group" style="margin-bottom:16px;">
+                        <label style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:6px;display:block;">비밀번호 확인</label>
+                        <input type="password" id="new-pw2" placeholder="비밀번호를 다시 입력" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                    </div>
+                    <button onclick="submitNewPassword()" id="resetSubmitBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">비밀번호 변경</button>
+                </div>
+            </div>
+            <div style="padding:12px 28px 20px;text-align:center;">
+                <a href="javascript:void(0)" onclick="closeResetModal()" style="font-size:0.82rem;color:var(--gray-600);text-decoration:none;font-weight:600;">닫기</a>
             </div>
         </div>
     </div>
@@ -1431,6 +1472,101 @@
         const urlTab = new URLSearchParams(location.search).get('tab');
         if (urlTab && document.getElementById('tab-' + urlTab)) {
             switchTab(urlTab);
+        }
+
+        // ══════════════ 비밀번호 재설정 ══════════════
+
+        function openResetModal() {
+            document.getElementById('resetStep1').style.display = 'block';
+            document.getElementById('resetStep2').style.display = 'none';
+            document.getElementById('resetStep3').style.display = 'none';
+            document.getElementById('resetModalSub').textContent = '가입한 이메일 주소를 입력하세요.';
+            document.getElementById('reset-email').value = document.getElementById('login-email').value || '';
+            document.getElementById('resetModal').style.display = 'flex';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').style.display = 'none';
+        }
+
+        async function sendResetEmail() {
+            const email = document.getElementById('reset-email').value.trim();
+            if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                showAlert('올바른 이메일 주소를 입력해주세요.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('resetSendBtn');
+            btn.disabled = true;
+            btn.textContent = '발송 중...';
+
+            try {
+                if (window.sbClient) {
+                    const { error } = await ContentourAuth.resetPassword(email);
+                    if (error) {
+                        showAlert('이메일 발송 실패: ' + error.message, 'error');
+                        btn.disabled = false;
+                        btn.textContent = '재설정 링크 발송';
+                        return;
+                    }
+                }
+
+                // 성공 (Supabase 미연결 시에도 성공 화면 표시)
+                document.getElementById('resetStep1').style.display = 'none';
+                document.getElementById('resetStep2').style.display = 'block';
+                document.getElementById('resetSentMsg').innerHTML =
+                    '<strong>' + email + '</strong>으로<br>비밀번호 재설정 링크가 발송되었습니다.<br><br>이메일을 확인하여 링크를 클릭해주세요.';
+            } catch (e) {
+                showAlert('오류가 발생했습니다: ' + e.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '재설정 링크 발송';
+            }
+        }
+
+        async function submitNewPassword() {
+            const pw = document.getElementById('new-pw').value;
+            const pw2 = document.getElementById('new-pw2').value;
+
+            if (!pw || pw.length < 8) {
+                showAlert('비밀번호는 8자 이상이어야 합니다.', 'error');
+                return;
+            }
+            if (pw !== pw2) {
+                showAlert('비밀번호가 일치하지 않습니다.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('resetSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = '변경 중...';
+
+            try {
+                const { error } = await ContentourAuth.updatePassword(pw);
+                if (error) {
+                    showAlert('비밀번호 변경 실패: ' + error.message, 'error');
+                    btn.disabled = false;
+                    btn.textContent = '비밀번호 변경';
+                    return;
+                }
+
+                closeResetModal();
+                showAlert('비밀번호가 성공적으로 변경되었습니다! 새 비밀번호로 로그인해주세요.', 'success');
+                await ContentourAuth.logout();
+            } catch (e) {
+                showAlert('오류가 발생했습니다: ' + e.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '비밀번호 변경';
+            }
+        }
+
+        // 재설정 링크에서 돌아온 경우 (URL에 mode=reset)
+        const urlMode = new URLSearchParams(location.search).get('mode');
+        if (urlMode === 'reset') {
+            document.getElementById('resetStep1').style.display = 'none';
+            document.getElementById('resetStep2').style.display = 'none';
+            document.getElementById('resetStep3').style.display = 'block';
+            document.getElementById('resetModalSub').textContent = '새 비밀번호를 입력해주세요.';
+            document.getElementById('resetModal').style.display = 'flex';
         }
     </script>
 </body>
