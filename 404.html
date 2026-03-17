@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>페이지를 찾을 수 없습니다 - 콘텐츄어</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: #f0f5ff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0d1b3e;
+        }
+        .container {
+            text-align: center;
+            padding: 40px 24px;
+            max-width: 480px;
+        }
+        .code {
+            font-size: 6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #1565c0, #4fc3f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .desc {
+            font-size: 0.92rem;
+            color: #4a5a75;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-decoration: none;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(21,101,192,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="code">404</div>
+        <h1 class="title">페이지를 찾을 수 없습니다</h1>
+        <p class="desc">요청하신 페이지가 존재하지 않거나 이동되었습니다.<br>주소를 다시 확인해주세요.</p>
+        <a href="index.html" class="btn">홈으로 돌아가기</a>
+    </div>
+</body>
+</html>
