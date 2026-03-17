@@ -40,6 +40,35 @@
         </div>
     </div>
 
+    <!-- ══ 비밀번호 변경 모달 ══ -->
+    <div id="pwChangeModal" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#0a2a5e,#1565c0);padding:20px 24px;color:#fff;">
+                <div style="font-size:1rem;font-weight:800;">비밀번호 변경</div>
+            </div>
+            <div style="padding:24px;">
+                <div id="pwChangeError" style="display:none;background:#ffebee;color:#e53935;padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-bottom:14px;"></div>
+                <div id="pwChangeSuccess" style="display:none;background:#e8f5e9;color:#2e7d32;padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-bottom:14px;"></div>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">현재 비밀번호</label>
+                    <input type="password" id="pwCurrent" style="width:100%;padding:11px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-family:inherit;outline:none;">
+                </div>
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">새 비밀번호 (8자 이상)</label>
+                    <input type="password" id="pwNew" style="width:100%;padding:11px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-family:inherit;outline:none;">
+                </div>
+                <div style="margin-bottom:18px;">
+                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">새 비밀번호 확인</label>
+                    <input type="password" id="pwConfirm" style="width:100%;padding:11px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')changePw()">
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="closePwChangeModal()" style="flex:1;padding:12px;background:#f4f6fb;color:#4a5a75;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
+                    <button onclick="changePw()" id="pwChangeBtn" style="flex:1;padding:12px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">변경하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ══ 사이드바 ══ -->
     <aside class="sidebar" id="sidebar">
         <div class="sb-logo">
@@ -95,8 +124,8 @@
             <a class="sb-item" id="sb-format-perm" onclick="switchTab('format-perm')">
                 <span class="sb-item__icon">🔐</span> 양식 권한 관리
             </a>
-            <a class="sb-item" href="#">
-                <span class="sb-item__icon">⚙️</span> 시스템 설정
+            <a class="sb-item" href="javascript:void(0)" onclick="openPwChangeModal()">
+                <span class="sb-item__icon">🔑</span> 비밀번호 변경
             </a>
             <a class="sb-item" href="javascript:void(0)" onclick="adminLogout()">
                 <span class="sb-item__icon">🚪</span> 로그아웃
@@ -3607,6 +3636,63 @@
                 errEl.style.display = 'block';
                 btn.disabled = false;
                 btn.textContent = '관리자 로그인';
+            }
+        }
+
+        function openPwChangeModal() {
+            document.getElementById('pwCurrent').value = '';
+            document.getElementById('pwNew').value = '';
+            document.getElementById('pwConfirm').value = '';
+            document.getElementById('pwChangeError').style.display = 'none';
+            document.getElementById('pwChangeSuccess').style.display = 'none';
+            document.getElementById('pwChangeBtn').disabled = false;
+            document.getElementById('pwChangeBtn').textContent = '변경하기';
+            document.getElementById('pwChangeModal').style.display = 'flex';
+        }
+
+        function closePwChangeModal() {
+            document.getElementById('pwChangeModal').style.display = 'none';
+        }
+
+        async function changePw() {
+            const current = document.getElementById('pwCurrent').value;
+            const newPw = document.getElementById('pwNew').value;
+            const confirm = document.getElementById('pwConfirm').value;
+            const errEl = document.getElementById('pwChangeError');
+            const successEl = document.getElementById('pwChangeSuccess');
+            const btn = document.getElementById('pwChangeBtn');
+
+            errEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            if (!current) { errEl.textContent = '현재 비밀번호를 입력해주세요.'; errEl.style.display = 'block'; return; }
+            if (!newPw || newPw.length < 8) { errEl.textContent = '새 비밀번호는 8자 이상이어야 합니다.'; errEl.style.display = 'block'; return; }
+            if (newPw !== confirm) { errEl.textContent = '새 비밀번호가 일치하지 않습니다.'; errEl.style.display = 'block'; return; }
+
+            btn.disabled = true;
+            btn.textContent = '변경 중...';
+
+            try {
+                // 현재 비밀번호로 재인증
+                const { data: { user } } = await _sb.auth.getUser();
+                const { error: reAuthErr } = await _sb.auth.signInWithPassword({
+                    email: user.email,
+                    password: current
+                });
+                if (reAuthErr) { throw new Error('현재 비밀번호가 올바르지 않습니다.'); }
+
+                // 새 비밀번호로 변경
+                const { error } = await _sb.auth.updateUser({ password: newPw });
+                if (error) throw error;
+
+                successEl.textContent = '비밀번호가 성공적으로 변경되었습니다!';
+                successEl.style.display = 'block';
+                setTimeout(() => closePwChangeModal(), 2000);
+            } catch (e) {
+                errEl.textContent = e.message || '비밀번호 변경에 실패했습니다.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = '변경하기';
             }
         }
 
