@@ -9,7 +9,18 @@
         rel="stylesheet">
     <link rel="stylesheet" href="design-tokens.css?v=20260319">
     <link rel="stylesheet" href="admin-dashboard.css?v=20260319">
-    <style>/* 인라인 스타일 → admin-dashboard.css로 분리됨 */
+    <style>
+    /* 지원서 필터 칩 (CSS 로드 실패 대비) */
+    .app-filter-bar{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;align-items:center;}
+    .filter-chip{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:10px;border:1.5px solid #e5eaf2;background:#fff;font-size:0.84rem;font-weight:700;color:#4a5a75;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+    .filter-chip:hover{border-color:#1565c0;background:#f0f5ff;color:#0a2a5e;transform:translateY(-1px);box-shadow:0 3px 10px rgba(21,101,192,0.08);}
+    .chip-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;background:#f4f6fb;color:#9daec8;font-size:0.75rem;font-weight:800;}
+    .filter-chip.active{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(21,101,192,0.25);}
+    .filter-chip.active .chip-count{background:rgba(255,255,255,0.25);color:#fff;}
+    .app-refresh-btn{padding:9px 18px;border-radius:10px;border:1.5px solid #e5eaf2;background:#fff;font-size:0.82rem;font-weight:700;color:#4a5a75;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+    .app-refresh-btn:hover{border-color:#1565c0;color:#1565c0;background:#f0f5ff;}
+    .app-card-item{background:#fff;border:1.5px solid #e5eaf2;border-radius:14px;padding:20px 24px;cursor:pointer;transition:all 0.15s;}
+    .app-card-item:hover{border-color:#1565c0;box-shadow:0 4px 16px rgba(21,101,192,0.1);}
     </style>
 </head>
 
