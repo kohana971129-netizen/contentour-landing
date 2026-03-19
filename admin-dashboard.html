@@ -7,6 +7,7 @@
     <title>관리자 대시보드 - 콘텐츄어 통역 운영 시스템</title>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="admin-dashboard.css">
     <style>/* 인라인 스타일 → admin-dashboard.css로 분리됨 */
     </style>
@@ -15,55 +16,55 @@
 <body>
 
     <!-- ══ 관리자 로그인 오버레이 ══ -->
-    <div id="adminLoginOverlay" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#061a3e,#0a2a5e);display:flex;align-items:center;justify-content:center;">
-        <div style="background:#fff;border-radius:20px;max-width:420px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.3);overflow:hidden;">
-            <div style="background:linear-gradient(135deg,#0a2a5e,#1565c0);padding:32px 28px;text-align:center;color:#fff;">
-                <div style="width:52px;height:52px;background:linear-gradient(135deg,#1565c0,#4fc3f7);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;margin-bottom:14px;">CT</div>
-                <div style="font-size:1.2rem;font-weight:800;">CONTENTOUR 관리자</div>
-                <div style="font-size:0.78rem;opacity:0.7;margin-top:6px;">통역 운영 관리 시스템</div>
+    <div id="adminLoginOverlay" class="admin-login-overlay">
+        <div class="admin-login-card">
+            <div class="admin-login-header">
+                <div class="admin-login-logo">CT</div>
+                <div class="admin-login-title">CONTENTOUR 관리자</div>
+                <div class="admin-login-subtitle">통역 운영 관리 시스템</div>
             </div>
-            <div style="padding:28px;">
-                <div id="adminLoginError" style="display:none;background:#ffebee;color:#e53935;padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-bottom:16px;"></div>
+            <div class="admin-login-body">
+                <div id="adminLoginError" class="alert-error" style="display:none;"></div>
                 <div style="margin-bottom:14px;">
-                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">이메일</label>
-                    <input type="email" id="adminEmail" placeholder="관리자 이메일" style="width:100%;padding:12px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                    <label class="label-sm">이메일</label>
+                    <input type="email" id="adminEmail" placeholder="관리자 이메일" class="input-field">
                 </div>
                 <div style="margin-bottom:20px;">
-                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">비밀번호</label>
-                    <input type="password" id="adminPw" placeholder="비밀번호" style="width:100%;padding:12px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')adminLogin()">
+                    <label class="label-sm">비밀번호</label>
+                    <input type="password" id="adminPw" placeholder="비밀번호" class="input-field" onkeydown="if(event.key==='Enter')adminLogin()">
                 </div>
-                <button onclick="adminLogin()" id="adminLoginBtn" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">관리자 로그인</button>
+                <button onclick="adminLogin()" id="adminLoginBtn" class="btn-primary-gradient" style="width:100%;">관리자 로그인</button>
                 <div style="text-align:center;margin-top:16px;">
-                    <a href="client-auth.html" style="font-size:0.8rem;color:#9daec8;text-decoration:none;">← 일반 로그인으로 돌아가기</a>
+                    <a href="client-auth.html" class="admin-login-back">← 일반 로그인으로 돌아가기</a>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- ══ 비밀번호 변경 모달 ══ -->
-    <div id="pwChangeModal" style="display:none;position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;">
-        <div style="background:#fff;border-radius:16px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;">
-            <div style="background:linear-gradient(135deg,#0a2a5e,#1565c0);padding:20px 24px;color:#fff;">
+    <div id="pwChangeModal" class="modal-overlay">
+        <div class="admin-modal-card">
+            <div class="admin-modal-header">
                 <div style="font-size:1rem;font-weight:800;">비밀번호 변경</div>
             </div>
-            <div style="padding:24px;">
-                <div id="pwChangeError" style="display:none;background:#ffebee;color:#e53935;padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-bottom:14px;"></div>
-                <div id="pwChangeSuccess" style="display:none;background:#e8f5e9;color:#2e7d32;padding:10px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;margin-bottom:14px;"></div>
+            <div class="admin-modal-body">
+                <div id="pwChangeError" class="alert-error" style="display:none;"></div>
+                <div id="pwChangeSuccess" class="alert-success" style="display:none;"></div>
                 <div style="margin-bottom:12px;">
-                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">현재 비밀번호</label>
-                    <input type="password" id="pwCurrent" style="width:100%;padding:11px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-family:inherit;outline:none;">
+                    <label class="label-sm">현재 비밀번호</label>
+                    <input type="password" id="pwCurrent" class="input-field-sm">
                 </div>
                 <div style="margin-bottom:12px;">
-                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">새 비밀번호 (8자 이상)</label>
-                    <input type="password" id="pwNew" style="width:100%;padding:11px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-family:inherit;outline:none;">
+                    <label class="label-sm">새 비밀번호 (8자 이상)</label>
+                    <input type="password" id="pwNew" class="input-field-sm">
                 </div>
                 <div style="margin-bottom:18px;">
-                    <label style="font-size:0.8rem;font-weight:700;color:#0d1b3e;margin-bottom:6px;display:block;">새 비밀번호 확인</label>
-                    <input type="password" id="pwConfirm" style="width:100%;padding:11px 14px;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')changePw()">
+                    <label class="label-sm">새 비밀번호 확인</label>
+                    <input type="password" id="pwConfirm" class="input-field-sm" onkeydown="if(event.key==='Enter')changePw()">
                 </div>
                 <div style="display:flex;gap:10px;">
-                    <button onclick="closePwChangeModal()" style="flex:1;padding:12px;background:#f4f6fb;color:#4a5a75;border:1.5px solid #e5eaf2;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
-                    <button onclick="changePw()" id="pwChangeBtn" style="flex:1;padding:12px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;">변경하기</button>
+                    <button onclick="closePwChangeModal()" class="admin-btn-cancel">취소</button>
+                    <button onclick="changePw()" id="pwChangeBtn" class="admin-btn-submit">변경하기</button>
                 </div>
             </div>
         </div>

@@ -6,6 +6,53 @@
             padding: 0;
         }
 
+        /* ── 관리자 로그인 오버레이 ── */
+        .admin-login-overlay {
+            position: fixed; inset: 0; z-index: 99999;
+            background: linear-gradient(135deg, #061a3e, #0a2a5e);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .admin-login-card {
+            background: #fff; border-radius: 20px; max-width: 420px; width: 90%;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.3); overflow: hidden;
+        }
+        .admin-login-header {
+            background: var(--gradient-navy); padding: 32px 28px;
+            text-align: center; color: #fff;
+        }
+        .admin-login-logo {
+            width: 52px; height: 52px; background: linear-gradient(135deg, #1565c0, #4fc3f7);
+            border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; font-weight: 900; margin-bottom: 14px;
+        }
+        .admin-login-title { font-size: 1.2rem; font-weight: 800; }
+        .admin-login-subtitle { font-size: 0.78rem; opacity: 0.7; margin-top: 6px; }
+        .admin-login-body { padding: 28px; }
+        .admin-login-back { font-size: 0.8rem; color: var(--gray-400); text-decoration: none; }
+        .admin-login-back:hover { color: var(--blue); }
+
+        /* ── 모달 공통 ── */
+        .admin-modal-card {
+            background: #fff; border-radius: 16px; max-width: 400px; width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
+        }
+        .admin-modal-header {
+            background: var(--gradient-navy); padding: 20px 24px; color: #fff;
+        }
+        .admin-modal-body { padding: 24px; }
+        .admin-btn-cancel {
+            flex: 1; padding: 12px; background: var(--gray-100); color: var(--gray-600);
+            border: 1.5px solid var(--gray-200); border-radius: 10px;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+        .admin-btn-cancel:hover { background: var(--gray-200); }
+        .admin-btn-submit {
+            flex: 1; padding: 12px; background: var(--gradient-blue); color: #fff;
+            border: none; border-radius: 10px;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit;
+        }
+        .admin-btn-submit:hover { opacity: 0.92; }
+
         :root {
             --navy: #0a2a5e;
             --navy-deep: #061a3e;

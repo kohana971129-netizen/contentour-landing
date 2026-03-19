@@ -1,0 +1,212 @@
+/* ══════════════════════════════════════════════
+   콘텐츄어 Design Tokens (공통 CSS 변수)
+   모든 페이지에서 이 파일을 먼저 로드하세요.
+   ══════════════════════════════════════════════ */
+
+:root {
+    /* ── 브랜드 색상 ── */
+    --navy: #0a2a5e;
+    --navy-deep: #061a3e;
+    --navy-dark: #071f45;
+    --blue: #1565c0;
+    --blue-mid: #1976d2;
+    --sky: #4fc3f7;
+
+    /* ── 배경 ── */
+    --light-bg: #f0f5ff;
+    --white: #ffffff;
+
+    /* ── 그레이 스케일 ── */
+    --gray-50: #f8fafc;
+    --gray-100: #f4f6fb;
+    --gray-200: #e5eaf2;
+    --gray-400: #9daec8;
+    --gray-600: #4a5a75;
+
+    /* ── 텍스트 ── */
+    --text: #0d1b3e;
+
+    /* ── 상태 색상 ── */
+    --error: #e53935;
+    --success: #2e7d32;
+    --warn: #f57c00;
+
+    /* ── 그라디언트 ── */
+    --gradient-navy: linear-gradient(135deg, #0a2a5e, #1565c0);
+    --gradient-blue: linear-gradient(135deg, #1565c0, #0d47a1);
+    --gradient-success: linear-gradient(135deg, #2e7d32, #43a047);
+}
+
+/* ══════════════ 공통 컴포넌트 ══════════════ */
+
+/* ── 입력 필드 ── */
+.input-field {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-field:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+}
+.input-field-sm {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+}
+.input-field-sm:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+}
+
+/* ── 라벨 ── */
+.label-sm {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* ── 버튼 ── */
+.btn-primary-gradient {
+    padding: 13px 24px;
+    background: var(--gradient-blue);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s, transform 0.15s;
+}
+.btn-primary-gradient:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+.btn-primary-gradient:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-success-gradient {
+    padding: 10px 20px;
+    border: none;
+    color: #fff;
+    background: var(--gradient-success);
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: opacity 0.2s;
+}
+.btn-success-gradient:hover {
+    opacity: 0.92;
+}
+
+.btn-outline-blue {
+    padding: 10px 20px;
+    border: 1.5px solid var(--blue);
+    color: var(--blue);
+    background: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+.btn-outline-blue:hover {
+    background: var(--light-bg);
+}
+
+/* ── 배지 ── */
+.badge-success {
+    padding: 3px 10px;
+    background: #e8f5e9;
+    color: var(--success);
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.badge-warning {
+    padding: 3px 10px;
+    background: #fff3e0;
+    color: var(--warn);
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.badge-error {
+    padding: 3px 10px;
+    background: #ffebee;
+    color: var(--error);
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* ── 알림 메시지 ── */
+.alert-error {
+    background: #ffebee;
+    color: var(--error);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+.alert-success {
+    background: #e8f5e9;
+    color: var(--success);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+/* ── 모달 오버레이 ── */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+.modal-overlay.active {
+    display: flex;
+}
+
+/* ── 카드 ── */
+.card-bordered {
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ── 섹션 헤딩 ── */
+.section-heading-sm {
+    margin-top: 16px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    color: var(--navy);
+}
