@@ -82,13 +82,17 @@
             if (authError) return { data: null, error: authError };
 
             // 01_회원은 DB 트리거(handle_new_user)가 자동 생성하므로 phone만 업데이트
-            await sb
+            const { error: updateError } = await sb
                 .from('01_회원')
                 .update({ phone: phone })
                 .eq('id', authData.user.id);
 
+            if (updateError) {
+                console.warn('회원 phone 업데이트 실패:', updateError.message);
+            }
+
             if (company) {
-                await sb
+                const { error: companyError } = await sb
                     .from('02_국내기업')
                     .insert({
                         company_name_ko: company,
@@ -98,6 +102,10 @@
                         contact_email: email,
                         contact_phone: phone
                     });
+
+                if (companyError) {
+                    console.warn('기업 정보 저장 실패:', companyError.message);
+                }
             }
 
             return { data: authData, error: null };
@@ -117,19 +125,12 @@
 
             if (authError) return { data: null, error: authError };
 
-            const { error: profileError } = await sb
-                .from('01_회원')
-                .insert({
-                    id: authData.user.id,
-                    email: email,
-                    name: name,
-                    role: 'interpreter'
-                });
+            // 01_회원은 DB 트리거(handle_new_user)가 자동 생성하므로 별도 insert 불필요
 
             const langMap = { en: '영어', jp: '일본어', zh: '중국어' };
             const langName = langMap[language] || language;
 
-            await sb
+            const { error: profileError } = await sb
                 .from('40_통역사프로필')
                 .insert({
                     user_id: authData.user.id,
@@ -137,6 +138,10 @@
                     languages: [langName],
                     is_active: false
                 });
+
+            if (profileError) {
+                console.warn('통역사 프로필 생성 실패:', profileError.message);
+            }
 
             return { data: authData, error: profileError };
         },

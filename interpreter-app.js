@@ -445,8 +445,8 @@ const InterpreterApp = {
                     <span>${this.formatMoney(a.daily_rate)}/일</span>
                 </div>
                 <div class="assign-item__actions">
-                    <button class="btn-accept" onclick="InterpreterApp.handleHomeAccept('${a.id}', this)">수락</button>
-                    <button class="btn-decline" onclick="InterpreterApp.handleHomeDecline('${a.id}', this)">거절</button>
+                    <button class="btn-accept" onclick="InterpreterApp.handleHomeAccept('${escHtml(a.id)}', this)">수락</button>
+                    <button class="btn-decline" onclick="InterpreterApp.handleHomeDecline('${escHtml(a.id)}', this)">거절</button>
                 </div>
             </div>
         `).join('');
@@ -511,7 +511,7 @@ const InterpreterApp = {
             const sTypeKo = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' }[sType] || sType || '';
 
             return `
-                <div onclick="openAssignModal('${c.id}')" style="padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+                <div onclick="openAssignModal('${escHtml(c.id)}')" style="padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
                     <div style="min-width:48px;text-align:center;">
                         <div style="font-size:0.65rem;font-weight:700;color:${ddayColor};background:${ddayColor}12;padding:4px 8px;border-radius:6px;white-space:nowrap;">${ddayText}</div>
                         <div style="font-size:0.65rem;color:var(--gray-400);margin-top:4px;">${days}일</div>
@@ -644,7 +644,7 @@ const InterpreterApp = {
         };
 
         container.innerHTML = recent.map(n => `
-            <div class="notice-item ${n.is_read ? '' : 'unread'}" onclick="InterpreterApp.markNotificationRead('${n.id}')">
+            <div class="notice-item ${n.is_read ? '' : 'unread'}" onclick="InterpreterApp.markNotificationRead('${escHtml(n.id)}')">
                 <span class="notice-item__icon">${iconMap[n.notification_type] || '🔔'}</span>
                 <div class="notice-item__text">${escHtml(n.title)}</div>
                 <div class="notice-item__time">${this.timeAgo(n.created_at)}</div>
@@ -773,8 +773,8 @@ const InterpreterApp = {
         container.innerHTML = items.map(c => {
             const vs = c.viewStatus;
             const actionBtns = vs === 'new'
-                ? `<button class="btn-accept-lg" onclick="InterpreterApp.handleCardAcceptDB('${c.id}', this)">수락하기</button>
-                   <button class="btn-decline-lg" onclick="InterpreterApp.handleCardDeclineDB('${c.id}', this)">거절</button>`
+                ? `<button class="btn-accept-lg" onclick="InterpreterApp.handleCardAcceptDB('${escHtml(c.id)}', this)">수락하기</button>
+                   <button class="btn-decline-lg" onclick="InterpreterApp.handleCardDeclineDB('${escHtml(c.id)}', this)">거절</button>`
                 : '';
 
             return `
@@ -798,7 +798,7 @@ const InterpreterApp = {
                             ${c.service_type ? `<span class="assign-tag tag-type">${escHtml(c.service_type)}</span>` : ''}
                         </div>
                         <div class="assign-card__footer" style="margin-top:16px;">
-                            <button class="btn-detail" onclick="openAssignModal('${c.id}')">상세 보기</button>
+                            <button class="btn-detail" onclick="openAssignModal('${escHtml(c.id)}')">상세 보기</button>
                             ${actionBtns}
                         </div>
                     </div>

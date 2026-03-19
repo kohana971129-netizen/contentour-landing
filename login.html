@@ -313,14 +313,6 @@
                 }
             }
 
-            // ── 데모 모드 (Supabase 미연결 시 기존 하드코딩 유지) ──
-            if (username === 'admin' && password === 'contentour2026') {
-                sessionStorage.setItem('isAdminLoggedIn', 'true');
-                sessionStorage.setItem('adminUsername', username);
-                window.location.href = 'admin-dashboard.html';
-                return;
-            }
-
             // 로그인 실패
             errorMessage.textContent = '아이디 또는 비밀번호가 일치하지 않습니다.';
             errorMessage.classList.add('show');

@@ -574,22 +574,11 @@
                 }
             }
 
-            // ── 데모 모드 (Supabase 미연결 시 기존 하드코딩 유지) ──
+            // ── Supabase 미연결 시 안내 ──
             setTimeout(() => {
                 btn.classList.remove('loading');
                 btn.textContent = '로그인';
-
-                if (email.value === 'demo@contentour.com' && pw.value === 'password1212') {
-                    sessionStorage.setItem('demoMode', 'customer');
-                    sessionStorage.setItem('demoToken', btoa('contentour-demo-customer-' + Date.now()));
-                    location.href = 'customer-dashboard.html';
-                } else if (email.value === 'interpreter@contentour.com' && pw.value === 'password1212') {
-                    sessionStorage.setItem('demoMode', 'interpreter');
-                    sessionStorage.setItem('demoToken', btoa('contentour-demo-interpreter-' + Date.now()));
-                    location.href = 'interpreter-dashboard.html';
-                } else {
-                    showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
-                }
+                showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
             }, 500);
         });
 
@@ -613,14 +602,7 @@
             btn.textContent = '로그인 중...';
 
             // 데모 계정 체크 (Supabase 시도 건너뜀)
-            if (email.value === 'interpreter@contentour.com' && pw.value === 'password1212') {
-                sessionStorage.setItem('demoMode', 'interpreter');
-                sessionStorage.setItem('demoToken', btoa('contentour-demo-interpreter-' + Date.now()));
-                location.href = 'interpreter-dashboard.html';
-                return;
-            }
-
-            // 실제 Supabase 인증
+            // Supabase 인증
             if (window.sbClient) {
                 try {
                     const { data: authData, error: authError } = await window.sbClient.auth.signInWithPassword({

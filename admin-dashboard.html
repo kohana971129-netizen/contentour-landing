@@ -3973,7 +3973,12 @@
 
         // 이미 로그인된 상태 확인
         (async function checkExistingSession() {
-            if (!_sb) return;
+            if (!_sb) {
+                document.getElementById('adminLoginError').textContent = 'Supabase 연결 실패. 새로고침 해주세요.';
+                document.getElementById('adminLoginError').style.display = 'block';
+                document.getElementById('adminLoginBtn').disabled = true;
+                return;
+            }
             try {
                 const { data: { user } } = await _sb.auth.getUser();
                 if (user) {

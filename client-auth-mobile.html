@@ -1248,14 +1248,7 @@
                 btn.classList.remove('loading');
                 btn.textContent = '로그인';
 
-                // 테스트용 하드코딩 계정 체크
-                if (email.value === 'demo@contentour.com' && pw.value === 'password1212') {
-                    location.href = 'customer-dashboard.html';
-                } else if (email.value === 'interpreter@contentour.com' && pw.value === 'password1212') {
-                    location.href = 'interpreter-dashboard.html';
-                } else {
-                    showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
-                }
+                showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
             }, 1200);
         });
 
