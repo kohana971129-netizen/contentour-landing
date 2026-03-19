@@ -81,8 +81,8 @@
             </div>
         </div>
         <div class="sb-admin">
-            <div class="sb-admin__name">고하나 관리자</div>
-            <div class="sb-admin__email">admin@contentour.co.kr</div>
+            <div class="sb-admin__name" id="sbAdminName">관리자</div>
+            <div class="sb-admin__email" id="sbAdminEmail">로딩 중...</div>
         </div>
         <nav class="sb-nav">
             <div class="sb-label">운영 관리</div>
@@ -156,8 +156,8 @@
                     </div>
                     <div class="topbar__icon-btn" title="내보내기" onclick="showToast('📤 데이터 내보내기 준비 중...')">📤</div>
                     <div class="topbar__admin">
-                        <div class="admin-avatar">고</div>
-                        <span class="admin-name">고하나</span>
+                        <div class="admin-avatar" id="topAdminAvatar">-</div>
+                        <span class="admin-name" id="topAdminName">관리자</span>
                     </div>
                 </div>
             </div>
@@ -3592,7 +3592,7 @@
                     var isCustomer = m.role === 'customer';
                     var isAdmin = m.role === 'admin';
                     var roleLabel = isAdmin ? '🛡️ 관리자' : (isCustomer ? '👤 고객사' : '🗣️ 통역사');
-                    var roleName = isAdmin ? '고하나' : (isCustomer ? (ch.customer.match(/\(([^)]+)\)/) ? ch.customer.match(/\(([^)]+)\)/)[1] : ch.customer) : ch.interpreter);
+                    var roleName = isAdmin ? (_adminProfile ? _adminProfile.name : '관리자') : (isCustomer ? (ch.customer.match(/\(([^)]+)\)/) ? ch.customer.match(/\(([^)]+)\)/)[1] : ch.customer) : ch.interpreter);
                     var bubbleColor = isAdmin ? '#fff8e1' : (isCustomer ? '#e3f2fd' : '#f3e5f5');
                     var borderColor = isAdmin ? '#ffe082' : (isCustomer ? '#90caf9' : '#ce93d8');
 
@@ -3852,6 +3852,23 @@
             }
         })();
 
+        // ── 전역 관리자 프로필 ──
+        var _adminProfile = null;
+
+        function applyAdminProfile(profile, email) {
+            _adminProfile = profile;
+            var name = profile.name || '관리자';
+            var initial = name.charAt(0) || '-';
+            var el;
+            el = document.getElementById('sbAdminName'); if (el) el.textContent = name + ' 관리자';
+            el = document.getElementById('sbAdminEmail'); if (el) el.textContent = email || '';
+            el = document.getElementById('topAdminAvatar'); if (el) el.textContent = initial;
+            el = document.getElementById('topAdminName'); if (el) el.textContent = name;
+            el = document.querySelector('.sb-admin__name'); if (el && el.id !== 'sbAdminName') el.textContent = name + ' 관리자';
+            el = document.querySelector('.admin-avatar'); if (el && el.id !== 'topAdminAvatar') el.textContent = initial;
+            el = document.querySelector('.admin-name'); if (el && el.id !== 'topAdminName') el.textContent = name;
+        }
+
         // ── 관리자 로그인 ──
         async function adminLogin() {
             const email = document.getElementById('adminEmail').value.trim();
@@ -3887,14 +3904,7 @@
 
                 // 로그인 성공 → 오버레이 숨기기
                 document.getElementById('adminLoginOverlay').style.display = 'none';
-
-                // 사이드바 이름 업데이트
-                const nameEl = document.querySelector('.sb-admin__name');
-                if (nameEl) nameEl.textContent = profile.name + ' 관리자';
-                const avatarEl = document.querySelector('.admin-avatar');
-                if (avatarEl) avatarEl.textContent = profile.name.charAt(0);
-                const topNameEl = document.querySelector('.admin-name');
-                if (topNameEl) topNameEl.textContent = profile.name;
+                applyAdminProfile(profile, email);
 
                 // 감사 로그
                 if (typeof CT !== 'undefined' && CT.logAudit) {
@@ -3985,12 +3995,7 @@
                     const { data: profile } = await _sb.from('01_회원').select('role, name').eq('id', user.id).single();
                     if (profile && profile.role === 'admin') {
                         document.getElementById('adminLoginOverlay').style.display = 'none';
-                        const nameEl = document.querySelector('.sb-admin__name');
-                        if (nameEl) nameEl.textContent = profile.name + ' 관리자';
-                        const avatarEl = document.querySelector('.admin-avatar');
-                        if (avatarEl) avatarEl.textContent = profile.name.charAt(0);
-                        const topNameEl = document.querySelector('.admin-name');
-                        if (topNameEl) topNameEl.textContent = profile.name;
+                        applyAdminProfile(profile, user.email);
                         return;
                     }
                 }

@@ -54,6 +54,45 @@ CREATE POLICY "고객사 정보 조회" ON "02_국내기업"
   FOR SELECT TO authenticated
   USING (true);
 
+-- 2-3) 추가 테이블 RLS (테이블 생성 후 실행)
+
+-- 40_통역사프로필
+ALTER TABLE "40_통역사프로필" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "본인 프로필 조회" ON "40_통역사프로필" FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "본인 프로필 생성" ON "40_통역사프로필" FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "본인 프로필 수정" ON "40_통역사프로필" FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+
+-- 41_계좌정보
+ALTER TABLE "41_계좌정보" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "본인 계좌 조회" ON "41_계좌정보" FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "본인 계좌 생성" ON "41_계좌정보" FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "본인 계좌 수정" ON "41_계좌정보" FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+
+-- 42_통역계약
+ALTER TABLE "42_통역계약" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "계약 당사자 조회" ON "42_통역계약" FOR SELECT TO authenticated USING (auth.uid() = customer_id OR auth.uid() = interpreter_id);
+CREATE POLICY "고객 계약 생성" ON "42_통역계약" FOR INSERT TO authenticated WITH CHECK (auth.uid() = customer_id);
+CREATE POLICY "계약 당사자 수정" ON "42_통역계약" FOR UPDATE TO authenticated USING (auth.uid() = customer_id OR auth.uid() = interpreter_id);
+
+-- 43_정산내역
+ALTER TABLE "43_정산내역" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "본인 정산 조회" ON "43_정산내역" FOR SELECT TO authenticated USING (auth.uid() = interpreter_id);
+
+-- 44_상담일지
+ALTER TABLE "44_상담일지" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "본인 상담일지 조회" ON "44_상담일지" FOR SELECT TO authenticated USING (auth.uid() = interpreter_id);
+CREATE POLICY "본인 상담일지 생성" ON "44_상담일지" FOR INSERT TO authenticated WITH CHECK (auth.uid() = interpreter_id);
+
+-- 24_알림
+ALTER TABLE "24_알림" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "본인 알림 조회" ON "24_알림" FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "본인 알림 수정" ON "24_알림" FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+
+-- 46_ITQ견적문의
+ALTER TABLE "46_ITQ견적문의" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "본인 문의 조회" ON "46_ITQ견적문의" FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "문의 생성" ON "46_ITQ견적문의" FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+
 
 [3] 회원가입 자동 트리거 (SQL Editor에서 실행)
 ================================================================

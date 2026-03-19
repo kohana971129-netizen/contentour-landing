@@ -1,4 +1,47 @@
-﻿/* Video Container Styles */
+﻿/* Footer Terms Links */
+.footer-terms-link {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    font-size: 0.78rem;
+    transition: color 0.15s;
+}
+.footer-terms-link:hover {
+    color: #fff;
+}
+
+/* Brand Panel Links */
+.brand-panel-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 32px;
+    padding: 14px 24px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+.brand-panel-link:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Brand Footer Links */
+.brand-footer-link {
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+    font-size: 0.7rem;
+    transition: color 0.15s;
+}
+.brand-footer-link:hover {
+    color: rgba(255,255,255,0.8);
+}
+
+/* Video Container Styles */
 .video-container {
     max-width: 560px;
     /* Standard YouTube Embed Size */
