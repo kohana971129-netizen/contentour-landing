@@ -1,10 +1,5 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --navy:#0a2a5e;--blue:#1565c0;--blue-mid:#1976d2;--sky:#4fc3f7;
-      --light-bg:#f0f5ff;--white:#ffffff;--gray-100:#f4f6fb;--gray-200:#e5eaf2;
-      --gray-400:#9daec8;--gray-600:#4a5a75;--text:#0d1b3e;
-      --error:#e53935;--success:#2e7d32;--warn:#f57c00;--sidebar-w:240px;
-    }
+    :root { --sidebar-w:240px; }
     body { font-family:'Pretendard',sans-serif; background:var(--light-bg); color:var(--text); min-height:100vh; display:flex; }
     .sidebar { width:var(--sidebar-w); background:var(--navy); min-height:100vh; display:flex; flex-direction:column; position:fixed; top:0;left:0; z-index:100; transition:transform 0.3s; }
     .sidebar__logo { padding:28px 24px 20px; border-bottom:1px solid rgba(255,255,255,0.08); }

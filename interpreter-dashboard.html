@@ -172,7 +172,7 @@
                             <a class="card__head-link" onclick="switchView('assignments')">전체 보기 →</a>
                         </div>
                         <div class="card__body">
-                            <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
+                            <div class="loading-placeholder">로딩 중...</div>
                         </div>
                     </div>
                     <div class="card">
@@ -181,7 +181,7 @@
                             <a class="card__head-link" onclick="switchView('schedule', event)">캘린더 보기 →</a>
                         </div>
                         <div class="card__body schedule-list">
-                            <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
+                            <div class="loading-placeholder">로딩 중...</div>
                         </div>
                     </div>
                 </div>
@@ -195,7 +195,7 @@
                         </div>
                         <div class="card__body">
                             <div class="journal-item" style="justify-content:center;">
-                                <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
+                                <div class="loading-placeholder">로딩 중...</div>
                             </div>
                         </div>
                     </div>
@@ -206,7 +206,7 @@
                         </div>
                         <div class="card__body">
                             <div class="settle-item" style="justify-content:center;">
-                                <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
+                                <div class="loading-placeholder">로딩 중...</div>
                             </div>
                         </div>
                     </div>
@@ -237,7 +237,7 @@
                         <h3>최근 알림</h3>
                     </div>
                     <div class="card__body notice-list">
-                        <div style="padding:24px;text-align:center;color:#9daec8;font-size:0.85rem;">로딩 중...</div>
+                        <div class="loading-placeholder">로딩 중...</div>
                     </div>
                 </div>
 
@@ -752,7 +752,7 @@
 
                             <div class="jnl-editor__foot">
                                 <span class="jnl-editor__saved" id="jnlSavedAt">마지막 저장: —</span>
-                                <div style="display:flex;gap:10px;">
+                                <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="jnlReset()">초기화</button>
                                     <button class="btn-accept-lg" onclick="jnlSave('submit')">제출하기</button>
                                 </div>
@@ -873,7 +873,7 @@
 
                             <div class="jnl-editor__foot">
                                 <span class="jnl-editor__saved" id="jnlBpSavedAt">마지막 저장: —</span>
-                                <div style="display:flex;gap:10px;">
+                                <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="clearJnlBusan()">초기화</button>
                                     <button class="btn-accept-lg" onclick="saveJnlBusan('draft')" style="background:var(--gray-400);">임시저장</button>
                                     <button class="btn-accept-lg" onclick="saveJnlBusan('submit')">제출하기</button>
@@ -975,7 +975,7 @@
 
                             <div class="jnl-editor__foot">
                                 <span class="jnl-editor__saved" id="jnlKtSavedAt">마지막 저장: —</span>
-                                <div style="display:flex;gap:10px;">
+                                <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="clearJnlKita()">초기화</button>
                                     <button class="btn-accept-lg" onclick="saveJnlKita('draft')" style="background:var(--gray-400);">임시저장</button>
                                     <button class="btn-accept-lg" onclick="saveJnlKita('submit')">제출하기</button>
@@ -992,7 +992,7 @@
                                 <div class="jnl-notice">
                                     🛠️ <strong>나만의 양식</strong> — 통역사가 직접 상담일지 양식을 만들어 사용할 수 있습니다. 고객사 맞춤 양식을 자유롭게 구성하세요.
                                 </div>
-                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                                <div class="header-with-action">
                                   <h3 style="font-size:0.95rem;font-weight:800;">📄 저장된 양식 목록</h3>
                                   <button class="btn-accept" onclick="icfbStartNew()" style="padding:8px 16px;font-size:0.8rem;">+ 새 양식 만들기</button>
                                 </div>
@@ -1025,7 +1025,7 @@
 
                               <!-- 미리보기 모드 -->
                               <div id="icfb-mode-preview" style="display:none;">
-                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                                <div class="header-with-action">
                                   <h3 style="font-size:0.95rem;font-weight:800;">👁️ 미리보기</h3>
                                   <button class="btn-decline-lg" onclick="icfbClosePreview()" style="padding:8px 14px;font-size:0.78rem;">◂ 편집으로 돌아가기</button>
                                 </div>
@@ -1034,7 +1034,7 @@
 
                               <!-- 작성 모드 -->
                               <div id="icfb-mode-write" style="display:none;">
-                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                                <div class="header-with-action">
                                   <h3 style="font-size:0.95rem;font-weight:800;" id="icfbWriteTitle">상담일지 작성</h3>
                                   <button class="btn-decline-lg" onclick="icfbBackToList()" style="padding:8px 14px;font-size:0.78rem;">◂ 양식 목록</button>
                                 </div>
@@ -1048,7 +1048,7 @@
 
                             <div class="jnl-editor__foot" id="icfbWriteFooter" style="display:none;">
                                 <span class="jnl-editor__saved" id="icfbSavedAt">마지막 저장: —</span>
-                                <div style="display:flex;gap:10px;">
+                                <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="icfbClearWrite()">초기화</button>
                                     <button class="btn-accept-lg" onclick="icfbSaveWrite('draft')" style="background:var(--gray-400);">임시저장</button>
                                     <button class="btn-accept-lg" onclick="icfbSaveWrite('submit')">제출하기</button>
@@ -1287,7 +1287,7 @@
                                 </div>
 
                                 <!-- 통역 유형별 단가 -->
-                                <div style="font-weight:800;font-size:0.82rem;color:#1f2937;margin-bottom:12px;">📋 통역 유형별 일당 단가</div>
+                                <div class="interp-section-title">📋 통역 유형별 일당 단가</div>
                                 <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
                                     <div class="rate-row">
                                         <div class="rate-row__label">
@@ -1348,7 +1348,7 @@
                                 </div>
 
                                 <!-- 언어별 추가 단가 -->
-                                <div style="font-weight:800;font-size:0.82rem;color:#1f2937;margin-bottom:12px;">🌐 언어별 추가 단가 (가산)</div>
+                                <div class="interp-section-title">🌐 언어별 추가 단가 (가산)</div>
                                 <div style="background:#f8f9fb;border-radius:12px;padding:16px;margin-bottom:24px;">
                                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                                         <div class="lang-rate-row">
@@ -1397,7 +1397,7 @@
                                 </div>
 
                                 <!-- 출금 계좌 정보 -->
-                                <div id="bankSectionAnchor" style="font-weight:800;font-size:0.82rem;color:#1f2937;margin-bottom:12px;">🏦 출금 계좌 정보</div>
+                                <div id="bankSectionAnchor" class="interp-section-title">🏦 출금 계좌 정보</div>
                                 <div id="bankStatusBadge" style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.7rem;font-weight:700;margin-bottom:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc02;">⚠️ 미등록 — 계좌를 등록해야 정산 입금을 받을 수 있습니다</div>
                                 <div style="background:linear-gradient(135deg,#f0f7ff,#e8f0fe);border:1.5px solid #c2d6f2;border-radius:12px;padding:18px;margin-bottom:24px;">
                                     <div style="font-size:0.72rem;color:#666;margin-bottom:10px;">정산 입금에 사용될 계좌를 등록해주세요. 입금은 관리자 승인 후 자동으로 진행됩니다.</div>
@@ -1433,7 +1433,7 @@
                                 </div>
 
                                 <!-- 단가 미리보기 카드 -->
-                                <div style="font-weight:800;font-size:0.82rem;color:#1f2937;margin-bottom:12px;">📊 나의 단가 미리보기</div>
+                                <div class="interp-section-title">📊 나의 단가 미리보기</div>
                                 <div id="ratePreview" style="background:linear-gradient(135deg,#f8f9fb,#eef2f7);border:1.5px solid #e5e7eb;border-radius:12px;padding:16px;"></div>
 
                                 <!-- 저장 버튼 -->

@@ -54,27 +54,11 @@
         .admin-btn-submit:hover { opacity: 0.92; }
 
         :root {
-            --navy: #0a2a5e;
-            --navy-deep: #061a3e;
-            --blue: #1565c0;
-            --blue-mid: #1976d2;
-            --sky: #4fc3f7;
-            --light-bg: #f0f5ff;
-            --white: #ffffff;
-            --gray-50: #f8fafc;
-            --gray-100: #f4f6fb;
-            --gray-200: #e5eaf2;
-            --gray-400: #9daec8;
-            --gray-600: #4a5a75;
             --g50: #f8fafc;
             --g100: #f4f6fb;
             --g200: #e5eaf2;
             --g400: #9daec8;
             --g600: #4a5a75;
-            --text: #0d1b3e;
-            --error: #e53935;
-            --warn: #f57c00;
-            --success: #2e7d32;
             --sidebar-w: 256px;
         }
 
