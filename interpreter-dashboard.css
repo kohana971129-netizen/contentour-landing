@@ -3249,10 +3249,159 @@
             }
         }
 
+        /* ══════════════ 프로필 페이지 ══════════════ */
+        .pf-header {
+            background: linear-gradient(135deg, #0d253f, #1565c0);
+            border-radius: 16px;
+            padding: 28px 32px;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+        .pf-header__inner {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .pf-header__avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        .pf-header__name {
+            font-size: 1.2rem;
+            font-weight: 900;
+        }
+        .pf-header__desc {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 4px;
+        }
+        .pf-header__badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .pf-header__badge {
+            background: rgba(255,255,255,0.15);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+        }
+        .pf-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .pf-card {
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        .pf-card__head {
+            padding: 18px 22px;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+        .pf-card__body {
+            padding: 20px 22px;
+        }
+        .pf-field {
+            margin-bottom: 18px;
+        }
+        .pf-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .pf-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .pf-input:focus {
+            border-color: var(--blue);
+        }
+        .pf-textarea {
+            resize: vertical;
+            line-height: 1.7;
+            min-height: 100px;
+        }
+        .pf-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .pf-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .pf-header {
+                padding: 24px 20px;
+            }
+            .pf-header__inner {
+                flex-direction: column;
+                text-align: center;
+            }
+            .pf-header__badges {
+                justify-content: center;
+            }
+            .pf-card__head {
+                padding: 14px 18px;
+                font-size: 0.85rem;
+            }
+            .pf-card__body {
+                padding: 18px;
+            }
+            .pf-input {
+                padding: 14px 16px;
+                font-size: 0.9rem;
+            }
+            .pf-tags {
+                gap: 8px;
+            }
+            .pf-lang-tag {
+                padding: 10px 14px;
+                font-size: 0.8rem;
+            }
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 199;
+        }
+        .sidebar-overlay.open {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s;
+                z-index: 200;
+                position: fixed;
             }
             .sidebar.open {
                 transform: translateX(0);
@@ -3263,14 +3412,48 @@
             .mobile-menu-btn {
                 display: block;
             }
+            .topbar {
+                padding: 0 16px;
+                height: 56px;
+            }
+            .topbar__page-title {
+                font-size: 0.92rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 160px;
+            }
             .kpi-grid {
                 grid-template-columns: 1fr 1fr;
+            }
+            .kpi-card {
+                padding: 16px;
+            }
+            .kpi-num {
+                font-size: 1.4rem;
             }
             .welcome-banner {
                 padding: 24px;
             }
             .welcome-banner__title {
                 font-size: 1.2rem;
+            }
+            .content {
+                padding: 20px;
+            }
+            .modal__close {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+            }
+            .modal__header {
+                padding: 16px 20px;
+            }
+            .modal__body {
+                padding: 16px 20px;
+            }
+            .modal__info-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -3280,6 +3463,36 @@
             }
             .content {
                 padding: 16px;
+            }
+            .topbar__page-title {
+                max-width: 120px;
+                font-size: 0.85rem;
+            }
+            .sch-cell {
+                min-height: 48px;
+                padding: 2px;
+            }
+            .sch-dn {
+                font-size: 0.65rem;
+            }
+            .sch-ev {
+                font-size: 0.6rem;
+                padding: 2px 3px;
+            }
+            .sch-wdays span {
+                font-size: 0.65rem;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .ct-summary {
+                grid-template-columns: 1fr;
+            }
+            .assign-card__details {
+                flex-direction: column;
+            }
+            .card__head h3 {
+                font-size: 0.88rem;
             }
         }
         /* ══════════════ Chat ══════════════ */

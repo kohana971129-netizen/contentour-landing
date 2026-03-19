@@ -1313,17 +1313,33 @@
             }
         }
 
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 199;
+            transition: opacity 0.3s;
+        }
+        .sidebar-overlay.open {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
                 position: fixed;
                 z-index: 200;
+                transition: transform 0.3s;
             }
             .sidebar.open {
                 transform: translateX(0);
             }
             .main {
                 margin-left: 0;
+            }
+            .mobile-menu-btn {
+                display: block !important;
             }
             .kpi-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -1334,9 +1350,64 @@
             .interp-list-grid {
                 grid-template-columns: 1fr;
             }
+            .topbar {
+                padding: 0 16px;
+            }
+            .topbar__page-title {
+                font-size: 0.92rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 180px;
+            }
+            .modal {
+                max-width: 95vw;
+                max-height: 90vh;
+                margin: 0 auto;
+                border-radius: 16px 16px 0 0;
+                align-self: flex-end;
+            }
+            .modal__close {
+                width: 40px;
+                height: 40px;
+                min-width: 40px;
+            }
+            .modal__head {
+                padding: 16px 20px;
+            }
+            .modal__body {
+                padding: 16px 20px;
+            }
+            .inquiry-summary {
+                grid-template-columns: 1fr;
+            }
+            .interp-option {
+                padding: 10px;
+            }
+            table {
+                min-width: 800px;
+                font-size: 0.75rem;
+            }
+            thead th {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+            }
+            tbody td {
+                padding: 8px 10px;
+            }
+            .cal-cell {
+                min-height: 56px;
+            }
         }
 
         @media (max-width: 480px) {
+            .topbar__page-title {
+                max-width: 120px;
+                font-size: 0.85rem;
+            }
+            .content {
+                padding: 16px;
+            }
             .kpi-grid {
                 grid-template-columns: 1fr;
             }

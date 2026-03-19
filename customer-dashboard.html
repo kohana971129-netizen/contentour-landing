@@ -30,8 +30,8 @@
       </div>
     </div>
     <div class="sidebar__user">
-      <div class="sidebar__user-name">김태훈 주임</div>
-      <div class="sidebar__user-company">&#127962; 부산테크노파크</div>
+      <div class="sidebar__user-name" id="sidebarUserName">로딩 중...</div>
+      <div class="sidebar__user-company" id="sidebarUserCompany">&#127962;</div>
     </div>
     <nav class="sidebar__nav">
       <div class="nav-section-label">메인</div>
@@ -49,6 +49,7 @@
     <div class="sidebar__footer" style="color:rgba(255,255,255,0.25);font-size:0.7rem;">&#169; 2026 CONTENTOUR Co., Ltd.</div>
   </aside>
 
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
   <div class="main">
     <header class="topbar">
       <div class="topbar__left">
@@ -73,7 +74,7 @@
             </div>
           </div>
         </div>
-        <div class="topbar__avatar" title="프로필">김</div>
+        <div class="topbar__avatar" id="topbarAvatar" title="프로필">-</div>
       </div>
     </header>
 
@@ -183,30 +184,7 @@
           <button class="btn-primary" onclick="switchView('inquiry')" style="white-space:nowrap;">+ 새 문의 접수</button>
         </div>
         <div class="inquiry-list" id="inquiryList">
-          <div class="inquiry-card" onclick="openModal(0)" data-title="MEDICA 2025 — 독일 뒤셀도르프" data-status="파견확정">
-            <div class="inquiry-card__status status-confirmed"></div>
-            <div class="inquiry-card__main"><div class="inquiry-card__title">MEDICA 2025 — 독일 뒤셀도르프</div><div class="inquiry-card__meta"><span class="meta-item">&#128197; 2025.11.17 – 11.20</span><span class="meta-item">&#127760; 한국어 ↔ 독일어</span><span class="meta-item">&#128100; 통역사 2명</span></div></div>
-            <div class="inquiry-card__badges"><span class="badge badge-blue">부스 상주</span><span class="badge badge-blue">미팅 동행</span></div>
-            <div class="inquiry-card__right"><span class="inquiry-card__date">2025.10.05 접수</span><span class="status-badge sb-confirmed">&#9989; 파견 확정</span></div>
-          </div>
-          <div class="inquiry-card" onclick="openModal(1)" data-title="The Battery Show NA 2025 — 미국 디트로이트" data-status="매칭완료">
-            <div class="inquiry-card__status status-matched"></div>
-            <div class="inquiry-card__main"><div class="inquiry-card__title">The Battery Show NA 2025 — 미국 디트로이트</div><div class="inquiry-card__meta"><span class="meta-item">&#128197; 2025.10.07 – 10.09</span><span class="meta-item">&#127760; 한국어 ↔ 영어</span><span class="meta-item">&#128100; 통역사 1명</span></div></div>
-            <div class="inquiry-card__badges"><span class="badge badge-blue">부스 상주</span></div>
-            <div class="inquiry-card__right"><span class="inquiry-card__date">2025.09.12 접수</span><span class="status-badge sb-matched">&#129309; 매칭 완료</span></div>
-          </div>
-          <div class="inquiry-card" onclick="openModal(2)" data-title="AGRI WEEK Tokyo 2025 — 일본 도쿄" data-status="검토중">
-            <div class="inquiry-card__status status-pending"></div>
-            <div class="inquiry-card__main"><div class="inquiry-card__title">AGRI WEEK Tokyo 2025 — 일본 도쿄</div><div class="inquiry-card__meta"><span class="meta-item">&#128197; 2025.10.01 – 10.03</span><span class="meta-item">&#127760; 한국어 ↔ 일본어</span><span class="meta-item">&#128100; 통역사 1명</span></div></div>
-            <div class="inquiry-card__badges"><span class="badge badge-orange">검토 중</span></div>
-            <div class="inquiry-card__right"><span class="inquiry-card__date">2025.09.01 접수</span><span class="status-badge sb-pending">&#8987; 검토 중</span></div>
-          </div>
-          <div class="inquiry-card" onclick="openModal(3)" data-title="Beautycare Expo 2024 — 베트남 하노이" data-status="완료">
-            <div class="inquiry-card__status status-complete"></div>
-            <div class="inquiry-card__main"><div class="inquiry-card__title">Beautycare Expo 2024 — 베트남 하노이</div><div class="inquiry-card__meta"><span class="meta-item">&#128197; 2024.04.18 – 04.20</span><span class="meta-item">&#127760; 한국어 ↔ 베트남어</span><span class="meta-item">&#128100; 통역사 1명</span></div></div>
-            <div class="inquiry-card__badges"><span class="badge badge-gray">완료</span></div>
-            <div class="inquiry-card__right"><span class="inquiry-card__date">2024.03.20 접수</span><span class="status-badge sb-complete">완료</span></div>
-          </div>
+          <div style="padding:40px;text-align:center;color:#8a95a8;font-size:0.88rem;">문의 내역을 불러오는 중...</div>
         </div>
         <div class="pagination"><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button></div>
       </div>
@@ -661,13 +639,13 @@
         <!-- 프로필 카드 -->
         <div class="myp-profile-card">
           <div class="myp-profile-card__left">
-            <div class="myp-avatar" id="mypAvatar">김</div>
+            <div class="myp-avatar" id="mypAvatar">-</div>
             <div class="myp-profile-info">
-              <div class="myp-profile-name">김태훈 <span class="myp-profile-role">주임</span></div>
-              <div class="myp-profile-company">&#127962; 부산테크노파크</div>
+              <div class="myp-profile-name" id="mypProfileName">로딩 중...</div>
+              <div class="myp-profile-company" id="mypProfileCompany">&#127962;</div>
               <div class="myp-profile-meta">
-                <span>&#128231; taehun.kim@btp.or.kr</span>
-                <span>&#128222; 051-749-1234</span>
+                <span id="mypProfileEmail">&#128231;</span>
+                <span id="mypProfilePhone">&#128222;</span>
               </div>
             </div>
           </div>
@@ -756,11 +734,11 @@
             <div class="loy-card__head"><h3>&#128221; 기본 정보 수정</h3></div>
             <div class="loy-card__body">
               <div class="form-grid">
-                <div class="field"><label>담당자명</label><input type="text" value="김태훈" id="mypSettingName"></div>
-                <div class="field"><label>직급</label><input type="text" value="주임" id="mypSettingRole"></div>
-                <div class="field"><label>이메일</label><input type="email" value="taehun.kim@btp.or.kr" id="mypSettingEmail"></div>
-                <div class="field"><label>연락처</label><input type="tel" value="051-749-1234" id="mypSettingPhone"></div>
-                <div class="field span-2"><label>회사명</label><input type="text" value="부산테크노파크" id="mypSettingCompany"></div>
+                <div class="field"><label>담당자명</label><input type="text" value="" id="mypSettingName"></div>
+                <div class="field"><label>직급</label><input type="text" value="" id="mypSettingRole"></div>
+                <div class="field"><label>이메일</label><input type="email" value="" id="mypSettingEmail"></div>
+                <div class="field"><label>연락처</label><input type="tel" value="" id="mypSettingPhone"></div>
+                <div class="field span-2"><label>회사명</label><input type="text" value="" id="mypSettingCompany"></div>
               </div>
               <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:10px;">
                 <button class="btn-ghost" onclick="showContractToast('변경사항이 취소되었습니다.')">취소</button>
@@ -772,12 +750,12 @@
             <div class="loy-card__head"><h3>&#128274; 비밀번호 변경</h3></div>
             <div class="loy-card__body">
               <div class="form-grid">
-                <div class="field"><label>현재 비밀번호</label><input type="password" placeholder="현재 비밀번호 입력"></div>
-                <div class="field"><label>새 비밀번호</label><input type="password" placeholder="새 비밀번호 입력"></div>
-                <div class="field span-2"><label>새 비밀번호 확인</label><input type="password" placeholder="새 비밀번호 다시 입력"></div>
+                <div class="field"><label>새 비밀번호</label><input type="password" id="myp-new-pw" placeholder="새 비밀번호 입력 (8자 이상)" minlength="8"></div>
+                <div class="field"><label>새 비밀번호 확인</label><input type="password" id="myp-new-pw2" placeholder="새 비밀번호 다시 입력"></div>
               </div>
+              <div id="myp-pw-error" style="display:none;color:#e53935;font-size:0.82rem;margin-top:8px;"></div>
               <div style="margin-top:18px;display:flex;justify-content:flex-end;">
-                <button class="btn-primary" onclick="showContractToast('&#9989; 비밀번호가 변경되었습니다.')">비밀번호 변경</button>
+                <button class="btn-primary" id="myp-pw-btn" onclick="changeMyPassword()">비밀번호 변경</button>
               </div>
             </div>
           </div>
@@ -821,14 +799,150 @@
         window.location.href = 'client-auth.html';
     }
 
+    // ── 비밀번호 변경 ──
+    async function changeMyPassword() {
+      var newPw = document.getElementById('myp-new-pw').value;
+      var newPw2 = document.getElementById('myp-new-pw2').value;
+      var errEl = document.getElementById('myp-pw-error');
+      var btn = document.getElementById('myp-pw-btn');
+
+      errEl.style.display = 'none';
+
+      if (!newPw || newPw.length < 8) {
+        errEl.textContent = '새 비밀번호는 8자 이상이어야 합니다.';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (newPw !== newPw2) {
+        errEl.textContent = '새 비밀번호가 일치하지 않습니다.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '변경 중...';
+
+      try {
+        var { data, error } = await ContentourAuth.updatePassword(newPw);
+        if (error) {
+          errEl.textContent = '비밀번호 변경 실패: ' + error.message;
+          errEl.style.display = 'block';
+        } else {
+          showContractToast('비밀번호가 성공적으로 변경되었습니다.');
+          document.getElementById('myp-new-pw').value = '';
+          document.getElementById('myp-new-pw2').value = '';
+        }
+      } catch (e) {
+        errEl.textContent = '오류가 발생했습니다: ' + e.message;
+        errEl.style.display = 'block';
+      }
+
+      btn.disabled = false;
+      btn.textContent = '비밀번호 변경';
+    }
+
     // ── 인증 가드: 고객만 접근 가능 (데모 모드 허용) ──
     (async function() {
+        // Supabase 실제 세션이 있으면 데모 모드 무시
+        if (window.sbClient) {
+            var { data: { session } } = await window.sbClient.auth.getSession();
+            if (session) {
+                sessionStorage.removeItem('demoMode');
+                sessionStorage.removeItem('demoToken');
+                return;
+            }
+        }
         var _dt = sessionStorage.getItem('demoToken') || '';
         try { if (sessionStorage.getItem('demoMode') === 'customer' && _dt && atob(_dt).startsWith('contentour-demo-customer-')) return; } catch(e) {}
         if (typeof ContentourAuth !== 'undefined' && window.sbClient) {
             await ContentourAuth.requireAuth(['customer', 'admin']);
         }
     })();
+
+    // ── 전역 사용자 프로필 (계약서 등에서 참조) ──
+    var _currentUserProfile = { name: '', company: '', position: '', email: '', phone: '' };
+
+    // ── Supabase에서 프로필 로드 후 UI 반영 ──
+    (async function loadUserProfile() {
+        var isDemoMode = sessionStorage.getItem('demoMode') === 'customer';
+
+        if (isDemoMode || !window.sbClient) {
+            // 데모 모드: 기본값 표시
+            _currentUserProfile = { name: '데모 사용자', company: '데모 기업', position: '', email: 'demo@contentour.com', phone: '-' };
+            applyUserProfile(_currentUserProfile);
+            return;
+        }
+
+        try {
+            var user = await ContentourAuth.getCurrentUser();
+            if (!user) return;
+
+            // 01_회원 테이블에서 기본 정보
+            var { data: member } = await window.sbClient
+                .from('01_회원')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            // 02_국내기업 테이블에서 회사 정보
+            var { data: company } = await window.sbClient
+                .from('02_국내기업')
+                .select('*')
+                .eq('contact_email', user.email)
+                .single();
+
+            _currentUserProfile = {
+                name: (member && member.name) || user.user_metadata?.name || user.email.split('@')[0],
+                company: (company && company.company_name_ko) || '',
+                position: (company && company.contact_position) || '',
+                email: user.email,
+                phone: (member && member.phone) || (company && company.contact_phone) || ''
+            };
+
+            applyUserProfile(_currentUserProfile);
+        } catch (e) {
+            console.error('프로필 로드 실패:', e);
+        }
+    })();
+
+    function applyUserProfile(p) {
+        var displayName = p.position ? p.name + ' ' + p.position : p.name;
+        var initial = p.name ? p.name.charAt(0) : '-';
+
+        // 사이드바
+        var sn = document.getElementById('sidebarUserName');
+        var sc = document.getElementById('sidebarUserCompany');
+        if (sn) sn.textContent = displayName;
+        if (sc) sc.innerHTML = '&#127962; ' + (p.company || '-');
+
+        // 상단바 아바타
+        var ta = document.getElementById('topbarAvatar');
+        if (ta) { ta.textContent = initial; ta.title = displayName; }
+
+        // 마이페이지 프로필 카드
+        var ma = document.getElementById('mypAvatar');
+        var mn = document.getElementById('mypProfileName');
+        var mc = document.getElementById('mypProfileCompany');
+        var me = document.getElementById('mypProfileEmail');
+        var mp = document.getElementById('mypProfilePhone');
+        if (ma) ma.textContent = initial;
+        if (mn) mn.innerHTML = p.name + (p.position ? ' <span class="myp-profile-role">' + p.position + '</span>' : '');
+        if (mc) mc.innerHTML = '&#127962; ' + (p.company || '-');
+        if (me) me.innerHTML = '&#128231; ' + (p.email || '-');
+        if (mp) mp.innerHTML = '&#128222; ' + (p.phone || '-');
+
+        // 마이페이지 설정 폼
+        var si = document.getElementById('mypSettingName');
+        var sr = document.getElementById('mypSettingRole');
+        var se = document.getElementById('mypSettingEmail');
+        var sp = document.getElementById('mypSettingPhone');
+        var sco = document.getElementById('mypSettingCompany');
+        if (si) si.value = p.name || '';
+        if (sr) sr.value = p.position || '';
+        if (se) se.value = p.email || '';
+        if (sp) sp.value = p.phone || '';
+        if (sco) sco.value = p.company || '';
+    }
 
     // 뷰 전환
     function switchView(v) {
@@ -848,8 +962,8 @@
       if (v === 'journal')  renderJournalList();
       if (v === 'schedule') schInit();
       if (v === 'chat') { renderChatContacts(); chatLoadFromDB(); }
-      if (v === 'contract') { renderContracts(); contractsLoadFromDB(); }
-      if (v === 'list') { setTimeout(function(){ renderQuoteCards(); }, 50); }
+      if (v === 'contract') { _contractsDbLoaded = false; renderContracts(); contractsLoadFromDB(); }
+      if (v === 'list') { loadMyInquiries(); }
       if (v === 'mypage') { loyRenderAll(); mypRenderStats(); }
     }
 
@@ -953,14 +1067,55 @@
     function schMoveMonth(d) { schM += d; if (schM > 11) { schM = 0; schY++; } if (schM < 0) { schM = 11; schY--; } schRender(); }
     function schGoToday() { const t = new Date(); schY = t.getFullYear(); schM = t.getMonth(); schRender(); schSelectDate(schY + '-' + String(schM+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0')); }
 
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
 
-    function submitInquiry() {
+    async function submitInquiry() {
       const fields = ['f-expo','f-location','f-lang','f-start','f-end','f-type','f-message'].map(id => document.getElementById(id));
       let valid = true;
       fields.forEach(f => { if (!f.value) { f.style.borderColor='var(--error)'; valid=false; } else { f.style.borderColor=''; } });
       if (!document.getElementById('f-consent').checked) { alert('개인정보 수집 및 이용에 동의해주세요.'); return; }
       if (!valid) { alert('필수 항목을 모두 입력해주세요.'); return; }
+
+      // Supabase에 문의 저장
+      if (window.sbClient) {
+        try {
+          const langMap = { '영어': 'KR-EN', '일본어': 'KR-JP', '중국어': 'KR-CN' };
+          const typeMap = { '부스 상주': 'BOOTH', '미팅 동행': 'MEETING', '현장 운영': 'ONSITE_OPS' };
+          const user = await ContentourAuth.getCurrentUser();
+          const profile = user ? await ContentourAuth.getUserProfile() : null;
+
+          const { error } = await window.sbClient.from('46_ITQ견적문의').insert({
+            user_id: user ? user.id : null,
+            company: profile ? profile.name : '미확인 고객사',
+            contact_name: profile ? profile.name : '',
+            email: user ? user.email : '',
+            phone: (profile && profile.phone) ? profile.phone : '-',
+            exhibition_name: document.getElementById('f-expo').value,
+            location: document.getElementById('f-location').value,
+            venue: (document.getElementById('f-venue') || {}).value || '',
+            language_pair: langMap[document.getElementById('f-lang').value] || document.getElementById('f-lang').value,
+            start_date: document.getElementById('f-start').value,
+            end_date: document.getElementById('f-end').value,
+            service_type: typeMap[document.getElementById('f-type').value] || 'OTHER',
+            headcount: parseInt((document.getElementById('f-count') || {}).value) || 1,
+            working_hours: (document.getElementById('f-hours') || {}).value || '',
+            keywords: (document.getElementById('f-keywords') || {}).value || '',
+            message: document.getElementById('f-message').value,
+            consent: true,
+            status: '접수'
+          });
+
+          if (error) {
+            console.error('문의 저장 실패:', error);
+            showJToast('&#9888;&#65039; 문의 저장 중 오류가 발생했습니다: ' + error.message);
+            return;
+          }
+        } catch (e) {
+          console.error('문의 저장 예외:', e);
+        }
+      }
+
       showJToast('&#9989; 문의가 성공적으로 접수되었습니다!');
       setTimeout(() => { resetForm(); switchView('list'); }, 1200);
     }
@@ -2536,10 +2691,157 @@
 
     // ===== 견적 수신 시스템 =====
     let receivedQuotes = [];
+    let myInquiriesFromDB = [];
+
+    // DB에서 내 문의 목록 + 견적 로드
+    async function loadMyInquiries() {
+      var listEl = document.getElementById('inquiryList');
+      if (!window.sbClient) {
+        if (listEl) listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;font-size:0.88rem;">서비스에 연결할 수 없습니다.</div>';
+        return;
+      }
+      try {
+        // 현재 로그인 유저 확인
+        var { data: { session } } = await window.sbClient.auth.getSession();
+        if (!session) {
+          if (listEl) listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;font-size:0.88rem;">로그인 후 문의 내역을 확인할 수 있습니다.</div>';
+          return;
+        }
+
+        const { data, error } = await window.sbClient
+          .from('46_ITQ견적문의')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('문의 조회 에러:', error);
+          if (listEl) listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;font-size:0.88rem;">문의 내역을 불러오지 못했습니다: ' + error.message + '</div>';
+          return;
+        }
+        if (!data || data.length === 0) {
+          if (listEl) listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;font-size:0.88rem;">접수된 문의가 없습니다. 새 문의를 접수해보세요.</div>';
+          return;
+        }
+
+        myInquiriesFromDB = data;
+
+        // 문의 목록 카드 렌더링
+        var listEl = document.getElementById('inquiryList');
+        if (!listEl) return;
+
+        var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료' };
+        var statusClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
+        var statusBarMap = { '검토중': 'status-pending', '매칭완료': 'status-matched', '파견확정': 'status-confirmed', '완료': 'status-complete' };
+
+        var cardsHtml = data.map(function(d, idx) {
+          var st = statusMap[d.status] || d.status;
+          var stClass = statusClassMap[st] || 'sb-pending';
+          var barClass = statusBarMap[st] || 'status-pending';
+          var created = d.created_at ? d.created_at.split('T')[0] : '';
+          return '<div class="inquiry-card" onclick="openDbInquiryModal(' + idx + ')" data-title="' + d.exhibition_name + '" data-status="' + st + '">' +
+            '<div class="inquiry-card__status ' + barClass + '"></div>' +
+            '<div class="inquiry-card__main">' +
+              '<div class="inquiry-card__title">' + d.exhibition_name + '</div>' +
+              '<div class="inquiry-card__meta">' +
+                '<span class="meta-item">📅 ' + d.start_date + ' ~ ' + d.end_date + '</span>' +
+                '<span class="meta-item">🌐 ' + (d.language_pair || '') + '</span>' +
+                '<span class="meta-item">👤 ' + (d.headcount || 1) + '명</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="inquiry-card__right">' +
+              '<span class="inquiry-card__date">' + created + ' 접수</span>' +
+              '<span class="status-badge ' + stClass + '">' + st + '</span>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        listEl.innerHTML = cardsHtml;
+
+        // 견적발송 상태인 문의를 receivedQuotes에 추가
+        data.forEach(function(d) {
+          if (d.status === '견적발송' && d.quoted_amount && d.admin_note) {
+            try {
+              var note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note;
+              var existing = receivedQuotes.find(function(q) { return q.inquiryId === d.id; });
+              if (!existing) {
+                receivedQuotes.push({
+                  quoteId: note.quoteId || ('QT-' + d.id),
+                  inquiryId: d.id,
+                  expo: d.exhibition_name,
+                  company: d.company,
+                  contact: d.contact_name,
+                  lang: d.language_pair || '',
+                  type: d.service_type || '',
+                  country: note.country || '',
+                  interpreter: note.interpreter || '',
+                  interpreterId: note.interpreterId || null,
+                  startDate: d.start_date,
+                  endDate: d.end_date,
+                  days: note.days || 1,
+                  dailyRate: note.dailyRate || 0,
+                  subtotal: note.subtotal || 0,
+                  platformFee: note.platformFee || 0,
+                  total: note.total || d.quoted_amount,
+                  deposit: note.deposit || 0,
+                  balance: note.balance || 0,
+                  memo: note.memo || '',
+                  sentAt: d.quoted_at ? d.quoted_at.split('T')[0] : '',
+                  status: 'sent'
+                });
+              }
+            } catch(e) { console.warn('견적 파싱 실패:', e); }
+          }
+        });
+
+        // 견적 카드 렌더링
+        renderQuoteCards();
+      } catch (e) {
+        console.error('내 문의 로드 실패:', e);
+      }
+    }
+
+    // DB 문의 상세 모달
+    function openDbInquiryModal(idx) {
+      var d = myInquiriesFromDB[idx];
+      if (!d) return;
+      var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료' };
+      var st = statusMap[d.status] || d.status;
+      var stClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
+      document.getElementById('modalTitle').textContent = d.exhibition_name;
+      var badgeEl = document.getElementById('modalStatusBadge');
+      badgeEl.innerHTML = '<span class="status-badge ' + (stClassMap[st] || 'sb-pending') + '">' + st + '</span>';
+      document.getElementById('modalBody').innerHTML =
+        '<table class="modal-detail-table">' +
+        '<tr><td>전시회명</td><td>' + d.exhibition_name + '</td></tr>' +
+        '<tr><td>개최지</td><td>' + (d.location || '-') + '</td></tr>' +
+        '<tr><td>기간</td><td>' + d.start_date + ' ~ ' + d.end_date + '</td></tr>' +
+        '<tr><td>언어</td><td>' + (d.language_pair || '-') + '</td></tr>' +
+        '<tr><td>통역 형태</td><td>' + (d.service_type || '-') + '</td></tr>' +
+        '<tr><td>인원</td><td>' + (d.headcount || 1) + '명</td></tr>' +
+        '<tr><td>요청 내용</td><td>' + (d.message || '-') + '</td></tr>' +
+        '<tr><td>접수일</td><td>' + (d.created_at ? d.created_at.split('T')[0] : '-') + '</td></tr>' +
+        (d.quoted_amount ? '<tr><td>견적 금액</td><td style="color:#1565c0;font-weight:700;">' + formatMoney(d.quoted_amount) + '</td></tr>' : '') +
+        '</table>';
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    // 페이지 로드 시 DB 문의 로드
+    if (window.sbClient) {
+      window.sbClient.auth.onAuthStateChange(function(event, session) {
+        if (session) loadMyInquiries();
+      });
+      // 이미 세션이 있을 경우 즉시 로드
+      window.sbClient.auth.getSession().then(function(res) {
+        if (res.data.session) loadMyInquiries();
+      });
+    }
 
     function renderQuoteCards() {
       var listEl = document.getElementById('inquiryList');
       if (!listEl || receivedQuotes.length === 0) return;
+      // 기존 견적 카드 제거 (중복 방지)
+      listEl.querySelectorAll('.quote-notif-card').forEach(function(el) { el.remove(); });
       var quoteHtml = receivedQuotes.filter(function(q) { return q.status === 'sent' || q.status === 'accepted'; }).map(function(q) {
         var statusLabel = q.status === 'accepted' ? '<span style="color:var(--gray-400);font-weight:700;">[수락됨]</span>' : '';
         return '<div class="quote-notif-card' + (q.status === 'accepted' ? ' reviewed' : '') + '" onclick="openQuoteDetail(\'' + q.quoteId + '\')">' +
@@ -2553,9 +2855,7 @@
           '<div class="quote-notif-card__date">견적 수신일: ' + q.sentAt + '</div>' +
         '</div>';
       }).join('');
-      // Insert quote cards at the top of the inquiry list
-      var existingCards = listEl.innerHTML;
-      listEl.innerHTML = quoteHtml + existingCards;
+      listEl.insertAdjacentHTML('afterbegin', quoteHtml);
     }
 
     function openQuoteDetail(quoteId) {
@@ -2599,16 +2899,53 @@
       document.getElementById('quoteDetailOverlay').classList.remove('open');
     }
 
-    function acceptQuote(quoteId) {
+    async function acceptQuote(quoteId) {
       var q = receivedQuotes.find(function(x) { return x.quoteId === quoteId; });
       if (!q || q.status !== 'sent') return;
       q.status = 'accepted';
       var todayStr = new Date().toISOString().split('T')[0];
+
+      // DB에 42_통역계약 생성
+      var dbContractId = null;
+      if (window.sbClient) {
+        try {
+          var user = await ContentourAuth.getCurrentUser();
+          var fee = q.platformFee || Math.round(q.subtotal * 0.1);
+          var { data: insertData, error: insertErr } = await window.sbClient.from('42_통역계약').insert({
+            customer_id: user ? user.id : null,
+            interpreter_id: q.interpreterId || null,
+            exhibition_name: q.expo,
+            client_company: q.company || '',
+            venue: q.country || '',
+            start_date: q.startDate,
+            end_date: q.endDate,
+            working_days: q.days || 1,
+            language_pair: q.lang || '',
+            service_type: q.type || '',
+            daily_rate: q.dailyRate || 0,
+            total_amount: q.total || 0,
+            tax_amount: fee,
+            net_amount: q.subtotal || 0,
+            deposit_amount: q.deposit || 0,
+            balance_amount: q.balance || 0,
+            status: 'pending',
+            interpreter_accepted: null,
+            contract_signed: false
+          }).select('id').single();
+
+          if (insertErr) console.error('계약 DB 생성 실패:', insertErr);
+          else if (insertData) dbContractId = insertData.id;
+        } catch (e) {
+          console.error('계약 DB 생성 예외:', e);
+        }
+      }
+
       // Create a new contract from the quote — starts at contract_sign
       var newContract = {
-        id: 'CT-' + Date.now().toString().slice(-7),
+        id: dbContractId || ('CT-' + Date.now().toString().slice(-7)),
+        dbId: dbContractId,
         expo: q.expo,
-        interpreter: { name: q.interpreter, id: q.interpreter.toLowerCase().replace(/\s/g, '') },
+        interpreter: { name: q.interpreter, id: q.interpreterId || q.interpreter.toLowerCase().replace(/\s/g, '') },
         status: 'contract_sign', statusText: '계약서 확인 대기',
         dates: { start: q.startDate, end: q.endDate },
         lang: q.lang, dailyRate: q.dailyRate, days: q.days,
@@ -2636,49 +2973,33 @@
       if (currentView && currentView.id === 'view-list') {
         renderQuoteCards();
       }
-      // Broadcast acceptance to admin + contract data to interpreter
-      try {
-        localStorage.removeItem('contentour_quote_response');
-        setTimeout(function() {
-          localStorage.setItem('contentour_quote_response', JSON.stringify({
-            quoteId: q.quoteId,
-            inquiryId: q.inquiryId,
-            interpreter: q.interpreter,
-            action: 'accept',
-            contractId: newContract.id,
-            contractData: {
-              id: newContract.id, expo: newContract.expo, lang: newContract.lang,
-              dates: newContract.dates, dailyRate: newContract.dailyRate, days: newContract.days,
-              subtotal: newContract.subtotal, platformFee: newContract.platformFee,
-              total: newContract.total, deposit: newContract.deposit, balance: newContract.balance,
-              company: q.company, contact: q.contact
-            },
-            ts: Date.now()
-          }));
-        }, 50);
-      } catch(e) {}
     }
 
     // Customer agrees to contract
-    function agreeContract(contractId) {
+    async function agreeContract(contractId) {
       var c = contracts.find(function(x) { return x.id === contractId; });
-      if (!c || c.status !== 'contract_sign') return;
+      if (!c) return;
       c.customerAgreed = true;
+
+      // DB에 계약서 서명 업데이트
+      var dbId = c.dbId || c.id;
+      if (window.sbClient && dbId) {
+        try {
+          await window.sbClient.from('42_통역계약').update({
+            contract_signed: true,
+            contract_signed_at: new Date().toISOString()
+          }).eq('id', dbId);
+        } catch (e) {
+          console.error('계약서 동의 DB 업데이트 실패:', e);
+        }
+      }
+
       if (c.customerAgreed && c.interpreterAgreed) {
         finalizeContractSign(c);
       } else {
         showContractToast('계약서에 동의했습니다. 통역사의 동의를 기다리고 있습니다.');
         renderContracts();
       }
-      // Broadcast customer agreement
-      try {
-        localStorage.removeItem('contentour_contract_sign');
-        setTimeout(function() {
-          localStorage.setItem('contentour_contract_sign', JSON.stringify({
-            contractId: contractId, party: 'customer', action: 'agree', ts: Date.now()
-          }));
-        }, 50);
-      } catch(e) {}
     }
 
     function finalizeContractSign(c) {
@@ -2855,44 +3176,91 @@
     let _contractsDbLoaded = false;
     async function contractsLoadFromDB() {
         if (_contractsDbLoaded) return;
-        if (typeof supabase === 'undefined' || !supabase) return;
+        var sb = window.sbClient;
+        if (!sb) return;
         try {
-            const { data: { user } } = await supabase.auth.getUser();
+            var { data: { user } } = await sb.auth.getUser();
             if (!user) return;
-            const { data, error } = await supabase
+            var { data, error } = await sb
                 .from('42_통역계약')
-                .select('*, interpreter:interpreter_id (id, name)')
+                .select('*')
                 .eq('customer_id', user.id)
                 .order('created_at', { ascending: false });
             if (error) throw error;
             if (!data || data.length === 0) return;
 
-            const statusMap = {
-                pending: '견적 검토', deposit_paid: '계약금 결제 완료',
-                in_progress: '서비스 진행중', completed: '서비스 완료',
-                settled: '정산 완료', cancelled: '취소'
+            // DB status → 고객사 UI status 매핑
+            var uiStatusMap = {
+                pending: 'contract_sign',
+                deposit_paid: 'in_progress',
+                in_progress: 'in_progress',
+                completed: 'complete',
+                settled: 'settled',
+                cancelled: 'cancelled'
+            };
+            var statusTextMap = {
+                contract_sign: '계약서 확인 대기',
+                deposit_pay: '계약금 결제 대기',
+                deposit_review: '관리자 승인 대기',
+                in_progress: '서비스 진행중',
+                balance_pay: '잔금 결제 대기',
+                complete: '완료 확인',
+                settled: '정산 완료'
             };
 
-            contracts = data.map(d => ({
-                id: d.id, dbId: d.id,
-                expo: d.exhibition_name,
-                interpreter: { name: d.interpreter?.name || '배정 대기', id: d.interpreter_id },
-                client: { name: '', company: d.client_company },
-                status: d.status,
-                statusText: statusMap[d.status] || d.status,
-                dates: { start: d.start_date, end: d.end_date },
-                lang: d.language_pair,
-                dailyRate: d.daily_rate,
-                days: d.working_days,
-                subtotal: d.total_amount,
-                platformFee: 0,
-                total: d.total_amount,
-                deposit: d.deposit_amount,
-                balance: d.balance_amount,
-                depositPaid: d.deposit_status === 'paid',
-                balancePaid: d.balance_status === 'paid',
-                timeline: []
-            }));
+            contracts = data.map(function(d) {
+                var uiStatus = uiStatusMap[d.status] || d.status;
+                // 세부 상태 결정
+                if (d.status === 'pending' && d.contract_signed && d.interpreter_accepted) {
+                    uiStatus = 'deposit_pay';
+                } else if (d.status === 'pending' && (d.contract_signed || d.interpreter_accepted)) {
+                    uiStatus = 'contract_sign';
+                }
+                if (d.deposit_status === 'paid' && d.balance_status !== 'paid' && d.status !== 'completed' && d.status !== 'settled') {
+                    uiStatus = d.status === 'in_progress' ? 'in_progress' : 'deposit_review';
+                }
+                if (d.status === 'completed' && d.balance_status !== 'paid') {
+                    uiStatus = 'balance_pay';
+                }
+
+                var todayStr = new Date().toISOString().split('T')[0];
+                var platformFee = Math.round((d.total_amount || 0) * 0.1);
+                var subtotal = (d.total_amount || 0) - platformFee;
+
+                return {
+                    id: d.id, dbId: d.id,
+                    expo: d.exhibition_name || '',
+                    interpreter: { name: '통역사', id: d.interpreter_id },
+                    client: { name: '', company: d.client_company },
+                    status: uiStatus,
+                    statusText: statusTextMap[uiStatus] || uiStatus,
+                    dates: { start: d.start_date, end: d.end_date },
+                    lang: d.language_pair || '',
+                    dailyRate: d.daily_rate || 0,
+                    days: d.working_days || 0,
+                    subtotal: subtotal,
+                    platformFee: platformFee,
+                    total: d.total_amount || 0,
+                    deposit: d.deposit_amount || 0,
+                    balance: d.balance_amount || 0,
+                    depositPaid: d.deposit_status === 'paid',
+                    balancePaid: d.balance_status === 'paid',
+                    customerAgreed: d.contract_signed || false,
+                    interpreterAgreed: d.interpreter_accepted || false,
+                    timeline: [
+                        { step: '견적 발송', date: d.created_at ? d.created_at.split('T')[0] : '', done: true },
+                        { step: '견적 확인', date: d.created_at ? d.created_at.split('T')[0] : '', done: true },
+                        { step: '계약서 확인', date: d.contract_signed_at ? d.contract_signed_at.split('T')[0] : '', done: !!d.contract_signed, active: !d.contract_signed },
+                        { step: '계약 체결', date: (d.contract_signed && d.interpreter_accepted) ? (d.accepted_at ? d.accepted_at.split('T')[0] : todayStr) : '', done: !!(d.contract_signed && d.interpreter_accepted) },
+                        { step: '계약금 결제', date: d.deposit_paid_at ? d.deposit_paid_at.split('T')[0] : '', done: d.deposit_status === 'paid', active: d.contract_signed && d.interpreter_accepted && d.deposit_status !== 'paid' },
+                        { step: '관리자 승인', date: d.deposit_status === 'paid' ? todayStr : '', done: d.status === 'in_progress' || d.status === 'completed' || d.status === 'settled' },
+                        { step: '서비스 진행', date: d.status === 'in_progress' || d.status === 'completed' || d.status === 'settled' ? d.start_date : '', done: d.status === 'completed' || d.status === 'settled' || d.status === 'in_progress' },
+                        { step: '잔금 결제', date: d.balance_paid_at ? d.balance_paid_at.split('T')[0] : '', done: d.balance_status === 'paid' },
+                        { step: '완료 확인', date: d.status === 'completed' || d.status === 'settled' ? todayStr : '', done: d.status === 'settled' },
+                        { step: '정산 완료', date: d.status === 'settled' ? todayStr : '', done: d.status === 'settled' }
+                    ]
+                };
+            });
             _contractsDbLoaded = true;
             renderContracts();
             console.log('계약 DB 로드 완료:', data.length + '건');
@@ -3061,6 +3429,18 @@
       var c = contracts.find(function(x) { return x.id === id; });
       if (!c) return;
 
+      // XSS 방지: 사용자 입력값 이스케이프
+      var esc = escapeHtml;
+      var safe = {
+        id: esc(c.id || ''),
+        expo: esc(c.expo || ''),
+        interpName: esc(c.interpreter ? c.interpreter.name : ''),
+        lang: esc(c.lang || ''),
+        startDate: esc(c.dates ? c.dates.start : ''),
+        endDate: esc(c.dates ? c.dates.end : ''),
+        days: esc(String(c.days || 0))
+      };
+
       var today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
       var contractDate = '';
       var signStep = c.timeline.find(function(t) { return t.step === '계약 체결' && t.done; });
@@ -3072,7 +3452,7 @@
 
       var w = window.open('', '_blank', 'width=900,height=1200');
       if (!w) { alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
-      w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>통역 서비스 계약서 - ' + c.id + '</title>');
+      w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>통역 서비스 계약서 - ' + safe.id + '</title>');
       w.document.write('<style>' +
         '*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }' +
         'body { font-family: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; color: #1a1a1a; background: #f5f5f5; padding: 30px; line-height: 1.7; }' +
@@ -3120,7 +3500,7 @@
       // Header
       w.document.write('<div class="doc-header">' +
         '<h1>통역 서비스 계약서</h1>' +
-        '<div class="doc-id">계약번호: ' + c.id + ' | 계약일: ' + contractDate + '</div>' +
+        '<div class="doc-id">계약번호: ' + safe.id + ' | 계약일: ' + contractDate + '</div>' +
       '</div>');
 
       // Intro
@@ -3132,16 +3512,16 @@
       w.document.write('<div class="party-box">' +
         '<div class="party">' +
           '<div class="party-title">갑 (의뢰인)</div>' +
-          '<div class="party-row"><span class="label">회사명</span><span class="value">부산테크노파크</span></div>' +
-          '<div class="party-row"><span class="label">담당자</span><span class="value">김태훈 주임</span></div>' +
-          '<div class="party-row"><span class="label">연락처</span><span class="value">051-749-9400</span></div>' +
-          '<div class="party-row"><span class="label">이메일</span><span class="value">taehun.kim@btp.or.kr</span></div>' +
+          '<div class="party-row"><span class="label">회사명</span><span class="value">' + (_currentUserProfile.company || '-') + '</span></div>' +
+          '<div class="party-row"><span class="label">담당자</span><span class="value">' + (_currentUserProfile.name || '-') + (_currentUserProfile.position ? ' ' + _currentUserProfile.position : '') + '</span></div>' +
+          '<div class="party-row"><span class="label">연락처</span><span class="value">' + (_currentUserProfile.phone || '-') + '</span></div>' +
+          '<div class="party-row"><span class="label">이메일</span><span class="value">' + (_currentUserProfile.email || '-') + '</span></div>' +
         '</div>' +
         '<div class="party">' +
           '<div class="party-title">을 (서비스 제공 / 플랫폼)</div>' +
           '<div class="party-row"><span class="label">상호</span><span class="value">콘텐츄어</span></div>' +
-          '<div class="party-row"><span class="label">통역사</span><span class="value">' + c.interpreter.name + '</span></div>' +
-          '<div class="party-row"><span class="label">언어</span><span class="value">' + c.lang + '</span></div>' +
+          '<div class="party-row"><span class="label">통역사</span><span class="value">' + safe.interpName + '</span></div>' +
+          '<div class="party-row"><span class="label">언어</span><span class="value">' + safe.lang + '</span></div>' +
           '<div class="party-row"><span class="label">이메일</span><span class="value">service@contentour.com</span></div>' +
         '</div>' +
       '</div>');
@@ -3150,10 +3530,10 @@
       w.document.write('<div class="section">' +
         '<div class="section-title">제1조 서비스 내용</div>' +
         '<table class="info-table">' +
-          '<tr><th>전시회/행사명</th><td>' + c.expo + '</td></tr>' +
-          '<tr><th>서비스 기간</th><td>' + c.dates.start + ' ~ ' + c.dates.end + ' (' + c.days + '일간)</td></tr>' +
-          '<tr><th>통역 언어</th><td>' + c.lang + '</td></tr>' +
-          '<tr><th>통역사</th><td>' + c.interpreter.name + '</td></tr>' +
+          '<tr><th>전시회/행사명</th><td>' + safe.expo + '</td></tr>' +
+          '<tr><th>서비스 기간</th><td>' + safe.startDate + ' ~ ' + safe.endDate + ' (' + safe.days + '일간)</td></tr>' +
+          '<tr><th>통역 언어</th><td>' + safe.lang + '</td></tr>' +
+          '<tr><th>통역사</th><td>' + safe.interpName + '</td></tr>' +
           '<tr><th>서비스 유형</th><td>전시회 부스 통역 (비즈니스 상담 통역 포함)</td></tr>' +
         '</table>' +
       '</div>');
@@ -3217,8 +3597,8 @@
       w.document.write('<div class="sign-area">' +
         '<div class="sign-block">' +
           '<div class="sign-label">갑 (의뢰인)</div>' +
-          '<div class="sign-name">부산테크노파크</div>' +
-          '<div class="sign-sub">김태훈 주임</div>' +
+          '<div class="sign-name">' + (_currentUserProfile.company || '-') + '</div>' +
+          '<div class="sign-sub">' + (_currentUserProfile.name || '-') + (_currentUserProfile.position ? ' ' + _currentUserProfile.position : '') + '</div>' +
         '</div>' +
         '<div class="sign-block">' +
           '<div class="sign-label">을 (서비스 제공)</div>' +
@@ -3797,14 +4177,24 @@
       if (currentPayment.pointsUsed && currentPayment.pointsUsed > 0) {
         try { loyUsePoints(currentPayment.pointsUsed, c.expo + ' 수수료 차감 사용'); } catch(e) {}
       }
+      // DB 업데이트
+      var dbId = c.dbId || c.id;
+      if (window.sbClient && dbId) {
+        try {
+          var updateData = {};
+          if (type === 'deposit') {
+            updateData.deposit_status = 'paid';
+            updateData.deposit_paid_at = new Date().toISOString();
+            updateData.status = 'deposit_paid';
+          } else if (type === 'balance') {
+            updateData.balance_status = 'paid';
+            updateData.balance_paid_at = new Date().toISOString();
+          }
+          await window.sbClient.from('42_통역계약').update(updateData).eq('id', dbId);
+        } catch (e) { console.error('결제 DB 업데이트 실패:', e); }
+      }
+
       renderContracts();
-      // Broadcast to other tabs for admin approval sync
-      try {
-        localStorage.removeItem('contentour_contract_update');
-        setTimeout(function() {
-          localStorage.setItem('contentour_contract_update', JSON.stringify({ contractId: contractId, type: type, action: 'payment', ts: Date.now() }));
-        }, 50);
-      } catch(e) {}
       return true;
     }
 
@@ -3930,7 +4320,7 @@
       }
     });
 
-    function confirmServiceComplete(contractId) {
+    async function confirmServiceComplete(contractId) {
       const c = contracts.find(x => x.id === contractId);
       if (!c) return;
       c.status = 'settled';
@@ -3939,6 +4329,17 @@
         if (t.step === '완료 확인') { t.done = true; t.active = false; t.date = new Date().toISOString().split('T')[0]; }
         if (t.step === '정산 완료') { t.done = true; t.date = new Date().toISOString().split('T')[0]; }
       });
+
+      // DB 업데이트
+      var dbId = c.dbId || c.id;
+      if (window.sbClient && dbId) {
+        try {
+          await window.sbClient.from('42_통역계약').update({
+            status: 'completed'
+          }).eq('id', dbId);
+        } catch (e) { console.error('서비스 완료 DB 업데이트 실패:', e); }
+      }
+
       renderContracts();
       showContractToast('서비스 완료가 확인되었습니다.');
     }

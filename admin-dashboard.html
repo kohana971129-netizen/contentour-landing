@@ -140,9 +140,11 @@
     <div class="main">
 
         <!-- 탑바 -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
         <header class="topbar">
             <div class="topbar-inner">
                 <div class="topbar__left">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()" style="display:none;background:none;border:none;font-size:1.3rem;cursor:pointer;padding:4px 8px;margin-right:8px;">☰</button>
                     <div class="topbar__page-title" id="pageTitle">문의 목록 & 통역사 매칭 관리</div>
                 </div>
                 <div class="topbar__right">
@@ -1093,7 +1095,7 @@
                 tbody.innerHTML = data.map(d => {
                     const statusClass = { '검토중': 'pending', '매칭완료': 'matched', '파견확정': 'confirm', '완료': 'done' }[d.status] || 'pending';
                     return `
-    <tr onclick="openAssignModal(${d.id})">
+    <tr onclick="openAssignModal('${d.id}')">
       <td class="checkbox-cell" onclick="event.stopPropagation()"><input type="checkbox"></td>
       <td><span class="priority ${d.priority}">${d.priority === 'high' ? '긴급' : '보통'}</span></td>
       <td><div class="company">${d.company}</div><div class="sub-text">${d.contact}</div></td>
@@ -1104,7 +1106,7 @@
       <td><span class="badge badge-${statusClass}">${d.status}</span></td>
       <td>${d.interpreter || '미배정'}</td>
       <td>${d.received}</td>
-      <td><button class="action-btn assign" onclick="event.stopPropagation();openAssignModal(${d.id})">배정</button>${(d.status === '검토중' || d.status === '매칭완료') && !d.quoteSent ? '<button class="action-btn" style="background:#388e3c;color:#fff;margin-left:4px;" onclick="event.stopPropagation();openQuoteModal('+d.id+')">견적</button>' : ''}${d.quoteSent ? '<span class="badge-quote-sent">견적발송</span>' : ''}</td>
+      <td><button class="action-btn assign" onclick="event.stopPropagation();openAssignModal('${d.id}')">배정</button>${(d.status === '검토중' || d.status === '매칭완료') && !d.quoteSent ? '<button class="action-btn" style="background:#388e3c;color:#fff;margin-left:4px;" onclick="event.stopPropagation();openQuoteModal(\''+d.id+'\')">견적</button>' : ''}${d.quoteSent ? '<span class="badge-quote-sent">견적발송</span>' : ''}</td>
     </tr>`;
                 }).join('');
             }
@@ -1125,6 +1127,15 @@
       </div>
     </div>
   `).join('');
+            }
+
+            function toggleSidebar() {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('open');
+            }
+            function closeSidebar() {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebarOverlay').classList.remove('open');
             }
 
             function switchTab(tab) {
@@ -1172,16 +1183,131 @@
                 if (tab === 'chatmon') { renderChatmonChannels(); renderChatmonStats(); }
             }
 
-            function openAssignModal(id) {
-                const d = inquiries.find(x => x.id === id);
+            var currentAssignInquiry = null;
+            var selectedInterpreter = null;
+            var allInterpretersFromDB = [];
+
+            async function loadAllInterpreters() {
+                if (!supabase) return;
+                try {
+                    const { data, error } = await supabase
+                        .from('40_통역사프로필')
+                        .select('user_id, display_name, languages, specialties, is_active')
+                        .order('display_name');
+                    if (!error && data) {
+                        var colors = ['#1565c0','#0277bd','#00695c','#c62828','#6a1b9a','#2e7d32','#4527a0','#e65100','#ad1457','#00838f'];
+                        allInterpretersFromDB = data.map(function(p, i) {
+                            return {
+                                id: p.user_id,
+                                name: p.display_name,
+                                initials: (p.display_name || '?').charAt(0),
+                                color: colors[i % colors.length],
+                                langs: p.languages || [],
+                                field: (p.specialties && p.specialties[0]) || '-',
+                                available: p.is_active
+                            };
+                        });
+                    }
+                } catch (e) {
+                    console.warn('통역사 목록 로드 실패:', e);
+                }
+            }
+
+            async function openAssignModal(id) {
+                const d = inquiries.find(x => String(x.id) === String(id));
                 if (!d) return;
+                currentAssignInquiry = d;
+                selectedInterpreter = null;
+
+                // 문의 요약 정보 표시
+                document.getElementById('inquirySummary').innerHTML =
+                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">' +
+                    '<div><strong>고객사:</strong> ' + d.company + '</div>' +
+                    '<div><strong>담당자:</strong> ' + (d.contact || '-') + '</div>' +
+                    '<div><strong>전시회:</strong> ' + d.expo + '</div>' +
+                    '<div><strong>언어:</strong> ' + d.lang + '</div>' +
+                    '<div><strong>기간:</strong> ' + d.start + ' ~ ' + (d.end || '') + '</div>' +
+                    '<div><strong>형태:</strong> ' + d.type + '</div>' +
+                    '</div>';
+
+                // DB에서 전체 통역사 로드
+                if (allInterpretersFromDB.length === 0) await loadAllInterpreters();
+
+                // 통역사 목록 (DB 우선, 없으면 하드코딩 폴백)
+                var interpList = allInterpretersFromDB.length > 0 ? allInterpretersFromDB : interpreters;
+
+                // 통역사 선택 카드 렌더링
+                var grid = document.getElementById('interpOptions');
+                grid.innerHTML = interpList.map(function(interp) {
+                    var escapedId = typeof interp.id === 'string' ? "'" + interp.id + "'" : interp.id;
+                    return '<div class="interp-option" data-id="' + interp.id + '" data-name="' + interp.name + '" onclick="selectInterpreter(this, ' + escapedId + ')" style="display:flex;align-items:center;gap:12px;padding:12px;border:2px solid #e5eaf2;border-radius:10px;cursor:pointer;transition:all 0.2s;">' +
+                        '<div style="width:40px;height:40px;border-radius:50%;background:' + interp.color + ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;">' + interp.initials + '</div>' +
+                        '<div style="flex:1;">' +
+                        '<div style="font-weight:700;font-size:0.88rem;">' + interp.name + '</div>' +
+                        '<div style="font-size:0.75rem;color:#8a95a8;">' + interp.langs.join(', ') + ' | ' + interp.field + '</div>' +
+                        '</div>' +
+                        '<div style="font-size:0.75rem;">' + (interp.available ? '<span style="color:#2e7d32;">가용</span>' : '<span style="color:#c62828;">불가</span>') + '</div>' +
+                        '</div>';
+                }).join('');
+
+                // 상태 선택 초기값
+                document.getElementById('statusSelect').value = d.status || '검토중';
                 document.getElementById('adminMemo').value = '';
                 document.getElementById('overlay').classList.add('open');
             }
 
-            function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+            function selectInterpreter(el, id) {
+                // 기존 선택 해제
+                document.querySelectorAll('.interp-option').forEach(function(opt) {
+                    opt.style.borderColor = '#e5eaf2';
+                    opt.style.background = '#fff';
+                });
+                // 새 선택
+                el.style.borderColor = '#1565c0';
+                el.style.background = '#f0f7ff';
+                var interpList = allInterpretersFromDB.length > 0 ? allInterpretersFromDB : interpreters;
+                selectedInterpreter = interpList.find(function(x) { return String(x.id) === String(id); });
+            }
+
+            function closeModal() { document.getElementById('overlay').classList.remove('open'); currentAssignInquiry = null; }
             function closeOverlay(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
-            function confirmAssign() { closeModal(); showToast('배정이 확정되었습니다.'); }
+
+            async function confirmAssign() {
+                if (!currentAssignInquiry) return;
+                if (!selectedInterpreter) { showToast('통역사를 선택해주세요.'); return; }
+
+                var uiStatus = document.getElementById('statusSelect').value;
+                var memo = document.getElementById('adminMemo').value;
+
+                // UI 상태 → DB enum 매핑
+                var dbStatusMap = { '검토중': '검토중', '매칭완료': '견적발송', '파견확정': '계약진행', '완료': '완료' };
+                var dbStatus = dbStatusMap[uiStatus] || '검토중';
+
+                // 로컬 데이터 업데이트
+                currentAssignInquiry.interpreter = selectedInterpreter.name;
+                currentAssignInquiry.status = uiStatus;
+
+                // DB 업데이트
+                var dbId = currentAssignInquiry.dbId || currentAssignInquiry.id;
+                if (supabase && dbId) {
+                    try {
+                        var updateData = { status: dbStatus };
+                        if (memo) updateData.admin_note = JSON.stringify({
+                            interpreter: selectedInterpreter.name,
+                            interpreterId: selectedInterpreter.id,
+                            memo: memo
+                        });
+                        var { error } = await supabase.from('46_ITQ견적문의').update(updateData).eq('id', dbId);
+                        if (error) console.error('배정 DB 저장 실패:', error);
+                    } catch (e) {
+                        console.error('배정 DB 저장 예외:', e);
+                    }
+                }
+
+                renderTable(inquiries);
+                closeModal();
+                showToast('✅ ' + selectedInterpreter.name + ' 통역사가 "' + currentAssignInquiry.expo + '"에 배정되었습니다.');
+            }
             function showToast(msg) {
                 const t = document.getElementById('toast');
                 t.textContent = msg; t.classList.add('show');
@@ -2629,7 +2755,7 @@
             const sentQuotes = [];
 
             function openQuoteModal(inquiryId) {
-                var inq = inquiries.find(function(x) { return x.id === inquiryId; });
+                var inq = inquiries.find(function(x) { return String(x.id) === String(inquiryId); });
                 if (!inq) return;
                 currentQuoteInquiry = inq;
                 document.getElementById('qm-expo').value = inq.expo;
@@ -2646,7 +2772,27 @@
                 // Reset fields
                 document.getElementById('qm-country').value = '';
                 document.getElementById('qm-rate').value = '';
-                document.getElementById('qm-interpreter').value = inq.interpreter || '';
+                // DB 통역사 목록으로 select 옵션 갱신
+                var interpSelect = document.getElementById('qm-interpreter');
+                if (allInterpretersFromDB.length > 0) {
+                    interpSelect.innerHTML = '<option value="">통역사 선택</option>' +
+                        allInterpretersFromDB.map(function(p) {
+                            return '<option value="' + p.name + '">' + p.name + ' (' + p.langs.join(', ') + ')' + (p.available ? '' : ' [불가]') + '</option>';
+                        }).join('');
+                }
+                // 배정된 통역사가 있으면 자동 선택
+                if (inq.interpreter) {
+                    interpSelect.value = inq.interpreter;
+                    if (!interpSelect.value) {
+                        var opt = document.createElement('option');
+                        opt.value = inq.interpreter;
+                        opt.textContent = inq.interpreter;
+                        interpSelect.appendChild(opt);
+                        interpSelect.value = inq.interpreter;
+                    }
+                } else {
+                    interpSelect.value = '';
+                }
                 document.getElementById('qm-memo').value = '';
                 document.getElementById('qmRateInfo').style.display = 'none';
                 calcQuote();
@@ -2693,6 +2839,8 @@
                 document.getElementById('ncDeposit').textContent = fmt(deposit);
                 document.getElementById('ncBalance').textContent = fmt(balance);
             }
+            function _escHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
             function previewNewContract() {
                 var expo = document.getElementById('nc-expo').value.trim();
                 var company = document.getElementById('nc-company').value.trim();
@@ -2723,11 +2871,12 @@
                 w.document.write('</head><body><div class="contract-doc">');
                 w.document.write('<div class="preview-banner">📋 미리보기 — 아직 생성되지 않은 계약서입니다</div>');
                 w.document.write('<div class="doc-header"><h1>통역 서비스 계약서</h1><p>INTERPRETATION SERVICE CONTRACT</p><p style="margin-top:8px;font-size:0.85rem;">계약일: ' + today + '</p></div>');
-                w.document.write('<div class="section-title">제1조 (계약 당사자)</div><table><tr><th>갑 (고객사)</th><td>' + company + ' / ' + contact + '</td></tr><tr><th>을 (통역사)</th><td>' + interpreter + '</td></tr><tr><th>플랫폼</th><td>콘텐츄어 (CONTENTOUR)</td></tr></table>');
-                w.document.write('<div class="section-title">제2조 (서비스 내용)</div><table><tr><th>전시회명</th><td>' + expo + '</td></tr><tr><th>개최지</th><td>' + (location || '-') + '</td></tr><tr><th>기간</th><td>' + startDate + ' ~ ' + endDate + ' (' + days + '일)</td></tr><tr><th>통역 언어</th><td>' + lang + '</td></tr><tr><th>통역 형태</th><td>' + type + '</td></tr></table>');
+                var se = { company: _escHtml(company), contact: _escHtml(contact), interpreter: _escHtml(interpreter), expo: _escHtml(expo), location: _escHtml(location || '-'), lang: _escHtml(lang), type: _escHtml(type) };
+                w.document.write('<div class="section-title">제1조 (계약 당사자)</div><table><tr><th>갑 (고객사)</th><td>' + se.company + ' / ' + se.contact + '</td></tr><tr><th>을 (통역사)</th><td>' + se.interpreter + '</td></tr><tr><th>플랫폼</th><td>콘텐츄어 (CONTENTOUR)</td></tr></table>');
+                w.document.write('<div class="section-title">제2조 (서비스 내용)</div><table><tr><th>전시회명</th><td>' + se.expo + '</td></tr><tr><th>개최지</th><td>' + se.location + '</td></tr><tr><th>기간</th><td>' + startDate + ' ~ ' + endDate + ' (' + days + '일)</td></tr><tr><th>통역 언어</th><td>' + se.lang + '</td></tr><tr><th>통역 형태</th><td>' + se.type + '</td></tr></table>');
                 w.document.write('<div class="section-title">제3조 (계약 금액)</div><table><tr><th>일당 단가</th><td>₩' + fmt(rate) + '</td></tr><tr><th>파견 일수</th><td>' + days + '일</td></tr><tr><th>통역 서비스</th><td>₩' + fmt(subtotal) + '</td></tr><tr><th>플랫폼 수수료</th><td>₩' + fmt(fee) + ' (10%)</td></tr><tr><th>총 계약 금액</th><td class="amount-highlight">₩' + fmt(total) + '</td></tr><tr><th>계약금 (10%)</th><td>₩' + fmt(deposit) + '</td></tr><tr><th>잔금 (90%)</th><td>₩' + fmt(balance) + '</td></tr></table>');
                 w.document.write('<div class="section-title">제4조 (결제 조건)</div><p style="font-size:0.88rem;line-height:1.8;padding:0 8px;">1. 계약금은 계약 체결 후 3영업일 이내 납부한다.<br>2. 잔금은 전시회 종료 후 5영업일 이내 납부한다.<br>3. 통역사 정산은 잔금 확인 후 진행한다.</p>');
-                w.document.write('<div class="stamp-area"><div class="stamp-box"><div class="label">갑 (고객사)</div><div style="height:80px;"></div><div class="line">' + company + '</div></div><div class="stamp-box"><div class="label">을 (통역사)</div><div style="height:80px;"></div><div class="line">' + interpreter + '</div></div></div>');
+                w.document.write('<div class="stamp-area"><div class="stamp-box"><div class="label">갑 (고객사)</div><div style="height:80px;"></div><div class="line">' + se.company + '</div></div><div class="stamp-box"><div class="label">을 (통역사)</div><div style="height:80px;"></div><div class="line">' + se.interpreter + '</div></div></div>');
                 w.document.write('</div></body></html>');
                 w.document.close();
             }
@@ -2844,7 +2993,7 @@
                 document.getElementById('qmBalance').textContent = ctFmt(balance);
             }
 
-            function sendQuote() {
+            async function sendQuote() {
                 if (!currentQuoteInquiry) return;
                 var country = document.getElementById('qm-country').value;
                 var interpreter = document.getElementById('qm-interpreter').value;
@@ -2858,6 +3007,7 @@
                 var total = subtotal + fee;
                 var deposit = Math.round(total * 0.1);
                 var balance = total - deposit;
+                var memo = document.getElementById('qm-memo').value;
                 var quoteData = {
                     quoteId: 'QT-' + Date.now(),
                     inquiryId: currentQuoteInquiry.id,
@@ -2877,17 +3027,49 @@
                     total: total,
                     deposit: deposit,
                     balance: balance,
-                    memo: document.getElementById('qm-memo').value,
+                    memo: memo,
                     sentAt: new Date().toISOString().split('T')[0],
                     status: 'sent'
                 };
+
+                // DB에 견적 정보 업데이트
+                var dbId = currentQuoteInquiry.dbId || currentQuoteInquiry.id;
+                if (supabase && dbId) {
+                    try {
+                        var { error: qErr } = await supabase.from('46_ITQ견적문의').update({
+                            status: '견적발송',
+                            quoted_amount: total,
+                            quoted_at: new Date().toISOString(),
+                            admin_note: JSON.stringify({
+                                interpreter: interpreter,
+                                interpreterId: selectedInterpreter ? selectedInterpreter.id : null,
+                                country: country,
+                                days: days,
+                                dailyRate: rate,
+                                subtotal: subtotal,
+                                platformFee: fee,
+                                total: total,
+                                deposit: deposit,
+                                balance: balance,
+                                memo: memo,
+                                quoteId: quoteData.quoteId
+                            })
+                        }).eq('id', dbId);
+                        if (qErr) console.error('견적 DB 저장 실패:', qErr);
+                        else console.log('견적 DB 저장 성공:', dbId);
+                    } catch (e) {
+                        console.error('견적 DB 저장 예외:', e);
+                    }
+                }
+
                 sentQuotes.push(quoteData);
                 currentQuoteInquiry.quoteSent = true;
                 currentQuoteInquiry.quoteData = quoteData;
+                var expoName = currentQuoteInquiry.expo;
                 closeQuoteModal();
                 renderTable(inquiries);
-                showToast('📨 ' + currentQuoteInquiry.expo + ' 견적이 고객사에게 발송되었습니다.');
-                // Broadcast to customer dashboard
+                showToast('📨 ' + expoName + ' 견적이 고객사에게 발송되었습니다.');
+                // Broadcast to customer dashboard (localStorage 폴백)
                 try {
                     localStorage.removeItem('contentour_quote_send');
                     setTimeout(function() {
@@ -3570,7 +3752,7 @@
             updateFabBadge();
         </script>
 
-        <!-- Supabase SDK + 공유 상수 + 지원서 관리 -->
+        <!-- Supabase SDK + 공유 상수 + 데이터 레이어 -->
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="shared-constants.js"></script>
         <script>
@@ -3581,6 +3763,94 @@
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2dGdmaWVvZW9xaGZib2Z6dW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NzI4NTksImV4cCI6MjA4NzE0ODg1OX0.49XWIHjMWG2YN8sI58GunPsSl2UyhJgx88mEtV613Pg'
               )
             : null;
+        // admin-data.js가 참조하는 supabase 변수 연결
+        var supabase = _sb;
+        </script>
+        <script src="admin-data.js"></script>
+        <script>
+        // ── Supabase에서 문의 + 캘린더 데이터 로드 ──
+        (async function() {
+            if (!supabase) return;
+
+            // 1) 문의 데이터 로드
+            if (typeof AdminData !== 'undefined') {
+                try {
+                    const dbData = await AdminData.loadInquiries();
+                    if (dbData && dbData.length > 0) {
+                        inquiries.length = 0;
+                        dbData.forEach(d => inquiries.push(d));
+                        renderTable(inquiries);
+                    }
+                } catch (e) {
+                    console.warn('DB 문의 로드 실패, 샘플 데이터 유지:', e);
+                }
+            }
+
+            // 2) 캘린더 일정 로드 (42_통역계약에서)
+            try {
+                var { data: contractData, error: contractErr } = await supabase
+                    .from('42_통역계약')
+                    .select('*')
+                    .order('start_date', { ascending: true });
+
+                if (!contractErr && contractData && contractData.length > 0) {
+                    var serviceTypeMap = { 'BOOTH': 'booth', 'MEETING': 'meeting', 'ONSITE_OPS': 'ops' };
+
+                    // 통역사 이름 조회
+                    var interpIds = [...new Set(contractData.filter(c => c.interpreter_id).map(c => c.interpreter_id))];
+                    var interpNames = {};
+                    if (interpIds.length > 0) {
+                        var { data: profiles } = await supabase
+                            .from('40_통역사프로필')
+                            .select('user_id, display_name')
+                            .in('user_id', interpIds);
+                        if (profiles) profiles.forEach(p => interpNames[p.user_id] = p.display_name);
+                    }
+
+                    // 계약을 날짜별 일정으로 변환 (시작일~종료일 각 날짜에 표시)
+                    var dbSchedules = [];
+                    contractData.forEach(function(c) {
+                        var interpName = interpNames[c.interpreter_id] || '미배정';
+                        var start = new Date(c.start_date + 'T00:00:00');
+                        var end = new Date(c.end_date + 'T00:00:00');
+
+                        for (var d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                            var ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                            dbSchedules.push({
+                                id: c.id,
+                                date: ds,
+                                expo: c.exhibition_name || '',
+                                company: c.client_company || '',
+                                interp: interpName,
+                                lang: c.language_pair || '',
+                                type: serviceTypeMap[c.service_type] || 'booth',
+                                start: '09:00',
+                                end: '18:00',
+                                status: c.status,
+                                depositPaid: c.deposit_status === 'paid',
+                                interpreterAccepted: c.interpreter_accepted
+                            });
+                        }
+                    });
+
+                    // 기존 하드코딩 데이터에 DB 데이터 추가
+                    dbSchedules.forEach(function(s) { schedules.push(s); });
+
+                    // 통역사 컬러 맵에 새 통역사 추가
+                    var colors = ['#1565c0','#0277bd','#00695c','#c62828','#6a1b9a','#2e7d32','#4527a0','#e65100','#ad1457','#00838f'];
+                    var ci = Object.keys(IC).length;
+                    Object.values(interpNames).forEach(function(name) {
+                        if (!IC[name]) { IC[name] = colors[ci % colors.length]; ci++; }
+                    });
+
+                    renderCal();
+                    goToday();
+                    console.log('캘린더 DB 로드 완료:', dbSchedules.length + '건');
+                }
+            } catch (e) {
+                console.warn('캘린더 DB 로드 실패:', e);
+            }
+        })();
 
         // ── 관리자 로그인 ──
         async function adminLogin() {

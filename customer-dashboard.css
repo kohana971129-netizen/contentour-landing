@@ -685,8 +685,10 @@
       .sch-layout{grid-template-columns:1fr;}
       .content{padding:24px;}
     }
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:199;}
+    .sidebar-overlay.open{display:block;}
     @media(max-width:768px){
-      .sidebar{transform:translateX(-100%);position:fixed;z-index:200;}.sidebar.open{transform:translateX(0);}
+      .sidebar{transform:translateX(-100%);position:fixed;z-index:200;transition:transform 0.3s;}.sidebar.open{transform:translateX(0);}
       .main{margin-left:0;}.mobile-menu-btn{display:block;}
       .form-grid{grid-template-columns:1fr;}.form-grid .span-2{grid-column:1;}
       .content{padding:20px;}
@@ -699,15 +701,43 @@
       .j-count-grid--pub{grid-template-columns:repeat(2,1fr);}
       .cm-info-grid{grid-template-columns:1fr;}
       .chat-layout{grid-template-columns:1fr;height:auto;}
+      .modal{max-width:100%;max-height:90vh;border-radius:16px 16px 0 0;align-self:flex-end;}
+      .modal__close{width:40px;height:40px;min-width:40px;}
+      .modal__head{padding:16px 20px;}
+      .modal__body{padding:16px 20px;}
+      .contract-modal{max-width:100%;max-height:90vh;border-radius:16px 16px 0 0;}
+      .payment-modal{max-width:100%;max-height:90vh;border-radius:16px 16px 0 0;}
+      .quote-detail-modal{max-width:100%;max-height:90vh;border-radius:16px 16px 0 0;}
+      .topbar{padding:0 16px;}
+      .topbar__title{font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+      .summary-cards{grid-template-columns:1fr 1fr;}
+      .summary-card__num{font-size:1.4rem;}
+      .qd-actions{flex-direction:column;gap:10px;}
+      .qd-btn{width:100%;font-size:0.9rem;}
+      .field input,.field select,.field textarea{padding:13px 16px;min-height:46px;}
+      .loy-kpi{grid-template-columns:repeat(2,1fr);}
+      .loy-tier-section{grid-template-columns:1fr;}
+      .myp-profile-card{flex-direction:column;text-align:center;gap:16px;padding:24px 20px;}
+      .myp-profile-card__left{flex-direction:column;align-items:center;}
+      .myp-profile-meta{flex-direction:column;gap:4px;}
     }
     @media(max-width:480px){
       .summary-cards{grid-template-columns:1fr;}
       .contract-summary{grid-template-columns:1fr;}
+      .topbar__title{max-width:120px;font-size:0.85rem;}
+      .content{padding:16px;}
       .j-count-grid{grid-template-columns:1fr;}
       .j-count-grid--pub{grid-template-columns:1fr;}
-      .content{padding:14px;}
       .chat-contacts{max-height:200px;}
       .chat-main{min-height:400px;}
+      .loy-kpi{grid-template-columns:1fr;}
+      .loy-tier-section{grid-template-columns:1fr;}
+      .myp-profile-card{flex-direction:column;text-align:center;gap:16px;padding:24px 20px;}
+      .myp-profile-card__left{flex-direction:column;align-items:center;}
+      .myp-tabs{flex-direction:column;}
+      .myp-tab{padding:12px 16px;font-size:0.82rem;border-bottom:none;border-left:2.5px solid transparent;}
+      .myp-tab.active{border-left-color:var(--blue);border-bottom-color:transparent;}
+      .loy-kpi-card__num{font-size:1.4rem;}
     }
     /* ══════════════ 견적 수신 시스템 ══════════════ */
     .quote-notif-card{background:linear-gradient(135deg,#e8f5e9,#fff);border:2px solid #66bb6a;border-radius:14px;padding:20px 24px;margin-bottom:16px;cursor:pointer;transition:all 0.15s;position:relative;overflow:hidden;}

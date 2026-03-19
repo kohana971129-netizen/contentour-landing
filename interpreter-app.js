@@ -24,8 +24,18 @@ const InterpreterApp = {
     async init() {
         try {
             // 1) 인증 확인 (interpreter 역할만 허용, 데모 모드 허용)
+            // Supabase 실제 세션이 있으면 데모 모드 무시
+            let _hasSbSession = false;
+            if (window.sbClient) {
+                const { data: { session } } = await window.sbClient.auth.getSession();
+                if (session) {
+                    _hasSbSession = true;
+                    sessionStorage.removeItem('demoMode');
+                    sessionStorage.removeItem('demoToken');
+                }
+            }
             const _demoToken = sessionStorage.getItem('demoToken') || '';
-            const _isDemoValid = sessionStorage.getItem('demoMode') === 'interpreter'
+            const _isDemoValid = !_hasSbSession && sessionStorage.getItem('demoMode') === 'interpreter'
                 && _demoToken && atob(_demoToken).startsWith('contentour-demo-interpreter-');
             if (_isDemoValid) {
                 // 데모 모드: 박서연 통역사 프로필 — DB 조회 없이 HTML 데모 데이터 유지
@@ -47,27 +57,88 @@ const InterpreterApp = {
                 this.hookViewSwitcher();
                 return;
             }
-            const userProfile = await ContentourAuth.requireAuth(['interpreter', 'admin']);
-            if (!userProfile) return; // 리다이렉트됨
+            // Supabase 세션 확인 (리다이렉트 없이)
+            let userProfile = null;
+            if (window.sbClient) {
+                const { data: { session } } = await window.sbClient.auth.getSession();
+                if (session) {
+                    userProfile = await ContentourAuth.getUserProfile();
+                }
+            }
 
-            this.currentUser = userProfile.auth;
-            this.profile = userProfile;
+            if (userProfile && (userProfile.role === 'interpreter' || userProfile.role === 'admin')) {
+                console.log('[InterpreterApp] 로그인 확인:', userProfile.email, userProfile.role);
+                this.currentUser = userProfile.auth;
+                this.profile = userProfile;
 
-            // 2) 통역사 프로필 로드
-            await this.loadInterpreterProfile();
+                // 2) 통역사 프로필 로드
+                try { await this.loadInterpreterProfile(); } catch (e) { console.warn('[InterpreterApp] 프로필 로드 실패:', e); }
 
-            // 3) UI에 사용자 정보 반영
-            this.renderUserInfo();
+                // 3) UI에 사용자 정보 반영
+                this.renderUserInfo();
 
-            // 4) 대시보드 홈 데이터 로드
-            await this.loadDashboardHome();
+                // 4) 대시보드 홈 데이터 로드
+                await this.loadDashboardHome();
 
-            // 5) 뷰 전환 훅 등록
-            this.hookViewSwitcher();
+                // 5) 뷰 전환 훅 등록
+                this.hookViewSwitcher();
+
+                // 6) 실시간 배정 알림 구독
+                this.subscribeRealtime();
+            } else {
+                // 세션 없음 — 로그인 페이지로 이동
+                console.warn('[InterpreterApp] 세션 없음 — 로그인 페이지로 이동');
+                window.location.href = 'client-auth.html?tab=interpreter';
+                return;
+            }
 
         } catch (err) {
-            console.error('InterpreterApp init error:', err);
-            this.showToast('대시보드 초기화에 실패했습니다.');
+            console.error('[InterpreterApp] init error:', err);
+        }
+    },
+
+    // ── 실시간 배정 알림 구독 ──
+    subscribeRealtime() {
+        if (!window.sbClient || !this.currentUser) return;
+        try {
+            window.sbClient
+                .channel('interpreter-assignments')
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: '42_통역계약',
+                    filter: 'interpreter_id=eq.' + this.currentUser.id
+                }, async (payload) => {
+                    console.log('[Realtime] 새 배정 수신:', payload.new);
+                    // 배정 데이터 새로고침
+                    const assignments = await this.loadPendingAssignments();
+                    this._assignments = assignments;
+                    this.renderHomeKPI(assignments, this._contracts || [], this._settlements || []);
+                    this.renderHomeAssignments(assignments);
+                    this.renderWelcomeBanner(assignments, this._contracts || []);
+                    // 토스트 알림
+                    this.showToast('📋 새로운 배정 요청이 도착했습니다: ' + (payload.new.exhibition_name || ''));
+                })
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: '42_통역계약',
+                    filter: 'interpreter_id=eq.' + this.currentUser.id
+                }, async (payload) => {
+                    console.log('[Realtime] 계약 업데이트:', payload.new);
+                    // 결제 상태 등 변경 시 계약 데이터 새로고침
+                    const contracts = await this.loadContracts();
+                    this._contracts = contracts;
+                    this.updateCalendarEvents(contracts);
+                    // 계약 관리 뷰가 열려있으면 자동 갱신
+                    if (typeof renderInterpreterContracts === 'function') {
+                        await this.loadContractsView();
+                    }
+                })
+                .subscribe();
+            console.log('[InterpreterApp] Realtime 구독 시작');
+        } catch (e) {
+            console.warn('[InterpreterApp] Realtime 구독 실패:', e);
         }
     },
 
@@ -83,15 +154,22 @@ const InterpreterApp = {
     },
 
     async onViewSwitch(view) {
-        // 데모 모드에서는 DB 조회 건너뜀 (HTML에서 데모 데이터 직접 로딩)
-        const _dt = sessionStorage.getItem('demoToken') || '';
-        if (sessionStorage.getItem('demoMode') === 'interpreter' && _dt && atob(_dt).startsWith('contentour-demo-interpreter-')) return;
+        // Supabase 실제 세션이 있으면 데모 모드 무시
+        if (this.currentUser && this.currentUser.id !== 'demo-sarah') {
+            // 실제 로그인 → DB 조회 진행
+        } else {
+            // 데모 모드에서는 DB 조회 건너뜀
+            const _dt = sessionStorage.getItem('demoToken') || '';
+            if (sessionStorage.getItem('demoMode') === 'interpreter' && _dt && atob(_dt).startsWith('contentour-demo-interpreter-')) return;
+        }
 
         switch (view) {
             case 'assignments':
                 await this.loadAssignmentsView();
                 break;
             case 'schedule':
+                // 캘린더 진입 시 최신 계약 데이터로 일정 갱신
+                if (this._contracts) this.updateCalendarEvents(this._contracts);
                 break;
             case 'settlement':
                 await this.loadSettlementView();
@@ -196,13 +274,19 @@ const InterpreterApp = {
     // ══════════════ 대시보드 홈 ══════════════
 
     async loadDashboardHome() {
-        const [assignments, contracts, settlements, notifications, journals] = await Promise.all([
+        const results = await Promise.allSettled([
             this.loadPendingAssignments(),
             this.loadContracts(),
             this.loadSettlements(),
             this.loadNotifications(),
             this.loadJournals()
         ]);
+        const assignments = results[0].status === 'fulfilled' ? results[0].value : [];
+        const contracts = results[1].status === 'fulfilled' ? results[1].value : [];
+        const settlements = results[2].status === 'fulfilled' ? results[2].value : [];
+        const notifications = results[3].status === 'fulfilled' ? results[3].value : [];
+        const journals = results[4].status === 'fulfilled' ? results[4].value : [];
+        results.forEach((r, i) => { if (r.status === 'rejected') console.warn('Dashboard data load failed [' + i + ']:', r.reason); });
 
         this._assignments = assignments;
         this._contracts = contracts;
@@ -309,15 +393,40 @@ const InterpreterApp = {
 
         // 사이드바 배지
         const sidebarBadge = document.querySelector('.sb-item__badge');
-        if (sidebarBadge) sidebarBadge.textContent = assignments.length;
+        if (sidebarBadge) {
+            sidebarBadge.textContent = assignments.length;
+            sidebarBadge.style.display = assignments.length > 0 ? '' : 'none';
+        }
     },
 
     renderHomeAssignments(assignments) {
-        const container = document.querySelector('#view-home .card:first-child .assign-item')?.parentElement;
+        // 배정 요청 카드의 body 컨테이너 찾기
+        const cardBody = document.querySelector('#view-home .dashboard-grid .card:first-child .card__body');
+        const container = cardBody;
         if (!container) return;
 
         const badge = document.querySelector('.card__head-badge');
         if (badge) badge.textContent = assignments.length;
+
+        // assignData 전역에 홈 배정 데이터도 등록 (상세보기 모달용)
+        if (!window.assignData) window.assignData = {};
+        const serviceTypeKo = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영', 'OTHER': '기타' };
+        assignments.forEach(c => {
+            const days = c.working_days || 1;
+            const totalPay = c.daily_rate ? (c.daily_rate * days) : c.total_amount;
+            const sType = serviceTypeKo[c.service_type] || c.service_type || '-';
+            window.assignData[c.id] = {
+                title: c.exhibition_name || '', client: c.client_company || '',
+                requestDate: this.formatDate(c.created_at), status: 'new',
+                date: this.formatDate(c.start_date) + ' ~ ' + this.formatDate(c.end_date),
+                time: days + '일간', location: c.venue || '-',
+                lang: c.language_pair || '-', field: sType, type: sType,
+                pay: this.formatMoney(c.daily_rate) + ' / 일 (총 ' + this.formatMoney(totalPay) + ')',
+                note: c.client_company ? '고객사: ' + c.client_company + ' | 파견 ' + days + '일' : '-',
+                prep: c.contract_signed ? '고객사 계약서 동의 완료' : '고객사 계약서 확인 대기 중',
+                dress: '비즈니스 캐주얼 (현장 확인)'
+            };
+        });
 
         if (assignments.length === 0) {
             container.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:0.85rem;">새로운 배정 요청이 없습니다.</div>';
@@ -358,20 +467,71 @@ const InterpreterApp = {
             return;
         }
 
+        const statusColorMap = {
+            deposit_paid: '#1565c0', in_progress: '#2e7d32',
+            completed: '#9daec8', settled: '#9daec8', pending: '#f57c00'
+        };
+        const statusTextMap = {
+            deposit_paid: '파견 확정', in_progress: '진행중',
+            completed: '완료', settled: '정산 완료', pending: '대기'
+        };
+
+        // 일정 데이터를 assignData에도 등록 (상세 모달용)
+        if (!window.assignData) window.assignData = {};
+        const serviceTypeKo = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영', 'OTHER': '기타' };
+        upcoming.forEach(c => {
+            const days = c.working_days || 1;
+            const totalPay = c.daily_rate ? (c.daily_rate * days) : c.total_amount;
+            const sType = serviceTypeKo[c.service_type] || c.service_type || '-';
+            window.assignData[c.id] = {
+                title: c.exhibition_name || '', client: c.client_company || '',
+                requestDate: this.formatDate(c.created_at), status: 'accepted',
+                date: this.formatDate(c.start_date) + ' ~ ' + this.formatDate(c.end_date),
+                time: days + '일간', location: c.venue || '-',
+                lang: c.language_pair || '-', field: sType, type: sType,
+                pay: this.formatMoney(c.daily_rate) + ' / 일 (총 ' + this.formatMoney(totalPay) + ')',
+                note: c.client_company ? '고객사: ' + c.client_company + ' | 파견 ' + days + '일' : '-',
+                prep: c.contract_signed ? '고객사 계약서 동의 완료' : '고객사 계약서 확인 대기 중',
+                dress: '비즈니스 캐주얼 (현장 확인)'
+            };
+        });
+
         container.innerHTML = upcoming.map(c => {
             const start = new Date(c.start_date + 'T00:00:00');
+            const end = new Date(c.end_date + 'T00:00:00');
             const today = new Date(); today.setHours(0, 0, 0, 0);
             const diff = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
-            const ddayText = diff === 0 ? 'D-Day' : 'D-' + diff;
+            const ddayText = diff === 0 ? 'D-Day' : diff > 0 ? 'D-' + diff : 'D+' + Math.abs(diff);
+            const ddayColor = diff <= 3 ? '#e53935' : diff <= 7 ? '#f57c00' : '#1565c0';
+            const days = Math.max(1, Math.round((end - start) / 86400000) + 1);
+            const color = statusColorMap[c.status] || '#1565c0';
+            const stText = statusTextMap[c.status] || '예정';
+            const lang = escHtml(c.language_pair || '');
+            const sType = c.service_type || '';
+            const sTypeKo = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' }[sType] || sType || '';
 
             return `
-                <div class="schedule-item">
-                    <div class="schedule-item__left">
-                        <div class="schedule-item__title">${escHtml(c.exhibition_name)}</div>
-                        <div class="schedule-item__meta">${escHtml(c.client_company)} | ${escHtml(c.venue)}</div>
-                        <div class="schedule-item__date">${this.formatDate(c.start_date)} ~ ${this.formatDate(c.end_date)}</div>
+                <div onclick="openAssignModal('${c.id}')" style="padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+                    <div style="min-width:48px;text-align:center;">
+                        <div style="font-size:0.65rem;font-weight:700;color:${ddayColor};background:${ddayColor}12;padding:4px 8px;border-radius:6px;white-space:nowrap;">${ddayText}</div>
+                        <div style="font-size:0.65rem;color:var(--gray-400);margin-top:4px;">${days}일</div>
                     </div>
-                    <span class="schedule-item__dday">${ddayText}</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                            <span style="font-size:0.88rem;font-weight:700;color:var(--text);">${escHtml(c.exhibition_name)}</span>
+                            <span style="font-size:0.6rem;font-weight:700;color:${color};background:${color}14;padding:2px 8px;border-radius:4px;white-space:nowrap;">${stText}</span>
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--gray-400);display:flex;flex-wrap:wrap;gap:6px;">
+                            <span>🏢 ${escHtml(c.client_company)}</span>
+                            <span>📍 ${escHtml(c.venue) || '-'}</span>
+                        </div>
+                        <div style="font-size:0.72rem;color:var(--gray-400);margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;">
+                            <span>📅 ${this.formatDate(c.start_date)} ~ ${this.formatDate(c.end_date)}</span>
+                            ${lang ? '<span>🌐 ' + lang + '</span>' : ''}
+                            ${sTypeKo ? '<span>🏷️ ' + escHtml(sTypeKo) + '</span>' : ''}
+                            <span>💰 ${this.formatMoney(c.daily_rate)}/일</span>
+                        </div>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -491,12 +651,25 @@ const InterpreterApp = {
             </div>
         `).join('');
 
+        // 배정 요청 수 + 읽지 않은 알림 수 합산
         const unreadCount = notifications.filter(n => !n.is_read).length;
-        const bellBadge = document.querySelector('.topbar__notif-badge');
+        const assignCount = this._assignments ? this._assignments.length : 0;
+        const totalBadge = unreadCount + assignCount;
+
+        // topbar 배지 (숫자)
+        const bellBadge = document.getElementById('topbarNotifBadge');
         if (bellBadge) {
-            bellBadge.textContent = unreadCount;
-            bellBadge.style.display = unreadCount > 0 ? '' : 'none';
+            bellBadge.textContent = totalBadge;
+            bellBadge.style.display = totalBadge > 0 ? 'flex' : 'none';
         }
+        // topbar 빨간 점
+        const notifDot = document.getElementById('topbarNotifDot');
+        if (notifDot) {
+            notifDot.style.display = totalBadge > 0 ? '' : 'none';
+        }
+        // 알림 패널 카운트
+        const panelCount = document.getElementById('notifPanelCount');
+        if (panelCount) panelCount.textContent = totalBadge;
     },
 
     renderProfileCompletion() {
@@ -551,22 +724,26 @@ const InterpreterApp = {
 
         // assignData 전역 갱신 (모달용)
         window.assignData = {};
+        const serviceTypeKo = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영', 'OTHER': '기타' };
         items.forEach(c => {
+            const days = c.working_days || 1;
+            const totalPay = c.daily_rate ? (c.daily_rate * days) : c.total_amount;
+            const sType = serviceTypeKo[c.service_type] || c.service_type || '-';
             window.assignData[c.id] = {
                 title: c.exhibition_name || '',
                 client: c.client_company || '',
                 requestDate: this.formatDate(c.created_at),
                 status: c.viewStatus,
                 date: this.formatDate(c.start_date) + ' ~ ' + this.formatDate(c.end_date),
-                time: '',
-                location: c.venue || '',
-                lang: c.language_pair || '',
-                field: c.service_type || '',
-                type: c.service_type || '',
-                pay: this.formatMoney(c.daily_rate) + ' / 일',
-                note: '',
-                prep: '',
-                dress: ''
+                time: (c.working_days || 1) + '일간',
+                location: c.venue || '-',
+                lang: c.language_pair || '-',
+                field: sType,
+                type: sType,
+                pay: this.formatMoney(c.daily_rate) + ' / 일 (총 ' + this.formatMoney(totalPay) + ')',
+                note: c.client_company ? '고객사: ' + c.client_company + ' | 파견 ' + days + '일' : '-',
+                prep: c.contract_signed ? '고객사 계약서 동의 완료' : '고객사 계약서 확인 대기 중',
+                dress: '비즈니스 캐주얼 (현장 확인)'
             };
         });
 
@@ -745,9 +922,12 @@ const InterpreterApp = {
                 tax,
                 netAmount,
                 depositStatus: c.deposit_status || 'pending',
+                depositPaidAt: c.deposit_paid_at || null,
                 balanceStatus: c.balance_status || 'pending',
+                balancePaidAt: c.balance_paid_at || null,
                 settlementStatus: c.settlement_status || 'pending',
                 contractSigned: c.contract_signed || false,
+                customerAgreed: c.contract_signed || false,
                 interpreterAgreed: c.interpreter_accepted || false,
                 timeline: this.buildContractTimeline(c)
             };
@@ -783,24 +963,51 @@ const InterpreterApp = {
             return timeline;
         }
 
-        const steps = [
-            { key: 'deposit_paid', step: '계약금 결제' },
-            { key: 'in_progress', step: '서비스 진행' },
-            { key: 'completed', step: '서비스 완료' },
-            { key: 'settled', step: '정산 완료' }
-        ];
-
         const statusOrder = ['pending', 'deposit_paid', 'in_progress', 'completed', 'settled'];
         const currentIdx = statusOrder.indexOf(c.status);
 
-        steps.forEach((s, i) => {
-            const stepIdx = i + 1; // offset by pending
-            timeline.push({
-                step: s.step,
-                date: stepIdx <= currentIdx ? this.formatDate(c.updated_at) : '',
-                done: stepIdx <= currentIdx,
-                active: stepIdx === currentIdx + 1
-            });
+        // 계약금 결제
+        const depositDone = currentIdx >= 1;
+        timeline.push({
+            step: '고객 계약금 결제',
+            date: depositDone && c.deposit_paid_at ? this.formatDate(c.deposit_paid_at) : (depositDone ? this.formatDate(c.updated_at) : ''),
+            done: depositDone,
+            active: currentIdx === 0
+        });
+
+        // 서비스 진행
+        const inProgressDone = currentIdx >= 2;
+        timeline.push({
+            step: '서비스 진행',
+            date: inProgressDone ? this.formatDate(c.start_date) : '',
+            done: inProgressDone,
+            active: currentIdx === 1
+        });
+
+        // 서비스 완료
+        const completeDone = currentIdx >= 3;
+        timeline.push({
+            step: '서비스 완료',
+            date: completeDone ? this.formatDate(c.updated_at) : '',
+            done: completeDone,
+            active: currentIdx === 2
+        });
+
+        // 고객 잔금 결제
+        timeline.push({
+            step: '고객 잔금 결제',
+            date: c.balance_paid_at ? this.formatDate(c.balance_paid_at) : '',
+            done: c.balance_status === 'paid',
+            active: completeDone && c.balance_status !== 'paid'
+        });
+
+        // 정산 완료
+        const settledDone = currentIdx >= 4;
+        timeline.push({
+            step: '정산 완료',
+            date: settledDone ? this.formatDate(c.updated_at) : '',
+            done: settledDone,
+            active: c.balance_status === 'paid' && !settledDone
         });
 
         return timeline;
@@ -1170,11 +1377,16 @@ const InterpreterApp = {
     }
 };
 
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', () => {
+// 페이지 로드 시 초기화 (DOMContentLoaded가 이미 발생한 경우도 대응)
+function _startInterpreterApp() {
     InterpreterApp.init().then(() => {
-        // 초기화 완료 후 오버라이드 적용
         InterpreterApp.overrideSaveProfile();
         InterpreterApp.overrideBankCheck();
-    });
-});
+    }).catch(err => console.error('[InterpreterApp] init failed:', err));
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _startInterpreterApp);
+} else {
+    _startInterpreterApp();
+}

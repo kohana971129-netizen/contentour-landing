@@ -79,6 +79,7 @@
     </aside>
 
     <!-- ══════════════ 메인 영역 ══════════════ -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <div class="main">
         <!-- 탑바 -->
         <header class="topbar">
@@ -89,9 +90,10 @@
                 </div>
                 <div class="topbar__right">
                     <div class="notif-panel-wrap">
-                        <button class="topbar__icon-btn" onclick="toggleNotifPanel(event)">
+                        <button class="topbar__icon-btn" onclick="toggleNotifPanel(event)" style="position:relative;">
                             🔔
                             <span class="notif-dot" id="topbarNotifDot"></span>
+                            <span class="topbar__notif-badge" id="topbarNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e53935;color:#fff;font-size:0.6rem;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;line-height:1;">0</span>
                         </button>
                         <div class="notif-panel" id="notifPanel">
                             <div class="notif-panel__head">
@@ -1207,40 +1209,40 @@
                 <!-- ═══ 내 프로필 & 단가 설정 뷰 ═══ -->
                 <div class="view" id="view-profile">
                     <!-- 프로필 헤더 -->
-                    <div style="background:linear-gradient(135deg,#0d253f,#1565c0);border-radius:16px;padding:28px 32px;margin-bottom:24px;color:#fff;">
-                        <div style="display:flex;align-items:center;gap:18px;">
-                            <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem;">👤</div>
-                            <div>
-                                <h2 style="font-size:1.2rem;font-weight:900;">통역사 통역사</h2>
-                                <p style="font-size:0.82rem;color:rgba(255,255,255,0.7);margin-top:4px;">영어 · 일본어 | 전시 통역 전문 | 경력 5년</p>
-                                <div style="display:flex;gap:8px;margin-top:8px;">
-                                    <span style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:8px;font-size:0.7rem;">⭐ 4.8/5.0</span>
-                                    <span style="background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:8px;font-size:0.7rem;">📋 통역 42건 완료</span>
+                    <div class="pf-header">
+                        <div class="pf-header__inner">
+                            <div class="pf-header__avatar">👤</div>
+                            <div class="pf-header__info">
+                                <h2 class="pf-header__name">통역사</h2>
+                                <p class="pf-header__desc">영어 · 일본어 | 전시 통역 전문</p>
+                                <div class="pf-header__badges">
+                                    <span class="pf-header__badge">⭐ 4.8/5.0</span>
+                                    <span class="pf-header__badge">📋 통역 42건 완료</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="pf-grid">
                         <!-- 좌측: 기본 정보 -->
-                        <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;overflow:hidden;">
-                            <div style="padding:18px 22px;border-bottom:1px solid #e5e7eb;font-weight:800;font-size:0.9rem;">📝 기본 정보</div>
-                            <div style="padding:20px 22px;">
-                                <div style="margin-bottom:16px;">
-                                    <label style="font-size:0.75rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;">이름</label>
-                                    <input type="text" id="pf-name" value="통역사" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;">
+                        <div class="pf-card">
+                            <div class="pf-card__head">📝 기본 정보</div>
+                            <div class="pf-card__body">
+                                <div class="pf-field">
+                                    <label class="pf-label">이름</label>
+                                    <input type="text" id="pf-name" value="통역사" class="pf-input">
                                 </div>
-                                <div style="margin-bottom:16px;">
-                                    <label style="font-size:0.75rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;">이메일</label>
-                                    <input type="email" id="pf-email" value="seoyeon.kim@email.com" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;">
+                                <div class="pf-field">
+                                    <label class="pf-label">이메일</label>
+                                    <input type="email" id="pf-email" value="seoyeon.kim@email.com" class="pf-input">
                                 </div>
-                                <div style="margin-bottom:16px;">
-                                    <label style="font-size:0.75rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;">연락처</label>
-                                    <input type="tel" id="pf-phone" value="010-1234-5678" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;">
+                                <div class="pf-field">
+                                    <label class="pf-label">연락처</label>
+                                    <input type="tel" id="pf-phone" value="010-1234-5678" class="pf-input">
                                 </div>
-                                <div style="margin-bottom:16px;">
-                                    <label style="font-size:0.75rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;">통역 가능 언어</label>
-                                    <div style="display:flex;flex-wrap:wrap;gap:8px;" id="pf-langs">
+                                <div class="pf-field">
+                                    <label class="pf-label">통역 가능 언어</label>
+                                    <div class="pf-tags" id="pf-langs">
                                         <span class="pf-lang-tag active" onclick="togglePfLang(this)">🇺🇸 영어</span>
                                         <span class="pf-lang-tag active" onclick="togglePfLang(this)">🇯🇵 일본어</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🇨🇳 중국어</span>
@@ -1250,9 +1252,9 @@
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🇹🇭 태국어</span>
                                     </div>
                                 </div>
-                                <div style="margin-bottom:16px;">
-                                    <label style="font-size:0.75rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;">전문 분야</label>
-                                    <div style="display:flex;flex-wrap:wrap;gap:8px;" id="pf-fields">
+                                <div class="pf-field">
+                                    <label class="pf-label">전문 분야</label>
+                                    <div class="pf-tags" id="pf-fields">
                                         <span class="pf-lang-tag active" onclick="togglePfLang(this)">🏭 전시/박람회</span>
                                         <span class="pf-lang-tag active" onclick="togglePfLang(this)">💼 비즈니스 상담</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🏥 의료/바이오</span>
@@ -1262,18 +1264,18 @@
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🚗 자동차</span>
                                     </div>
                                 </div>
-                                <div>
-                                    <label style="font-size:0.75rem;font-weight:700;color:#6b7280;display:block;margin-bottom:6px;">자기소개</label>
-                                    <textarea id="pf-intro" rows="3" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.82rem;resize:vertical;line-height:1.6;">전시/박람회 전문 통역사입니다. KOTRA, 부산테크노파크 등 다수의 해외전시 지원사업 경험이 있으며, 바이어 상담 통역에 강점이 있습니다.</textarea>
+                                <div class="pf-field">
+                                    <label class="pf-label">자기소개</label>
+                                    <textarea id="pf-intro" rows="4" class="pf-input pf-textarea">전시/박람회 전문 통역사입니다. KOTRA, 부산테크노파크 등 다수의 해외전시 지원사업 경험이 있으며, 바이어 상담 통역에 강점이 있습니다.</textarea>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 우측: 단가 설정 -->
-                        <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;overflow:hidden;">
-                            <div style="padding:18px 22px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;">
-                                <span style="font-weight:800;font-size:0.9rem;">💰 나의 단가 설정</span>
-                                <span style="font-size:0.7rem;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:8px;">관리자·고객사에게 공개됩니다</span>
+                        <div class="pf-card">
+                            <div class="pf-card__head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                                <span>💰 나의 단가 설정</span>
+                                <span style="font-size:0.7rem;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:8px;font-weight:500;">관리자·고객사에게 공개됩니다</span>
                             </div>
                             <div style="padding:20px 22px;">
                                 <!-- 안내 -->
@@ -1609,12 +1611,10 @@
                     </div>
                 </div>
 
-                <!-- 관리자 메모 -->
-                <div class="modal__section">
+                <!-- 관리자 메모 (숨김) -->
+                <div class="modal__section" id="modalNoteSection" style="display:none;">
                     <div class="modal__section-title">관리자 메모</div>
-                    <div class="modal__note-box" id="modalNote">
-                        반도체·디스플레이 장비 관련 기술 통역이 필요합니다. 사전 자료가 제공될 예정이며, 전일 오리엔테이션 참석 부탁드립니다.
-                    </div>
+                    <div class="modal__note-box" id="modalNote"></div>
                 </div>
 
                 <!-- 추가 안내 -->
@@ -1646,7 +1646,8 @@
     <script>
         // ══════════════ 모달 데이터 ══════════════
         // DB에서 로드됨 (interpreter-app.js의 loadAssignmentsView)
-        let assignData = {};
+        if (!window.assignData) window.assignData = {};
+        var assignData = window.assignData;
         const _assignDataOriginal = {
             1: {
                 title: 'SIMTOS 2026 - 국제제조기술전시회',
@@ -1710,6 +1711,11 @@
         // ══════════════ 사이드바 토글 ══════════════
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
         }
 
         // ══════════════ 뷰 전환 ══════════════
@@ -1739,10 +1745,9 @@
                 };
                 document.querySelector('.topbar__page-title').textContent = names[view] || '통역사 대시보드';
 
-                // 스케줄 뷰 진입 시 캘린더 초기화
-                if (view === 'schedule' && !window._schInited) {
+                // 스케줄 뷰 진입 시 캘린더 초기화 (매번 최신 데이터 반영)
+                if (view === 'schedule') {
                     schInit();
-                    window._schInited = true;
                 }
                 // 채팅 뷰 진입 시 렌더링
                 if (view === 'chat') {
@@ -1916,8 +1921,8 @@
 
         // ══════════════ 상세 모달 ══════════════
         function openAssignModal(id) {
-            const d = assignData[id];
-            if (!d) return;
+            const d = window.assignData[id];
+            if (!d) { console.warn('assignData에 id 없음:', id, window.assignData); return; }
             currentModalId = id;
 
             document.getElementById('modalTitle').textContent = d.title;
@@ -2007,11 +2012,13 @@
 
         // ══════════════ 스케줄 캘린더 ══════════════
         // DB에서 로드됨 (interpreter-app.js의 updateCalendarEvents)
-        let schEvents = [];
+        if (!window.schEvents) window.schEvents = [];
+        var schEvents = window.schEvents;
 
         let schYear, schMonthIdx, schSelDate = null;
 
         function schInit() {
+            schEvents = window.schEvents || [];
             const now = new Date();
             schYear = now.getFullYear();
             schMonthIdx = now.getMonth();
@@ -2086,6 +2093,7 @@
         }
 
         function schGetEventsForDate(dateStr) {
+            schEvents = window.schEvents || [];
             return schEvents.filter(e => {
                 return dateStr >= e.start && dateStr <= e.end;
             });
@@ -2123,6 +2131,7 @@
         }
 
         function schRenderUpcoming() {
+            schEvents = window.schEvents || [];
             const todayStr = new Date().toISOString().slice(0, 10);
             const upcoming = schEvents
                 .filter(e => e.start >= todayStr)
@@ -2157,6 +2166,7 @@
         }
 
         function schRenderTimeline() {
+            schEvents = window.schEvents || [];
             const container = document.getElementById('schTimeline');
             const sorted = [...schEvents].sort((a, b) => a.start.localeCompare(b.start));
 
@@ -3498,7 +3508,8 @@
 
         // ══════════════ 계약 관리 시스템 ══════════════
         // DB에서 로드됨 (interpreter-app.js의 loadContractsView)
-        let interpreterContracts = [];
+        if (!window.interpreterContracts) window.interpreterContracts = [];
+        var interpreterContracts = window.interpreterContracts;
         const _contractsOriginal = [
             {
                 id: 'CT-2025-001',
@@ -3617,6 +3628,7 @@
         let ctCurrentTab = 'all';
 
         function renderInterpreterContracts() {
+            interpreterContracts = window.interpreterContracts || [];
             ctUpdateSummary();
             ctRenderTabs();
             ctRenderList();
@@ -3783,7 +3795,7 @@
             html += '<div class="ct-pay-row">' +
                 '<span class="ct-pay-label">계약금 (10%) - ₩' + depositAmount.toLocaleString() + '</span>' +
                 '<span>' + (c.depositStatus === 'paid'
-                    ? '<span class="ct-pay-badge-ok">결제완료</span>' + (depositDate ? '<span class="ct-pay-date">' + depositDate.date + '</span>' : '')
+                    ? '<span class="ct-pay-badge-ok">결제완료</span>' + (c.depositPaidAt ? '<span class="ct-pay-date">' + c.depositPaidAt.split('T')[0] + '</span>' : '')
                     : '<span class="ct-pay-badge-wait">결제대기</span>') +
                 '</span>' +
             '</div>';
@@ -3791,7 +3803,7 @@
             html += '<div class="ct-pay-row">' +
                 '<span class="ct-pay-label">잔금 (90%) - 전시 종료 후 - ₩' + balanceAmount.toLocaleString() + '</span>' +
                 '<span>' + (c.balanceStatus === 'paid'
-                    ? '<span class="ct-pay-badge-ok">결제완료</span>' + (balanceDate ? '<span class="ct-pay-date">' + balanceDate.date + '</span>' : '')
+                    ? '<span class="ct-pay-badge-ok">결제완료</span>' + (c.balancePaidAt ? '<span class="ct-pay-date">' + c.balancePaidAt.split('T')[0] + '</span>' : '')
                     : '<span class="ct-pay-badge-wait">결제대기</span>') +
                 '</span>' +
             '</div>';
@@ -3812,7 +3824,7 @@
             html += '</div>';
 
             // Contract sign status UI
-            if (c.status === 'contract_sign') {
+            if (c.status === 'contract_sign' || (c.status === 'pending' && !c.interpreterAgreed)) {
                 var agreeStatus = '';
                 if (c.interpreterAgreed && !c.customerAgreed) agreeStatus = '<div style="display:flex;gap:10px;justify-content:center;margin:10px 0;"><span style="background:#e8f5e9;color:#2e7d32;padding:4px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;">✅ 통역사 동의 완료</span><span style="background:#fff3e0;color:#e65100;padding:4px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;">⏳ 고객사 동의 대기</span></div>';
                 else if (!c.interpreterAgreed && c.customerAgreed) agreeStatus = '<div style="display:flex;gap:10px;justify-content:center;margin:10px 0;"><span style="background:#fff3e0;color:#e65100;padding:4px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;">⏳ 통역사 동의 대기</span><span style="background:#e8f5e9;color:#2e7d32;padding:4px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;">✅ 고객사 동의 완료</span></div>';
@@ -3822,7 +3834,12 @@
                     '<div style="font-weight:700;margin-bottom:4px;">계약서 확인이 필요합니다</div>' +
                     '<div style="font-size:0.82rem;color:#666;margin-bottom:10px;">계약서를 확인하고 동의해주세요. 양측이 모두 동의하면 계약이 체결됩니다.</div>' +
                     agreeStatus +
-                    (!c.interpreterAgreed ? '<button onclick="openIntContractDocument(\'' + c.id + '\',true)" style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;margin-top:6px;">📄 계약서 확인 및 동의하기</button>' : '') +
+                    (!c.interpreterAgreed ?
+                        '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;">' +
+                        '<button onclick="openIntContractDocument(\'' + c.id + '\',true)" style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;">📄 계약서 보기</button>' +
+                        '<button id="agreeBtn_' + c.id + '" onclick="intAgreeContractFromModal(\'' + c.id + '\',this)" style="background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;">✅ 계약서에 동의합니다</button>' +
+                        '</div>'
+                    : '<div style="margin-top:10px;"><span style="background:#e8f5e9;color:#2e7d32;padding:8px 20px;border-radius:8px;font-weight:700;">✅ 동의 완료</span></div>') +
                 '</div>';
             } else {
                 html += '<div style="margin-top:20px;text-align:center;"><button onclick="openIntContractDocument(\'' + c.id + '\')" style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(21,101,192,0.3);">📄 계약서 보기 / PDF 다운로드</button></div>';
@@ -3837,26 +3854,45 @@
             document.getElementById('ctModal').classList.remove('open');
         }
 
+        async function intAgreeContractFromModal(contractId, btn) {
+            btn.disabled = true;
+            btn.textContent = '처리 중...';
+            await intAgreeContract(contractId);
+            btn.textContent = '✅ 동의 완료';
+            btn.style.background = '#9e9e9e';
+            // 모달 내용 새로고침
+            setTimeout(function() {
+                closeIntContractModal();
+                openIntContractDetail(contractId);
+            }, 500);
+        }
+
         // Interpreter agrees to contract
-        function intAgreeContract(contractId) {
+        async function intAgreeContract(contractId) {
             var c = interpreterContracts.find(function(x) { return x.id === contractId; });
-            if (!c || c.status !== 'contract_sign') return;
+            if (!c) return;
             c.interpreterAgreed = true;
+            c.status = 'contract_sign';
+
+            // DB에 통역사 동의 저장
+            if (window.sbClient) {
+                try {
+                    var { error } = await window.sbClient.from('42_통역계약').update({
+                        interpreter_accepted: true,
+                        accepted_at: new Date().toISOString()
+                    }).eq('id', contractId);
+                    if (error) console.error('통역사 계약 동의 DB 저장 실패:', error);
+                } catch (e) {
+                    console.error('통역사 계약 동의 예외:', e);
+                }
+            }
+
             if (c.customerAgreed && c.interpreterAgreed) {
                 finalizeIntContractSign(c);
             } else {
                 showToast('계약서에 동의했습니다. 고객사의 동의를 기다리고 있습니다.');
                 ctRenderList();
             }
-            // Broadcast interpreter agreement
-            try {
-                localStorage.removeItem('contentour_contract_sign');
-                setTimeout(function() {
-                    localStorage.setItem('contentour_contract_sign', JSON.stringify({
-                        contractId: contractId, party: 'interpreter', action: 'agree', ts: Date.now()
-                    }));
-                }, 50);
-            } catch(e) {}
         }
 
         function finalizeIntContractSign(c) {
@@ -3876,6 +3912,20 @@
         function openIntContractDocument(id, agreeMode) {
             var c = interpreterContracts.find(function(x) { return x.id === id; });
             if (!c) return;
+
+            // XSS 방지: 사용자 입력값 이스케이프
+            function _esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+            var safe = {
+                id: _esc(c.id || ''),
+                expo: _esc(c.expo || ''),
+                clientName: _esc(c.client ? c.client.name : ''),
+                clientCompany: _esc(c.client ? c.client.company : ''),
+                lang: _esc(c.lang || ''),
+                startDate: _esc(c.dates ? c.dates.start : ''),
+                endDate: _esc(c.dates ? c.dates.end : ''),
+                days: _esc(String(c.days || 0)),
+                interpName: _esc(window.InterpreterApp && InterpreterApp.interpProfile ? InterpreterApp.interpProfile.display_name : '통역사')
+            };
 
             var today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
             var contractDate = '';
@@ -3941,7 +3991,7 @@
             // Header
             w.document.write('<div class="doc-header">' +
                 '<h1>통역 서비스 계약서</h1>' +
-                '<div class="doc-id">계약번호: ' + c.id + ' | 계약일: ' + contractDate + '</div>' +
+                '<div class="doc-id">계약번호: ' + safe.id + ' | 계약일: ' + contractDate + '</div>' +
             '</div>');
 
             // Intro
@@ -3953,14 +4003,14 @@
             w.document.write('<div class="party-box">' +
                 '<div class="party">' +
                     '<div class="party-title">갑 (의뢰인)</div>' +
-                    '<div class="party-row"><span class="label">회사명</span><span class="value">' + c.client.company + '</span></div>' +
-                    '<div class="party-row"><span class="label">담당자</span><span class="value">' + c.client.name + '</span></div>' +
+                    '<div class="party-row"><span class="label">회사명</span><span class="value">' + safe.clientCompany + '</span></div>' +
+                    '<div class="party-row"><span class="label">담당자</span><span class="value">' + safe.clientName + '</span></div>' +
                 '</div>' +
                 '<div class="party">' +
                     '<div class="party-title">을 (서비스 제공 / 플랫폼)</div>' +
                     '<div class="party-row"><span class="label">상호</span><span class="value">콘텐츄어</span></div>' +
-                    '<div class="party-row"><span class="label">통역사</span><span class="value">' + (window.InterpreterApp && InterpreterApp.interpProfile ? InterpreterApp.interpProfile.display_name : '통역사') + '</span></div>' +
-                    '<div class="party-row"><span class="label">언어</span><span class="value">' + c.lang + '</span></div>' +
+                    '<div class="party-row"><span class="label">통역사</span><span class="value">' + safe.interpName + '</span></div>' +
+                    '<div class="party-row"><span class="label">언어</span><span class="value">' + safe.lang + '</span></div>' +
                 '</div>' +
             '</div>');
 
@@ -3968,9 +4018,9 @@
             w.document.write('<div class="section">' +
                 '<div class="section-title">제1조 서비스 내용</div>' +
                 '<table class="info-table">' +
-                    '<tr><th>전시회/행사명</th><td>' + c.expo + '</td></tr>' +
-                    '<tr><th>서비스 기간</th><td>' + c.dates.start + ' ~ ' + c.dates.end + ' (' + c.days + '일간)</td></tr>' +
-                    '<tr><th>통역 언어</th><td>' + c.lang + '</td></tr>' +
+                    '<tr><th>전시회/행사명</th><td>' + safe.expo + '</td></tr>' +
+                    '<tr><th>서비스 기간</th><td>' + safe.startDate + ' ~ ' + safe.endDate + ' (' + safe.days + '일간)</td></tr>' +
+                    '<tr><th>통역 언어</th><td>' + safe.lang + '</td></tr>' +
                     '<tr><th>서비스 유형</th><td>전시회 부스 통역 (비즈니스 상담 통역 포함)</td></tr>' +
                 '</table>' +
             '</div>');
@@ -4036,8 +4086,8 @@
             w.document.write('<div class="sign-area">' +
                 '<div class="sign-block">' +
                     '<div class="sign-label">갑 (의뢰인)</div>' +
-                    '<div class="sign-name">' + c.client.company + '</div>' +
-                    '<div class="sign-sub">' + c.client.name + '</div>' +
+                    '<div class="sign-name">' + safe.clientCompany + '</div>' +
+                    '<div class="sign-sub">' + safe.clientName + '</div>' +
                 '</div>' +
                 '<div class="sign-block">' +
                     '<div class="sign-label">을 (서비스 제공)</div>' +
@@ -4052,7 +4102,7 @@
             w.document.write('</div>'); // .contract-doc
 
             // Buttons
-            if (agreeMode && c.status === 'contract_sign' && !c.interpreterAgreed) {
+            if (agreeMode && !c.interpreterAgreed) {
                 w.document.write('<div class="btn-bar">' +
                     '<button class="btn-print" onclick="window.opener.intAgreeContract(\'' + c.id + '\');document.getElementById(\'agreeMsg\').style.display=\'block\';this.disabled=true;this.textContent=\'동의 완료\';" style="background:#2e7d32;padding:14px 40px;font-size:15px;">✅ 위 계약서에 동의합니다</button>' +
                     '<button class="btn-print" onclick="window.print()" style="background:#1565c0;">🖨️ PDF 저장 / 인쇄</button>' +

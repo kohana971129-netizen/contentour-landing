@@ -75,21 +75,17 @@
                 email: email,
                 password: password,
                 options: {
-                    data: { name: name, role: 'customer' }
+                    data: { name: name, role: 'customer', phone: phone }
                 }
             });
 
             if (authError) return { data: null, error: authError };
 
-            const { error: profileError } = await sb
+            // 01_회원은 DB 트리거(handle_new_user)가 자동 생성하므로 phone만 업데이트
+            await sb
                 .from('01_회원')
-                .insert({
-                    id: authData.user.id,
-                    email: email,
-                    name: name,
-                    phone: phone,
-                    role: 'customer'
-                });
+                .update({ phone: phone })
+                .eq('id', authData.user.id);
 
             if (company) {
                 await sb
@@ -104,7 +100,7 @@
                     });
             }
 
-            return { data: authData, error: profileError };
+            return { data: authData, error: null };
         },
 
         // 회원가입 (통역사)
@@ -151,6 +147,8 @@
             await sb.auth.signOut();
             sessionStorage.removeItem('isAdminLoggedIn');
             sessionStorage.removeItem('adminUsername');
+            sessionStorage.removeItem('demoMode');
+            sessionStorage.removeItem('demoToken');
         },
 
         // 역할별 대시보드 URL 반환
