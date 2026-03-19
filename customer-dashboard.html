@@ -3416,7 +3416,7 @@
           <button class="cm-pay-btn" onclick="closeContractModal();openPaymentModal('${c.id}','balance')">잔금 결제하기</button>
         </div>`;
       }
-      bodyHtml += '<div style="margin-top:20px;text-align:center;"><button onclick="openContractDocument(\'' + c.id + '\')" style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(21,101,192,0.3);transition:transform 0.15s,box-shadow 0.15s;" onmouseover="this.style.transform=\'translateY(-1px)\';this.style.boxShadow=\'0 5px 16px rgba(21,101,192,0.4)\'" onmouseout="this.style.transform=\'none\';this.style.boxShadow=\'0 3px 12px rgba(21,101,192,0.3)\'">📄 계약서 보기 / PDF 다운로드</button></div>';
+      bodyHtml += '<div style="margin-top:20px;text-align:center;"><button onclick="openContractDocument(\'' + c.id + '\')" class="contract-view-btn">📄 계약서 보기 / PDF 다운로드</button></div>';
 
       document.getElementById('cmBody').innerHTML = bodyHtml;
       document.getElementById('contractModalOverlay').classList.add('open');

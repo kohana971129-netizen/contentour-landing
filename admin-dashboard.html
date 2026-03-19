@@ -850,12 +850,12 @@
                             <!-- 관리자 메시지 입력 + 파일 첨부 -->
                             <div id="chatmonInputBar" style="padding:12px 16px;border-top:1px solid var(--gray-200);display:none;align-items:center;gap:10px;background:var(--white);">
                                 <input type="file" id="chatmonFileInput" multiple style="display:none;" onchange="handleChatmonFile(this)" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.hwp,.txt,.csv,.zip,.rar,.7z,.png,.jpg,.jpeg,.gif,.bmp,.webp,.svg">
-                                <button onclick="document.getElementById('chatmonFileInput').click()" title="파일 첨부" style="width:40px;height:40px;background:none;border:1.5px solid var(--gray-200);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:var(--gray-500);flex-shrink:0;" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--gray-200)';this.style.color='var(--gray-500)'">
+                                <button onclick="document.getElementById('chatmonFileInput').click()" title="파일 첨부" class="chat-icon-btn">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
                                 </button>
                                 <div id="chatmonFilePreview" style="display:none;flex-shrink:0;"></div>
                                 <input type="text" id="chatmonMsgInput" placeholder="관리자 메시지를 입력하세요..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatmonMsg();}" style="flex:1;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:0.82rem;font-family:inherit;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--gray-200)'">
-                                <button onclick="sendChatmonMsg()" title="전송" style="width:40px;height:40px;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;transition:background 0.2s;" onmouseover="this.style.background='var(--navy)'" onmouseout="this.style.background='var(--blue)'">➤</button>
+                                <button onclick="sendChatmonMsg()" title="전송" class="chat-send-btn">➤</button>
                             </div>
                         </div>
                     </div>
@@ -4060,10 +4060,7 @@
                 const sc = statusColor[a.status] || '#999';
 
                 return `
-                <div style="background:#fff;border:1.5px solid var(--g200);border-radius:14px;padding:20px 24px;cursor:pointer;transition:all 0.15s;"
-                     onclick="openAppModal('${a.id}')"
-                     onmouseover="this.style.borderColor='var(--blue)';this.style.boxShadow='0 4px 16px rgba(21,101,192,0.1)'"
-                     onmouseout="this.style.borderColor='var(--g200)';this.style.boxShadow='none'">
+                <div class="app-card-item" onclick="openAppModal('${a.id}')">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
                         <div style="flex:1;">
                             <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">

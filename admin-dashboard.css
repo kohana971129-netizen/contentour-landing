@@ -53,6 +53,32 @@
         }
         .admin-btn-submit:hover { opacity: 0.92; }
 
+        /* ── 채팅 버튼 ── */
+        .chat-icon-btn {
+            width: 40px; height: 40px; background: none;
+            border: 1.5px solid var(--gray-200); border-radius: 10px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; color: var(--gray-400); flex-shrink: 0;
+        }
+        .chat-icon-btn:hover { border-color: var(--blue); color: var(--blue); }
+        .chat-send-btn {
+            width: 40px; height: 40px; background: var(--blue); color: #fff;
+            border: none; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0; transition: background 0.2s;
+        }
+        .chat-send-btn:hover { background: var(--navy); }
+
+        /* ── 지원서 카드 ── */
+        .app-card-item {
+            background: #fff; border: 1.5px solid var(--g200); border-radius: 14px;
+            padding: 20px 24px; cursor: pointer; transition: all 0.15s;
+        }
+        .app-card-item:hover {
+            border-color: var(--blue);
+            box-shadow: 0 4px 16px rgba(21,101,192,0.1);
+        }
+
         :root {
             --g50: #f8fafc;
             --g100: #f4f6fb;

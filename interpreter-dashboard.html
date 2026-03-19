@@ -94,7 +94,7 @@
                         <button class="topbar__icon-btn" onclick="toggleNotifPanel(event)" style="position:relative;">
                             🔔
                             <span class="notif-dot" id="topbarNotifDot"></span>
-                            <span class="topbar__notif-badge" id="topbarNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e53935;color:#fff;font-size:0.6rem;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;line-height:1;">0</span>
+                            <span class="topbar__notif-badge" id="topbarNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#e53935;color:#fff;font-size:0.6rem;font-weight:800;min-width:18px;height:18px;border-radius:9px;align-items:center;justify-content:center;line-height:1;">0</span>
                         </button>
                         <div class="notif-panel" id="notifPanel">
                             <div class="notif-panel__head">
@@ -1140,7 +1140,7 @@
                     </div>
 
                     <!-- 계좌 미등록 경고 배너 -->
-                    <div id="stlBankWarning" style="display:none;background:linear-gradient(135deg,#fff8e1,#fff3e0);border:1.5px solid #ffcc02;border-radius:12px;padding:14px 20px;margin-bottom:16px;display:none;">
+                    <div id="stlBankWarning" style="display:none;background:linear-gradient(135deg,#fff8e1,#fff3e0);border:1.5px solid #ffcc02;border-radius:12px;padding:14px 20px;margin-bottom:16px;">
                         <div style="display:flex;align-items:center;gap:10px;">
                             <span style="font-size:1.3rem;">⚠️</span>
                             <div>
@@ -3269,7 +3269,7 @@
                     html += '</div>';
                 } else if (d.status === 'approved') {
                     // 승인 완료인데 계좌 미등록
-                    html += '<div onclick="closeStlModal();openBankModal();" style="background:#fff3e0;border:2px dashed #ffcc02;border-radius:12px;padding:16px;margin-top:16px;text-align:center;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background=\'#ffe0b2\'" onmouseout="this.style.background=\'#fff3e0\'">' +
+                    html += '<div onclick="closeStlModal();openBankModal();" class="bank-register-cta">' +
                         '<div style="font-size:0.82rem;font-weight:800;color:#e65100;margin-bottom:4px;">🏦 계좌 정보 미등록</div>' +
                         '<div style="font-size:0.75rem;color:#bf360c;">클릭하여 계좌를 등록하면 자동으로 입금이 진행됩니다.</div>' +
                     '</div>';

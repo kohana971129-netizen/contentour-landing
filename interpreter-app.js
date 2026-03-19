@@ -511,7 +511,7 @@ const InterpreterApp = {
             const sTypeKo = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' }[sType] || sType || '';
 
             return `
-                <div onclick="openAssignModal('${escHtml(c.id)}')" style="padding:14px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+                <div onclick="openAssignModal('${escHtml(c.id)}')" class="schedule-list-item"
                     <div style="min-width:48px;text-align:center;">
                         <div style="font-size:0.65rem;font-weight:700;color:${ddayColor};background:${ddayColor}12;padding:4px 8px;border-radius:6px;white-space:nowrap;">${ddayText}</div>
                         <div style="font-size:0.65rem;color:var(--gray-400);margin-top:4px;">${days}일</div>
