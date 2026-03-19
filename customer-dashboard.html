@@ -563,8 +563,8 @@
               <div id="cfb-mode-list">
                 <div class="j-notice" style="border-left-color:var(--blue);">&#128736;&#65039; <strong>나만의 양식</strong> — 우리 회사에 맞는 상담일지 양식을 직접 만들어 사용할 수 있습니다. 섹션과 필드를 자유롭게 구성하세요.</div>
 
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                  <h3 style="font-size:0.95rem;font-weight:800;">&#128196; 저장된 양식 목록</h3>
+                <div class="cust-section-header">
+                  <h3 class="cust-section-title">&#128196; 저장된 양식 목록</h3>
                   <button class="jbtn-primary" onclick="cfbStartNew()" style="padding:8px 16px;font-size:0.8rem;">+ 새 양식 만들기</button>
                 </div>
                 <div id="cfbSavedList" class="cfb-saved-list">
@@ -600,8 +600,8 @@
 
               <!-- 미리보기 모달 -->
               <div id="cfb-mode-preview" style="display:none;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                  <h3 style="font-size:0.95rem;font-weight:800;">&#128065;&#65039; 미리보기</h3>
+                <div class="cust-section-header">
+                  <h3 class="cust-section-title">&#128065;&#65039; 미리보기</h3>
                   <button class="jbtn-ghost" onclick="cfbClosePreview()" style="padding:8px 14px;font-size:0.78rem;">&#10094; 편집으로 돌아가기</button>
                 </div>
                 <div id="cfbPreviewBody" class="cfb-rendered"></div>
@@ -609,8 +609,8 @@
 
               <!-- 작성 모드 (저장된 양식으로 실제 상담일지 작성) -->
               <div id="cfb-mode-write" style="display:none;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-                  <h3 style="font-size:0.95rem;font-weight:800;" id="cfbWriteTitle">상담일지 작성</h3>
+                <div class="cust-section-header">
+                  <h3 class="cust-section-title" id="cfbWriteTitle">상담일지 작성</h3>
                   <button class="jbtn-ghost" onclick="cfbBackToList()" style="padding:8px 14px;font-size:0.78rem;">&#10094; 양식 목록</button>
                 </div>
                 <div class="j-notice">&#128204; <strong>작성 안내:</strong> 전시회 기간 중 <strong>매일 작성</strong>해주세요. 작성된 일지는 콘텐츄어 담당자에게 자동으로 공유됩니다.</div>
@@ -764,11 +764,11 @@
             <div class="loy-card__head"><h3>&#128276; 알림 설정</h3></div>
             <div class="loy-card__body">
               <div style="display:flex;flex-direction:column;gap:14px;">
-                <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;"><span style="font-size:0.85rem;font-weight:600;">계약 상태 변경 알림</span><input type="checkbox" checked style="accent-color:var(--blue);width:18px;height:18px;cursor:pointer;"></label>
-                <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;"><span style="font-size:0.85rem;font-weight:600;">결제 완료 알림</span><input type="checkbox" checked style="accent-color:var(--blue);width:18px;height:18px;cursor:pointer;"></label>
-                <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;"><span style="font-size:0.85rem;font-weight:600;">적립금 적립/사용 알림</span><input type="checkbox" checked style="accent-color:var(--blue);width:18px;height:18px;cursor:pointer;"></label>
-                <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;"><span style="font-size:0.85rem;font-weight:600;">채팅 메시지 알림</span><input type="checkbox" checked style="accent-color:var(--blue);width:18px;height:18px;cursor:pointer;"></label>
-                <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;"><span style="font-size:0.85rem;font-weight:600;">마케팅/이벤트 알림</span><input type="checkbox" style="accent-color:var(--blue);width:18px;height:18px;cursor:pointer;"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">계약 상태 변경 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">결제 완료 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">적립금 적립/사용 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">채팅 메시지 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">마케팅/이벤트 알림</span><input type="checkbox" class="cust-notif-checkbox"></label>
               </div>
             </div>
           </div>
@@ -1674,14 +1674,14 @@
         (countries.length ? '<tr><th>상담 바이어 국가</th><td colspan="3">' + countries.join(', ') + '</td></tr>' : '') +
         '</table>' +
         '<div class="section">주요 상담 내용 & 성과</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">상담 내용 요약</p><div class="text-box">' + (summary||'-') + '</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">주요 성과</p><div class="text-box">' + (result||'-') + '</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">특이사항 / 현장 이슈</p><div class="text-box">' + (issue||'-') + '</div>' +
+        '<p class="cust-form-label">상담 내용 요약</p><div class="text-box">' + (summary||'-') + '</div>' +
+        '<p class="cust-form-label">주요 성과</p><div class="text-box">' + (result||'-') + '</div>' +
+        '<p class="cust-form-label">특이사항 / 현장 이슈</p><div class="text-box">' + (issue||'-') + '</div>' +
         '<div class="section">팔로업 액션 플랜</div><div class="text-box">' + (action||'-') + '</div>' +
         '<div class="section">통역사 현장 평가</div>' +
         '<table><tr><th>전문 용어 대응력</th><td class="stars">' + starStr(stars.term) + '</td><th>비즈니스 매너</th><td class="stars">' + starStr(stars.manner) + '</td></tr>' +
         '<tr><th>의사소통 정확도</th><td class="stars">' + starStr(stars.comm) + '</td><th>전반적 만족도</th><td class="stars">' + starStr(stars.overall) + '</td></tr></table>' +
-        (evalText ? '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">통역사 종합 의견</p><div class="text-box">' + evalText + '</div>' : '') +
+        (evalText ? '<p class="cust-form-label">통역사 종합 의견</p><div class="text-box">' + evalText + '</div>' : '') +
         '<div class="footer">© ' + new Date().getFullYear() + ' CONTENTOUR · 본 문서는 전시회 상담일지로 자동 생성되었습니다.</div>' +
         '<button class="print-btn" onclick="window.print()">🖨 PDF 저장 / 인쇄</button>' +
         '</body></html>';
@@ -1736,9 +1736,9 @@
       }
 
       html += '<div class="section">성과 및 특이사항</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">주요 성과</p><div class="text-box">' + (v('bp-result')||'-') + '</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">현장 애로사항</p><div class="text-box">' + (v('bp-issue')||'-') + '</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">익일 계획</p><div class="text-box">' + (v('bp-plan')||'-') + '</div>' +
+        '<p class="cust-form-label">주요 성과</p><div class="text-box">' + (v('bp-result')||'-') + '</div>' +
+        '<p class="cust-form-label">현장 애로사항</p><div class="text-box">' + (v('bp-issue')||'-') + '</div>' +
+        '<p class="cust-form-label">익일 계획</p><div class="text-box">' + (v('bp-plan')||'-') + '</div>' +
         '<div class="section">통역 지원 평가</div>' +
         '<table><tr><th>통역사 성명</th><td>' + v('bp-interp') + '</td><th>통역 만족도</th><td>' + v('bp-satisfaction') + '</td></tr></table>' +
         (v('bp-interp-comment') ? '<div class="text-box">' + v('bp-interp-comment') + '</div>' : '') +
@@ -1796,12 +1796,12 @@
       }
 
       html += '<div class="section">시장 분석</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">시장 동향</p><div class="text-box">' + (v('kt-market')||'-') + '</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">경쟁사 동향</p><div class="text-box">' + (v('kt-competitor')||'-') + '</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">자사 강점/약점</p><div class="text-box">' + (v('kt-strength')||'-') + '</div>' +
+        '<p class="cust-form-label">시장 동향</p><div class="text-box">' + (v('kt-market')||'-') + '</div>' +
+        '<p class="cust-form-label">경쟁사 동향</p><div class="text-box">' + (v('kt-competitor')||'-') + '</div>' +
+        '<p class="cust-form-label">자사 강점/약점</p><div class="text-box">' + (v('kt-strength')||'-') + '</div>' +
         '<div class="section">종합 평가 및 향후 계획</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">종합 평가</p><div class="text-box">' + (v('kt-evaluation')||'-') + '</div>' +
-        '<p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">향후 계획</p><div class="text-box">' + (v('kt-followup')||'-') + '</div>' +
+        '<p class="cust-form-label">종합 평가</p><div class="text-box">' + (v('kt-evaluation')||'-') + '</div>' +
+        '<p class="cust-form-label">향후 계획</p><div class="text-box">' + (v('kt-followup')||'-') + '</div>' +
         '<div class="section">통역 지원 평가</div>' +
         '<table><tr><th>통역사 성명</th><td>' + v('kt-interp') + '</td><th>통역 언어</th><td>' + v('kt-lang') + '</td></tr>' +
         '<tr><th>전문성</th><td>' + v('kt-score1') + '</td><th>의사소통 능력</th><td>' + v('kt-score2') + '</td></tr></table>' +
@@ -1837,7 +1837,7 @@
           var el = document.getElementById(id);
           var val = el ? el.value : '';
           if (f.type === 'textarea') {
-            html += '</table><p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">' + f.label + '</p><div class="text-box">' + (val||'-') + '</div><table>';
+            html += '</table><p class="cust-form-label">' + f.label + '</p><div class="text-box">' + (val||'-') + '</div><table>';
           } else {
             html += '<tr><th>' + f.label + '</th><td>' + (val||'-') + '</td></tr>';
           }
@@ -3678,7 +3678,7 @@
           } catch(e){}
           return '';
         })()}
-        <div style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:10px;">결제 수단을 선택해주세요</div>
+        <div class="cust-payment-label">결제 수단을 선택해주세요</div>
         <div class="pm-methods">
           <div class="pm-method${currentPayment.method==='card'?' selected':''}" onclick="selectPayMethod(this,'card')">
             <div class="pm-method__radio"></div>
@@ -3803,7 +3803,7 @@
           <div class="pm-amount__value">${formatMoney(amount)}</div>
           <div class="pm-amount__sub">VAT 포함 금액</div>
         </div>
-        <div style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:10px;">카드사를 선택해주세요</div>
+        <div class="cust-payment-label">카드사를 선택해주세요</div>
         <div class="pm-card-select">
           ${cardCompanies.map(cc => `
             <div class="pm-card-company${selectedCard===cc.code?' selected':''}" onclick="pmSelectCardCompany(this,'${cc.code}')" data-code="${cc.code}">
@@ -3948,7 +3948,7 @@
           <div class="pm-amount__label">${c.expo}</div>
           <div class="pm-amount__value">${formatMoney(amount)}</div>
         </div>
-        <div style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:10px;">출금 은행을 선택해주세요</div>
+        <div class="cust-payment-label">출금 은행을 선택해주세요</div>
         <div class="pm-bank-select">
           ${bankList.map(b => `<div class="pm-bank-option${currentPayment.bankCode===b.code?' selected':''}" onclick="pmSelectBank(this,'${b.code}')"><div class="pm-bank-option__logo"><img src="${b.logo}" alt="${b.name}"></div>${b.name}</div>`).join('')}
         </div>
@@ -3994,7 +3994,7 @@
           <div class="pm-amount__label">${c.expo}</div>
           <div class="pm-amount__value">${formatMoney(amount)}</div>
         </div>
-        <div style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:10px;">입금 은행을 선택해주세요</div>
+        <div class="cust-payment-label">입금 은행을 선택해주세요</div>
         <div class="pm-bank-select">
           ${vaBanks.map(b => `<div class="pm-bank-option${currentPayment.bankCode===b.code?' selected':''}" onclick="pmSelectBank(this,'${b.code}')"><div class="pm-bank-option__logo"><img src="${b.logo}" alt="${b.name}"></div>${b.name}</div>`).join('')}
         </div>

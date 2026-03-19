@@ -1,5 +1,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --sidebar-w:240px; }
+
+    /* ── 공통 유틸리티 (고객사 대시보드) ── */
+    .cust-form-label { font-size:0.85rem; font-weight:600; margin-bottom:6px; }
+    .cust-section-title { font-size:0.95rem; font-weight:800; }
+    .cust-section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .cust-payment-label { font-size:0.82rem; font-weight:700; color:var(--text); margin-bottom:10px; }
+    .cust-btn-small { padding:8px 14px; font-size:0.78rem; }
+    .cust-btn-action { background:#e3f0ff; color:#1565c0; font-weight:700; border:none; padding:7px 14px; border-radius:8px; font-size:0.78rem; cursor:pointer; }
+    .cust-btn-action:hover { background:#d0e4ff; }
+    .cust-notif-toggle { display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+    .cust-notif-checkbox { accent-color:var(--blue); width:18px; height:18px; cursor:pointer; }
+    .cust-notif-text { font-size:0.85rem; font-weight:600; }
     body { font-family:'Pretendard',sans-serif; background:var(--light-bg); color:var(--text); min-height:100vh; display:flex; }
     .sidebar { width:var(--sidebar-w); background:var(--navy); min-height:100vh; display:flex; flex-direction:column; position:fixed; top:0;left:0; z-index:100; transition:transform 0.3s; }
     .sidebar__logo { padding:28px 24px 20px; border-bottom:1px solid rgba(255,255,255,0.08); }
