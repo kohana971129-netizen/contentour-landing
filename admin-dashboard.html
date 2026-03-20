@@ -45,9 +45,39 @@
                     <input type="password" id="adminPw" placeholder="비밀번호" class="input-field" onkeydown="if(event.key==='Enter')adminLogin()">
                 </div>
                 <button onclick="adminLogin()" id="adminLoginBtn" class="btn-primary-gradient" style="width:100%;">관리자 로그인</button>
-                <div style="text-align:center;margin-top:16px;">
+                <div style="text-align:center;margin-top:12px;">
+                    <a href="javascript:void(0)" onclick="openAdminResetModal()" style="font-size:0.82rem;color:var(--gray-600,#6b7280);text-decoration:none;font-weight:600;">비밀번호 찾기</a>
+                </div>
+                <div style="text-align:center;margin-top:10px;">
                     <a href="client-auth.html" class="admin-login-back">← 일반 로그인으로 돌아가기</a>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ 관리자 비밀번호 찾기 모달 ══ -->
+    <div id="adminResetModal" class="modal-overlay" style="display:none;">
+        <div class="admin-modal-card" style="max-width:420px;">
+            <div class="admin-modal-header">
+                <div style="font-size:1rem;font-weight:800;">비밀번호 재설정</div>
+                <div style="font-size:0.82rem;opacity:0.8;margin-top:4px;">관리자 계정 이메일을 입력하세요.</div>
+            </div>
+            <div style="padding:20px 24px;">
+                <div id="adminResetStep1">
+                    <div style="margin-bottom:14px;">
+                        <label class="label-sm">이메일 주소</label>
+                        <input type="email" id="adminResetEmail" placeholder="관리자 이메일" class="input-field">
+                    </div>
+                    <button onclick="sendAdminResetEmail()" id="adminResetSendBtn" class="btn-primary-gradient" style="width:100%;">재설정 링크 발송</button>
+                </div>
+                <div id="adminResetStep2" style="display:none;text-align:center;padding:16px 0;">
+                    <div style="font-size:2.5rem;margin-bottom:12px;">📧</div>
+                    <div style="font-size:1rem;font-weight:800;margin-bottom:8px;">이메일을 확인해주세요!</div>
+                    <div style="font-size:0.85rem;color:var(--gray-600,#6b7280);line-height:1.6;">비밀번호 재설정 링크가 발송되었습니다.<br>이메일의 링크를 클릭하여 새 비밀번호를 설정하세요.</div>
+                </div>
+            </div>
+            <div style="padding:8px 24px 16px;text-align:center;">
+                <a href="javascript:void(0)" onclick="closeAdminResetModal()" style="font-size:0.82rem;color:var(--gray-600,#6b7280);text-decoration:none;font-weight:600;">닫기</a>
             </div>
         </div>
     </div>
@@ -3766,15 +3796,11 @@
 
         <!-- Supabase SDK + 공유 상수 + 데이터 레이어 -->
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="supabase-config.js"></script>
         <script src="shared-constants.js"></script>
         <script>
-        // ── Supabase 클라이언트 (admin-dashboard용) ──
-        const _sb = window.supabase
-            ? window.supabase.createClient(
-                'https://yvtgfieoeoqhfbofzunk.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2dGdmaWVvZW9xaGZib2Z6dW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NzI4NTksImV4cCI6MjA4NzE0ODg1OX0.49XWIHjMWG2YN8sI58GunPsSl2UyhJgx88mEtV613Pg'
-              )
-            : null;
+        // ── supabase-config.js의 window.sbClient 재사용 ──
+        const _sb = window.sbClient;
         // admin-data.js가 참조하는 supabase 변수 연결
         var supabase = _sb;
         </script>
@@ -3879,6 +3905,40 @@
             el = document.querySelector('.sb-admin__name'); if (el && el.id !== 'sbAdminName') el.textContent = name + ' 관리자';
             el = document.querySelector('.admin-avatar'); if (el && el.id !== 'topAdminAvatar') el.textContent = initial;
             el = document.querySelector('.admin-name'); if (el && el.id !== 'topAdminName') el.textContent = name;
+        }
+
+        // ── 관리자 비밀번호 찾기 ──
+        function openAdminResetModal() {
+            var modal = document.getElementById('adminResetModal');
+            if (modal) { modal.style.display = 'flex'; }
+        }
+        function closeAdminResetModal() {
+            var modal = document.getElementById('adminResetModal');
+            if (modal) { modal.style.display = 'none'; }
+            var step1 = document.getElementById('adminResetStep1');
+            var step2 = document.getElementById('adminResetStep2');
+            if (step1) step1.style.display = 'block';
+            if (step2) step2.style.display = 'none';
+        }
+        async function sendAdminResetEmail() {
+            var emailInput = document.getElementById('adminResetEmail');
+            if (!emailInput || !emailInput.value.trim()) return;
+            var btn = document.getElementById('adminResetSendBtn');
+            if (btn) { btn.disabled = true; btn.textContent = '발송 중...'; }
+            try {
+                if (_sb) {
+                    await _sb.auth.resetPasswordForEmail(emailInput.value.trim(), {
+                        redirectTo: location.origin + '/admin-dashboard.html'
+                    });
+                }
+                document.getElementById('adminResetStep1').style.display = 'none';
+                document.getElementById('adminResetStep2').style.display = 'block';
+            } catch (e) {
+                // 보안상 성공/실패 동일 메시지
+                document.getElementById('adminResetStep1').style.display = 'none';
+                document.getElementById('adminResetStep2').style.display = 'block';
+            }
+            if (btn) { btn.disabled = false; btn.textContent = '재설정 링크 발송'; }
         }
 
         // ── 관리자 로그인 ──
@@ -4011,7 +4071,11 @@
                         return;
                     }
                 }
-            } catch (e) {}
+            } catch (e) {
+                // 세션 체크 실패 시 로그인 페이지로 리다이렉트
+                location.href = 'client-auth.html';
+                return;
+            }
         })();
 
         let _allApps = [];

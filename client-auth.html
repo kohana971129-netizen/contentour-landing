@@ -246,6 +246,10 @@
                             <p class="field-error">비밀번호를 입력해주세요.</p>
                         </div>
 
+                        <div class="form-options" style="justify-content:flex-end;">
+                            <a href="javascript:void(0)" class="forgot-link" onclick="openResetModal()">비밀번호 찾기</a>
+                        </div>
+
                         <button type="submit" class="btn-submit-full" id="interpLoginBtn"
                             style="background:linear-gradient(135deg,#0d47a1,#1565c0);">
                             통역사 대시보드 로그인
@@ -396,42 +400,44 @@
     </div>
 
     <!-- 비밀번호 찾기 모달 -->
-    <div id="resetModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
-        <div style="background:#fff;border-radius:16px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;">
-            <div style="background:linear-gradient(135deg,var(--navy),#1a3d7a);padding:24px 28px;color:#fff;">
-                <div style="font-size:1.1rem;font-weight:800;">비밀번호 재설정</div>
-                <div style="font-size:0.82rem;opacity:0.8;margin-top:4px;" id="resetModalSub">가입한 이메일 주소를 입력하세요.</div>
+    <div id="resetModal" class="reset-modal-overlay">
+        <div class="reset-modal">
+            <div class="reset-modal__header">
+                <div class="reset-modal__title">비밀번호 재설정</div>
+                <div class="reset-modal__subtitle" id="resetModalSub">가입한 이메일 주소를 입력하세요.</div>
             </div>
-            <div style="padding:24px 28px;">
+            <div class="reset-modal__body">
                 <!-- Step 1: 이메일 입력 -->
                 <div id="resetStep1">
                     <div class="field-group" style="margin-bottom:16px;">
-                        <label style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:6px;display:block;">이메일 주소</label>
-                        <input type="email" id="reset-email" placeholder="가입 시 사용한 이메일" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                        <label class="reset-modal__label">이메일 주소</label>
+                        <input type="email" id="reset-email" placeholder="가입 시 사용한 이메일" class="reset-modal__input">
                     </div>
-                    <button onclick="sendResetEmail()" id="resetSendBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--blue),#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">재설정 링크 발송</button>
+                    <button onclick="sendResetEmail()" id="resetSendBtn" class="reset-modal__btn reset-modal__btn--primary">재설정 링크 발송</button>
                 </div>
                 <!-- Step 2: 발송 완료 -->
-                <div id="resetStep2" style="display:none;text-align:center;padding:16px 0;">
-                    <div style="font-size:2.5rem;margin-bottom:12px;">📧</div>
-                    <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:8px;">이메일을 확인해주세요!</div>
-                    <div style="font-size:0.85rem;color:var(--gray-600);line-height:1.6;" id="resetSentMsg">비밀번호 재설정 링크가 발송되었습니다.<br>이메일의 링크를 클릭하여 새 비밀번호를 설정하세요.</div>
+                <div id="resetStep2" style="display:none;">
+                    <div class="reset-modal__result">
+                        <div class="reset-modal__result-icon">📧</div>
+                        <div class="reset-modal__result-title">이메일을 확인해주세요!</div>
+                        <div class="reset-modal__result-msg" id="resetSentMsg">비밀번호 재설정 링크가 발송되었습니다.<br>이메일의 링크를 클릭하여 새 비밀번호를 설정하세요.</div>
+                    </div>
                 </div>
                 <!-- Step 3: 새 비밀번호 입력 (재설정 링크 클릭 후) -->
                 <div id="resetStep3" style="display:none;">
                     <div class="field-group" style="margin-bottom:12px;">
-                        <label style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:6px;display:block;">새 비밀번호</label>
-                        <input type="password" id="new-pw" placeholder="8자 이상 입력" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                        <label class="reset-modal__label">새 비밀번호</label>
+                        <input type="password" id="new-pw" placeholder="8자 이상 입력" class="reset-modal__input">
                     </div>
                     <div class="field-group" style="margin-bottom:16px;">
-                        <label style="font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:6px;display:block;">비밀번호 확인</label>
-                        <input type="password" id="new-pw2" placeholder="비밀번호를 다시 입력" style="width:100%;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                        <label class="reset-modal__label">비밀번호 확인</label>
+                        <input type="password" id="new-pw2" placeholder="비밀번호를 다시 입력" class="reset-modal__input">
                     </div>
-                    <button onclick="submitNewPassword()" id="resetSubmitBtn" style="width:100%;padding:13px;background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;">비밀번호 변경</button>
+                    <button onclick="submitNewPassword()" id="resetSubmitBtn" class="reset-modal__btn reset-modal__btn--success">비밀번호 변경</button>
                 </div>
             </div>
-            <div style="padding:12px 28px 20px;text-align:center;">
-                <a href="javascript:void(0)" onclick="closeResetModal()" style="font-size:0.82rem;color:var(--gray-600);text-decoration:none;font-weight:600;">닫기</a>
+            <div class="reset-modal__footer">
+                <a href="javascript:void(0)" onclick="closeResetModal()" class="reset-modal__close">닫기</a>
             </div>
         </div>
     </div>
@@ -454,10 +460,36 @@
         // ── 탭 전환 ──
         function switchTab(tab) {
             document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.form-view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.form-view-section').forEach(v => { v.classList.remove('active'); v.style.opacity = '0'; });
             document.getElementById('tab-' + tab).classList.add('active');
-            document.getElementById('view-' + tab).classList.add('active');
+            var target = document.getElementById('view-' + tab);
+            target.classList.add('active');
+            requestAnimationFrame(() => { target.style.opacity = '1'; });
             clearAlert();
+            // 브랜드 메시지 탭별 변경
+            updateBrandMessage(tab);
+        }
+
+        // ── 브랜드 메시지 탭별 변경 ──
+        function updateBrandMessage(tab) {
+            var eyebrow = document.querySelector('.brand-eyebrow');
+            var headline = document.querySelector('.brand-headline');
+            var desc = document.querySelector('.brand-desc');
+            if (!eyebrow || !headline || !desc) return;
+
+            if (tab === 'interpreter') {
+                eyebrow.textContent = 'Interpreter Portal';
+                headline.innerHTML = '유연한 스케줄,<br><em>투명한 수익</em>,<br>검증된 기회.';
+                desc.innerHTML = '콘텐츄어에 등록된 통역사로서<br>다양한 프로젝트에 참여하고 커리어를 성장시키세요.';
+            } else if (tab === 'register') {
+                eyebrow.textContent = 'Join Us';
+                headline.innerHTML = '200+ 통역사,<br><em>50+ 고객사</em>가<br>함께합니다.';
+                desc.innerHTML = '지금 가입하고 콘텐츄어의<br>통합 통역 관리 플랫폼을 경험하세요.';
+            } else {
+                eyebrow.textContent = 'Corporate Service';
+                headline.innerHTML = '글로벌 비즈니스의 시작,<br><em>콘텐츄어</em>와 함께<br>완성하세요.';
+                desc.innerHTML = '복잡한 통역사 섭외부터 현장 운영까지.<br>고객사 전용 포털에서 모든 과정을 통합 관리하세요.';
+            }
         }
 
         // ── 비밀번호 토글 ──
@@ -536,6 +568,7 @@
             if (!valid) return;
 
             const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
             btn.classList.add('loading');
             btn.textContent = '로그인 중...';
 
@@ -556,24 +589,30 @@
                             .eq('id', authData.user.id)
                             .single();
 
+                        btn.disabled = false;
                         btn.classList.remove('loading');
                         btn.textContent = '로그인';
 
-                        const role = (profile && profile.role) ? profile.role : 'customer';
-                        location.href = ContentourAuth.getDashboardUrl(role);
+                        if (!profile || !profile.role) {
+                            await window.sbClient.auth.signOut();
+                            showAlert('계정 프로필 정보를 찾을 수 없습니다. 관리자에게 문의해주세요.', 'error');
+                            return;
+                        }
+                        location.href = ContentourAuth.getDashboardUrl(profile.role);
                         return;
                     }
 
                     if (authError) {
-                        console.log('Supabase auth failed, trying demo mode:', authError.message);
+                        // auth failed silently
                     }
                 } catch (e) {
-                    console.log('Supabase auth exception, trying demo mode:', e);
+                    // auth exception
                 }
             }
 
             // ── Supabase 미연결 시 안내 ──
             setTimeout(() => {
+                btn.disabled = false;
                 btn.classList.remove('loading');
                 btn.textContent = '로그인';
                 showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
@@ -596,10 +635,10 @@
 
             if (!valid) return;
 
+            btn.disabled = true;
             btn.classList.add('loading');
             btn.textContent = '로그인 중...';
 
-            // 데모 계정 체크 (Supabase 시도 건너뜀)
             // Supabase 인증
             if (window.sbClient) {
                 try {
@@ -608,6 +647,7 @@
                         password: pw.value
                     });
 
+                    btn.disabled = false;
                     btn.classList.remove('loading');
                     btn.textContent = '통역사 대시보드 로그인';
 
@@ -619,7 +659,9 @@
                             .single();
 
                         const role = (profile && profile.role) ? profile.role : 'interpreter';
-                        if (role === 'interpreter' || role === 'admin') {
+                        if (role === 'admin') {
+                            location.href = 'admin-dashboard.html';
+                        } else if (role === 'interpreter') {
                             location.href = 'interpreter-dashboard.html';
                         } else {
                             showAlert('통역사 계정이 아닙니다. 고객사 로그인을 이용해주세요.', 'error');
@@ -631,11 +673,13 @@
                         showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
                     }
                 } catch (err) {
+                    btn.disabled = false;
                     btn.classList.remove('loading');
                     btn.textContent = '통역사 대시보드 로그인';
                     showAlert('로그인 처리 중 오류가 발생했습니다.', 'error');
                 }
             } else {
+                btn.disabled = false;
                 btn.classList.remove('loading');
                 btn.textContent = '통역사 대시보드 로그인';
                 showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
@@ -692,7 +736,7 @@
 
             // ── Supabase 회원가입 ──
             if (window.sbClient) {
-                const { data, error } = await ContentourAuth.registerCustomer({
+                const { data, error, warning } = await ContentourAuth.registerCustomer({
                     email: email.value,
                     password: pw.value,
                     name: name.value,
@@ -715,8 +759,22 @@
                 }
 
                 btn.textContent = '가입 신청 완료';
-                showAlert('고객사 가입이 완료되었습니다! 이메일을 확인하신 후 로그인해주세요.', 'success');
-                setTimeout(() => switchTab('login'), 2500);
+
+                // 기업 정보 저장 실패 경고
+                if (warning) {
+                    showAlert(warning, 'error');
+                    setTimeout(() => switchTab('login'), 3500);
+                    return;
+                }
+
+                // 세션이 있으면 자동 로그인, 없으면 이메일 인증 안내
+                if (data && data.session) {
+                    showAlert('가입이 완료되었습니다! 대시보드로 이동합니다.', 'success');
+                    setTimeout(() => { location.href = 'customer-dashboard.html'; }, 1500);
+                } else {
+                    showAlert('고객사 가입이 완료되었습니다! 이메일을 확인하신 후 로그인해주세요.', 'success');
+                    setTimeout(() => switchTab('login'), 2500);
+                }
                 return;
             }
 

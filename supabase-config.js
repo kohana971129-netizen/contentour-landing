@@ -105,6 +105,7 @@
 
                 if (companyError) {
                     console.warn('기업 정보 저장 실패:', companyError.message);
+                    return { data: authData, error: null, warning: '가입은 완료되었으나 기업 정보 저장에 실패했습니다. 마이페이지에서 기업 정보를 다시 입력해주세요.' };
                 }
             }
 

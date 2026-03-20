@@ -842,21 +842,16 @@
       btn.textContent = '비밀번호 변경';
     }
 
-    // ── 인증 가드: 고객만 접근 가능 (데모 모드 허용) ──
+    // ── 인증 가드: 고객만 접근 가능 ──
     (async function() {
-        // Supabase 실제 세션이 있으면 데모 모드 무시
-        if (window.sbClient) {
-            var { data: { session } } = await window.sbClient.auth.getSession();
-            if (session) {
-                sessionStorage.removeItem('demoMode');
-                sessionStorage.removeItem('demoToken');
-                return;
-            }
-        }
-        var _dt = sessionStorage.getItem('demoToken') || '';
-        try { if (sessionStorage.getItem('demoMode') === 'customer' && _dt && atob(_dt).startsWith('contentour-demo-customer-')) return; } catch(e) {}
+        // 데모 모드 토큰 제거 (보안 강화)
+        sessionStorage.removeItem('demoMode');
+        sessionStorage.removeItem('demoToken');
+
         if (typeof ContentourAuth !== 'undefined' && window.sbClient) {
             await ContentourAuth.requireAuth(['customer', 'admin']);
+        } else {
+            location.href = 'client-auth.html';
         }
     })();
 

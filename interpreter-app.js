@@ -23,41 +23,12 @@ const InterpreterApp = {
     // ── 초기화 ──
     async init() {
         try {
-            // 1) 인증 확인 (interpreter 역할만 허용, 데모 모드 허용)
-            // Supabase 실제 세션이 있으면 데모 모드 무시
-            let _hasSbSession = false;
-            if (window.sbClient) {
-                const { data: { session } } = await window.sbClient.auth.getSession();
-                if (session) {
-                    _hasSbSession = true;
-                    sessionStorage.removeItem('demoMode');
-                    sessionStorage.removeItem('demoToken');
-                }
-            }
-            const _demoToken = sessionStorage.getItem('demoToken') || '';
-            const _isDemoValid = !_hasSbSession && sessionStorage.getItem('demoMode') === 'interpreter'
-                && _demoToken && atob(_demoToken).startsWith('contentour-demo-interpreter-');
-            if (_isDemoValid) {
-                // 데모 모드: 박서연 통역사 프로필 — DB 조회 없이 HTML 데모 데이터 유지
-                this.currentUser = { id: 'demo-sarah', email: 'sarah@example.com' };
-                this.profile = { id: 'demo-sarah', name: '박서연', role: 'interpreter', email: 'sarah@example.com', phone: '010-5678-9012' };
-                this.interpProfile = {
-                    display_name: '박서연',
-                    phone: '010-5678-9012',
-                    intro: '영어권 의료·에너지 전시회 통역 전문가. 현장 경험 다수.',
-                    languages: ['영어'],
-                    specialties: ['의료·바이오', '에너지·환경', '항공·방위'],
-                    experience_years: 4,
-                    base_rate: 150000,
-                    is_active: true,
-                    is_verified: true
-                };
-                this.renderUserInfo();
-                // 데모 모드: DB 조회 건너뛰고 뷰 전환 시 데모 데이터 사용
-                this.hookViewSwitcher();
-                return;
-            }
-            // Supabase 세션 확인 (리다이렉트 없이)
+            // 1) 인증 확인 (interpreter 역할만 허용)
+            // 데모 모드 토큰 제거 (보안 강화)
+            sessionStorage.removeItem('demoMode');
+            sessionStorage.removeItem('demoToken');
+
+            // Supabase 세션 확인
             let userProfile = null;
             if (window.sbClient) {
                 const { data: { session } } = await window.sbClient.auth.getSession();
@@ -154,15 +125,6 @@ const InterpreterApp = {
     },
 
     async onViewSwitch(view) {
-        // Supabase 실제 세션이 있으면 데모 모드 무시
-        if (this.currentUser && this.currentUser.id !== 'demo-sarah') {
-            // 실제 로그인 → DB 조회 진행
-        } else {
-            // 데모 모드에서는 DB 조회 건너뜀
-            const _dt = sessionStorage.getItem('demoToken') || '';
-            if (sessionStorage.getItem('demoMode') === 'interpreter' && _dt && atob(_dt).startsWith('contentour-demo-interpreter-')) return;
-        }
-
         switch (view) {
             case 'assignments':
                 await this.loadAssignmentsView();

@@ -416,6 +416,140 @@
         .btn-submit-full.loading {
             pointer-events: none;
             opacity: 0.7;
+            position: relative;
+            color: transparent;
+        }
+
+        .btn-submit-full.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: btnSpin 0.6s linear infinite;
+        }
+
+        @keyframes btnSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── 비밀번호 재설정 모달 ── */
+        .reset-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reset-modal {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .reset-modal__header {
+            background: linear-gradient(135deg, var(--navy), #1a3d7a);
+            padding: 24px 28px;
+            color: #fff;
+        }
+
+        .reset-modal__title {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .reset-modal__subtitle {
+            font-size: 0.82rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .reset-modal__body {
+            padding: 24px 28px;
+        }
+
+        .reset-modal__label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .reset-modal__input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .reset-modal__btn {
+            width: 100%;
+            padding: 13px;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .reset-modal__btn--primary {
+            background: linear-gradient(135deg, var(--blue), #0d47a1);
+        }
+
+        .reset-modal__btn--success {
+            background: linear-gradient(135deg, #2e7d32, #43a047);
+        }
+
+        .reset-modal__footer {
+            padding: 12px 28px 20px;
+            text-align: center;
+        }
+
+        .reset-modal__close {
+            font-size: 0.82rem;
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .reset-modal__result {
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .reset-modal__result-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .reset-modal__result-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .reset-modal__result-msg {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            line-height: 1.6;
         }
 
         /* 구분선 */
@@ -566,13 +700,16 @@
             border: 1px solid #ef9a9a;
         }
 
-        /* 숨김 처리 */
+        /* 숨김 처리 + 탭 전환 애니메이션 */
         .form-view-section {
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .form-view-section.active {
             display: block;
+            opacity: 1;
         }
 
         /* 전환 링크 */
@@ -593,8 +730,8 @@
         }
 
         .admin-link-wrapper a {
-            color: var(--gray-400);
-            font-size: 0.75rem;
+            color: var(--gray-600);
+            font-size: 0.82rem;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -684,6 +821,10 @@
         }
 
         @media (max-width: 580px) {
+            .brand-panel {
+                gap: 40px;
+            }
+
             .brand-features-list {
                 flex-direction: column;
             }
