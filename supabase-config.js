@@ -87,10 +87,9 @@
                 const { error: companyError } = await sb
                     .from('02_국내기업')
                     .insert({
-                        company_name_ko: company,
-                        business_registration_number: brn,
-                        contact_person: name,
-                        contact_position: position,
+                        name: company,
+                        business_number: brn,
+                        contact_name: name,
                         contact_email: email,
                         contact_phone: phone
                     });
