@@ -889,8 +889,8 @@
 
             _currentUserProfile = {
                 name: (member && member.name) || user.user_metadata?.name || user.email.split('@')[0],
-                company: (company && company.company_name_ko) || '',
-                position: (company && company.contact_position) || '',
+                company: (company && company.name) || '',
+                position: (member && member.role === 'customer') ? '고객' : '',
                 email: user.email,
                 phone: (member && member.phone) || (company && company.contact_phone) || ''
             };

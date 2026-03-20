@@ -337,7 +337,7 @@ const AdminData = {
                 .select(`
                     *,
                     interpreter:interpreter_id (id, name),
-                    client:client_company_id (company_name_ko)
+                    client:client_company_id (name)
                 `)
                 .order('service_date', { ascending: true });
             if (error) throw error;
@@ -349,7 +349,7 @@ const AdminData = {
                 id: d.interpretation_id,
                 date: d.service_date,
                 expo: '',
-                company: d.client?.company_name_ko || '',
+                company: d.client?.name || '',
                 interp: d.interpreter?.name || '',
                 lang: d.language_pair,
                 type: typeMap[d.service_type] || 'booth',
