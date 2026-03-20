@@ -81,15 +81,7 @@
 
             if (authError) return { data: null, error: authError };
 
-            // 01_회원은 DB 트리거(handle_new_user)가 자동 생성하므로 phone만 업데이트
-            const { error: updateError } = await sb
-                .from('01_회원')
-                .update({ phone: phone })
-                .eq('id', authData.user.id);
-
-            if (updateError) {
-                console.warn('회원 phone 업데이트 실패:', updateError.message);
-            }
+            // 01_회원은 DB 트리거(handle_new_user)가 role, phone 포함 자동 생성
 
             if (company) {
                 const { error: companyError } = await sb
