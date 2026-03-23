@@ -5,8 +5,8 @@ const PaymentData = {
 
     // PortOne 설정 — 실제 운영 시 본인의 가맹점 코드로 교체
     // 테스트: https://admin.portone.io 에서 테스트 채널 생성 후 아래 값 입력
-    PORTONE_STORE_ID: 'imp00000000',  // TODO: 실제 PortOne 가맹점 코드
-    PORTONE_CHANNEL_KEY: '',           // TODO: 실제 채널 키
+    PORTONE_STORE_ID: 'store-f2f2a330-69de-4774-bd36-4ed70b5080ca',
+    PORTONE_CHANNEL_KEY: 'channel-key-0141bb27-c39f-4ea5-a78d-144d8e6dd6f5',
 
     // PortOne SDK가 로드되고 실제 키가 설정되었는지 확인
     isReady() {
