@@ -825,7 +825,7 @@
         // 01_회원 테이블 업데이트
         var { error: memberErr } = await window.sbClient
           .from('01_회원')
-          .update({ name: newName, position: newPosition, phone: newPhone, updated_at: new Date().toISOString() })
+          .update({ name: newName, position: newPosition, phone: newPhone, company_name: newCompany, updated_at: new Date().toISOString() })
           .eq('id', user.id);
         if (memberErr) throw memberErr;
 
@@ -948,7 +948,7 @@
 
             _currentUserProfile = {
                 name: (member && member.name) || user.user_metadata?.name || user.email.split('@')[0],
-                company: (company && company.name) || '',
+                company: (member && member.company_name) || (company && company.name) || '',
                 position: (member && member.position) || '',
                 email: user.email,
                 phone: (member && member.phone) || (company && company.contact_phone) || ''
