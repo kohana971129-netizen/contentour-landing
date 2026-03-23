@@ -809,6 +809,7 @@
     async function saveMyProfile() {
       var btn = document.getElementById('mypSaveBtn');
       var newName = document.getElementById('mypSettingName').value.trim();
+      var newPosition = document.getElementById('mypSettingRole').value.trim();
       var newPhone = document.getElementById('mypSettingPhone').value.trim();
       var newCompany = document.getElementById('mypSettingCompany').value.trim();
 
@@ -824,7 +825,7 @@
         // 01_회원 테이블 업데이트
         var { error: memberErr } = await window.sbClient
           .from('01_회원')
-          .update({ name: newName, phone: newPhone, updated_at: new Date().toISOString() })
+          .update({ name: newName, position: newPosition, phone: newPhone, updated_at: new Date().toISOString() })
           .eq('id', user.id);
         if (memberErr) throw memberErr;
 
@@ -844,6 +845,7 @@
 
         // 전역 프로필 갱신
         _currentUserProfile.name = newName;
+        _currentUserProfile.position = newPosition;
         _currentUserProfile.phone = newPhone;
         _currentUserProfile.company = newCompany;
         applyUserProfile(_currentUserProfile);
@@ -947,7 +949,7 @@
             _currentUserProfile = {
                 name: (member && member.name) || user.user_metadata?.name || user.email.split('@')[0],
                 company: (company && company.name) || '',
-                position: (member && member.role === 'customer') ? '고객' : '',
+                position: (member && member.position) || '',
                 email: user.email,
                 phone: (member && member.phone) || (company && company.contact_phone) || ''
             };
