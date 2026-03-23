@@ -2011,6 +2011,20 @@
             }
         });
 
+        // ══════════════ Google Calendar 연동 ══════════════
+        function addToGoogleCal(title, location, start, end, time, lang, client) {
+            var s = start.replace(/-/g, '') + 'T' + (time ? time.split('~')[0].trim().replace(':', '') + '00' : '090000');
+            var eTime = time && time.includes('~') ? time.split('~')[1].trim().replace(':', '') + '00' : '180000';
+            var e = (end || start).replace(/-/g, '') + 'T' + eTime;
+            var desc = '고객사: ' + (client || '') + '\\n언어: ' + (lang || '') + '\\n콘텐츄어 통역 운영 시스템';
+            var url = 'https://www.google.com/calendar/render?action=TEMPLATE'
+                + '&text=' + encodeURIComponent(title)
+                + '&dates=' + s + '/' + e
+                + '&location=' + encodeURIComponent(location || '')
+                + '&details=' + encodeURIComponent(desc);
+            window.open(url, '_blank');
+        }
+
         // ══════════════ 스케줄 캘린더 ══════════════
         // DB에서 로드됨 (interpreter-app.js의 updateCalendarEvents)
         if (!window.schEvents) window.schEvents = [];
@@ -2123,10 +2137,11 @@
             body.innerHTML = events.map(e =>
                 '<div class="sch-day-item">' +
                     '<div class="sch-day-dot" style="background:' + e.color + ';"></div>' +
-                    '<div>' +
+                    '<div style="flex:1;">' +
                         '<div class="sch-day-title">' + e.title + '</div>' +
                         '<div class="sch-day-sub">' + e.client + '<br>' + e.location + '<br>' + e.time + ' | ' + e.lang + '</div>' +
                     '</div>' +
+                    '<button onclick="addToGoogleCal(\'' + e.title.replace(/'/g, "\\'") + '\',\'' + (e.location || '').replace(/'/g, "\\'") + '\',\'' + e.start + '\',\'' + e.end + '\',\'' + (e.time || '') + '\',\'' + (e.lang || '') + '\',\'' + (e.client || '').replace(/'/g, "\\'") + '\')" style="flex-shrink:0;padding:6px 10px;border:1.5px solid #e5eaf2;background:#fff;border-radius:8px;font-size:0.72rem;font-weight:700;color:#1565c0;cursor:pointer;white-space:nowrap;" title="Google 캘린더에 추가">📅+</button>' +
                 '</div>'
             ).join('');
         }
@@ -2196,6 +2211,7 @@
                             '<div class="sch-tl-avatar" style="background:' + avatarColors[colorIdx] + ';">' + e.client.charAt(0) + '</div>' +
                             '<span style="font-weight:700;">' + e.client + '</span>' +
                             '<span class="sch-tl-status ' + stCls + '">' + e.statusText + '</span>' +
+                            '<button onclick="addToGoogleCal(\'' + e.title.replace(/'/g, "\\'") + '\',\'' + (e.location || '').replace(/'/g, "\\'") + '\',\'' + e.start + '\',\'' + e.end + '\',\'' + (e.time || '') + '\',\'' + (e.lang || '') + '\',\'' + (e.client || '').replace(/'/g, "\\'") + '\')" style="margin-left:auto;padding:5px 12px;border:1.5px solid #e5eaf2;background:#fff;border-radius:8px;font-size:0.72rem;font-weight:700;color:#1565c0;cursor:pointer;white-space:nowrap;">📅 Google 캘린더에 추가</button>' +
                         '</div>' +
                     '</div>' +
                 '</div>';

@@ -1032,6 +1032,20 @@
       { id:6, expo:'Intersolar Europe', location:'독일 뮌헨', start:'2026-06-03', end:'2026-06-05', lang:'한국어↔독일어', type:'부스 상주', interp:'미배정', interpColor:'#9daec8', status:'검토중', statusCls:'st-review2' },
     ];
     const schStatusColor = { '파견확정':'#1565c0', '매칭완료':'#f57c00', '검토중':'#9daec8' };
+    // ══════════════ Google Calendar 연동 ══════════════
+    function addToGoogleCal(title, location, start, end, time, lang, client) {
+      var s = start.replace(/-/g, '') + 'T' + (time ? time.split('~')[0].trim().replace(':', '') + '00' : '090000');
+      var eTime = time && time.includes('~') ? time.split('~')[1].trim().replace(':', '') + '00' : '180000';
+      var e = (end || start).replace(/-/g, '') + 'T' + eTime;
+      var desc = '고객사: ' + (client || '') + '\n언어: ' + (lang || '') + '\n콘텐츄어 통역 운영 시스템';
+      var url = 'https://www.google.com/calendar/render?action=TEMPLATE'
+          + '&text=' + encodeURIComponent(title)
+          + '&dates=' + s + '/' + e
+          + '&location=' + encodeURIComponent(location || '')
+          + '&details=' + encodeURIComponent(desc);
+      window.open(url, '_blank');
+    }
+
     let schY = 2026, schM = 2, schSelDate = null, schInitDone = false;
 
     function schInit() {
@@ -1097,7 +1111,7 @@
       const evs = schData.filter(e => e.start <= ds && e.end >= ds);
       const body = document.getElementById('schDayBody');
       if (!evs.length) { body.innerHTML = '<div class="sch-empty">&#128525; 이 날은 파견 일정이 없습니다.</div>'; return; }
-      body.innerHTML = evs.map(ev => '<div class="sch-dev"><div class="sch-dev-dot" style="background:' + schStatusColor[ev.status] + ';"></div><div><div class="sch-dev-title">' + ev.expo + '</div><div class="sch-dev-sub">&#128100; ' + ev.interp + ' · &#127760; ' + ev.lang + '</div><div class="sch-dev-sub">&#128205; ' + ev.location + ' · ' + ev.type + '</div></div></div>').join('');
+      body.innerHTML = evs.map(ev => '<div class="sch-dev" style="display:flex;align-items:center;gap:10px;"><div class="sch-dev-dot" style="background:' + schStatusColor[ev.status] + ';"></div><div style="flex:1;"><div class="sch-dev-title">' + ev.expo + '</div><div class="sch-dev-sub">&#128100; ' + ev.interp + ' · &#127760; ' + ev.lang + '</div><div class="sch-dev-sub">&#128205; ' + ev.location + ' · ' + ev.type + '</div></div><button onclick="addToGoogleCal(\'' + ev.expo.replace(/'/g, "\\'") + '\',\'' + (ev.location || '').replace(/'/g, "\\'") + '\',\'' + ev.start + '\',\'' + ev.end + '\',\'\',\'' + (ev.lang || '') + '\',\'' + (ev.interp || '').replace(/'/g, "\\'") + '\')" style="flex-shrink:0;padding:6px 10px;border:1.5px solid #e5eaf2;background:#fff;border-radius:8px;font-size:0.72rem;font-weight:700;color:#1565c0;cursor:pointer;white-space:nowrap;" title="Google 캘린더에 추가">&#128197;+</button></div>').join('');
     }
     function schRenderUpcoming() {
       const today = new Date().toISOString().split('T')[0];
@@ -1116,7 +1130,7 @@
       const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       document.getElementById('schTimeline').innerHTML = sorted.map(ev => {
         const [y,m,d] = ev.start.split('-');
-        return '<div class="sch-tl-item"><div class="sch-tl-date"><div class="sch-tl-date-m">' + y + '.' + months[+m-1] + '</div><div class="sch-tl-date-d">' + d + '</div></div><div class="sch-tl-bar" style="background:' + schStatusColor[ev.status] + ';"></div><div class="sch-tl-main"><div class="sch-tl-expo">' + ev.expo + '</div><div class="sch-tl-meta"><span>&#128205; ' + ev.location + '</span><span>&#128197; ' + ev.start + ' ~ ' + ev.end + '</span><span>&#127760; ' + ev.lang + '</span><span>&#127991;&#65039; ' + ev.type + '</span></div><div class="sch-tl-interp"><div class="sch-tl-av" style="background:' + ev.interpColor + ';">' + ev.interp.charAt(0) + '</div><span style="font-weight:700;">' + ev.interp + '</span><span style="color:var(--gray-400);font-size:0.72rem;">담당 통역사</span><span class="sch-tl-st ' + ev.statusCls + '">' + ev.status + '</span></div></div></div>';
+        return '<div class="sch-tl-item"><div class="sch-tl-date"><div class="sch-tl-date-m">' + y + '.' + months[+m-1] + '</div><div class="sch-tl-date-d">' + d + '</div></div><div class="sch-tl-bar" style="background:' + schStatusColor[ev.status] + ';"></div><div class="sch-tl-main"><div class="sch-tl-expo">' + ev.expo + '</div><div class="sch-tl-meta"><span>&#128205; ' + ev.location + '</span><span>&#128197; ' + ev.start + ' ~ ' + ev.end + '</span><span>&#127760; ' + ev.lang + '</span><span>&#127991;&#65039; ' + ev.type + '</span></div><div class="sch-tl-interp"><div class="sch-tl-av" style="background:' + ev.interpColor + ';">' + ev.interp.charAt(0) + '</div><span style="font-weight:700;">' + ev.interp + '</span><span style="color:var(--gray-400);font-size:0.72rem;">담당 통역사</span><span class="sch-tl-st ' + ev.statusCls + '">' + ev.status + '</span><button onclick="addToGoogleCal(\'' + ev.expo.replace(/'/g, "\\'") + '\',\'' + (ev.location || '').replace(/'/g, "\\'") + '\',\'' + ev.start + '\',\'' + ev.end + '\',\'\',\'' + (ev.lang || '') + '\',\'' + (ev.interp || '').replace(/'/g, "\\'") + '\')" style="margin-left:auto;padding:5px 12px;border:1.5px solid #e5eaf2;background:#fff;border-radius:8px;font-size:0.72rem;font-weight:700;color:#1565c0;cursor:pointer;white-space:nowrap;">&#128197; Google 캘린더에 추가</button></div></div></div>';
       }).join('');
     }
     function schMoveMonth(d) { schM += d; if (schM > 11) { schM = 0; schY++; } if (schM < 0) { schM = 11; schY--; } schRender(); }
