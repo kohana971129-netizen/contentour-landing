@@ -35,36 +35,36 @@
 
         <nav class="sb-nav">
             <div class="sb-label">메인</div>
-            <a class="sb-item active" onclick="switchView('home', event)">
+            <a class="sb-item active" href="#home" onclick="switchView('home', event)">
                 <span class="sb-item__icon">🏠</span> 대시보드
             </a>
 
             <div class="sb-label">업무 관리</div>
-            <a class="sb-item" onclick="switchView('assignments', event)">
+            <a class="sb-item" href="#assignments" onclick="switchView('assignments', event)">
                 <span class="sb-item__icon">📋</span> 배정 요청
                 <span class="sb-item__badge">2</span>
             </a>
-            <a class="sb-item" onclick="switchView('schedule', event)">
+            <a class="sb-item" href="#schedule" onclick="switchView('schedule', event)">
                 <span class="sb-item__icon">📅</span> 내 스케줄
             </a>
-            <a class="sb-item" onclick="switchView('journal', event)">
+            <a class="sb-item" href="#journal" onclick="switchView('journal', event)">
                 <span class="sb-item__icon">📝</span> 상담일지 작성
             </a>
-            <a class="sb-item" onclick="switchView('contracts', event)">
+            <a class="sb-item" href="#contracts" onclick="switchView('contracts', event)">
                 <span class="sb-item__icon">📄</span> 계약 관리
             </a>
-            <a class="sb-item" onclick="switchView('chat', event)">
+            <a class="sb-item" href="#chat" onclick="switchView('chat', event)">
                 <span class="sb-item__icon">💬</span> 고객사 채팅
                 <span class="sb-item__badge" id="chatNavBadge">2</span>
             </a>
 
             <div class="sb-label">정산</div>
-            <a class="sb-item" onclick="switchView('settlement', event)">
+            <a class="sb-item" href="#settlement" onclick="switchView('settlement', event)">
                 <span class="sb-item__icon">💰</span> 정산 내역
             </a>
 
             <div class="sb-label">계정</div>
-            <a class="sb-item" onclick="switchView('profile', event)">
+            <a class="sb-item" href="#profile" onclick="switchView('profile', event)">
                 <span class="sb-item__icon">👤</span> 내 프로필
             </a>
         </nav>
@@ -1721,11 +1721,14 @@
 
         // ══════════════ 뷰 전환 ══════════════
         function switchView(view, e) {
+            if (e && e.preventDefault) e.preventDefault();
+            // URL 해시 업데이트
+            history.replaceState(null, '', '#' + view);
             // 사이드바 active
             document.querySelectorAll('.sb-item').forEach(item => item.classList.remove('active'));
-            if (e && e.currentTarget) {
-                e.currentTarget.classList.add('active');
-            }
+            var navLink = document.querySelector('.sb-item[href="#' + view + '"]');
+            if (navLink) navLink.classList.add('active');
+            else if (e && e.currentTarget) e.currentTarget.classList.add('active');
 
             // 뷰 전환
             const viewEl = document.getElementById('view-' + view);

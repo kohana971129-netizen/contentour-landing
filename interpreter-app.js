@@ -1344,6 +1344,15 @@ function _startInterpreterApp() {
     InterpreterApp.init().then(() => {
         InterpreterApp.overrideSaveProfile();
         InterpreterApp.overrideBankCheck();
+        // 해시 라우팅: URL 해시에 따라 초기 뷰 전환
+        var hash = window.location.hash.replace('#', '');
+        if (hash && hash !== 'home' && typeof switchView === 'function') {
+            switchView(hash);
+        }
+        window.addEventListener('hashchange', function() {
+            var h = window.location.hash.replace('#', '');
+            if (h && typeof switchView === 'function') switchView(h);
+        });
     }).catch(err => console.error('[InterpreterApp] init failed:', err));
 }
 
