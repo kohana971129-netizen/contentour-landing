@@ -742,8 +742,8 @@
                 <div class="field span-2"><label>회사명</label><input type="text" value="" id="mypSettingCompany"></div>
               </div>
               <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:10px;">
-                <button class="btn-ghost" onclick="showContractToast('변경사항이 취소되었습니다.')">취소</button>
-                <button class="btn-primary" onclick="showContractToast('&#9989; 정보가 저장되었습니다.')">저장하기</button>
+                <button class="btn-ghost" onclick="resetMyProfile()">취소</button>
+                <button class="btn-primary" id="mypSaveBtn" onclick="saveMyProfile()">저장하기</button>
               </div>
             </div>
           </div>
@@ -801,6 +801,63 @@
     }
 
     // ── 비밀번호 변경 ──
+    function resetMyProfile() {
+      applyUserProfile(_currentUserProfile);
+      showContractToast('변경사항이 취소되었습니다.');
+    }
+
+    async function saveMyProfile() {
+      var btn = document.getElementById('mypSaveBtn');
+      var newName = document.getElementById('mypSettingName').value.trim();
+      var newPhone = document.getElementById('mypSettingPhone').value.trim();
+      var newCompany = document.getElementById('mypSettingCompany').value.trim();
+
+      if (!newName) { showContractToast('담당자명을 입력해주세요.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = '저장 중...';
+
+      try {
+        var user = await ContentourAuth.getCurrentUser();
+        if (!user) throw new Error('로그인 정보를 찾을 수 없습니다.');
+
+        // 01_회원 테이블 업데이트
+        var { error: memberErr } = await window.sbClient
+          .from('01_회원')
+          .update({ name: newName, phone: newPhone, updated_at: new Date().toISOString() })
+          .eq('id', user.id);
+        if (memberErr) throw memberErr;
+
+        // 02_국내기업 테이블 업데이트
+        var { data: existingCompany } = await window.sbClient
+          .from('02_국내기업')
+          .select('id')
+          .eq('contact_email', user.email)
+          .single();
+
+        if (existingCompany) {
+          await window.sbClient
+            .from('02_국내기업')
+            .update({ name: newCompany, contact_name: newName, contact_phone: newPhone })
+            .eq('contact_email', user.email);
+        }
+
+        // 전역 프로필 갱신
+        _currentUserProfile.name = newName;
+        _currentUserProfile.phone = newPhone;
+        _currentUserProfile.company = newCompany;
+        applyUserProfile(_currentUserProfile);
+
+        showContractToast('\u2705 정보가 저장되었습니다.');
+      } catch (e) {
+        console.error('프로필 저장 실패:', e);
+        showContractToast('\u274c 저장 실패: ' + (e.message || '오류가 발생했습니다.'));
+      }
+
+      btn.disabled = false;
+      btn.textContent = '저장하기';
+    }
+
     async function changeMyPassword() {
       var newPw = document.getElementById('myp-new-pw').value;
       var newPw2 = document.getElementById('myp-new-pw2').value;
