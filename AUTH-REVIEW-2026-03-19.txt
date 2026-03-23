@@ -1,0 +1,184 @@
+================================================================
+ 콘텐츄어 로그인/인증 시스템 전체 팀 점검 결과
+ 점검일: 2026-03-19
+ 대상: client-auth.html, admin-dashboard.html, supabase-config.js
+================================================================
+
+
+[Critical] 즉시 수정 필요 (5건)
+================================================================
+
+1. 이중 제출 방지 없음
+   - 팀: QA
+   - 위치: client-auth.html:538, 599
+   - 내용: 고객사/통역사 로그인 버튼에 btn.disabled = true 미설정
+           사용자가 버튼을 연타하면 Supabase에 중복 인증 요청 발생
+   - 수정: btn.classList.add('loading') 바로 아래에 btn.disabled = true 추가
+           완료/에러 시 btn.disabled = false 복원
+
+2. 비관리자의 관리자 대시보드 접근 가능
+   - 팀: QA / 백엔드
+   - 위치: admin-dashboard.html:4008-4014 (checkExistingSession)
+   - 내용: 이미 고객사/통역사로 로그인된 상태에서 admin-dashboard.html URL을
+           직접 입력하면 로그인 오버레이가 뜨지만, 세션 체크 실패 시
+           catch 블록이 비어있어 페이지 UI가 그대로 노출됨
+   - 수정: catch 블록 또는 role !== 'admin' 시 location.href = 'client-auth.html' 리다이렉트 추가
+
+3. 통역사 로그인에 "비밀번호 찾기" 없음
+   - 팀: PM
+   - 위치: client-auth.html:215-265 (view-interpreter 섹션)
+   - 내용: 고객사 로그인에는 "비밀번호 찾기" 링크(line 190)가 있지만
+           통역사 로그인 폼에는 비밀번호 찾기 기능이 없음
+           → 통역사가 비밀번호를 잊으면 복구 불가
+   - 수정: 통역사 로그인 폼 비밀번호 필드 아래에 동일한 "비밀번호 찾기" 링크 추가
+           onclick="openResetModal()" 연결
+
+4. 관리자 로그인에 "비밀번호 찾기" 없음
+   - 팀: PM
+   - 위치: admin-dashboard.html:29-53 (로그인 오버레이)
+   - 내용: 관리자 로그인 폼에 비밀번호 찾기/재설정 기능이 전혀 없음
+           관리자가 비밀번호를 잊으면 완전 잠김
+   - 수정방안 A: 관리자 로그인 폼에 "비밀번호 찾기" 링크 추가 + 재설정 모달
+   - 수정방안 B: Supabase 대시보드에서 직접 비밀번호 리셋 (임시 방안)
+
+5. 관리자 대시보드 Supabase 클라이언트 중복 생성
+   - 팀: 백엔드
+   - 위치: admin-dashboard.html:3772-3779
+   - 내용: supabase-config.js에서 이미 window.sbClient를 생성하는데
+           admin-dashboard.html에서 별도로 _sb 클라이언트를 또 생성함
+           → URL/키 이중 노출, 세션 동기화 문제 가능
+   - 수정: _sb 대신 window.sbClient 사용으로 통일
+           admin-dashboard.html 상단의 별도 Supabase 초기화 코드 제거
+
+
+[High] 빠른 시일 내 수정 (5건)
+================================================================
+
+6. 통역사 로그인에서 admin 계정이 통역사 대시보드로 이동
+   - 팀: PM / 백엔드
+   - 위치: client-auth.html:621-626
+   - 내용: 통역사 탭에서 admin 계정으로 로그인하면
+           role === 'admin'도 통역사 대시보드로 리다이렉트됨
+           → 관리자가 의도치 않게 통역사 대시보드에서 작업할 수 있음
+   - 수정: admin 역할은 admin-dashboard.html로, interpreter만 interpreter-dashboard.html로
+
+   현재 코드:
+   if (role === 'interpreter' || role === 'admin') {
+       location.href = 'interpreter-dashboard.html';
+   }
+
+   수정 코드:
+   if (role === 'admin') {
+       location.href = 'admin-dashboard.html';
+   } else if (role === 'interpreter') {
+       location.href = 'interpreter-dashboard.html';
+   }
+
+7. 비밀번호 재설정 모달 인라인 스타일 과다
+   - 팀: 프론트엔드
+   - 위치: client-auth.html:399-437
+   - 내용: 재설정 모달 전체가 인라인 style 속성으로 구성 (20개+)
+           모달 헤더, 입력 필드, 버튼 모두 인라인
+   - 수정: client-auth.css에 .reset-modal, .reset-modal__header,
+           .reset-modal__input, .reset-modal__btn 클래스 추가하고 교체
+
+8. 모바일 브랜드 패널 간격 과다
+   - 팀: 프론트엔드
+   - 위치: client-auth.css:37
+   - 내용: .brand-panel { gap: 100px; } → 모바일에서 과도한 여백 발생
+   - 수정: 미디어 쿼리 추가
+           @media (max-width: 580px) { .brand-panel { gap: 40px; } }
+
+9. 로그인 버튼 로딩 시 스피너 없음
+   - 팀: 프론트엔드
+   - 위치: client-auth.css:416-419
+   - 내용: .btn-submit-full.loading 상태에서 투명도만 변경 (opacity: 0.7)
+           사용자가 로딩 중인지 판단하기 어려움
+   - 수정: CSS 스피너 애니메이션 추가 또는 버튼 텍스트 옆에 로딩 아이콘 표시
+
+10. console.log에 인증 에러 정보 노출
+    - 팀: QA
+    - 위치: client-auth.html:568, 571
+    - 내용: Supabase 인증 실패 시 에러 메시지를 console.log로 출력
+            개발자 도구에서 DB 구조나 인증 시스템 정보 노출 가능
+    - 수정: console.log → 삭제 또는 production 환경에서 비활성화
+
+
+[Medium] UX 개선 (4건)
+================================================================
+
+11. 탭 전환 애니메이션 없음
+    - 팀: 디자이너
+    - 위치: client-auth.html (switchTab 함수), client-auth.css
+    - 내용: 고객사 → 통역사 → 회원가입 탭 전환 시 애니메이션 없이 즉시 변경
+    - 수정: .form-view-section에 opacity 트랜지션 추가
+            .form-view-section { opacity: 0; transition: opacity 0.3s ease; }
+            .form-view-section.active { opacity: 1; }
+
+12. 관리자 로그인 링크 발견 어려움
+    - 팀: 디자이너
+    - 위치: client-auth.html:207-211 (admin-link-wrapper)
+    - 내용: "🔒 시스템 관리자 로그인" 링크가 0.75rem, 회색으로 너무 작게 표시
+            관리자가 찾기 어려울 수 있음
+    - 수정방안 A: 폰트 크기 0.82rem으로 확대 + 좀 더 진한 색상
+    - 수정방안 B: 별도 /admin 경로로 분리 (장기적)
+
+13. 회원가입 후 자동 로그인 안 됨
+    - 팀: PM
+    - 위치: client-auth.html:717-729
+    - 내용: 가입 완료 후 "로그인해주세요" 메시지만 표시하고
+            2.5초 후 로그인 탭으로 전환 → 사용자가 다시 수동 로그인 필요
+    - 수정: 이메일 인증 OFF 상태라면 가입 직후 자동 로그인 처리
+            signUp 응답의 session을 활용하여 바로 대시보드 이동
+
+14. 브랜드 패널이 탭별로 동일한 메시지 표시
+    - 팀: 디자이너
+    - 위치: client-auth.html:80-120 (brand-body)
+    - 내용: 고객사/통역사/회원가입 어떤 탭이든 같은 브랜드 메시지 표시
+            통역사에게는 고객사 관련 내용이 관련 없음
+    - 수정: switchTab() 함수에서 탭별로 브랜드 메시지 변경
+            고객사: 현재 내용 유지
+            통역사: "유연한 스케줄, 투명한 수익, 검증된 기회"
+            회원가입: "200+ 통역사, 50+ 고객사가 함께합니다"
+
+
+[참고] 백엔드 추가 점검 사항
+================================================================
+
+▶ 01_회원 레코드 누락 시 처리
+  - 위치: client-auth.html:551-564
+  - 내용: 01_회원 조회 실패 시 role을 'customer'로 기본 설정
+          → 관리자/통역사도 고객사 대시보드로 이동할 수 있음
+  - 수정: 프로필 없으면 에러 메시지 표시, 로그인 차단
+
+▶ 회원가입 시 02_국내기업 insert 실패 무시됨
+  - 위치: supabase-config.js:94-108
+  - 내용: 기업 정보 저장 실패해도 error: null 반환
+          → 사용자는 가입 성공으로 인식하지만 기업 정보 누락
+  - 수정: companyError 발생 시 사용자에게 경고 메시지 표시
+
+▶ 데모 모드 토큰 위조 가능
+  - 위치: customer-dashboard.html:856, interpreter-app.js:37-39
+  - 내용: sessionStorage에 demoMode/demoToken 설정하면 인증 우회 가능
+  - 수정: 장기적으로 데모 모드 제거 또는 서버 검증 추가
+
+
+================================================================
+ 수정 예상 작업 시간
+================================================================
+
+  Critical 1~5: 약 30분~1시간
+  High 6~10: 약 1~2시간
+  Medium 11~14: 약 1~2시간
+  백엔드 참고사항: 약 1시간
+
+  총 예상: 3~5시간
+
+================================================================
+ 내일 작업 우선순위 추천
+================================================================
+
+  1순위: Critical 1~5 (보안/기능)
+  2순위: High 6, 10 (로직 수정, 간단)
+  3순위: High 7~9 (UI 개선)
+  4순위: Medium 11~14 (UX 개선)
