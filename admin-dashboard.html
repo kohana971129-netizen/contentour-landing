@@ -4095,14 +4095,7 @@
                                     <label>배정 통역사 *</label>
                                     <select id="qm-interpreter">
                                         <option value="">통역사 선택</option>
-                                        <option value="야마다 켄지">야마다 켄지 (일본어)</option>
-                                        <option value="James Kim">James Kim (영어)</option>
-                                        <option value="Hans Müller">Hans Müller (독일어)</option>
-                                        <option value="Nguyen Thu">Nguyen Thu (베트남어)</option>
-                                        <option value="스즈키 아키코">스즈키 아키코 (일본어)</option>
-                                        <option value="Franz Weber">Franz Weber (독일어)</option>
-                                        <option value="Sarah Park">Sarah Park (영어)</option>
-                                        <option value="Li Mei">Li Mei (중국어)</option>
+                                        <option value="김하나">김하나 (영어·일본어)</option>
                                     </select>
                                 </div>
                             </div>
@@ -4179,14 +4172,7 @@
                                     <label>배정 통역사 *</label>
                                     <select id="nc-interpreter" onchange="onNcInterpreterChange()">
                                         <option value="">통역사 선택</option>
-                                        <option value="야마다 켄지">야마다 켄지 (일본어)</option>
-                                        <option value="James Kim">James Kim (영어)</option>
-                                        <option value="Hans Müller">Hans Müller (독일어)</option>
-                                        <option value="Nguyen Thu">Nguyen Thu (베트남어)</option>
-                                        <option value="스즈키 아키코">스즈키 아키코 (일본어)</option>
-                                        <option value="Franz Weber">Franz Weber (독일어)</option>
-                                        <option value="Sarah Park">Sarah Park (영어)</option>
-                                        <option value="Li Mei">Li Mei (중국어)</option>
+                                        <option value="김하나">김하나 (영어·일본어)</option>
                                     </select>
                                 </div>
                                 <div class="qm-field">
@@ -4517,14 +4503,7 @@
                     <div class="mf"><label>담당 통역사 *</label>
                         <select id="m-interp">
                             <option value="">선택</option>
-                            <option>야마다 켄지</option>
-                            <option>James Kim</option>
-                            <option>Hans Müller</option>
-                            <option>Nguyen Thu</option>
-                            <option>스즈키 아키코</option>
-                            <option>Franz Weber</option>
-                            <option>Sarah Park</option>
-                            <option>Li Mei</option>
+                            <option>김하나</option>
                         </select>
                     </div>
                     <div class="mf"><label>언어</label>
@@ -4571,17 +4550,15 @@
     <script>
             // 샘플 데이터
             const inquiries = [
-                { id: 1, priority: 'high', company: '(주)태림산업', contact: '김철수', expo: 'Nano Tech 2026', lang: '일본어', start: '2026-02-05', end: '2026-02-07', type: '부스 상주', status: '파견확정', interpreter: '야마다 켄지', received: '2026-01-10', count: 1 },
-                { id: 2, priority: 'high', company: '(주)제이스텍', contact: '박영희', expo: 'Battery Show NA 2025', lang: '영어', start: '2025-10-07', end: '2025-10-09', type: '부스 상주', status: '매칭완료', interpreter: 'James Kim', received: '2025-09-12', count: 1 },
+                { id: 1, priority: 'high', company: '(주)태림산업', contact: '김철수', expo: 'Nano Tech 2026', lang: '일본어', start: '2026-02-05', end: '2026-02-07', type: '부스 상주', status: '파견확정', interpreter: '김하나', received: '2026-01-10', count: 1 },
+                { id: 2, priority: 'high', company: '(주)제이스텍', contact: '박영희', expo: 'Battery Show NA 2025', lang: '영어', start: '2025-10-07', end: '2025-10-09', type: '부스 상주', status: '매칭완료', interpreter: '김하나', received: '2025-09-12', count: 1 },
                 { id: 3, priority: 'high', company: '부산테크노파크', contact: '이민준', expo: 'MEDICA 2025', lang: '독일어', start: '2025-11-17', end: '2025-11-20', type: '미팅 동행', status: '검토중', interpreter: '', received: '2025-10-01', count: 2 },
-                { id: 4, priority: 'medium', company: '(주)하츠', contact: '정소연', expo: 'IFA Berlin 2025', lang: '독일어', start: '2025-09-04', end: '2025-09-08', type: '부스 상주', status: '완료', interpreter: 'Hans Müller', received: '2025-07-20', count: 1 },
+                { id: 4, priority: 'medium', company: '(주)하츠', contact: '정소연', expo: 'IFA Berlin 2025', lang: '독일어', start: '2025-09-04', end: '2025-09-08', type: '부스 상주', status: '완료', interpreter: '김하나', received: '2025-07-20', count: 1 },
                 { id: 5, priority: 'high', company: '(주)한국진공', contact: '최동원', expo: 'Battery Show Europe', lang: '독일어', start: '2025-06-03', end: '2025-06-05', type: '부스 상주', status: '검토중', interpreter: '', received: '2025-05-01', count: 1 },
             ];
 
             const interpreters = [
-                { id: 1, name: '야마다 켄지', initials: '야', color: '#1565c0', langs: ['일본어'], field: '제조·기계', rating: 4.9, cases: 28, available: true },
-                { id: 2, name: 'James Kim', initials: 'J', color: '#0277bd', langs: ['영어'], field: 'IT·반도체', rating: 4.8, cases: 35, available: true },
-                { id: 3, name: 'Hans Müller', initials: 'H', color: '#00695c', langs: ['독일어'], field: '의료·약품', rating: 4.7, cases: 19, available: false },
+                { id: 1, name: '김하나', initials: '하', color: '#1565c0', langs: ['영어', '일본어'], field: '전시회 통역·비즈매칭', rating: 4.9, cases: 28, available: true },
             ];
 
             function filterTable(query) {
@@ -4804,13 +4781,72 @@
                 if (supabase && dbId) {
                     try {
                         var updateData = { status: dbStatus };
-                        if (memo) updateData.admin_note = JSON.stringify({
+                        updateData.admin_note = JSON.stringify({
                             interpreter: selectedInterpreter.name,
                             interpreterId: selectedInterpreter.id,
-                            memo: memo
+                            memo: memo || ''
                         });
                         var { error } = await supabase.from('46_ITQ견적문의').update(updateData).eq('id', dbId);
                         if (error) console.error('배정 DB 저장 실패:', error);
+
+                        // 42_통역계약에 레코드 생성 (통역사 대시보드 연동)
+                        var d = currentAssignInquiry;
+                        var startDate = d.start || d.start_date;
+                        var endDate = d.end || d.end_date;
+                        var days = 1;
+                        if (startDate && endDate) {
+                            var diffMs = new Date(endDate) - new Date(startDate);
+                            days = Math.max(1, Math.round(diffMs / 86400000) + 1);
+                        }
+                        var langMap = { '영어':'KO-EN', '일본어':'KO-JA', '중국어':'KO-ZH', '독일어':'KO-DE', '베트남어':'KO-VI', '아랍어':'KO-AR', '태국어':'KO-TH' };
+                        var langPair = langMap[d.lang] || d.lang || '';
+                        var serviceMap = { '부스 상주':'BOOTH', '미팅 동행':'MEETING', '현장 운영':'ONSITE_OPS' };
+                        var serviceType = serviceMap[d.type] || 'OTHER';
+                        var dailyRate = 250000;
+                        var totalAmount = dailyRate * days;
+
+                        // 고객사 user_id 조회
+                        var customerId = null;
+                        if (d.email) {
+                            var { data: custUser } = await supabase.from('01_회원').select('id').eq('email', d.email).single();
+                            if (custUser) customerId = custUser.id;
+                        }
+
+                        // 중복 방지: 같은 문의에 대해 이미 계약이 있는지 확인
+                        var { data: existing } = await supabase.from('42_통역계약')
+                            .select('id')
+                            .eq('interpreter_id', selectedInterpreter.id)
+                            .eq('exhibition_name', d.expo)
+                            .eq('start_date', startDate)
+                            .limit(1);
+
+                        if (!existing || existing.length === 0) {
+                            var contractData = {
+                                order_id: typeof dbId === 'string' && dbId.includes('-') ? dbId : null,
+                                customer_id: customerId,
+                                interpreter_id: selectedInterpreter.id,
+                                exhibition_name: d.expo || '',
+                                client_company: d.company || '',
+                                venue: d.venue || d.location || '',
+                                start_date: startDate,
+                                end_date: endDate,
+                                working_days: days,
+                                language_pair: langPair,
+                                service_type: serviceType,
+                                daily_rate: dailyRate,
+                                total_amount: totalAmount,
+                                tax_amount: Math.round(totalAmount * 0.1),
+                                net_amount: totalAmount,
+                                status: 'pending'
+                            };
+                            var { data: newContract, error: cErr } = await supabase.from('42_통역계약').insert(contractData).select().single();
+                            if (cErr) console.error('통역계약 생성 실패:', cErr);
+                            else {
+                                console.log('통역계약 생성 성공:', newContract.id);
+                                // 견적문의에 계약 ID 연결
+                                await supabase.from('46_ITQ견적문의').update({ contract_id: newContract.id }).eq('id', dbId);
+                            }
+                        }
                     } catch (e) {
                         console.error('배정 DB 저장 예외:', e);
                     }
@@ -4830,28 +4866,26 @@
             // 데이터 (캘린더 / 상담일지)
             // ═══════════════════════════════════
             const IC = {
-                '야마다 켄지': '#1565c0', 'James Kim': '#0277bd', 'Hans Müller': '#00695c',
-                'Nguyen Thu': '#c62828', '스즈키 아키코': '#6a1b9a', 'Franz Weber': '#2e7d32',
-                'Sarah Park': '#4527a0', 'Li Mei': '#e65100'
+                '김하나': '#1565c0'
             };
             const TL = { booth: '부스 상주', meeting: '미팅 동행', ops: '현장 운영' };
 
             let schedules = [
-                { id: 1, date: '2026-03-03', expo: 'Battery Show NA', company: '(주)제이스텍', interp: 'James Kim', lang: '영어', type: 'booth', start: '09:00', end: '18:00' },
-                { id: 2, date: '2026-03-05', expo: 'Smart Expo 2026', company: '(주)에스엠테크', interp: 'James Kim', lang: '영어', type: 'ops', start: '10:00', end: '17:00' },
-                { id: 3, date: '2026-03-05', expo: 'Nano Tech Tokyo', company: '(주)태림산업', interp: '야마다 켄지', lang: '일본어', type: 'booth', start: '09:30', end: '18:00' },
-                { id: 4, date: '2026-03-07', expo: 'FOODEX Japan', company: '(주)글로벌푸드', interp: '스즈키 아키코', lang: '일본어', type: 'booth', start: '09:00', end: '17:30' },
-                { id: 5, date: '2026-03-10', expo: 'Intersolar Europe', company: '(주)케이에너지', interp: 'Franz Weber', lang: '독일어', type: 'booth', start: '10:00', end: '18:00' },
-                { id: 6, date: '2026-03-10', expo: 'Arab Health 2026', company: '(주)메디칼라이프', interp: 'Sarah Park', lang: '영어', type: 'meeting', start: '13:00', end: '17:00' },
-                { id: 7, date: '2026-03-12', expo: 'Intersolar Europe', company: '(주)케이에너지', interp: 'Franz Weber', lang: '독일어', type: 'booth', start: '09:30', end: '18:00' },
-                { id: 8, date: '2026-03-14', expo: 'Smart Expo 2026', company: '(주)에스엠테크', interp: 'James Kim', lang: '영어', type: 'booth', start: '09:00', end: '17:00' },
-                { id: 9, date: '2026-03-17', expo: 'AGRI WEEK Tokyo', company: '(주)이노텍', interp: '야마다 켄지', lang: '일본어', type: 'booth', start: '09:00', end: '18:00' },
-                { id: 10, date: '2026-03-17', expo: 'Compamed 2025', company: '(주)바이오메드', interp: 'Hans Müller', lang: '독일어', type: 'meeting', start: '11:00', end: '16:00' },
+                { id: 1, date: '2026-03-03', expo: 'Battery Show NA', company: '(주)제이스텍', interp: '김하나', lang: '영어', type: 'booth', start: '09:00', end: '18:00' },
+                { id: 2, date: '2026-03-05', expo: 'Smart Expo 2026', company: '(주)에스엠테크', interp: '김하나', lang: '영어', type: 'ops', start: '10:00', end: '17:00' },
+                { id: 3, date: '2026-03-05', expo: 'Nano Tech Tokyo', company: '(주)태림산업', interp: '김하나', lang: '일본어', type: 'booth', start: '09:30', end: '18:00' },
+                { id: 4, date: '2026-03-07', expo: 'FOODEX Japan', company: '(주)글로벌푸드', interp: '김하나', lang: '일본어', type: 'booth', start: '09:00', end: '17:30' },
+                { id: 5, date: '2026-03-10', expo: 'Intersolar Europe', company: '(주)케이에너지', interp: '김하나', lang: '독일어', type: 'booth', start: '10:00', end: '18:00' },
+                { id: 6, date: '2026-03-10', expo: 'Arab Health 2026', company: '(주)메디칼라이프', interp: '김하나', lang: '영어', type: 'meeting', start: '13:00', end: '17:00' },
+                { id: 7, date: '2026-03-12', expo: 'Intersolar Europe', company: '(주)케이에너지', interp: '김하나', lang: '독일어', type: 'booth', start: '09:30', end: '18:00' },
+                { id: 8, date: '2026-03-14', expo: 'Smart Expo 2026', company: '(주)에스엠테크', interp: '김하나', lang: '영어', type: 'booth', start: '09:00', end: '17:00' },
+                { id: 9, date: '2026-03-17', expo: 'AGRI WEEK Tokyo', company: '(주)이노텍', interp: '김하나', lang: '일본어', type: 'booth', start: '09:00', end: '18:00' },
+                { id: 10, date: '2026-03-17', expo: 'Compamed 2025', company: '(주)바이오메드', interp: '김하나', lang: '독일어', type: 'meeting', start: '11:00', end: '16:00' },
             ];
 
             const journals = [
                 {
-                    id: 1, expo: 'MEDICA 2025', company: '부산테크노파크', date: '2025-11-17', interp: 'Hans Müller', lang: '한국어↔독일어',
+                    id: 1, expo: 'MEDICA 2025', company: '부산테크노파크', date: '2025-11-17', interp: '김하나', lang: '한국어↔독일어',
                     status: 'reviewed', total: 12, contract: 2, sample: 4, follow: 5,
                     countries: ['🇩🇪 독일', '🇺🇸 미국', '🇫🇷 프랑스'],
                     summary: '오전에 독일·미국 바이어 8팀 방문. 의료기기 상담 집중 진행. 오후 프랑스 유통사 미팅 완료.',
@@ -4864,7 +4898,7 @@
                 },
 
                 {
-                    id: 2, expo: 'Battery Show NA 2025', company: '(주)제이스텍', date: '2025-10-07', interp: 'James Kim', lang: '한국어↔영어',
+                    id: 2, expo: 'Battery Show NA 2025', company: '(주)제이스텍', date: '2025-10-07', interp: '김하나', lang: '한국어↔영어',
                     status: 'reviewed', total: 9, contract: 1, sample: 3, follow: 4,
                     countries: ['🇺🇸 미국', '🇬🇧 영국', '🇨🇦 캐나다'],
                     summary: '배터리 셀 관련 미국 OEM사 2곳과 기술 미팅 완료. 영국 파트너사 신규 방문.',
@@ -4877,7 +4911,7 @@
                 },
 
                 {
-                    id: 3, expo: 'Smart Expo 2026', company: '(주)에스엠테크', date: '2026-03-05', interp: 'James Kim', lang: '한국어↔영어',
+                    id: 3, expo: 'Smart Expo 2026', company: '(주)에스엠테크', date: '2026-03-05', interp: '김하나', lang: '한국어↔영어',
                     status: 'new', total: 7, contract: 0, sample: 2, follow: 3,
                     countries: ['🇺🇸 미국', '🇯🇵 일본', '🇮🇳 인도'],
                     summary: '스마트 팩토리 솔루션 관련 바이어 7팀 방문. 인도 기업 2곳 집중 상담.',
@@ -5457,7 +5491,7 @@
                     journalSubmitted: true
                 },
                 {
-                    id: 5, interpreter: 'James Kim', interpColor: '#0277bd',
+                    id: 5, interpreter: '김하나', interpColor: '#0277bd',
                     expo: 'CES Asia 2025', client: '(주)SK하이닉스',
                     start: '2025-12-10', end: '2025-12-13', lang: '한↔영',
                     days: 4, rate: 150000, amount: 600000, tax: 19800,
@@ -5466,7 +5500,7 @@
                     journalSubmitted: true
                 },
                 {
-                    id: 6, interpreter: '야마다 켄지', interpColor: '#6a1b9a',
+                    id: 6, interpreter: '김하나', interpColor: '#6a1b9a',
                     expo: 'SEMICON Korea 2025', client: '(주)삼성전자',
                     start: '2025-12-03', end: '2025-12-05', lang: '한↔일',
                     days: 3, rate: 180000, amount: 540000, tax: 17820,
@@ -5803,7 +5837,7 @@
                 {
                     id:'CT-2025-001', expo:'MEDICA 2025',
                     client:{ name:'김영수', company:'메디컬코리아', color:'#1565c0' },
-                    interpreter:{ name:'Hans Mueller', color:'#ef6c00' },
+                    interpreter:{ name:'김하나', color:'#ef6c00' },
                     status:'in_progress', statusText:'서비스 진행중',
                     dates:{ start:'2025-11-10', end:'2025-11-13' },
                     lang:'한국어 ↔ 독일어', dailyRate:450000, days:4,
@@ -5824,7 +5858,7 @@
                 {
                     id:'CT-2025-002', expo:'Smart Expo 2026',
                     client:{ name:'이수진', company:'배터리코리아', color:'#2e7d32' },
-                    interpreter:{ name:'James Park', color:'#1565c0' },
+                    interpreter:{ name:'김하나', color:'#1565c0' },
                     status:'deposit_pay', statusText:'계약금 결제 대기',
                     dates:{ start:'2026-03-15', end:'2026-03-18' },
                     lang:'한국어 ↔ 영어', dailyRate:400000, days:4,
@@ -6865,17 +6899,17 @@
             // ═══ 채팅 모니터링 시스템 ═══
             // ═══════════════════════════════════════════════
             var chatmonChannels = [
-                { id:'medica2025', name:'MEDICA 2025', customer:'(주)샘플기업 (홍길동)', interpreter:'Hans Mueller', customerKey:'hans', interpreterKey:'hong', lang:'한국어↔독일어', status:'active' },
-                { id:'smartexpo2026', name:'Smart Expo 2026', customer:'(주)배터리코리아 (이수진)', interpreter:'James Kim', customerKey:'james', interpreterKey:'lee', lang:'한국어↔영어', status:'active' },
+                { id:'medica2025', name:'MEDICA 2025', customer:'(주)샘플기업 (홍길동)', interpreter:'김하나', customerKey:'hans', interpreterKey:'hong', lang:'한국어↔독일어', status:'active' },
+                { id:'smartexpo2026', name:'Smart Expo 2026', customer:'(주)배터리코리아 (이수진)', interpreter:'김하나', customerKey:'james', interpreterKey:'lee', lang:'한국어↔영어', status:'active' },
                 { id:'nanotech', name:'Nano Tech Tokyo', customer:'(주)나노텍 (박민수)', interpreter:'Yamada Kenji', customerKey:'yamada', interpreterKey:'park', lang:'한국어↔일본어', status:'active' },
-                { id:'foodex2026', name:'FOODEX 2026', customer:'한식글로벌㈜ (스즈키)', interpreter:'스즈키 아키코', customerKey:'suzuki', interpreterKey:'', lang:'한국어↔일본어', status:'pending' }
+                { id:'foodex2026', name:'FOODEX 2026', customer:'한식글로벌㈜ (스즈키)', interpreter:'김하나', customerKey:'suzuki', interpreterKey:'', lang:'한국어↔일본어', status:'pending' }
             ];
 
             // ── 기존 채팅 내역 시드 데이터 (고객사↔통역사 양측 대화) ──
             var chatmonSeedData = {
                 medica2025: [
-                    { role:'customer', text:'안녕하세요 Hans님, MEDICA 2025 관련하여 연락드립니다.', time:'10:30', date:'2025-11-10' },
-                    { role:'interpreter', text:'안녕하세요! MEDICA 2025 배정 통역사 Hans Muller입니다.', time:'10:35', date:'2025-11-10' },
+                    { role:'customer', text:'안녕하세요 김하나님, MEDICA 2025 관련하여 연락드립니다.', time:'10:30', date:'2025-11-10' },
+                    { role:'interpreter', text:'안녕하세요! MEDICA 2025 배정 통역사 김하나입니다.', time:'10:35', date:'2025-11-10' },
                     { role:'interpreter', text:'전시 관련 자료를 미리 보내주시면 전문 용어 준비에 도움이 됩니다.', time:'10:36', date:'2025-11-10' },
                     { role:'customer', text:'제품 카탈로그와 용어집을 정리해서 보내드릴게요.', time:'10:45', date:'2025-11-10' },
                     { role:'interpreter', text:'감사합니다. 의료기기 관련 독일어 용어는 제가 별도로 정리해두겠습니다.', time:'10:47', date:'2025-11-10' },
@@ -6886,7 +6920,7 @@
                     { role:'interpreter', text:'완벽합니다! 자료 잘 확인하겠습니다. 추가로 미팅 일정표도 있으시면 공유 부탁드립니다.', time:'11:42', date:'2025-11-10' }
                 ],
                 smartexpo2026: [
-                    { role:'interpreter', text:'안녕하세요, Smart Expo 2026 담당 통역사 James Kim입니다.', time:'14:00', date:'2026-02-20' },
+                    { role:'interpreter', text:'안녕하세요, Smart Expo 2026 담당 통역사 김하나입니다.', time:'14:00', date:'2026-02-20' },
                     { role:'customer', text:'안녕하세요! 잘 부탁드립니다.', time:'14:15', date:'2026-02-20' },
                     { role:'interpreter', text:'전시 준비 관련해서 궁금한 사항 있으시면 편하게 말씀해주세요.', time:'14:16', date:'2026-02-20' },
                     { role:'customer', text:'감사합니다. 배터리 분야 전문 용어가 많은데 괜찮으실까요?', time:'14:30', date:'2026-02-20' },

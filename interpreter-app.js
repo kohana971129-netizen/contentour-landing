@@ -49,7 +49,9 @@ const InterpreterApp = {
                 this.renderUserInfo();
 
                 // 4) 대시보드 홈 데이터 로드
+                console.log('[InterpreterApp] currentUser.id:', this.currentUser?.id);
                 await this.loadDashboardHome();
+                console.log('[InterpreterApp] 로드 완료 - assignments:', this._assignments?.length, 'contracts:', this._contracts?.length);
 
                 // 5) 뷰 전환 훅 등록
                 this.hookViewSwitcher();
