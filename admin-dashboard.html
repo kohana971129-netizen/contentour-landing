@@ -3633,6 +3633,9 @@
                 <span class="sb-item__icon">🏢</span> 고객사 관리
             </a>
             <div class="sb-label">설정</div>
+            <a class="sb-item" id="sb-system-settings" onclick="switchTab('system-settings')">
+                <span class="sb-item__icon">⚙️</span> 시스템 설정
+            </a>
             <a class="sb-item" id="sb-format-perm" onclick="switchTab('format-perm')">
                 <span class="sb-item__icon">🔐</span> 양식 권한 관리
             </a>
@@ -3831,6 +3834,128 @@
                         </div>
                         <div style="padding:24px 28px;" id="appModalBody"></div>
                         <div style="padding:16px 28px;border-top:1.5px solid var(--g200);display:flex;gap:10px;justify-content:flex-end;" id="appModalActions"></div>
+                    </div>
+                </div>
+
+                <!-- ══ 시스템 설정 탭 ══ -->
+                <div class="view" id="view-system-settings">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                        <!-- 서비스 설정 -->
+                        <div style="background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);overflow:hidden;">
+                            <div style="background:linear-gradient(135deg,var(--navy),#1a3d7a);padding:18px 22px;color:#fff;">
+                                <div style="font-size:1rem;font-weight:800;">🏢 서비스 설정</div>
+                                <div style="font-size:0.75rem;opacity:0.7;margin-top:4px;">의뢰 유형별 단가 및 운영 기본값을 설정합니다.</div>
+                            </div>
+                            <div style="padding:22px;">
+                                <!-- 의뢰 유형 구분 -->
+                                <div style="margin-bottom:20px;padding:14px 16px;background:#f0f5ff;border-radius:10px;border:1px solid #dbeafe;">
+                                    <div style="font-size:0.82rem;font-weight:700;color:#1e40af;margin-bottom:8px;">📌 의뢰 유형 안내</div>
+                                    <div style="font-size:0.78rem;color:#3b82f6;line-height:1.7;">
+                                        <b>직접 수주</b> — 콘텐츄어가 수주한 프로젝트 (기관 용역 등). 콘텐츄어가 단가를 설정합니다.<br>
+                                        <b>플랫폼 중개</b> — 고객사가 통역사에게 직접 의뢰. 통역사 등록 단가가 적용되며, 콘텐츄어는 중개 수수료만 수취합니다.
+                                    </div>
+                                </div>
+
+                                <div style="font-size:0.82rem;font-weight:700;color:#374151;margin-bottom:10px;">직접 수주 설정</div>
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:0.82rem;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">기본 통역 단가 (원/일)</label>
+                                    <input type="number" id="set-daily-rate" value="250000" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:inherit;">
+                                    <div style="font-size:0.72rem;color:#9ca3af;margin-top:4px;">콘텐츄어 직접 수주 시 적용되는 기본 단가입니다.</div>
+                                </div>
+
+                                <div style="font-size:0.82rem;font-weight:700;color:#374151;margin-bottom:10px;margin-top:20px;">플랫폼 중개 설정</div>
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:0.82rem;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">중개 수수료율 (%)</label>
+                                    <input type="number" id="set-fee-rate" value="10" min="0" max="100" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:inherit;">
+                                    <div style="font-size:0.72rem;color:#9ca3af;margin-top:4px;">고객사 직접 의뢰 시 통역사 단가에 부과되는 수수료입니다.</div>
+                                </div>
+                                <div style="margin-bottom:16px;padding:10px 14px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">
+                                    <div style="font-size:0.78rem;color:#6b7280;line-height:1.6;">
+                                        💡 통역사 등록 단가: 통역사가 마이페이지에서 직접 설정<br>
+                                        💡 고객사 결제 금액 = 통역사 단가 + 중개 수수료
+                                    </div>
+                                </div>
+
+                                <div style="font-size:0.82rem;font-weight:700;color:#374151;margin-bottom:10px;margin-top:20px;">공통 설정</div>
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:0.82rem;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">결제 모드</label>
+                                    <select id="set-payment-mode" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:inherit;background:#fff;cursor:pointer;">
+                                        <option value="test">🧪 테스트 모드 (실결제 X)</option>
+                                        <option value="live">💳 실결제 모드</option>
+                                    </select>
+                                </div>
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:0.82rem;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">계약서 자동 생성</label>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="set-auto-contract" checked style="width:18px;height:18px;accent-color:#1565c0;">
+                                        <span style="font-size:0.85rem;color:#4b5563;">배정 확정 시 계약서 자동 생성</span>
+                                    </label>
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                    <div>
+                                        <label style="font-size:0.82rem;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">기본 근무 시작</label>
+                                        <input type="time" id="set-work-start" value="09:00" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:inherit;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.82rem;font-weight:600;color:#6b7280;display:block;margin-bottom:6px;">기본 근무 종료</label>
+                                        <input type="time" id="set-work-end" value="18:00" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:inherit;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 알림 설정 -->
+                        <div style="background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);overflow:hidden;">
+                            <div style="background:linear-gradient(135deg,#0d47a1,#1976d2);padding:18px 22px;color:#fff;">
+                                <div style="font-size:1rem;font-weight:800;">🔔 알림 설정</div>
+                                <div style="font-size:0.75rem;opacity:0.7;margin-top:4px;">알림 발송 채널 및 조건을 설정합니다.</div>
+                            </div>
+                            <div style="padding:22px;">
+                                <div style="font-size:0.82rem;font-weight:700;color:#374151;margin-bottom:12px;">이메일 알림</div>
+                                <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="set-notify-inquiry" checked style="width:18px;height:18px;accent-color:#1565c0;">
+                                        <span style="font-size:0.85rem;color:#4b5563;">📋 새 문의 접수 시 알림</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="set-notify-assign" checked style="width:18px;height:18px;accent-color:#1565c0;">
+                                        <span style="font-size:0.85rem;color:#4b5563;">🤝 통역사 배정 완료 시 알림</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="set-notify-payment" checked style="width:18px;height:18px;accent-color:#1565c0;">
+                                        <span style="font-size:0.85rem;color:#4b5563;">💰 결제 완료 시 알림</span>
+                                    </label>
+                                </div>
+
+                                <div style="font-size:0.82rem;font-weight:700;color:#374151;margin-bottom:12px;">카카오 알림톡</div>
+                                <div style="margin-bottom:20px;">
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="set-notify-kakao" disabled style="width:18px;height:18px;">
+                                        <span style="font-size:0.85rem;color:#9ca3af;">카카오 알림톡 발송</span>
+                                    </label>
+                                    <div style="margin-top:6px;padding:8px 12px;background:#fef3c7;border-radius:8px;font-size:0.78rem;color:#92400e;">⚠️ 사업자 인증 완료 후 활성화됩니다 (Solapi 연동 대기)</div>
+                                </div>
+
+                                <div style="font-size:0.82rem;font-weight:700;color:#374151;margin-bottom:12px;">실시간 대시보드 알림</div>
+                                <div style="margin-bottom:20px;">
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                                        <input type="checkbox" id="set-notify-realtime" checked style="width:18px;height:18px;accent-color:#1565c0;">
+                                        <span style="font-size:0.85rem;color:#4b5563;">🔔 실시간 푸시 알림 (대시보드 내)</span>
+                                    </label>
+                                </div>
+
+                                <div style="margin-bottom:16px;">
+                                    <label style="font-size:0.82rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">관리자 알림 수신 이메일</label>
+                                    <input type="email" id="set-admin-email" value="cosmos@contentour.co.kr" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.88rem;font-family:inherit;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 저장 버튼 -->
+                    <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
+                        <button onclick="loadSystemSettings()" style="padding:10px 24px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:#6b7280;">초기화</button>
+                        <button onclick="saveSystemSettings()" id="btnSaveSettings" style="padding:10px 24px;border:none;border-radius:10px;background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(21,101,192,0.3);">설정 저장</button>
                     </div>
                 </div>
 
@@ -4644,10 +4769,11 @@
                 if (tab === 'format-perm') title = '양식 권한 관리';
                 if (tab === 'applications') { title = '통역사 지원서 관리'; loadApplications(); }
                 if (tab === 'customers') { title = '고객사 관리'; custInit(); }
+                if (tab === 'system-settings') { title = '시스템 설정'; loadSystemSettings(); }
                 document.getElementById('pageTitle').textContent = title;
 
                 // Sidebar highlighting
-                ['sb-inquiries', 'sb-contracts', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-format-perm', 'sb-applications', 'sb-customers'].forEach(id => {
+                ['sb-inquiries', 'sb-contracts', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-format-perm', 'sb-applications', 'sb-customers', 'sb-system-settings'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
@@ -4667,7 +4793,7 @@
                 }
 
                 if (tab === 'journal' && typeof renderJList === 'function') { loadInterpreterJournals(); visibleJournals = journals.slice(); renderJList(); updateJournalKPI(); }
-                if (tab === 'contracts') ctAdminInit();
+                if (tab === 'contracts') { if (ctAdminContracts.length === 0) loadContractsFromDB(); else ctAdminInit(); }
                 if (tab === 'settlement') stlAdminInit();
                 if (tab === 'chatmon') { renderChatmonChannels(); renderChatmonStats(); }
             }
@@ -4802,7 +4928,12 @@
                         var langPair = langMap[d.lang] || d.lang || '';
                         var serviceMap = { '부스 상주':'BOOTH', '미팅 동행':'MEETING', '현장 운영':'ONSITE_OPS' };
                         var serviceType = serviceMap[d.type] || 'OTHER';
+                        // 통역사 등록 단가 조회 (플랫폼 중개 시 통역사 단가 사용)
                         var dailyRate = 250000;
+                        try {
+                            var { data: interpProfile } = await supabase.from('40_통역사프로필').select('base_rate').eq('user_id', selectedInterpreter.id).single();
+                            if (interpProfile && interpProfile.base_rate) dailyRate = interpProfile.base_rate;
+                        } catch(e) { console.warn('통역사 단가 조회 실패, 기본값 사용:', e); }
                         var totalAmount = dailyRate * days;
 
                         // 고객사 user_id 조회
@@ -5833,92 +5964,112 @@
             }
 
             // ══════════════ 계약·결제 관리 시스템 ══════════════
-            const ctAdminContracts = [
-                {
-                    id:'CT-2025-001', expo:'MEDICA 2025',
-                    client:{ name:'김영수', company:'메디컬코리아', color:'#1565c0' },
-                    interpreter:{ name:'김하나', color:'#ef6c00' },
-                    status:'in_progress', statusText:'서비스 진행중',
-                    dates:{ start:'2025-11-10', end:'2025-11-13' },
-                    lang:'한국어 ↔ 독일어', dailyRate:450000, days:4,
-                    subtotal:1800000, platformFee:180000, total:1980000,
-                    deposit:198000, balance:1782000, depositPaid:true, balancePaid:false,
-                    timeline:[
-                        { step:'견적 발송', date:'2025-09-15', done:true },
-                        { step:'견적 확인', date:'2025-09-16', done:true },
-                        { step:'계약 체결', date:'2025-09-17', done:true },
-                        { step:'계약금 결제', date:'2025-09-18', done:true },
-                        { step:'관리자 승인', date:'2025-09-19', done:true },
-                        { step:'서비스 진행', date:'2025-11-10', done:false, active:true },
-                        { step:'잔금 결제', date:'', done:false },
-                        { step:'완료 확인', date:'', done:false },
-                        { step:'정산 완료', date:'', done:false }
-                    ]
-                },
-                {
-                    id:'CT-2025-002', expo:'Smart Expo 2026',
-                    client:{ name:'이수진', company:'배터리코리아', color:'#2e7d32' },
-                    interpreter:{ name:'김하나', color:'#1565c0' },
-                    status:'deposit_pay', statusText:'계약금 결제 대기',
-                    dates:{ start:'2026-03-15', end:'2026-03-18' },
-                    lang:'한국어 ↔ 영어', dailyRate:400000, days:4,
-                    subtotal:1600000, platformFee:160000, total:1760000,
-                    deposit:176000, balance:1584000, depositPaid:false, balancePaid:false,
-                    timeline:[
-                        { step:'견적 발송', date:'2025-12-01', done:true },
-                        { step:'견적 확인', date:'2025-12-02', done:true },
-                        { step:'계약 체결', date:'2025-12-03', done:true },
-                        { step:'계약금 결제', date:'', done:false, active:true },
-                        { step:'관리자 승인', date:'', done:false },
-                        { step:'서비스 진행', date:'', done:false },
-                        { step:'잔금 결제', date:'', done:false },
-                        { step:'완료 확인', date:'', done:false },
-                        { step:'정산 완료', date:'', done:false }
-                    ]
-                },
-                {
-                    id:'CT-2025-003', expo:'Nano Tech Tokyo',
-                    client:{ name:'박민수', company:'나노텍', color:'#c62828' },
-                    interpreter:{ name:'Yamada Kenji', color:'#ad1457' },
-                    status:'balance_pay', statusText:'잔금 결제 대기',
-                    dates:{ start:'2026-01-28', end:'2026-01-30' },
-                    lang:'한국어 ↔ 일본어', dailyRate:420000, days:3,
-                    subtotal:1260000, platformFee:126000, total:1386000,
-                    deposit:138600, balance:1247400, depositPaid:true, balancePaid:false,
-                    timeline:[
-                        { step:'견적 발송', date:'2025-10-20', done:true },
-                        { step:'견적 확인', date:'2025-10-21', done:true },
-                        { step:'계약 체결', date:'2025-10-22', done:true },
-                        { step:'계약금 결제', date:'2025-10-23', done:true },
-                        { step:'관리자 승인', date:'2025-10-24', done:true },
-                        { step:'서비스 진행', date:'2026-01-28', done:true },
-                        { step:'잔금 결제', date:'', done:false, active:true },
-                        { step:'완료 확인', date:'', done:false },
-                        { step:'정산 완료', date:'', done:false }
-                    ]
-                },
-                {
-                    id:'CT-2024-004', expo:'FOODEX Japan 2025',
-                    client:{ name:'최다은', company:'푸드엑스코리아', color:'#6a1b9a' },
-                    interpreter:{ name:'Suzuki Mika', color:'#00695c' },
-                    status:'settled', statusText:'정산 완료',
-                    dates:{ start:'2025-03-11', end:'2025-03-14' },
-                    lang:'한국어 ↔ 일본어', dailyRate:400000, days:4,
-                    subtotal:1600000, platformFee:160000, total:1760000,
-                    deposit:176000, balance:1584000, depositPaid:true, balancePaid:true,
-                    timeline:[
-                        { step:'견적 발송', date:'2024-12-10', done:true },
-                        { step:'견적 확인', date:'2024-12-11', done:true },
-                        { step:'계약 체결', date:'2024-12-12', done:true },
-                        { step:'계약금 결제', date:'2024-12-13', done:true },
-                        { step:'관리자 승인', date:'2024-12-14', done:true },
-                        { step:'서비스 진행', date:'2025-03-11', done:true },
-                        { step:'잔금 결제', date:'2025-03-15', done:true },
-                        { step:'완료 확인', date:'2025-03-16', done:true },
-                        { step:'정산 완료', date:'2025-03-20', done:true }
-                    ]
+            let ctAdminContracts = [];
+
+            // DB 상태 → UI 상태 매핑
+            function mapContractStatus(c) {
+                var s = c.status;
+                if (s === 'completed') return { status:'settled', statusText:'완료' };
+                if (s === 'deposit_paid') {
+                    if (c.balance_status === 'paid') return { status:'settled', statusText:'정산 완료' };
+                    var now = new Date();
+                    var end = new Date(c.end_date + 'T23:59:59');
+                    if (now > end) return { status:'balance_pay', statusText:'잔금 결제 대기' };
+                    return { status:'in_progress', statusText:'서비스 진행중' };
                 }
-            ];
+                if (c.contract_signed && c.deposit_status === 'pending') return { status:'deposit_pay', statusText:'계약금 결제 대기' };
+                if (c.interpreter_accepted === true && !c.contract_signed) return { status:'contract_sign', statusText:'계약 체결 대기' };
+                if (c.interpreter_accepted === null && s === 'pending') return { status:'quote_review', statusText:'배정 확인 대기' };
+                return { status:'quote_review', statusText:'검토중' };
+            }
+
+            function buildTimeline(c, uiStatus) {
+                var steps = [
+                    { step:'배정 요청', date: c.created_at ? c.created_at.split('T')[0] : '', done: true },
+                    { step:'통역사 수락', date: c.accepted_at ? c.accepted_at.split('T')[0] : '', done: c.interpreter_accepted === true },
+                    { step:'계약 체결', date: c.contract_signed_at ? c.contract_signed_at.split('T')[0] : '', done: !!c.contract_signed },
+                    { step:'계약금 결제', date: c.deposit_paid_at ? c.deposit_paid_at.split('T')[0] : '', done: c.deposit_status === 'paid' },
+                    { step:'서비스 진행', date: c.start_date || '', done: uiStatus === 'in_progress' || uiStatus === 'balance_pay' || uiStatus === 'settled' },
+                    { step:'잔금 결제', date: c.balance_paid_at ? c.balance_paid_at.split('T')[0] : '', done: c.balance_status === 'paid' },
+                    { step:'완료', date: c.status === 'completed' ? (c.updated_at || '').split('T')[0] : '', done: c.status === 'completed' }
+                ];
+                // active 표시: 첫 번째 미완료 단계
+                var activeSet = false;
+                steps.forEach(function(st) { if (!st.done && !activeSet) { st.active = true; activeSet = true; } });
+                return steps;
+            }
+
+            async function loadContractsFromDB() {
+                if (!supabase) return;
+                try {
+                    var { data, error } = await supabase
+                        .from('42_통역계약')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    if (error) { console.error('계약 로드 실패:', error); return; }
+                    if (!data || data.length === 0) { console.log('계약 데이터 없음'); return; }
+
+                    // 통역사 이름 조회
+                    var interpIds = [...new Set(data.filter(function(c){return c.interpreter_id;}).map(function(c){return c.interpreter_id;}))];
+                    var interpNames = {};
+                    if (interpIds.length > 0) {
+                        var { data: profiles } = await supabase.from('40_통역사프로필').select('user_id, display_name').in('user_id', interpIds);
+                        if (profiles) profiles.forEach(function(p){ interpNames[p.user_id] = p.display_name; });
+                    }
+                    // 고객사 이름 조회
+                    var custIds = [...new Set(data.filter(function(c){return c.customer_id;}).map(function(c){return c.customer_id;}))];
+                    var custNames = {};
+                    if (custIds.length > 0) {
+                        var { data: members } = await supabase.from('01_회원').select('id, name').in('id', custIds);
+                        if (members) members.forEach(function(m){ custNames[m.id] = m.name; });
+                    }
+
+                    var colors = ['#1565c0','#0277bd','#00695c','#c62828','#6a1b9a','#2e7d32','#4527a0','#e65100','#ad1457'];
+                    ctAdminContracts = data.map(function(c, i) {
+                        var ui = mapContractStatus(c);
+                        var days = c.working_days || 1;
+                        var subtotal = c.daily_rate * days;
+                        var fee = c.tax_amount || Math.round(subtotal * 0.1);
+                        var total = c.total_amount || (subtotal + fee);
+                        var deposit = c.deposit_amount || Math.round(total * 0.1);
+                        var balance = c.balance_amount || (total - deposit);
+
+                        return {
+                            id: c.id,
+                            expo: c.exhibition_name || '-',
+                            client: {
+                                name: custNames[c.customer_id] || c.client_company || '-',
+                                company: c.client_company || '-',
+                                color: colors[i % colors.length]
+                            },
+                            interpreter: {
+                                name: interpNames[c.interpreter_id] || '미배정',
+                                color: colors[(i + 3) % colors.length]
+                            },
+                            status: ui.status,
+                            statusText: ui.statusText,
+                            dates: { start: c.start_date, end: c.end_date },
+                            lang: c.language_pair || '-',
+                            dailyRate: c.daily_rate,
+                            days: days,
+                            subtotal: subtotal,
+                            platformFee: fee,
+                            total: total,
+                            deposit: deposit,
+                            balance: balance,
+                            depositPaid: c.deposit_status === 'paid',
+                            balancePaid: c.balance_status === 'paid',
+                            timeline: buildTimeline(c, ui.status),
+                            _raw: c
+                        };
+                    });
+
+                    console.log('[Contracts] DB 로드 완료:', ctAdminContracts.length, '건');
+                    ctAdminInit();
+                } catch (e) {
+                    console.error('계약 로드 예외:', e);
+                }
+            }
 
             let ctAdminFilter = 'all';
 
@@ -7392,6 +7543,13 @@
             } catch (e) {
                 console.warn('캘린더 DB 로드 실패:', e);
             }
+
+            // 3) 계약·결제 데이터 로드
+            try {
+                await loadContractsFromDB();
+            } catch (e) {
+                console.warn('계약 DB 로드 실패:', e);
+            }
         })();
 
         // ── 전역 관리자 프로필 ──
@@ -7550,6 +7708,76 @@
                 btn.disabled = false;
                 btn.textContent = '변경하기';
             }
+        }
+
+        // ══════════════ 시스템 설정 ══════════════
+        async function loadSystemSettings() {
+            if (!supabase) return;
+            try {
+                var { data, error } = await supabase.from('90_시스템설정').select('key, value');
+                if (error) { console.error('설정 로드 실패:', error); return; }
+                var s = {};
+                (data || []).forEach(function(r) { s[r.key] = r.value; });
+
+                if (s.default_daily_rate) document.getElementById('set-daily-rate').value = s.default_daily_rate;
+                if (s.platform_fee_rate) document.getElementById('set-fee-rate').value = s.platform_fee_rate;
+                if (s.payment_mode) document.getElementById('set-payment-mode').value = s.payment_mode;
+                if (s.auto_contract !== undefined) document.getElementById('set-auto-contract').checked = s.auto_contract;
+                if (s.default_work_start) document.getElementById('set-work-start').value = s.default_work_start;
+                if (s.default_work_end) document.getElementById('set-work-end').value = s.default_work_end;
+                if (s.notify_email_new_inquiry !== undefined) document.getElementById('set-notify-inquiry').checked = s.notify_email_new_inquiry;
+                if (s.notify_email_assignment !== undefined) document.getElementById('set-notify-assign').checked = s.notify_email_assignment;
+                if (s.notify_email_payment !== undefined) document.getElementById('set-notify-payment').checked = s.notify_email_payment;
+                if (s.notify_kakao_enabled !== undefined) document.getElementById('set-notify-kakao').checked = s.notify_kakao_enabled;
+                if (s.notify_dashboard_realtime !== undefined) document.getElementById('set-notify-realtime').checked = s.notify_dashboard_realtime;
+                if (s.notify_admin_email) document.getElementById('set-admin-email').value = s.notify_admin_email;
+
+                console.log('[Settings] 로드 완료:', Object.keys(s).length, '건');
+            } catch (e) {
+                console.error('설정 로드 예외:', e);
+            }
+        }
+
+        async function saveSystemSettings() {
+            if (!supabase) return;
+            var btn = document.getElementById('btnSaveSettings');
+            btn.disabled = true; btn.textContent = '저장 중...';
+
+            var settings = {
+                default_daily_rate: Number(document.getElementById('set-daily-rate').value),
+                platform_fee_rate: Number(document.getElementById('set-fee-rate').value),
+                payment_mode: document.getElementById('set-payment-mode').value,
+                auto_contract: document.getElementById('set-auto-contract').checked,
+                default_work_start: document.getElementById('set-work-start').value,
+                default_work_end: document.getElementById('set-work-end').value,
+                notify_email_new_inquiry: document.getElementById('set-notify-inquiry').checked,
+                notify_email_assignment: document.getElementById('set-notify-assign').checked,
+                notify_email_payment: document.getElementById('set-notify-payment').checked,
+                notify_kakao_enabled: document.getElementById('set-notify-kakao').checked,
+                notify_dashboard_realtime: document.getElementById('set-notify-realtime').checked,
+                notify_admin_email: document.getElementById('set-admin-email').value
+            };
+
+            try {
+                var userId = null;
+                try { var { data: { user } } = await supabase.auth.getUser(); userId = user?.id; } catch(e) {}
+
+                var promises = Object.keys(settings).map(function(key) {
+                    return supabase.from('90_시스템설정').update({
+                        value: JSON.stringify(settings[key]),
+                        updated_at: new Date().toISOString(),
+                        updated_by: userId
+                    }).eq('key', key);
+                });
+
+                await Promise.all(promises);
+                showToast('✅ 시스템 설정이 저장되었습니다.');
+                console.log('[Settings] 저장 완료');
+            } catch (e) {
+                console.error('설정 저장 실패:', e);
+                showToast('⚠️ 설정 저장에 실패했습니다.');
+            }
+            btn.disabled = false; btn.textContent = '설정 저장';
         }
 
         async function adminLogout() {
