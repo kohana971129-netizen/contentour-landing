@@ -849,7 +849,7 @@
                     }).join('') +
                 '</div>' +
                 '<div class="interp-panel__more">' +
-                    '<a href="' + d.link + '" target="_blank" rel="noopener">' + d.country + ' 통역사 전체 보기 &rarr;</a>' +
+                    '<a href="interpreters.html?country=' + code + '">' + d.country + ' 통역사 전체 보기 &rarr;</a>' +
                 '</div>';
 
             // 약간의 딜레이 후 열기 (DOM 업데이트 반영)
@@ -1077,6 +1077,57 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeIpModal();
         });
+
+        // ═══ DB 리뷰 별점을 패널 카드에 반영 ═══
+        (async function loadMainPageRatings() {
+            if (!window.sbClient) return;
+            try {
+                var { data: reviews } = await window.sbClient
+                    .from('49_통역사리뷰')
+                    .select('interpreter_id, rating_expertise, rating_manner, rating_communication, rating_overall');
+                if (!reviews || reviews.length === 0) return;
+
+                var ratingMap = {};
+                reviews.forEach(function(r) {
+                    if (!ratingMap[r.interpreter_id]) ratingMap[r.interpreter_id] = { total: 0, count: 0 };
+                    ratingMap[r.interpreter_id].total += (r.rating_expertise + r.rating_manner + r.rating_communication + r.rating_overall) / 4;
+                    ratingMap[r.interpreter_id].count++;
+                });
+
+                var interpIds = Object.keys(ratingMap);
+                var { data: members } = await window.sbClient.from('01_회원').select('id, name').in('id', interpIds);
+                if (!members) return;
+
+                // 이름-별점 매핑 저장 (패널 열릴 때 사용)
+                window._dbRatings = {};
+                members.forEach(function(m) {
+                    var r = ratingMap[m.id];
+                    if (r) window._dbRatings[m.name] = { score: (r.total / r.count).toFixed(1), count: r.count };
+                });
+            } catch(e) {}
+        })();
+
+        // 패널 열린 후 별점 배지 삽입 (MutationObserver)
+        var _panelObserver = new MutationObserver(function() {
+            if (!window._dbRatings) return;
+            document.querySelectorAll('.ip-card__name').forEach(function(el) {
+                var name = el.textContent.trim();
+                var r = window._dbRatings[name];
+                if (!r) return;
+                var card = el.closest('.ip-card');
+                if (!card || card.querySelector('.db-rating-inline')) return;
+                var stars = '';
+                for (var i = 0; i < 5; i++) stars += i < Math.round(parseFloat(r.score)) ? '★' : '☆';
+                var badge = document.createElement('div');
+                badge.className = 'db-rating-inline';
+                badge.style.cssText = 'display:flex;align-items:center;gap:4px;padding:6px 10px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border-radius:8px;margin:6px 0;border:1px solid #ffe0b2;font-size:0.78rem;';
+                badge.innerHTML = '<span style="color:#f57c00;letter-spacing:1px;">' + stars + '</span><b style="color:#f57c00;">' + r.score + '</b><span style="color:#999;">(' + r.count + '개 리뷰)</span>';
+                var intro = card.querySelector('.ip-card__intro');
+                if (intro) intro.parentNode.insertBefore(badge, intro);
+            });
+        });
+        _panelObserver.observe(document.getElementById('interpPanel'), { childList: true, subtree: true });
+        _panelObserver.observe(document.getElementById('interpPanel2'), { childList: true, subtree: true });
 
     </script>
 </body>
