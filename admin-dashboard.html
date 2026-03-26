@@ -3800,7 +3800,13 @@
 
                 <!-- ══ 통역사 관리 탭 ══ -->
                 <div class="view" id="view-interpreters">
-                    <div class="interp-list-grid" id="interpGrid"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy);">통역사 경력 인증 관리</h2>
+                        <button onclick="loadInterpVerifyList()" style="padding:6px 14px;background:var(--g100);border:1px solid var(--g200);border-radius:8px;font-size:0.78rem;cursor:pointer;">새로고침</button>
+                    </div>
+                    <div id="interpVerifyList" style="display:grid;gap:12px;">
+                        <div style="text-align:center;padding:40px;color:var(--g400);">로딩 중...</div>
+                    </div>
                 </div>
 
                 <!-- ══ 지원서 관리 탭 ══ -->
@@ -4786,6 +4792,7 @@
                     if (addBtn) addBtn.style.display = 'none';
                 }
 
+                if (tab === 'interpreters') loadInterpVerifyList();
                 if (tab === 'journal' && typeof renderJList === 'function') { loadInterpreterJournals(); visibleJournals = journals.slice(); renderJList(); updateJournalKPI(); }
                 if (tab === 'contracts') { if (ctAdminContracts.length === 0) loadContractsFromDB(); else ctAdminInit(); }
                 if (tab === 'settlement') stlAdminInit();
@@ -6870,6 +6877,104 @@
                 var badge = document.getElementById('fabBadge');
                 badge.textContent = count;
                 badge.style.display = count > 0 ? '' : 'none';
+            }
+
+            // ══════════════ 통역사 경력 인증 관리 ══════════════
+            async function loadInterpVerifyList() {
+                var el = document.getElementById('interpVerifyList');
+                if (!el || !supabase) { el.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">DB 연결 필요</div>'; return; }
+                try {
+                    var { data, error } = await supabase.from('40_통역사프로필').select('*, user:user_id (name, email)').order('created_at', { ascending: false });
+                    if (error) throw error;
+                    if (!data || data.length === 0) { el.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">등록된 통역사가 없습니다.</div>'; return; }
+
+                    el.innerHTML = data.map(function(p) {
+                        var docs = p.verification_docs || [];
+                        var statusBadge = p.is_verified
+                            ? '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">✅ 인증완료</span>'
+                            : (docs.length > 0
+                                ? '<span style="background:#fff3e0;color:#e65100;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">📋 서류검토 필요</span>'
+                                : '<span style="background:#f5f5f5;color:#999;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">⏳ 미제출</span>');
+
+                        var docsHtml = docs.length > 0
+                            ? docs.map(function(d) {
+                                return '<a href="#" onclick="event.preventDefault();viewInterpDoc(\'' + d.path + '\')" style="font-size:0.72rem;color:#1565c0;text-decoration:none;margin-right:8px;">📄 ' + d.name + '</a>';
+                            }).join('')
+                            : '<span style="font-size:0.72rem;color:#999;">제출된 서류 없음</span>';
+
+                        var actionsHtml = '';
+                        if (!p.is_verified && docs.length > 0) {
+                            actionsHtml = '<button onclick="verifyInterpreter(\'' + p.user_id + '\')" style="padding:5px 12px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;margin-right:6px;">✅ 인증 승인</button>' +
+                                '<button onclick="rejectVerification(\'' + p.user_id + '\')" style="padding:5px 12px;background:#fff;color:#c62828;border:1px solid #c62828;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">❌ 반려</button>';
+                        } else if (p.is_verified) {
+                            actionsHtml = '<button onclick="revokeVerification(\'' + p.user_id + '\')" style="padding:5px 12px;background:#fff;color:#999;border:1px solid #ddd;border-radius:6px;font-size:0.72rem;cursor:pointer;">인증 해제</button>';
+                        }
+
+                        return '<div style="background:#fff;border:1px solid #e8ecf2;border-radius:12px;padding:18px 20px;">' +
+                            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+                                '<div><span style="font-weight:800;color:#1a2a4a;">' + (p.display_name || p.user?.name || '통역사') + '</span>' +
+                                '<span style="font-size:0.75rem;color:#999;margin-left:8px;">' + (p.user?.email || '') + '</span></div>' +
+                                statusBadge +
+                            '</div>' +
+                            '<div style="display:flex;gap:16px;font-size:0.78rem;color:#666;margin-bottom:10px;">' +
+                                '<span>경력: <b>' + (p.experience_years || 0) + '년</b></span>' +
+                                '<span>기본단가: <b>₩' + (p.base_rate || 0).toLocaleString() + '</b></span>' +
+                                '<span>언어: <b>' + (p.languages || []).join(', ') + '</b></span>' +
+                            '</div>' +
+                            '<div style="margin-bottom:10px;">' + docsHtml + '</div>' +
+                            '<div>' + actionsHtml + '</div>' +
+                        '</div>';
+                    }).join('');
+                } catch(e) {
+                    console.error('통역사 목록 로드 실패:', e);
+                    el.innerHTML = '<div style="text-align:center;padding:40px;color:#c62828;">로드 실패: ' + e.message + '</div>';
+                }
+            }
+
+            async function viewInterpDoc(path) {
+                if (!supabase) return;
+                var { data } = await supabase.storage.from('interpreter-docs').createSignedUrl(path, 300);
+                if (data && data.signedUrl) window.open(data.signedUrl, '_blank');
+                else showToast('⚠️ 서류를 열 수 없습니다.');
+            }
+
+            async function verifyInterpreter(userId) {
+                if (!supabase) return;
+                var { error } = await supabase.from('40_통역사프로필').update({
+                    is_verified: true,
+                    verified_at: new Date().toISOString(),
+                    verified_by: (await ContentourAuth.getUserProfile()).id,
+                    verification_note: '관리자 경력 인증 승인'
+                }).eq('user_id', userId);
+                if (error) { showToast('⚠️ 인증 실패: ' + error.message); return; }
+                showToast('✅ 통역사 경력이 인증되었습니다.');
+                loadInterpVerifyList();
+            }
+
+            async function rejectVerification(userId) {
+                var reason = prompt('반려 사유를 입력하세요:');
+                if (!reason) return;
+                if (!supabase) return;
+                var { error } = await supabase.from('40_통역사프로필').update({
+                    is_verified: false,
+                    verification_note: '반려: ' + reason
+                }).eq('user_id', userId);
+                if (error) { showToast('⚠️ 반려 처리 실패'); return; }
+                showToast('❌ 통역사 인증이 반려되었습니다.');
+                loadInterpVerifyList();
+            }
+
+            async function revokeVerification(userId) {
+                if (!confirm('인증을 해제하시겠습니까?')) return;
+                if (!supabase) return;
+                await supabase.from('40_통역사프로필').update({
+                    is_verified: false,
+                    verified_at: null,
+                    verified_by: null,
+                    verification_note: '관리자에 의해 인증 해제됨'
+                }).eq('user_id', userId);
+                showToast('인증이 해제되었습니다.');
+                loadInterpVerifyList();
             }
 
             // ══════════════ 양식 권한 관리 ══════════════

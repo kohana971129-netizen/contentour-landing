@@ -1063,6 +1063,20 @@
                                     <label class="pf-label">자기소개</label>
                                     <textarea id="pf-intro" rows="4" class="pf-input pf-textarea">전시/박람회 전문 통역사입니다. KOTRA, 부산테크노파크 등 다수의 해외전시 지원사업 경험이 있으며, 바이어 상담 통역에 강점이 있습니다.</textarea>
                                 </div>
+
+                                <!-- 경력 인증 -->
+                                <div class="pf-field">
+                                    <label class="pf-label">경력 인증</label>
+                                    <div id="pfVerifyStatus" style="padding:10px 14px;border-radius:10px;font-size:0.78rem;margin-bottom:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc02;">
+                                        ⏳ 인증 대기 — 경력 증빙 서류를 제출하면 관리자 검토 후 인증됩니다.
+                                    </div>
+                                    <div style="font-size:0.75rem;color:#888;margin-bottom:8px;">경력증명서, 자격증, 포트폴리오 등을 업로드하세요. (PDF, 이미지 / 최대 10MB)</div>
+                                    <div id="pfDocList" style="margin-bottom:8px;"></div>
+                                    <div style="display:flex;gap:8px;">
+                                        <input type="file" id="pfDocInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="uploadVerifyDoc(this)">
+                                        <button onclick="document.getElementById('pfDocInput').click()" style="padding:8px 16px;background:#e3f0ff;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">📎 서류 업로드</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1532,6 +1546,7 @@
                     loadSavedRates();
                     updateRatePreview();
                     loadProfilePhoto();
+                    loadVerifyDocs();
                 }
             } else {
                 showToast('📌 "' + getViewName(view) + '" 페이지는 준비 중입니다.');
@@ -4643,6 +4658,105 @@
                 console.error('사진 업로드 실패:', e);
                 showToast('⚠️ 사진 업로드 실패: ' + (e.message || ''));
             }
+        }
+
+        // 증빙 서류 업로드
+        async function uploadVerifyDoc(input) {
+            var file = input.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) { showToast('⚠️ 파일 크기는 10MB 이하로 업로드해주세요.'); return; }
+
+            var sb = window.sbClient;
+            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
+
+            var userId = InterpreterApp.currentUser.id;
+            var ext = file.name.split('.').pop();
+            var fileName = 'doc_' + Date.now() + '.' + ext;
+            var filePath = userId + '/' + fileName;
+
+            showToast('📎 서류 업로드 중...');
+            try {
+                var { data, error } = await sb.storage.from('interpreter-docs').upload(filePath, file);
+                if (error) throw error;
+
+                // DB에 서류 정보 추가
+                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs').eq('user_id', userId).single();
+                var docs = (profile && profile.verification_docs) || [];
+                docs.push({ name: file.name, path: filePath, uploadedAt: new Date().toISOString() });
+
+                await sb.from('40_통역사프로필').update({
+                    verification_docs: docs,
+                    is_verified: false
+                }).eq('user_id', userId);
+
+                loadVerifyDocs();
+                showToast('✅ 서류가 업로드되었습니다. 관리자 검토 후 인증됩니다.');
+                input.value = '';
+            } catch(e) {
+                console.error('서류 업로드 실패:', e);
+                showToast('⚠️ 업로드 실패: ' + (e.message || ''));
+            }
+        }
+
+        async function loadVerifyDocs() {
+            var sb = window.sbClient;
+            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
+            try {
+                var userId = InterpreterApp.currentUser.id;
+                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs, is_verified, verified_at, verification_note').eq('user_id', userId).single();
+                if (!profile) return;
+
+                // 인증 상태 표시
+                var statusEl = document.getElementById('pfVerifyStatus');
+                if (profile.is_verified) {
+                    statusEl.style.background = '#e8f5e9';
+                    statusEl.style.color = '#2e7d32';
+                    statusEl.style.border = '1px solid #c8e6c9';
+                    statusEl.innerHTML = '✅ 인증 완료 — ' + (profile.verified_at ? profile.verified_at.split('T')[0] : '') + ' 관리자 승인';
+                    if (profile.verification_note) statusEl.innerHTML += '<br><span style="font-size:0.72rem;color:#666;">메모: ' + profile.verification_note + '</span>';
+                } else {
+                    statusEl.style.background = '#fff3e0';
+                    statusEl.style.color = '#e65100';
+                    statusEl.style.border = '1px solid #ffcc02';
+                    statusEl.innerHTML = '⏳ 인증 대기 — 경력 증빙 서류를 제출하면 관리자 검토 후 인증됩니다.';
+                }
+
+                // 서류 목록 표시
+                var docs = profile.verification_docs || [];
+                var listEl = document.getElementById('pfDocList');
+                if (docs.length === 0) {
+                    listEl.innerHTML = '<div style="font-size:0.75rem;color:#999;padding:8px 0;">제출된 서류가 없습니다.</div>';
+                } else {
+                    listEl.innerHTML = docs.map(function(d, i) {
+                        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f8f9fb;border-radius:8px;margin-bottom:4px;font-size:0.78rem;">' +
+                            '<span>📄 ' + d.name + '</span>' +
+                            '<span style="color:#999;font-size:0.7rem;">' + (d.uploadedAt ? d.uploadedAt.split('T')[0] : '') + '</span>' +
+                            '<button onclick="deleteVerifyDoc(' + i + ')" style="margin-left:auto;background:none;border:none;color:#c62828;font-size:0.72rem;cursor:pointer;">삭제</button>' +
+                        '</div>';
+                    }).join('');
+                }
+            } catch(e) {}
+        }
+
+        async function deleteVerifyDoc(idx) {
+            var sb = window.sbClient;
+            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
+            try {
+                var userId = InterpreterApp.currentUser.id;
+                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs').eq('user_id', userId).single();
+                var docs = (profile && profile.verification_docs) || [];
+                if (!docs[idx]) return;
+
+                // Storage에서 삭제
+                await sb.storage.from('interpreter-docs').remove([docs[idx].path]);
+
+                // DB에서 제거
+                docs.splice(idx, 1);
+                await sb.from('40_통역사프로필').update({ verification_docs: docs }).eq('user_id', userId);
+
+                loadVerifyDocs();
+                showToast('서류가 삭제되었습니다.');
+            } catch(e) { showToast('⚠️ 삭제 실패'); }
         }
 
         // 프로필 사진 로드
