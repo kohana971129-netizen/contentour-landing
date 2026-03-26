@@ -294,9 +294,6 @@
                 <div class="j-field"><label>전시회명 *</label>
                   <select id="j-expo" onchange="updateExpoInfo()">
                     <option value="">선택해주세요</option>
-                    <option value="MEDICA 2025|독일 뒤셀도르프|2025.11.17~11.20|김하나|한국어↔독일어">MEDICA 2025</option>
-                    <option value="Battery Show NA 2025|미국 디트로이트|2025.10.07~10.09|김하나|한국어↔영어">Battery Show NA 2025</option>
-                    <option value="AGRI WEEK Tokyo 2025|일본 도쿄|2025.10.01~10.03|김하나|한국어↔일본어">AGRI WEEK Tokyo 2025</option>
                   </select>
                 </div>
                 <div class="j-field"><label>작성 날짜 *</label><input type="date" id="j-date"></div>
@@ -1026,14 +1023,7 @@
     }
 
     // 캘린더 데이터
-    const schData = [
-      { id:1, expo:'MEDICA 2025', location:'독일 뒤셀도르프', start:'2025-11-17', end:'2025-11-20', lang:'한국어↔독일어', type:'부스 상주', interp:'김하나', interpColor:'#00695c', status:'파견확정', statusCls:'st-confirmed2' },
-      { id:2, expo:'Battery Show NA 2025', location:'미국 디트로이트', start:'2025-10-07', end:'2025-10-09', lang:'한국어↔영어', type:'미팅 동행', interp:'김하나', interpColor:'#0277bd', status:'파견확정', statusCls:'st-confirmed2' },
-      { id:3, expo:'Smart Expo 2026', location:'서울 COEX', start:'2026-03-05', end:'2026-03-07', lang:'한국어↔영어', type:'부스 상주', interp:'김하나', interpColor:'#0277bd', status:'매칭완료', statusCls:'st-matched2' },
-      { id:4, expo:'Nano Tech Tokyo', location:'일본 도쿄', start:'2026-03-05', end:'2026-03-08', lang:'한국어↔일본어', type:'부스 상주', interp:'김하나', interpColor:'#1565c0', status:'매칭완료', statusCls:'st-matched2' },
-      { id:5, expo:'FOODEX Japan 2026', location:'일본 도쿄', start:'2026-04-08', end:'2026-04-11', lang:'한국어↔일본어', type:'부스 상주', interp:'김하나', interpColor:'#6a1b9a', status:'검토중', statusCls:'st-review2' },
-      { id:6, expo:'Intersolar Europe', location:'독일 뮌헨', start:'2026-06-03', end:'2026-06-05', lang:'한국어↔독일어', type:'부스 상주', interp:'미배정', interpColor:'#9daec8', status:'검토중', statusCls:'st-review2' },
-    ];
+    const schData = [];
     const schStatusColor = { '파견확정':'#1565c0', '매칭완료':'#f57c00', '검토중':'#9daec8' };
     // ══════════════ Google Calendar 연동 ══════════════
     function addToGoogleCal(title, location, start, end, time, lang, client) {
@@ -1205,12 +1195,7 @@
     function filterList(q) { document.querySelectorAll('.inquiry-card').forEach(c => { c.style.display = c.dataset.title.toLowerCase().includes(q.toLowerCase()) ? 'flex' : 'none'; }); }
     function filterStatus(s) { document.querySelectorAll('.inquiry-card').forEach(c => { c.style.display = (!s || c.dataset.status === s) ? 'flex' : 'none'; }); }
 
-    const modalData = [
-      { title:'MEDICA 2025 — 독일 뒤셀도르프', status:'파견 확정', statusClass:'sb-confirmed', rows:[['전시회명','MEDICA 2025'],['개최지','독일 뒤셀도르프'],['기간','2025.11.17 – 11.20'],['언어','한국어 ↔ 독일어'],['통역 형태','부스 상주 + 미팅 동행'],['인원','2명'],['배정 통역사','김하나 외 1명'],['접수일','2025.10.05']] },
-      { title:'The Battery Show NA 2025 — 미국 디트로이트', status:'매칭 완료', statusClass:'sb-matched', rows:[['전시회명','The Battery Show NA 2025'],['개최지','미국 디트로이트'],['기간','2025.10.07 – 10.09'],['언어','한국어 ↔ 영어'],['통역 형태','부스 상주'],['인원','1명'],['배정 통역사','김하나'],['접수일','2025.09.12']] },
-      { title:'AGRI WEEK Tokyo 2025 — 일본 도쿄', status:'검토 중', statusClass:'sb-pending', rows:[['전시회명','AGRI WEEK Tokyo 2025'],['개최지','일본 도쿄'],['기간','2025.10.01 – 10.03'],['언어','한국어 ↔ 일본어'],['통역 형태','부스 상주'],['인원','1명'],['배정 통역사','매칭 검토 중'],['접수일','2025.09.01']] },
-      { title:'Beautycare Expo 2024 — 베트남 하노이', status:'완료', statusClass:'sb-complete', rows:[['전시회명','Beautycare Expo 2024'],['개최지','베트남 하노이'],['기간','2024.04.18 – 04.20'],['언어','한국어 ↔ 베트남어'],['통역 형태','부스 상주'],['인원','1명'],['접수일','2024.03.20']] },
-    ];
+    const modalData = [];
     function openModal(idx) {
       const d = modalData[idx];
       document.getElementById('modalTitle').textContent = d.title;
@@ -1221,11 +1206,7 @@
     function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalDirect(); }
     function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('open'); }
 
-    const journalData = [
-      { id:1, expo:'MEDICA 2025', date:'2025-11-17', location:'독일 뒤셀도르프', period:'2025.11.17~11.20', interp:'김하나', lang:'한국어↔독일어', status:'complete', total:12, contract:2, sample:4, follow:5, summary:'독일 및 미국 바이어 다수 방문. 오전에는 의료기기 관련 상담 집중 진행.' },
-      { id:2, expo:'MEDICA 2025', date:'2025-11-18', location:'독일 뒤셀도르프', period:'2025.11.17~11.20', interp:'김하나', lang:'한국어↔독일어', status:'complete', total:9, contract:1, sample:3, follow:4, summary:'2일차. 영국·프랑스 바이어 신규 방문.' },
-      { id:3, expo:'Battery Show NA 2025', date:'2025-10-07', location:'미국 디트로이트', period:'2025.10.07~10.09', interp:'김하나', lang:'한국어↔영어', status:'draft', total:0, contract:0, sample:0, follow:0, summary:'' },
-    ];
+    const journalData = [];
     let activeJournalId = null;
     const starValues = { term:0, manner:0, comm:0, overall:0 };
 
@@ -1934,40 +1915,9 @@
     }
 
     // ===== Chat System =====
-    let chatContacts = [
-      { id:'hans', name:'김하나', expo:'MEDICA 2025', lang:'한국어↔독일어', color:'#00695c', online:true, unread:1 },
-      { id:'james', name:'김하나', expo:'Smart Expo 2026', lang:'한국어↔영어', color:'#0277bd', online:true, unread:1 },
-      { id:'yamada', name:'김하나', expo:'Nano Tech Tokyo', lang:'한국어↔일본어', color:'#1565c0', online:false, unread:0 },
-      { id:'suzuki', name:'김하나', expo:'FOODEX Japan 2026', lang:'한국어↔일본어', color:'#6a1b9a', online:false, unread:0 },
-    ];
+    let chatContacts = [];
 
-    let chatMessages = {
-      hans: [
-        { from:'them', text:'안녕하세요, MEDICA 2025 배정 통역사 김하나입니다.', time:'10:30', date:'2025-11-10' },
-        { from:'them', text:'전시 관련 자료를 미리 보내주시면 전문 용어 준비에 도움이 됩니다.', time:'10:31', date:'2025-11-10' },
-        { from:'me', text:'안녕하세요! 반갑습니다. 제품 카탈로그와 용어집을 정리해서 보내드릴게요.', time:'10:45', date:'2025-11-10' },
-        { from:'them', text:'감사합니다. 의료기기 관련 독일어 용어는 제가 별도로 정리해두겠습니다.', time:'10:47', date:'2025-11-10' },
-        { from:'me', text:'좋습니다! 혹시 부스 배치도도 필요하신가요?', time:'11:02', date:'2025-11-10' },
-        { from:'them', text:'네, 부스 배치도와 함께 주요 미팅 스케줄도 공유해주시면 사전에 준비하겠습니다.', time:'11:05', date:'2025-11-10' },
-        { from:'them', text:'참고로 독일어 의료기기 전문 용어집을 정리해봤습니다.', time:'11:20', date:'2025-11-10', files:[{name:'MEDICA_의료기기_독일어_용어집.pdf', size:2458624, dataUrl:'data:application/pdf;base64,', type:'application/pdf'}] },
-        { from:'me', text:'감사합니다! 저도 제품 카탈로그 보내드립니다.', time:'11:35', date:'2025-11-10', files:[{name:'부산테크노파크_제품카탈로그_2025.pdf', size:5242880, dataUrl:'data:application/pdf;base64,', type:'application/pdf'},{name:'부스_배치도_MEDICA2025.png', size:1048576, dataUrl:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPj/HwADBwIAMCbHYQAAAABJRU5ErkJggg==', type:'image/png'}] },
-        { from:'them', text:'완벽합니다! 자료 잘 확인하겠습니다. 추가로 미팅 일정표도 있으시면 공유 부탁드립니다.', time:'11:42', date:'2025-11-10', unread:true },
-      ],
-      james: [
-        { from:'them', text:'안녕하세요, Smart Expo 2026 담당 통역사 김하나입니다.', time:'14:00', date:'2026-02-20' },
-        { from:'me', text:'안녕하세요! 잘 부탁드립니다.', time:'14:15', date:'2026-02-20' },
-        { from:'them', text:'전시 준비 관련해서 궁금한 사항 있으시면 편하게 말씀해주세요.', time:'14:16', date:'2026-02-20' },
-        { from:'me', text:'감사합니다. 배터리 분야 전문 용어가 많은데 괜찮으실까요?', time:'14:30', date:'2026-02-20' },
-        { from:'them', text:'물론입니다! 배터리/에너지 분야 통역 경험이 다수 있습니다. 관련 자료 공유해주시면 더욱 꼼꼼히 준비하겠습니다.', time:'14:32', date:'2026-02-20' },
-        { from:'them', text:'', time:'14:40', date:'2026-02-20', files:[{name:'Battery_Industry_Glossary_EN-KR.xlsx', size:389120, dataUrl:'data:application/vnd.ms-excel;base64,', type:'application/vnd.ms-excel'}], unread:true },
-      ],
-      yamada: [
-        { from:'them', text:'こんにちは。Nano Tech Tokyo 担当の山田健二です。한국어도 가능합니다.', time:'09:00', date:'2026-02-15' },
-        { from:'me', text:'안녕하세요 김하나님! 한국어로 소통 가능하시군요, 감사합니다.', time:'09:20', date:'2026-02-15' },
-        { from:'them', text:'네, 전시장 안내와 일본 바이어 응대도 도와드리겠습니다.', time:'09:22', date:'2026-02-15' },
-      ],
-      suzuki: [],
-    };
+    let chatMessages = {};
 
     // ── 채팅 localStorage 저장/복원 ──
     const CHAT_STORAGE_KEY = 'contentour_chat_messages';
@@ -3147,88 +3097,7 @@
     });
 
     // ===== Contract & Payment System =====
-    let contracts = [
-      {
-        id: 'CT-2025-001', expo: 'MEDICA 2025',
-        interpreter: { name: '김하나', id: 'hans' },
-        status: 'in_progress', statusText: '서비스 진행중',
-        dates: { start: '2025-11-10', end: '2025-11-13' },
-        lang: '한국어 ↔ 독일어', dailyRate: 450000, days: 4,
-        subtotal: 1800000, platformFee: 180000, total: 1980000,
-        deposit: 198000, balance: 1782000, depositPaid: true, balancePaid: false,
-        timeline: [
-          { step: '견적 발송', date: '2025-09-15', done: true },
-          { step: '견적 확인', date: '2025-09-16', done: true },
-          { step: '계약 체결', date: '2025-09-17', done: true },
-          { step: '계약금 결제', date: '2025-09-18', done: true },
-          { step: '관리자 승인', date: '2025-09-19', done: true },
-          { step: '서비스 진행', date: '2025-11-10', done: false, active: true },
-          { step: '잔금 결제', date: '', done: false },
-          { step: '완료 확인', date: '', done: false },
-          { step: '정산 완료', date: '', done: false }
-        ]
-      },
-      {
-        id: 'CT-2025-002', expo: 'Smart Expo 2026',
-        interpreter: { name: '김하나', id: 'james' },
-        status: 'deposit_pay', statusText: '계약금 결제 대기',
-        dates: { start: '2026-03-15', end: '2026-03-18' },
-        lang: '한국어 ↔ 영어', dailyRate: 400000, days: 4,
-        subtotal: 1600000, platformFee: 160000, total: 1760000,
-        deposit: 176000, balance: 1584000, depositPaid: false, balancePaid: false,
-        timeline: [
-          { step: '견적 발송', date: '2025-12-01', done: true },
-          { step: '견적 확인', date: '2025-12-02', done: true },
-          { step: '계약 체결', date: '2025-12-03', done: true },
-          { step: '계약금 결제', date: '', done: false, active: true },
-          { step: '관리자 승인', date: '', done: false },
-          { step: '서비스 진행', date: '', done: false },
-          { step: '잔금 결제', date: '', done: false },
-          { step: '완료 확인', date: '', done: false },
-          { step: '정산 완료', date: '', done: false }
-        ]
-      },
-      {
-        id: 'CT-2025-003', expo: 'Nano Tech Tokyo',
-        interpreter: { name: 'Yamada Kenji', id: 'yamada' },
-        status: 'balance_pay', statusText: '잔금 결제 대기',
-        dates: { start: '2026-01-28', end: '2026-01-30' },
-        lang: '한국어 ↔ 일본어', dailyRate: 420000, days: 3,
-        subtotal: 1260000, platformFee: 126000, total: 1386000,
-        deposit: 138600, balance: 1247400, depositPaid: true, balancePaid: false,
-        timeline: [
-          { step: '견적 발송', date: '2025-10-20', done: true },
-          { step: '견적 확인', date: '2025-10-21', done: true },
-          { step: '계약 체결', date: '2025-10-22', done: true },
-          { step: '계약금 결제', date: '2025-10-23', done: true },
-          { step: '관리자 승인', date: '2025-10-24', done: true },
-          { step: '서비스 진행', date: '2026-01-28', done: true },
-          { step: '잔금 결제', date: '', done: false, active: true },
-          { step: '완료 확인', date: '', done: false },
-          { step: '정산 완료', date: '', done: false }
-        ]
-      },
-      {
-        id: 'CT-2024-004', expo: 'FOODEX Japan 2025',
-        interpreter: { name: 'Suzuki Mika', id: 'suzuki' },
-        status: 'settled', statusText: '정산 완료',
-        dates: { start: '2025-03-11', end: '2025-03-14' },
-        lang: '한국어 ↔ 일본어', dailyRate: 400000, days: 4,
-        subtotal: 1600000, platformFee: 160000, total: 1760000,
-        deposit: 176000, balance: 1584000, depositPaid: true, balancePaid: true,
-        timeline: [
-          { step: '견적 발송', date: '2024-12-10', done: true },
-          { step: '견적 확인', date: '2024-12-11', done: true },
-          { step: '계약 체결', date: '2024-12-12', done: true },
-          { step: '계약금 결제', date: '2024-12-13', done: true },
-          { step: '관리자 승인', date: '2024-12-14', done: true },
-          { step: '서비스 진행', date: '2025-03-11', done: true },
-          { step: '잔금 결제', date: '2025-03-15', done: true },
-          { step: '완료 확인', date: '2025-03-16', done: true },
-          { step: '정산 완료', date: '2025-03-20', done: true }
-        ]
-      }
-    ];
+    let contracts = [];
 
     let contractFilter = 'all';
 
@@ -4101,8 +3970,14 @@
         if (result && result.success) {
           pmRenderVirtualResult();
         } else {
-          showContractToast(result?.error || '가상계좌 발급에 실패했습니다.');
-          pmRenderVirtualForm();
+          var errMsg = result?.error || '';
+          if (errMsg.indexOf('취소') > -1 || errMsg.indexOf('cancel') > -1 || errMsg.indexOf('CANCEL') > -1) {
+            closePaymentModal();
+            showContractToast('결제가 취소되었습니다.');
+          } else {
+            showContractToast(errMsg || '가상계좌 발급에 실패했습니다.');
+            pmRenderVirtualForm();
+          }
         }
         return;
       }
@@ -4229,8 +4104,14 @@
           const method = currentPayment.method || 'card';
           payResult = await PaymentData.requestPaymentWithMethod(c, type, method);
           if (!payResult || !payResult.success) {
-              showContractToast(payResult?.error || '결제에 실패했습니다. 다시 시도해주세요.');
-              pmGoStep2(); // 다시 입력 화면으로
+              var errMsg = payResult?.error || '';
+              if (errMsg.indexOf('취소') > -1 || errMsg.indexOf('cancel') > -1 || errMsg.indexOf('CANCEL') > -1 || errMsg === 'USER_CANCEL') {
+                  closePaymentModal();
+                  showContractToast('결제가 취소되었습니다.');
+              } else {
+                  showContractToast(errMsg || '결제에 실패했습니다. 다시 시도해주세요.');
+                  pmGoStep2();
+              }
               return false;
           }
       }
@@ -4455,14 +4336,7 @@
         var saved = localStorage.getItem(LOY_STORAGE_KEY);
         if (saved) return JSON.parse(saved);
       } catch(e) {}
-      return { balance:15000, totalEarned:35000, totalUsed:20000, completedContracts:2, totalSpent:3560000, history:[
-        { id:1, date:'2025-09-20', type:'earn', pts:10000, desc:'첫 계약 체결 보너스', event:'first_contract' },
-        { id:2, date:'2025-11-14', type:'earn', pts:3600, desc:'MEDICA 2025 계약 적립 (1%)', event:'contract_earn' },
-        { id:3, date:'2025-11-15', type:'earn', pts:2000, desc:'MEDICA 2025 상담일지 제출 보너스', event:'journal_submit' },
-        { id:4, date:'2025-11-16', type:'earn', pts:1000, desc:'김하나 통역사 리뷰 작성', event:'review' },
-        { id:5, date:'2025-12-05', type:'use', pts:20000, desc:'Smart Expo 2026 수수료 차감 사용', event:'fee_deduct' },
-        { id:6, date:'2025-12-05', type:'earn', pts:18400, desc:'Smart Expo 2026 계약 적립 (1%)', event:'contract_earn' }
-      ]};
+      return { balance:0, totalEarned:0, totalUsed:0, completedContracts:0, totalSpent:0, history:[] };
     }
     function loySaveData(data) {
       try { localStorage.setItem(LOY_STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
