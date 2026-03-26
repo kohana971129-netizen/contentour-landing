@@ -261,186 +261,8 @@
                         <button class="filter-chip" onclick="filterAssign('declined', this)">❌ 거절됨 <span class="chip-count">1</span></button>
                     </div>
 
-                    <!-- 배정 카드 리스트 -->
+                    <!-- 배정 카드 리스트 (DB에서 동적 로딩) -->
                     <div class="assign-card-list" id="assignCardList">
-
-                        <!-- 카드 1: 신규 -->
-                        <div class="assign-card" data-status="new" data-id="1">
-                            <div class="assign-card__status-bar status-bar-new"></div>
-                            <div class="assign-card__body">
-                                <div class="assign-card__top">
-                                    <div>
-                                        <div class="assign-card__title">SIMTOS 2026 - 국제제조기술전시회</div>
-                                        <div class="assign-card__company">🏢 (주)삼성전자 | 요청일: 2026.03.04</div>
-                                    </div>
-                                    <span class="assign-card__status-badge asb-new">신규 요청</span>
-                                </div>
-                                <div class="assign-card__details">
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📅</span> 2026.03.15 (일) ~ 03.18 (수)
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📍</span> COEX 전관, 서울
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">⏰</span> 10:00 ~ 17:00
-                                    </div>
-                                </div>
-                                <div class="assign-card__tags">
-                                    <span class="assign-tag tag-lang">한국어 ↔ 영어</span>
-                                    <span class="assign-tag tag-field">제조/산업</span>
-                                    <span class="assign-tag tag-type">전시 부스 통역</span>
-                                </div>
-                                <div class="assign-card__note">
-                                    <div class="assign-card__note-label">관리자 메모</div>
-                                    반도체·디스플레이 장비 관련 기술 통역이 필요합니다. 사전 자료가 제공될 예정이며, 전일 오리엔테이션 참석 부탁드립니다.
-                                </div>
-                                <div class="assign-card__footer" style="margin-top:16px;">
-                                    <button class="btn-detail" onclick="openAssignModal(1)">상세 보기</button>
-                                    <button class="btn-accept-lg" onclick="handleCardAccept(this)">수락하기</button>
-                                    <button class="btn-decline-lg" onclick="handleCardDecline(this)">거절</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 카드 2: 신규 -->
-                        <div class="assign-card" data-status="new" data-id="2">
-                            <div class="assign-card__status-bar status-bar-new"></div>
-                            <div class="assign-card__body">
-                                <div class="assign-card__top">
-                                    <div>
-                                        <div class="assign-card__title">Seoul Food 2026 - 서울국제식품산업전</div>
-                                        <div class="assign-card__company">🏢 CJ프레시웨이 | 요청일: 2026.03.05</div>
-                                    </div>
-                                    <span class="assign-card__status-badge asb-new">신규 요청</span>
-                                </div>
-                                <div class="assign-card__details">
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📅</span> 2026.03.22 (일) ~ 03.24 (화)
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📍</span> aT센터, 서울
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">⏰</span> 09:30 ~ 17:30
-                                    </div>
-                                </div>
-                                <div class="assign-card__tags">
-                                    <span class="assign-tag tag-lang">한국어 ↔ 일본어</span>
-                                    <span class="assign-tag tag-field">식품/농업</span>
-                                    <span class="assign-tag tag-type">미팅 동행 통역</span>
-                                </div>
-                                <div class="assign-card__note">
-                                    <div class="assign-card__note-label">관리자 메모</div>
-                                    일본 바이어 3개사와의 1:1 미팅 통역입니다. 식품 수출입 용어 숙지 필요합니다.
-                                </div>
-                                <div class="assign-card__footer" style="margin-top:16px;">
-                                    <button class="btn-detail" onclick="openAssignModal(2)">상세 보기</button>
-                                    <button class="btn-accept-lg" onclick="handleCardAccept(this)">수락하기</button>
-                                    <button class="btn-decline-lg" onclick="handleCardDecline(this)">거절</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 카드 3: 수락됨 -->
-                        <div class="assign-card" data-status="accepted" data-id="3">
-                            <div class="assign-card__status-bar status-bar-accepted"></div>
-                            <div class="assign-card__body">
-                                <div class="assign-card__top">
-                                    <div>
-                                        <div class="assign-card__title">Korea Build 2026 - 한국건축박람회</div>
-                                        <div class="assign-card__company">🏢 (주)현대건설 | 요청일: 2026.02.25</div>
-                                    </div>
-                                    <span class="assign-card__status-badge asb-accepted">수락 완료</span>
-                                </div>
-                                <div class="assign-card__details">
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📅</span> 2026.03.08 (토) ~ 03.10 (월)
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📍</span> KINTEX 제1전시장, 고양
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">⏰</span> 09:00 ~ 18:00
-                                    </div>
-                                </div>
-                                <div class="assign-card__tags">
-                                    <span class="assign-tag tag-lang">한국어 ↔ 영어</span>
-                                    <span class="assign-tag tag-field">건축/건설</span>
-                                    <span class="assign-tag tag-type">전시 부스 통역</span>
-                                </div>
-                                <div class="assign-card__footer" style="margin-top:16px;">
-                                    <button class="btn-detail" onclick="openAssignModal(3)">상세 보기</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 카드 4: 수락됨 -->
-                        <div class="assign-card" data-status="accepted" data-id="4">
-                            <div class="assign-card__status-bar status-bar-accepted"></div>
-                            <div class="assign-card__body">
-                                <div class="assign-card__top">
-                                    <div>
-                                        <div class="assign-card__title">MWC Korea 2026 - 모바일월드콩그레스</div>
-                                        <div class="assign-card__company">🏢 SK텔레콤 | 요청일: 2026.02.10</div>
-                                    </div>
-                                    <span class="assign-card__status-badge asb-accepted">수락 완료</span>
-                                </div>
-                                <div class="assign-card__details">
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📅</span> 2026.02.18 (수) ~ 02.20 (금) 완료
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📍</span> COEX, 서울
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">⏰</span> 10:00 ~ 18:00
-                                    </div>
-                                </div>
-                                <div class="assign-card__tags">
-                                    <span class="assign-tag tag-lang">한국어 ↔ 영어</span>
-                                    <span class="assign-tag tag-field">IT/전자</span>
-                                    <span class="assign-tag tag-type">행사 운영 통역</span>
-                                </div>
-                                <div class="assign-card__footer" style="margin-top:16px;">
-                                    <button class="btn-detail" onclick="openAssignModal(4)">상세 보기</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 카드 5: 거절됨 -->
-                        <div class="assign-card" data-status="declined" data-id="5">
-                            <div class="assign-card__status-bar status-bar-declined"></div>
-                            <div class="assign-card__body">
-                                <div class="assign-card__top">
-                                    <div>
-                                        <div class="assign-card__title">Inter Battery 2026 - 이차전지전시회</div>
-                                        <div class="assign-card__company">🏢 LG에너지솔루션 | 요청일: 2026.02.15</div>
-                                    </div>
-                                    <span class="assign-card__status-badge asb-declined">거절됨</span>
-                                </div>
-                                <div class="assign-card__details">
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📅</span> 2026.03.08 (토) ~ 03.10 (월)
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">📍</span> COEX, 서울
-                                    </div>
-                                    <div class="assign-card__detail">
-                                        <span class="assign-card__detail-icon">⏰</span> 09:00 ~ 17:00
-                                    </div>
-                                </div>
-                                <div class="assign-card__tags">
-                                    <span class="assign-tag tag-lang">한국어 ↔ 독일어</span>
-                                    <span class="assign-tag tag-field">에너지/환경</span>
-                                    <span class="assign-tag tag-type">전시 부스 통역</span>
-                                </div>
-                                <div class="assign-card__footer" style="margin-top:16px;">
-                                    <button class="btn-detail" onclick="openAssignModal(5)">상세 보기</button>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div><!-- /view-assignments -->
 
@@ -517,38 +339,6 @@
                                 <button class="btn-accept" style="padding:5px 12px;font-size:0.72rem;" onclick="jnlNew()">+ 새 일지</button>
                             </div>
                             <div class="jnl-sidebar__body" id="jnlListBody">
-                                <div class="jnl-list-item active" onclick="jnlSelect(0, this)">
-                                    <div class="jnl-list-expo">Smart Factory Expo 2026</div>
-                                    <div class="jnl-list-meta">
-                                        <span>📅 2026.02.28</span>
-                                        <span>🏢 (주)LG전자</span>
-                                    </div>
-                                    <span class="jnl-list-status jnl-s-none">미작성</span>
-                                </div>
-                                <div class="jnl-list-item" onclick="jnlSelect(1, this)">
-                                    <div class="jnl-list-expo">MWC Korea 2026 - Day 3</div>
-                                    <div class="jnl-list-meta">
-                                        <span>📅 2026.02.20</span>
-                                        <span>🏢 SK텔레콤</span>
-                                    </div>
-                                    <span class="jnl-list-status jnl-s-submitted">제출 완료</span>
-                                </div>
-                                <div class="jnl-list-item" onclick="jnlSelect(2, this)">
-                                    <div class="jnl-list-expo">MWC Korea 2026 - Day 2</div>
-                                    <div class="jnl-list-meta">
-                                        <span>📅 2026.02.19</span>
-                                        <span>🏢 SK텔레콤</span>
-                                    </div>
-                                    <span class="jnl-list-status jnl-s-submitted">제출 완료</span>
-                                </div>
-                                <div class="jnl-list-item" onclick="jnlSelect(3, this)">
-                                    <div class="jnl-list-expo">MWC Korea 2026 - Day 1</div>
-                                    <div class="jnl-list-meta">
-                                        <span>📅 2026.02.18</span>
-                                        <span>🏢 SK텔레콤</span>
-                                    </div>
-                                    <span class="jnl-list-status jnl-s-submitted">제출 완료</span>
-                                </div>
                             </div>
                         </div>
 
@@ -587,9 +377,6 @@
                                         <label>전시회명 <span class="req">*</span></label>
                                         <select id="jnl-expo" onchange="jnlExpoChange()">
                                             <option value="">선택해주세요</option>
-                                            <option value="Smart Factory Expo 2026|KINTEX, 고양|2026.02.26~02.28|(주)LG전자|한국어↔영어">Smart Factory Expo 2026</option>
-                                            <option value="MWC Korea 2026|COEX, 서울|2026.02.18~02.20|SK텔레콤|한국어↔영어">MWC Korea 2026</option>
-                                            <option value="Korea Build 2026|KINTEX 제1전시장, 고양|2026.03.08~03.10|(주)현대건설|한국어↔영어">Korea Build 2026</option>
                                         </select>
                                     </div>
                                     <div class="jnl-field">
@@ -600,11 +387,6 @@
                                         <label>고객사 (대리 작성) <span class="req">*</span></label>
                                         <select id="jnl-client" onchange="onJnlClientChange()">
                                             <option value="">선택해주세요</option>
-                                            <option value="(주)삼성전자">(주)삼성전자</option>
-                                            <option value="SK텔레콤">SK텔레콤</option>
-                                            <option value="(주)LG전자">(주)LG전자</option>
-                                            <option value="(주)현대건설">(주)현대건설</option>
-                                            <option value="CJ프레시웨이">CJ프레시웨이</option>
                                             <option value="(주)현대모비스">(주)현대모비스</option>
                                             <option value="LG에너지솔루션">LG에너지솔루션</option>
                                             <option value="부산테크노파크">부산테크노파크</option>
@@ -1649,63 +1431,7 @@
         // DB에서 로드됨 (interpreter-app.js의 loadAssignmentsView)
         if (!window.assignData) window.assignData = {};
         var assignData = window.assignData;
-        const _assignDataOriginal = {
-            1: {
-                title: 'SIMTOS 2026 - 국제제조기술전시회',
-                client: '(주)삼성전자', requestDate: '2026.03.04', status: 'new',
-                date: '2026.03.15 (일) ~ 03.18 (수)', time: '10:00 ~ 17:00',
-                location: 'COEX 전관, 서울',
-                lang: '한국어 ↔ 영어', field: '제조/산업', type: '전시 부스 통역',
-                pay: '₩350,000 / 일',
-                note: '반도체·디스플레이 장비 관련 기술 통역이 필요합니다. 사전 자료가 제공될 예정이며, 전일 오리엔테이션 참석 부탁드립니다.',
-                prep: '사전 용어집 및 회사 소개 자료 숙지. 행사 전일 14:00 오리엔테이션 필참.',
-                dress: '비즈니스 캐주얼 (고객사 명찰 현장 지급)'
-            },
-            2: {
-                title: 'Seoul Food 2026 - 서울국제식품산업전',
-                client: 'CJ프레시웨이', requestDate: '2026.03.05', status: 'new',
-                date: '2026.03.22 (일) ~ 03.24 (화)', time: '09:30 ~ 17:30',
-                location: 'aT센터, 서울',
-                lang: '한국어 ↔ 일본어', field: '식품/농업', type: '미팅 동행 통역',
-                pay: '₩400,000 / 일',
-                note: '일본 바이어 3개사와의 1:1 미팅 통역입니다. 식품 수출입 용어 숙지 필요합니다.',
-                prep: '바이어 정보 및 제품 카탈로그 사전 공유 예정. 미팅 스케줄은 전일 확정.',
-                dress: '정장 (고객사 유니폼 별도 제공 없음)'
-            },
-            3: {
-                title: 'Korea Build 2026 - 한국건축박람회',
-                client: '(주)현대건설', requestDate: '2026.02.25', status: 'accepted',
-                date: '2026.03.08 (토) ~ 03.10 (월)', time: '09:00 ~ 18:00',
-                location: 'KINTEX 제1전시장, 고양',
-                lang: '한국어 ↔ 영어', field: '건축/건설', type: '전시 부스 통역',
-                pay: '₩320,000 / 일',
-                note: '스마트 건설 기술 관련 바이어 응대입니다. 건설 용어 사전 숙지 부탁드립니다.',
-                prep: '건축 전문 용어집 숙지. 현장 도착 08:30 까지.',
-                dress: '비즈니스 캐주얼 (안전조끼 현장 지급)'
-            },
-            4: {
-                title: 'MWC Korea 2026 - 모바일월드콩그레스',
-                client: 'SK텔레콤', requestDate: '2026.02.10', status: 'accepted',
-                date: '2026.02.18 (수) ~ 02.20 (금)', time: '10:00 ~ 18:00',
-                location: 'COEX, 서울',
-                lang: '한국어 ↔ 영어', field: 'IT/전자', type: '행사 운영 통역',
-                pay: '₩380,000 / 일',
-                note: '5G/AI 관련 키노트 및 부스 통역. 기술 프레젠테이션 동시통역 포함.',
-                prep: '발표 자료 사전 공유 예정. IT 통신 전문 용어 숙지.',
-                dress: '행사 유니폼 현장 지급'
-            },
-            5: {
-                title: 'Inter Battery 2026 - 이차전지전시회',
-                client: 'LG에너지솔루션', requestDate: '2026.02.15', status: 'declined',
-                date: '2026.03.08 (토) ~ 03.10 (월)', time: '09:00 ~ 17:00',
-                location: 'COEX, 서울',
-                lang: '한국어 ↔ 독일어', field: '에너지/환경', type: '전시 부스 통역',
-                pay: '₩400,000 / 일',
-                note: '독일 바이어 대상 이차전지 기술 설명 통역. 전문 용어 다수.',
-                prep: '이차전지 관련 기술 자료 사전 제공.',
-                dress: '비즈니스 캐주얼'
-            }
-        }; // _assignDataOriginal 끝 (사용 안 함)
+        const _assignDataOriginal = {}; // DB에서 동적 로딩
 
         let currentModalId = null;
 
@@ -2898,100 +2624,7 @@
         // 상태: request(승인대기) → approved(승인완료) → paid(입금완료), rejected(반려)
         // DB에서 로드됨 (interpreter-app.js의 loadSettlementView)
         let stlData = [];
-        const _stlDataOriginal = [
-            {
-                id: 1, expo: 'SIMTOS 2026', client: '(주)삼성전자',
-                start: '2026-03-15', end: '2026-03-18', lang: '한↔영',
-                days: 4, rate: 150000, amount: 600000, tax: 19800,
-                status: 'request', statusText: '승인 대기',
-                requestDate: '2026-03-19',
-                timeline: [
-                    { step: '통역 완료', date: '2026.03.18', done: true },
-                    { step: '정산 요청', date: '2026.03.19', done: true },
-                    { step: '관리자 승인', date: '대기 중', done: false, active: true },
-                    { step: '입금', date: '-', done: false }
-                ]
-            },
-            {
-                id: 2, expo: 'Korea Build 2026', client: '(주)현대건설',
-                start: '2026-03-08', end: '2026-03-10', lang: '한↔영',
-                days: 3, rate: 150000, amount: 450000, tax: 14850,
-                status: 'request', statusText: '승인 대기',
-                requestDate: '2026-03-11',
-                timeline: [
-                    { step: '통역 완료', date: '2026.03.10', done: true },
-                    { step: '정산 요청', date: '2026.03.11', done: true },
-                    { step: '관리자 승인', date: '대기 중', done: false, active: true },
-                    { step: '입금', date: '-', done: false }
-                ]
-            },
-            {
-                id: 3, expo: 'MWC Korea 2026', client: 'SK텔레콤',
-                start: '2026-02-18', end: '2026-02-20', lang: '한↔영',
-                days: 3, rate: 150000, amount: 450000, tax: 14850,
-                status: 'approved', statusText: '승인 완료',
-                requestDate: '2026-02-21', approvedDate: '2026-02-24',
-                timeline: [
-                    { step: '통역 완료', date: '2026.02.20', done: true },
-                    { step: '정산 요청', date: '2026.02.21', done: true },
-                    { step: '관리자 승인', date: '2026.02.24', done: true },
-                    { step: '입금', date: '처리 중', done: false, active: true }
-                ]
-            },
-            {
-                id: 4, expo: 'Smart Factory Expo 2026', client: '(주)LG전자',
-                start: '2026-02-26', end: '2026-02-28', lang: '한↔영',
-                days: 3, rate: 150000, amount: 450000, tax: 14850,
-                status: 'paid', statusText: '입금 완료',
-                requestDate: '2026-03-01', approvedDate: '2026-03-03', paidDate: '2026-03-10',
-                timeline: [
-                    { step: '통역 완료', date: '2026.02.28', done: true },
-                    { step: '정산 요청', date: '2026.03.01', done: true },
-                    { step: '관리자 승인', date: '2026.03.03', done: true },
-                    { step: '입금 완료', date: '2026.03.10', done: true }
-                ]
-            },
-            {
-                id: 5, expo: 'CES Asia 2025', client: '(주)SK하이닉스',
-                start: '2025-12-10', end: '2025-12-13', lang: '한↔영',
-                days: 4, rate: 150000, amount: 600000, tax: 19800,
-                status: 'paid', statusText: '입금 완료',
-                requestDate: '2025-12-14', approvedDate: '2025-12-18', paidDate: '2026-01-15',
-                timeline: [
-                    { step: '통역 완료', date: '2025.12.13', done: true },
-                    { step: '정산 요청', date: '2025.12.14', done: true },
-                    { step: '관리자 승인', date: '2025.12.18', done: true },
-                    { step: '입금 완료', date: '2026.01.15', done: true }
-                ]
-            },
-            {
-                id: 6, expo: 'SEMICON Korea 2025', client: '(주)삼성전자',
-                start: '2025-12-03', end: '2025-12-05', lang: '한↔일',
-                days: 3, rate: 180000, amount: 540000, tax: 17820,
-                status: 'paid', statusText: '입금 완료',
-                requestDate: '2025-12-06', approvedDate: '2025-12-09', paidDate: '2026-01-10',
-                timeline: [
-                    { step: '통역 완료', date: '2025.12.05', done: true },
-                    { step: '정산 요청', date: '2025.12.06', done: true },
-                    { step: '관리자 승인', date: '2025.12.09', done: true },
-                    { step: '입금 완료', date: '2026.01.10', done: true }
-                ]
-            },
-            {
-                id: 7, expo: 'Green Energy Expo 2025', client: '(주)한화솔루션',
-                start: '2025-11-20', end: '2025-11-22', lang: '한↔영',
-                days: 3, rate: 150000, amount: 450000, tax: 14850,
-                status: 'rejected', statusText: '반려',
-                requestDate: '2025-11-23', rejectedDate: '2025-11-25',
-                rejectReason: '상담일지 미제출 - 상담일지 제출 후 재요청 바랍니다.',
-                timeline: [
-                    { step: '통역 완료', date: '2025.11.22', done: true },
-                    { step: '정산 요청', date: '2025.11.23', done: true },
-                    { step: '관리자 반려', date: '2025.11.25', done: false, rejected: true },
-                    { step: '입금', date: '-', done: false }
-                ]
-            }
-        ]; // _stlDataOriginal 끝 (사용 안 함)
+        const _stlDataOriginal = []; // DB에서 동적 로딩
 
         let stlCurrentTab = 'all';
         let stlCurrentMonth = 'all';
