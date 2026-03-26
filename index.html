@@ -293,7 +293,7 @@
                 </div>
 
                 <div class="country-grid" id="countryGrid">
-                    <div class="country-card" onclick="location.href='interpreters.html?country=us'" data-country="us">
+                    <div class="country-card" onclick="toggleInterp('us', this)" data-country="us">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/us.png"
                                 srcset="https://flagcdn.com/w80/us.png 2x" alt="미국"></div>
                         <div class="country-card__info">
@@ -302,7 +302,7 @@
                         </div>
                     </div>
 
-                    <div class="country-card" onclick="location.href='interpreters.html?country=jp'" data-country="jp">
+                    <div class="country-card" onclick="toggleInterp('jp', this)" data-country="jp">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/jp.png"
                                 srcset="https://flagcdn.com/w80/jp.png 2x" alt="일본"></div>
                         <div class="country-card__info">
@@ -312,7 +312,7 @@
                         <span class="country-card__badge hot">인기</span>
                     </div>
 
-                    <div class="country-card" onclick="location.href='interpreters.html?country=cn'" data-country="cn">
+                    <div class="country-card" onclick="toggleInterp('cn', this)" data-country="cn">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/cn.png"
                                 srcset="https://flagcdn.com/w80/cn.png 2x" alt="중국"></div>
                         <div class="country-card__info">
@@ -322,7 +322,7 @@
                         <span class="country-card__badge hot">인기</span>
                     </div>
 
-                    <div class="country-card" onclick="location.href='interpreters.html?country=de'" data-country="de">
+                    <div class="country-card" onclick="toggleInterp('de', this)" data-country="de">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/de.png"
                                 srcset="https://flagcdn.com/w80/de.png 2x" alt="독일"></div>
                         <div class="country-card__info">
@@ -331,8 +331,10 @@
                         </div>
                     </div>
 
+                    <!-- 통역사 패널 (1행: 미국, 일본, 중국, 독일) -->
+                    <div class="interp-panel" id="interpPanel"></div>
 
-                    <div class="country-card" onclick="location.href='interpreters.html?country=vn'" data-country="vn">
+                    <div class="country-card" onclick="toggleInterp('vn', this)" data-country="vn">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/vn.png"
                                 srcset="https://flagcdn.com/w80/vn.png 2x" alt="베트남"></div>
                         <div class="country-card__info">
@@ -341,7 +343,7 @@
                         </div>
                     </div>
 
-                    <div class="country-card" onclick="location.href='interpreters.html?country=ae'" data-country="ae">
+                    <div class="country-card" onclick="toggleInterp('ae', this)" data-country="ae">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/ae.png"
                                 srcset="https://flagcdn.com/w80/ae.png 2x" alt="아랍에미레이트"></div>
                         <div class="country-card__info">
@@ -350,7 +352,7 @@
                         </div>
                     </div>
 
-                    <div class="country-card" onclick="location.href='interpreters.html?country=th'" data-country="th">
+                    <div class="country-card" onclick="toggleInterp('th', this)" data-country="th">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/th.png"
                                 srcset="https://flagcdn.com/w80/th.png 2x" alt="태국"></div>
                         <div class="country-card__info">
@@ -369,6 +371,8 @@
                         <span class="arrow-icon">→</span>
                     </a>
 
+                    <!-- 통역사 패널 (2행: 베트남, 아랍, 태국) -->
+                    <div class="interp-panel" id="interpPanel2"></div>
                 </div>
 
                 <div class="trust-badges">
