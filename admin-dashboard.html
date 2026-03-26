@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>관리자 대시보드 - 콘텐츄어 통역 운영 시스템</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <style>
 /* ═══ design-tokens.css (inlined) ═══ */
@@ -314,7 +314,7 @@
         }
 
         body {
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
             background: var(--light-bg);
             color: var(--text);
             min-height: 100vh;
@@ -5420,7 +5420,7 @@
                 var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>상담일지 - ' + j.expo + '</title>' +
                 '<style>' +
                 '*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }' +
-                'body { font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; color:#1a1a1a; padding:40px 50px; line-height:1.7; background:#fff; }' +
+                'body { font-family:"Montserrat","Noto Sans KR",sans-serif; color:#1a1a1a; padding:40px 50px; line-height:1.7; background:#fff; }' +
                 '.doc-header { text-align:center; border-bottom:3px double #1565c0; padding-bottom:24px; margin-bottom:30px; }' +
                 '.doc-header h1 { font-size:1.4rem; color:#1565c0; letter-spacing:3px; margin-bottom:4px; }' +
                 '.doc-header p { font-size:0.85rem; color:#666; }' +
@@ -6474,7 +6474,7 @@
                 var w = window.open('', '_blank', 'width=900,height=1200');
                 if (!w) { showToast('⚠️ 팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
                 w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>통역 서비스 계약서 미리보기</title>');
-                w.document.write('<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#1a1a1a;background:#f5f5f5;padding:30px;line-height:1.7;}.contract-doc{max-width:800px;margin:0 auto;background:#fff;padding:60px 55px;box-shadow:0 2px 20px rgba(0,0,0,0.08);border-radius:4px;}.doc-header{text-align:center;margin-bottom:40px;border-bottom:3px double #1565c0;padding-bottom:30px;}.doc-header h1{font-size:1.6rem;letter-spacing:6px;color:#1565c0;margin-bottom:8px;}.doc-header p{color:#666;font-size:0.9rem;}table{width:100%;border-collapse:collapse;margin:20px 0;}td,th{padding:12px 16px;border:1px solid #ddd;font-size:0.88rem;}th{background:#f8f9fa;font-weight:700;width:140px;text-align:left;color:#333;}.section-title{font-size:1.05rem;font-weight:800;color:#1565c0;margin:30px 0 12px;padding-left:12px;border-left:4px solid #1565c0;}.amount-highlight{font-size:1.1rem;font-weight:800;color:#1565c0;}.stamp-area{margin-top:50px;display:flex;justify-content:space-around;}.stamp-box{text-align:center;width:200px;}.stamp-box .label{font-weight:700;margin-bottom:15px;font-size:0.95rem;}.stamp-box .line{border-top:2px solid #333;padding-top:8px;font-size:0.85rem;color:#666;}.preview-banner{background:#fff3e0;border:2px solid #ff9800;color:#e65100;text-align:center;padding:12px;font-weight:700;border-radius:8px;margin-bottom:20px;font-size:0.9rem;}</style>');
+                w.document.write('<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Montserrat","Noto Sans KR",sans-serif;color:#1a1a1a;background:#f5f5f5;padding:30px;line-height:1.7;}.contract-doc{max-width:800px;margin:0 auto;background:#fff;padding:60px 55px;box-shadow:0 2px 20px rgba(0,0,0,0.08);border-radius:4px;}.doc-header{text-align:center;margin-bottom:40px;border-bottom:3px double #1565c0;padding-bottom:30px;}.doc-header h1{font-size:1.6rem;letter-spacing:6px;color:#1565c0;margin-bottom:8px;}.doc-header p{color:#666;font-size:0.9rem;}table{width:100%;border-collapse:collapse;margin:20px 0;}td,th{padding:12px 16px;border:1px solid #ddd;font-size:0.88rem;}th{background:#f8f9fa;font-weight:700;width:140px;text-align:left;color:#333;}.section-title{font-size:1.05rem;font-weight:800;color:#1565c0;margin:30px 0 12px;padding-left:12px;border-left:4px solid #1565c0;}.amount-highlight{font-size:1.1rem;font-weight:800;color:#1565c0;}.stamp-area{margin-top:50px;display:flex;justify-content:space-around;}.stamp-box{text-align:center;width:200px;}.stamp-box .label{font-weight:700;margin-bottom:15px;font-size:0.95rem;}.stamp-box .line{border-top:2px solid #333;padding-top:8px;font-size:0.85rem;color:#666;}.preview-banner{background:#fff3e0;border:2px solid #ff9800;color:#e65100;text-align:center;padding:12px;font-weight:700;border-radius:8px;margin-bottom:20px;font-size:0.9rem;}</style>');
                 w.document.write('</head><body><div class="contract-doc">');
                 w.document.write('<div class="preview-banner">📋 미리보기 — 아직 생성되지 않은 계약서입니다</div>');
                 w.document.write('<div class="doc-header"><h1>통역 서비스 계약서</h1><p>INTERPRETATION SERVICE CONTRACT</p><p style="margin-top:8px;font-size:0.85rem;">계약일: ' + today + '</p></div>');

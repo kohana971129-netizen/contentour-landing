@@ -89,7 +89,7 @@
         }
 
         body {
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
             background: var(--light-bg);
             color: var(--text);
             min-height: 100vh;

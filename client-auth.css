@@ -9,7 +9,7 @@
         /* 변수는 design-tokens.css에서 로드 */
 
         body {
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
             background: var(--light-bg);
             min-height: 100vh;
             display: flex;

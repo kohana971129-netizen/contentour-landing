@@ -168,7 +168,7 @@ html {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans KR", sans-serif;
+    font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
     line-height: 1.6;
     color: var(--text-main);
     word-break: keep-all;
@@ -1496,7 +1496,7 @@ section {
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
     backdrop-filter: blur(10px);
     background: rgba(10, 42, 94, 0.6);
-    font-family: 'Pretendard', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
     padding: 0;
 }
 
