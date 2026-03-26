@@ -5586,70 +5586,7 @@
             }
 
             // ══════════════ 정산 승인 관리 ══════════════
-            const stlAdminData = [
-                {
-                    id: 1, interpreter: '김하나', interpColor: '#1565c0',
-                    expo: 'SIMTOS 2026', client: '(주)삼성전자',
-                    start: '2026-03-15', end: '2026-03-18', lang: '한↔영',
-                    days: 4, rate: 150000, amount: 600000, tax: 19800,
-                    status: 'request', statusText: '승인 대기',
-                    requestDate: '2026-03-19', journalSubmitted: true
-                },
-                {
-                    id: 2, interpreter: '김하나', interpColor: '#1565c0',
-                    expo: 'Korea Build 2026', client: '(주)현대건설',
-                    start: '2026-03-08', end: '2026-03-10', lang: '한↔영',
-                    days: 3, rate: 150000, amount: 450000, tax: 14850,
-                    status: 'request', statusText: '승인 대기',
-                    requestDate: '2026-03-11', journalSubmitted: true
-                },
-                {
-                    id: 3, interpreter: '김하나', interpColor: '#1565c0',
-                    expo: 'MWC Korea 2026', client: 'SK텔레콤',
-                    start: '2026-02-18', end: '2026-02-20', lang: '한↔영',
-                    days: 3, rate: 150000, amount: 450000, tax: 14850,
-                    status: 'approved', statusText: '승인 완료',
-                    requestDate: '2026-02-21', approvedDate: '2026-02-24',
-                    journalSubmitted: true
-                },
-                {
-                    id: 4, interpreter: '김하나', interpColor: '#1565c0',
-                    expo: 'Smart Factory Expo 2026', client: '(주)LG전자',
-                    start: '2026-02-26', end: '2026-02-28', lang: '한↔영',
-                    days: 3, rate: 150000, amount: 450000, tax: 14850,
-                    status: 'paid', statusText: '입금 완료',
-                    requestDate: '2026-03-01', approvedDate: '2026-03-03', paidDate: '2026-03-10',
-                    journalSubmitted: true
-                },
-                {
-                    id: 5, interpreter: '김하나', interpColor: '#0277bd',
-                    expo: 'CES Asia 2025', client: '(주)SK하이닉스',
-                    start: '2025-12-10', end: '2025-12-13', lang: '한↔영',
-                    days: 4, rate: 150000, amount: 600000, tax: 19800,
-                    status: 'paid', statusText: '입금 완료',
-                    requestDate: '2025-12-14', approvedDate: '2025-12-18', paidDate: '2026-01-15',
-                    journalSubmitted: true
-                },
-                {
-                    id: 6, interpreter: '김하나', interpColor: '#6a1b9a',
-                    expo: 'SEMICON Korea 2025', client: '(주)삼성전자',
-                    start: '2025-12-03', end: '2025-12-05', lang: '한↔일',
-                    days: 3, rate: 180000, amount: 540000, tax: 17820,
-                    status: 'paid', statusText: '입금 완료',
-                    requestDate: '2025-12-06', approvedDate: '2025-12-09', paidDate: '2026-01-10',
-                    journalSubmitted: true
-                },
-                {
-                    id: 7, interpreter: '김하나', interpColor: '#1565c0',
-                    expo: 'Green Energy Expo 2025', client: '(주)한화솔루션',
-                    start: '2025-11-20', end: '2025-11-22', lang: '한↔영',
-                    days: 3, rate: 150000, amount: 450000, tax: 14850,
-                    status: 'rejected', statusText: '반려',
-                    requestDate: '2025-11-23', rejectedDate: '2025-11-25',
-                    rejectReason: '상담일지 미제출 - 상담일지 제출 후 재요청 바랍니다.',
-                    journalSubmitted: false
-                }
-            ];
+            const stlAdminData = [];
 
             // ── 정산 데이터 localStorage 저장/복원 ──
             const STL_STORAGE_KEY = 'contentour_stl_admin';
