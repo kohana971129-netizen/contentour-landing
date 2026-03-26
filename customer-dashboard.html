@@ -2840,21 +2840,44 @@
       var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료' };
       var st = statusMap[d.status] || d.status;
       var stClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
+      var serviceTypeMap = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'CONFERENCE': '컨퍼런스', 'OTHER': '기타' };
       document.getElementById('modalTitle').textContent = d.exhibition_name;
       var badgeEl = document.getElementById('modalStatusBadge');
       badgeEl.innerHTML = '<span class="status-badge ' + (stClassMap[st] || 'sb-pending') + '">' + st + '</span>';
-      document.getElementById('modalBody').innerHTML =
-        '<table class="modal-detail-table">' +
+
+      var adminNote = null;
+      try { adminNote = d.admin_note ? (typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note) : null; } catch(e) {}
+
+      var html = '<table class="modal-detail-table">' +
         '<tr><td>전시회명</td><td>' + d.exhibition_name + '</td></tr>' +
-        '<tr><td>개최지</td><td>' + (d.location || '-') + '</td></tr>' +
+        '<tr><td>개최지</td><td>' + (d.location || d.venue || '-') + '</td></tr>' +
         '<tr><td>기간</td><td>' + d.start_date + ' ~ ' + d.end_date + '</td></tr>' +
         '<tr><td>언어</td><td>' + (d.language_pair || '-') + '</td></tr>' +
-        '<tr><td>통역 형태</td><td>' + (d.service_type || '-') + '</td></tr>' +
+        '<tr><td>통역 형태</td><td>' + (serviceTypeMap[d.service_type] || d.service_type || '-') + '</td></tr>' +
         '<tr><td>인원</td><td>' + (d.headcount || 1) + '명</td></tr>' +
         '<tr><td>요청 내용</td><td>' + (d.message || '-') + '</td></tr>' +
         '<tr><td>접수일</td><td>' + (d.created_at ? d.created_at.split('T')[0] : '-') + '</td></tr>' +
-        (d.quoted_amount ? '<tr><td>견적 금액</td><td style="color:#1565c0;font-weight:700;">' + formatMoney(d.quoted_amount) + '</td></tr>' : '') +
         '</table>';
+
+      if (adminNote && adminNote.interpreter) {
+        html += '<div class="modal__interpreter-box">' +
+          '<div class="modal__interpreter-avatar">' + adminNote.interpreter.charAt(0) + '</div>' +
+          '<div class="modal__interpreter-info">' +
+            '<div class="modal__interpreter-name">' + adminNote.interpreter + ' 통역사 배정</div>' +
+            '<div class="modal__interpreter-lang">' + (d.language_pair || '') + ' · ' + (adminNote.days || '') + '일간</div>' +
+          '</div>' +
+        '</div>';
+      }
+
+      if (d.quoted_amount) {
+        html += '<div class="modal__quote-box">' +
+          '<div class="modal__quote-label">견적 금액</div>' +
+          '<div class="modal__quote-amount">' + formatMoney(d.quoted_amount) + '</div>' +
+          (adminNote ? '<div class="modal__quote-note">일당 ' + formatMoney(adminNote.dailyRate || 0) + ' × ' + (adminNote.days || 0) + '일 + 플랫폼 수수료 ' + formatMoney(adminNote.platformFee || 0) + '</div>' : '') +
+        '</div>';
+      }
+
+      document.getElementById('modalBody').innerHTML = html;
       document.getElementById('modalOverlay').classList.add('open');
     }
 
