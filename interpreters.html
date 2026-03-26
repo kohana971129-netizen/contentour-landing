@@ -304,6 +304,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="script.js"></script>
     <script>
         // ═══════════════════════════
@@ -844,6 +846,58 @@
 
         // 초기 렌더링
         renderPage();
+
+        // ═══ DB 리뷰 별점 로딩 후 카드에 반영 ═══
+        (async function loadDbRatings() {
+            if (!window.sbClient) return;
+            try {
+                var { data: reviews } = await window.sbClient
+                    .from('49_통역사리뷰')
+                    .select('interpreter_id, rating_expertise, rating_manner, rating_communication, rating_overall, review_text');
+                if (!reviews || reviews.length === 0) return;
+
+                // 통역사별 집계
+                var ratingMap = {};
+                reviews.forEach(function(r) {
+                    if (!ratingMap[r.interpreter_id]) ratingMap[r.interpreter_id] = { total: 0, count: 0, texts: [] };
+                    var avg = (r.rating_expertise + r.rating_manner + r.rating_communication + r.rating_overall) / 4;
+                    ratingMap[r.interpreter_id].total += avg;
+                    ratingMap[r.interpreter_id].count++;
+                    if (r.review_text) ratingMap[r.interpreter_id].texts.push(r.review_text);
+                });
+
+                // 통역사 이름 매핑
+                var interpIds = Object.keys(ratingMap);
+                var { data: members } = await window.sbClient.from('01_회원').select('id, name').in('id', interpIds);
+                if (!members) return;
+
+                // 이름으로 매칭해서 카드에 별점 배지 추가
+                members.forEach(function(m) {
+                    var r = ratingMap[m.id];
+                    if (!r) return;
+                    var avgScore = (r.total / r.count).toFixed(1);
+                    var starsHtml = '';
+                    for (var i = 0; i < 5; i++) starsHtml += i < Math.round(parseFloat(avgScore)) ? '★' : '☆';
+
+                    // 이름으로 카드 찾기
+                    document.querySelectorAll('.profile-card__name').forEach(function(el) {
+                        if (el.textContent.trim() === m.name) {
+                            var card = el.closest('.profile-card');
+                            if (!card || card.querySelector('.db-rating-badge')) return;
+                            var badge = document.createElement('div');
+                            badge.className = 'db-rating-badge';
+                            badge.innerHTML = '<span style="color:#f57c00;font-size:0.82rem;letter-spacing:1px;">' + starsHtml + '</span>' +
+                                '<span style="font-weight:800;color:#f57c00;font-size:0.88rem;margin-left:4px;">' + avgScore + '</span>' +
+                                '<span style="color:#999;font-size:0.72rem;margin-left:4px;">(' + r.count + '개 리뷰)</span>';
+                            badge.style.cssText = 'display:flex;align-items:center;padding:8px 12px;background:linear-gradient(135deg,#fff8e1,#fff3e0);border-radius:10px;margin:8px 0;border:1px solid #ffe0b2;';
+                            // 카드 body의 첫번째 자식 앞에 삽입
+                            var body = card.querySelector('.profile-card__body');
+                            if (body) body.insertBefore(badge, body.firstChild);
+                        }
+                    });
+                });
+            } catch(e) { console.warn('DB 리뷰 로드 실패:', e); }
+        })();
     </script>
 </body>
 

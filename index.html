@@ -293,7 +293,7 @@
                 </div>
 
                 <div class="country-grid" id="countryGrid">
-                    <div class="country-card" onclick="toggleInterp('us', this)" data-country="us">
+                    <div class="country-card" onclick="location.href='interpreters.html?country=us'" data-country="us">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/us.png"
                                 srcset="https://flagcdn.com/w80/us.png 2x" alt="미국"></div>
                         <div class="country-card__info">
@@ -302,7 +302,7 @@
                         </div>
                     </div>
 
-                    <div class="country-card" onclick="toggleInterp('jp', this)" data-country="jp">
+                    <div class="country-card" onclick="location.href='interpreters.html?country=jp'" data-country="jp">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/jp.png"
                                 srcset="https://flagcdn.com/w80/jp.png 2x" alt="일본"></div>
                         <div class="country-card__info">
@@ -312,7 +312,7 @@
                         <span class="country-card__badge hot">인기</span>
                     </div>
 
-                    <div class="country-card" onclick="toggleInterp('cn', this)" data-country="cn">
+                    <div class="country-card" onclick="location.href='interpreters.html?country=cn'" data-country="cn">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/cn.png"
                                 srcset="https://flagcdn.com/w80/cn.png 2x" alt="중국"></div>
                         <div class="country-card__info">
@@ -322,7 +322,7 @@
                         <span class="country-card__badge hot">인기</span>
                     </div>
 
-                    <div class="country-card" onclick="toggleInterp('de', this)" data-country="de">
+                    <div class="country-card" onclick="location.href='interpreters.html?country=de'" data-country="de">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/de.png"
                                 srcset="https://flagcdn.com/w80/de.png 2x" alt="독일"></div>
                         <div class="country-card__info">
@@ -331,10 +331,8 @@
                         </div>
                     </div>
 
-                    <!-- 통역사 패널 (1행: 미국, 일본, 중국, 독일) -->
-                    <div class="interp-panel" id="interpPanel"></div>
 
-                    <div class="country-card" onclick="toggleInterp('vn', this)" data-country="vn">
+                    <div class="country-card" onclick="location.href='interpreters.html?country=vn'" data-country="vn">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/vn.png"
                                 srcset="https://flagcdn.com/w80/vn.png 2x" alt="베트남"></div>
                         <div class="country-card__info">
@@ -343,7 +341,7 @@
                         </div>
                     </div>
 
-                    <div class="country-card" onclick="toggleInterp('ae', this)" data-country="ae">
+                    <div class="country-card" onclick="location.href='interpreters.html?country=ae'" data-country="ae">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/ae.png"
                                 srcset="https://flagcdn.com/w80/ae.png 2x" alt="아랍에미레이트"></div>
                         <div class="country-card__info">
@@ -352,7 +350,7 @@
                         </div>
                     </div>
 
-                    <div class="country-card" onclick="toggleInterp('th', this)" data-country="th">
+                    <div class="country-card" onclick="location.href='interpreters.html?country=th'" data-country="th">
                         <div class="country-card__flag"><img src="https://flagcdn.com/w40/th.png"
                                 srcset="https://flagcdn.com/w80/th.png 2x" alt="태국"></div>
                         <div class="country-card__info">
@@ -371,8 +369,6 @@
                         <span class="arrow-icon">→</span>
                     </a>
 
-                    <!-- 통역사 패널 (2행: 베트남, 아랍, 태국) -->
-                    <div class="interp-panel" id="interpPanel2"></div>
                 </div>
 
                 <div class="trust-badges">
@@ -390,15 +386,6 @@
                     </div>
                 </div>
 
-                <!-- 인기 통역사 (DB 기반) -->
-                <div id="popularInterpreters" style="display:none;margin-top:48px;">
-                    <div class="popular-interpreters__header" style="text-align:center;margin-bottom:32px;">
-                        <span class="popular-interpreters__badge">BEST INTERPRETERS</span>
-                        <h3 class="popular-interpreters__title" style="font-size:1.4rem;">고객이 선택한 인기 통역사</h3>
-                        <p class="popular-interpreters__desc">실제 전시회 현장에서 고객사가 직접 평가한 별점 기반으로 선별된 통역사입니다.</p>
-                    </div>
-                    <div class="popular-interpreters__grid" id="popularGrid"></div>
-                </div>
             </div>
         </section>
 
@@ -1087,114 +1074,6 @@
             if (e.key === 'Escape') closeIpModal();
         });
 
-        // ═══ 인기 통역사 DB 로드 ═══
-        (async function loadPopularInterpreters() {
-            if (!window.sbClient) return;
-            try {
-                // 리뷰가 있는 통역사 조회
-                var { data: reviews, error } = await window.sbClient
-                    .from('49_통역사리뷰')
-                    .select('interpreter_id, rating_expertise, rating_manner, rating_communication, rating_overall');
-                if (error || !reviews || reviews.length === 0) return;
-
-                // 통역사별 평균 계산
-                var interpMap = {};
-                reviews.forEach(function(r) {
-                    if (!interpMap[r.interpreter_id]) interpMap[r.interpreter_id] = { ratings: [], count: 0 };
-                    var avg = (r.rating_expertise + r.rating_manner + r.rating_communication + r.rating_overall) / 4;
-                    interpMap[r.interpreter_id].ratings.push(avg);
-                    interpMap[r.interpreter_id].count++;
-                });
-
-                var interpIds = Object.keys(interpMap);
-                if (interpIds.length === 0) return;
-
-                // 프로필 정보 가져오기
-                var { data: profiles } = await window.sbClient
-                    .from('40_통역사프로필')
-                    .select('user_id, display_name, languages, specialties, intro, experience_years, profile_image_url')
-                    .in('user_id', interpIds);
-
-                var { data: members } = await window.sbClient
-                    .from('01_회원')
-                    .select('id, name')
-                    .in('id', interpIds);
-
-                // 완료 건수
-                var { data: completedContracts } = await window.sbClient
-                    .from('42_통역계약')
-                    .select('interpreter_id')
-                    .in('interpreter_id', interpIds)
-                    .in('status', ['completed', 'settled', 'deposit_paid', 'in_progress']);
-
-                var contractCounts = {};
-                if (completedContracts) {
-                    completedContracts.forEach(function(c) {
-                        contractCounts[c.interpreter_id] = (contractCounts[c.interpreter_id] || 0) + 1;
-                    });
-                }
-
-                // 카드 데이터 생성
-                var cards = interpIds.map(function(id) {
-                    var ratings = interpMap[id].ratings;
-                    var avgScore = (ratings.reduce(function(a,b){return a+b;}, 0) / ratings.length).toFixed(1);
-                    var profile = profiles ? profiles.find(function(p){return p.user_id === id;}) : null;
-                    var member = members ? members.find(function(m){return m.id === id;}) : null;
-                    var name = (profile && profile.display_name) || (member && member.name) || '통역사';
-                    return {
-                        name: name,
-                        score: parseFloat(avgScore),
-                        reviewCount: interpMap[id].count,
-                        languages: profile ? profile.languages : null,
-                        specialties: profile ? profile.specialties : null,
-                        intro: profile ? profile.intro : '',
-                        years: profile ? profile.experience_years : 0,
-                        cases: contractCounts[id] || 0,
-                        photo: profile ? profile.profile_image_url : null
-                    };
-                });
-
-                // 별점 높은 순 정렬
-                cards.sort(function(a,b) { return b.score - a.score; });
-
-                // 렌더링
-                var grid = document.getElementById('popularGrid');
-                grid.innerHTML = cards.slice(0, 6).map(function(c) {
-                    var starsHtml = '';
-                    for (var i = 0; i < 5; i++) starsHtml += i < Math.round(c.score) ? '★' : '☆';
-                    var tagsHtml = '';
-                    if (c.languages) {
-                        try {
-                            var langs = typeof c.languages === 'string' ? JSON.parse(c.languages) : c.languages;
-                            if (Array.isArray(langs)) langs.forEach(function(l) { tagsHtml += '<span class="pi-card__tag">' + l + '</span>'; });
-                        } catch(e) { tagsHtml = '<span class="pi-card__tag">' + c.languages + '</span>'; }
-                    }
-                    var avatarHtml = c.photo
-                        ? '<img src="' + c.photo + '" alt="' + c.name + '">'
-                        : c.name.charAt(0);
-
-                    return '<div class="pi-card">' +
-                        '<div class="pi-card__top">' +
-                            '<div class="pi-card__avatar">' + avatarHtml + '</div>' +
-                            '<div class="pi-card__info"><div class="pi-card__name">' + c.name + '</div><div class="pi-card__role">전문 통역사</div></div>' +
-                        '</div>' +
-                        '<div class="pi-card__rating">' +
-                            '<span class="pi-card__stars">' + starsHtml + '</span>' +
-                            '<span class="pi-card__score">' + c.score + '</span>' +
-                            '<span class="pi-card__reviews">(' + c.reviewCount + '개 리뷰)</span>' +
-                        '</div>' +
-                        (tagsHtml ? '<div class="pi-card__tags">' + tagsHtml + '</div>' : '') +
-                        (c.intro ? '<div class="pi-card__intro">' + c.intro + '</div>' : '') +
-                        '<div class="pi-card__stats">' +
-                            '<span class="pi-card__stat">경력 <b>' + (c.years || 0) + '년</b></span>' +
-                            '<span class="pi-card__stat">파견 <b>' + c.cases + '건</b></span>' +
-                        '</div>' +
-                    '</div>';
-                }).join('');
-
-                document.getElementById('popularInterpreters').style.display = 'block';
-            } catch(e) { console.warn('인기 통역사 로드 실패:', e); }
-        })();
     </script>
 </body>
 
