@@ -994,7 +994,12 @@
                     <!-- 프로필 헤더 -->
                     <div class="pf-header">
                         <div class="pf-header__inner">
-                            <div class="pf-header__avatar">👤</div>
+                            <div class="pf-header__avatar" id="pfAvatar" style="position:relative;cursor:pointer;overflow:hidden;" onclick="document.getElementById('pfPhotoInput').click()">
+                                <img id="pfAvatarImg" src="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;">
+                                <span id="pfAvatarIcon">👤</span>
+                                <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.5);color:#fff;font-size:0.6rem;text-align:center;padding:3px 0;">📷 변경</div>
+                                <input type="file" id="pfPhotoInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(this)">
+                            </div>
                             <div class="pf-header__info">
                                 <h2 class="pf-header__name">통역사</h2>
                                 <p class="pf-header__desc">영어 · 일본어 | 전시 통역 전문</p>
@@ -1519,6 +1524,7 @@
                 if (view === 'profile') {
                     loadSavedRates();
                     updateRatePreview();
+                    loadProfilePhoto();
                 }
             } else {
                 showToast('📌 "' + getViewName(view) + '" 페이지는 준비 중입니다.');
@@ -4585,6 +4591,64 @@
                     }
                     stlUpdateBankStatus();
                 }, 100);
+            } catch(e) {}
+        }
+
+        async function uploadProfilePhoto(input) {
+            var file = input.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) { showToast('⚠️ 사진 크기는 5MB 이하로 업로드해주세요.'); return; }
+            if (!file.type.startsWith('image/')) { showToast('⚠️ 이미지 파일만 업로드 가능합니다.'); return; }
+
+            var sb = window.sbClient;
+            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
+
+            var userId = InterpreterApp.currentUser.id;
+            var ext = file.name.split('.').pop();
+            var filePath = userId + '/profile.' + ext;
+
+            showToast('📷 사진 업로드 중...');
+
+            try {
+                // 기존 파일 삭제 시도
+                await sb.storage.from('profile-images').remove([filePath]);
+
+                // 업로드
+                var { data, error } = await sb.storage.from('profile-images').upload(filePath, file, { upsert: true });
+                if (error) throw error;
+
+                // 공개 URL 가져오기
+                var { data: urlData } = sb.storage.from('profile-images').getPublicUrl(filePath);
+                var publicUrl = urlData.publicUrl + '?t=' + Date.now();
+
+                // DB 업데이트
+                await sb.from('40_통역사프로필').update({ profile_image_url: publicUrl }).eq('user_id', userId);
+
+                // UI 업데이트
+                var img = document.getElementById('pfAvatarImg');
+                img.src = publicUrl;
+                img.style.display = 'block';
+                document.getElementById('pfAvatarIcon').style.display = 'none';
+
+                showToast('✅ 프로필 사진이 업데이트되었습니다!');
+            } catch (e) {
+                console.error('사진 업로드 실패:', e);
+                showToast('⚠️ 사진 업로드 실패: ' + (e.message || ''));
+            }
+        }
+
+        // 프로필 사진 로드
+        async function loadProfilePhoto() {
+            var sb = window.sbClient;
+            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
+            try {
+                var { data } = await sb.from('40_통역사프로필').select('profile_image_url').eq('user_id', InterpreterApp.currentUser.id).single();
+                if (data && data.profile_image_url) {
+                    var img = document.getElementById('pfAvatarImg');
+                    img.src = data.profile_image_url;
+                    img.style.display = 'block';
+                    document.getElementById('pfAvatarIcon').style.display = 'none';
+                }
             } catch(e) {}
         }
 
