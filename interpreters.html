@@ -146,6 +146,36 @@
 </head>
 
 <body>
+    <!-- Password Protection -->
+    <div id="pwGate" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0a1628,#1a2a4a);display:flex;align-items:center;justify-content:center;font-family:'Pretendard',sans-serif;">
+        <div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:400px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="width:56px;height:56px;margin:0 auto 20px;background:linear-gradient(135deg,#1565c0,#0d47a1);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.24 7 7v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7c0-2.76-2.24-5-5-5zm0 2c1.65 0 3 1.35 3 3v3H9V7c0-1.65 1.35-3 3-3zm0 10c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z" fill="#fff"/></svg>
+            </div>
+            <h2 style="font-size:1.2rem;font-weight:800;color:#1a2a4a;margin-bottom:6px;">CONTENTOUR</h2>
+            <p style="font-size:0.82rem;color:#8a95a8;margin-bottom:24px;">접근이 제한된 페이지입니다. 비밀번호를 입력하세요.</p>
+            <input id="pwInput" type="password" placeholder="비밀번호 입력" style="width:100%;padding:14px 16px;border:2px solid #e0e5ec;border-radius:12px;font-size:0.92rem;outline:none;box-sizing:border-box;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='#1565c0'" onblur="this.style.borderColor='#e0e5ec'">
+            <div id="pwError" style="color:#c62828;font-size:0.78rem;margin-top:8px;height:20px;"></div>
+            <button onclick="checkPw()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;margin-top:4px;font-family:inherit;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">확인</button>
+        </div>
+    </div>
+    <script>
+    (function(){
+        var _h='QzBudDNudG91ciFAMjAyNiNTZWM=';
+        if(sessionStorage.getItem('_ct_auth')==='1'){document.getElementById('pwGate').style.display='none';}
+        window.checkPw=function(){
+            if(document.getElementById('pwInput').value===atob(_h)){
+                sessionStorage.setItem('_ct_auth','1');
+                document.getElementById('pwGate').style.display='none';
+            } else {
+                document.getElementById('pwError').textContent='비밀번호가 올바르지 않습니다.';
+                document.getElementById('pwInput').style.borderColor='#c62828';
+                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},2000);
+            }
+        };
+        document.getElementById('pwInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});
+    })();
+    </script>
 
     <!-- Navigation Header -->
     <header class="nav">
