@@ -4674,13 +4674,7 @@
 
     <script>
             // 샘플 데이터
-            const inquiries = [
-                { id: 1, priority: 'high', company: '(주)태림산업', contact: '김철수', expo: 'Nano Tech 2026', lang: '일본어', start: '2026-02-05', end: '2026-02-07', type: '부스 상주', status: '파견확정', interpreter: '김하나', received: '2026-01-10', count: 1 },
-                { id: 2, priority: 'high', company: '(주)제이스텍', contact: '박영희', expo: 'Battery Show NA 2025', lang: '영어', start: '2025-10-07', end: '2025-10-09', type: '부스 상주', status: '매칭완료', interpreter: '김하나', received: '2025-09-12', count: 1 },
-                { id: 3, priority: 'high', company: '부산테크노파크', contact: '이민준', expo: 'MEDICA 2025', lang: '독일어', start: '2025-11-17', end: '2025-11-20', type: '미팅 동행', status: '검토중', interpreter: '', received: '2025-10-01', count: 2 },
-                { id: 4, priority: 'medium', company: '(주)하츠', contact: '정소연', expo: 'IFA Berlin 2025', lang: '독일어', start: '2025-09-04', end: '2025-09-08', type: '부스 상주', status: '완료', interpreter: '김하나', received: '2025-07-20', count: 1 },
-                { id: 5, priority: 'high', company: '(주)한국진공', contact: '최동원', expo: 'Battery Show Europe', lang: '독일어', start: '2025-06-03', end: '2025-06-05', type: '부스 상주', status: '검토중', interpreter: '', received: '2025-05-01', count: 1 },
-            ];
+            const inquiries = [];
 
             const interpreters = [
                 { id: 1, name: '김하나', initials: '하', color: '#1565c0', langs: ['영어', '일본어'], field: '전시회 통역·비즈매칭', rating: 4.9, cases: 28, available: true },
@@ -5001,59 +4995,9 @@
             };
             const TL = { booth: '부스 상주', meeting: '미팅 동행', ops: '현장 운영' };
 
-            let schedules = [
-                { id: 1, date: '2026-03-03', expo: 'Battery Show NA', company: '(주)제이스텍', interp: '김하나', lang: '영어', type: 'booth', start: '09:00', end: '18:00' },
-                { id: 2, date: '2026-03-05', expo: 'Smart Expo 2026', company: '(주)에스엠테크', interp: '김하나', lang: '영어', type: 'ops', start: '10:00', end: '17:00' },
-                { id: 3, date: '2026-03-05', expo: 'Nano Tech Tokyo', company: '(주)태림산업', interp: '김하나', lang: '일본어', type: 'booth', start: '09:30', end: '18:00' },
-                { id: 4, date: '2026-03-07', expo: 'FOODEX Japan', company: '(주)글로벌푸드', interp: '김하나', lang: '일본어', type: 'booth', start: '09:00', end: '17:30' },
-                { id: 5, date: '2026-03-10', expo: 'Intersolar Europe', company: '(주)케이에너지', interp: '김하나', lang: '독일어', type: 'booth', start: '10:00', end: '18:00' },
-                { id: 6, date: '2026-03-10', expo: 'Arab Health 2026', company: '(주)메디칼라이프', interp: '김하나', lang: '영어', type: 'meeting', start: '13:00', end: '17:00' },
-                { id: 7, date: '2026-03-12', expo: 'Intersolar Europe', company: '(주)케이에너지', interp: '김하나', lang: '독일어', type: 'booth', start: '09:30', end: '18:00' },
-                { id: 8, date: '2026-03-14', expo: 'Smart Expo 2026', company: '(주)에스엠테크', interp: '김하나', lang: '영어', type: 'booth', start: '09:00', end: '17:00' },
-                { id: 9, date: '2026-03-17', expo: 'AGRI WEEK Tokyo', company: '(주)이노텍', interp: '김하나', lang: '일본어', type: 'booth', start: '09:00', end: '18:00' },
-                { id: 10, date: '2026-03-17', expo: 'Compamed 2025', company: '(주)바이오메드', interp: '김하나', lang: '독일어', type: 'meeting', start: '11:00', end: '16:00' },
-            ];
+            let schedules = [];
 
-            const journals = [
-                {
-                    id: 1, expo: 'MEDICA 2025', company: '부산테크노파크', date: '2025-11-17', interp: '김하나', lang: '한국어↔독일어',
-                    status: 'reviewed', total: 12, contract: 2, sample: 4, follow: 5,
-                    countries: ['🇩🇪 독일', '🇺🇸 미국', '🇫🇷 프랑스'],
-                    summary: '오전에 독일·미국 바이어 8팀 방문. 의료기기 상담 집중 진행. 오후 프랑스 유통사 미팅 완료.',
-                    result: '독일 A사 — 샘플 발송 합의.\n미국 B사 — MOQ 협의 후 계약 논의 예정.',
-                    issue: '오전 10시 전기 트러블 → 주최사 신속 대응. 오후 영향 없음.',
-                    action: '1) A사 — 11/25 샘플 발송\n2) B사 — 가격표 재확인 후 이메일 발송',
-                    stars: { term: 5, manner: 5, comm: 4, overall: 5 },
-                    eval: '의료기기 전문 용어 처리 탁월. 바이어 응대 시 적극적 리드 캡처 보조.',
-                    adminComment: '수고하셨습니다. A사 샘플 발송 일정은 본사 물류팀과 확인 후 진행 바랍니다.'
-                },
-
-                {
-                    id: 2, expo: 'Battery Show NA 2025', company: '(주)제이스텍', date: '2025-10-07', interp: '김하나', lang: '한국어↔영어',
-                    status: 'reviewed', total: 9, contract: 1, sample: 3, follow: 4,
-                    countries: ['🇺🇸 미국', '🇬🇧 영국', '🇨🇦 캐나다'],
-                    summary: '배터리 셀 관련 미국 OEM사 2곳과 기술 미팅 완료. 영국 파트너사 신규 방문.',
-                    result: '미국 C사 — NDA 서명 후 기술 협의 착수.\n영국 D사 — 카탈로그 요청.',
-                    issue: '특이사항 없음. 부스 운영 전반 원활.',
-                    action: '1) C사 — 기술 자료 1주 내 공유\n2) D사 — 영문 카탈로그 이메일 발송',
-                    stars: { term: 4, manner: 5, comm: 5, overall: 5 },
-                    eval: '배터리 기술 용어 정확 처리. 바이어와 자연스러운 라포 형성.',
-                    adminComment: '좋은 성과입니다. C사 기술 자료 영업팀에 요청해두겠습니다.'
-                },
-
-                {
-                    id: 3, expo: 'Smart Expo 2026', company: '(주)에스엠테크', date: '2026-03-05', interp: '김하나', lang: '한국어↔영어',
-                    status: 'new', total: 7, contract: 0, sample: 2, follow: 3,
-                    countries: ['🇺🇸 미국', '🇯🇵 일본', '🇮🇳 인도'],
-                    summary: '스마트 팩토리 솔루션 관련 바이어 7팀 방문. 인도 기업 2곳 집중 상담.',
-                    result: '인도 E사 — 파일럿 프로젝트 제안.\n미국 F사 — 추가 정보 요청.',
-                    issue: '일본 바이어 일부 영어 소통 어려움 → 통역사 직접 조율 해결.',
-                    action: '1) E사 — 파일럿 제안서 작성\n2) F사 — 회사 소개서 영문 발송',
-                    stars: { term: 4, manner: 4, comm: 4, overall: 4 },
-                    eval: '다양한 국적 바이어 대응 유연. 일본어 보조 처리도 긍정적.',
-                    adminComment: ''
-                },
-            ];
+            const journals = [];
 
             // ═══════════════════════════════════
             // 캘린더 기능
@@ -6907,17 +6851,7 @@
             }
 
             // ══════════════ 양식 권한 관리 ══════════════
-            var fpClients = [
-                { id: 'client-samsung', name: '(주)삼성전자', manager: '이정우 과장', busan: false, kita: false, lastModified: '' },
-                { id: 'client-sk', name: 'SK텔레콤', manager: '박서연 대리', busan: false, kita: false, lastModified: '' },
-                { id: 'client-lg', name: '(주)LG전자', manager: '김민수 차장', busan: false, kita: false, lastModified: '' },
-                { id: 'client-hyundai', name: '(주)현대건설', manager: '최영호 과장', busan: false, kita: false, lastModified: '' },
-                { id: 'client-cj', name: 'CJ프레시웨이', manager: '정하나 대리', busan: false, kita: false, lastModified: '' },
-                { id: 'client-mobis', name: '(주)현대모비스', manager: '장동혁 부장', busan: false, kita: false, lastModified: '' },
-                { id: 'client-lges', name: 'LG에너지솔루션', manager: '윤채원 과장', busan: false, kita: false, lastModified: '' },
-                { id: 'client-btp', name: '부산테크노파크', manager: '김태훈 주임', busan: true, kita: false, lastModified: '2026-03-08' },
-                { id: 'client-kita-member', name: '한국무역협회 회원사', manager: '이수진 대리', busan: false, kita: true, lastModified: '2026-03-09' },
-            ];
+            var fpClients = [];
 
             // localStorage에서 저장된 권한 불러오기
             function loadFpPermissions() {
@@ -6986,44 +6920,10 @@
             // ═══════════════════════════════════════════════
             // ═══ 채팅 모니터링 시스템 ═══
             // ═══════════════════════════════════════════════
-            var chatmonChannels = [
-                { id:'medica2025', name:'MEDICA 2025', customer:'(주)샘플기업 (홍길동)', interpreter:'김하나', customerKey:'hans', interpreterKey:'hong', lang:'한국어↔독일어', status:'active' },
-                { id:'smartexpo2026', name:'Smart Expo 2026', customer:'(주)배터리코리아 (이수진)', interpreter:'김하나', customerKey:'james', interpreterKey:'lee', lang:'한국어↔영어', status:'active' },
-                { id:'nanotech', name:'Nano Tech Tokyo', customer:'(주)나노텍 (박민수)', interpreter:'Yamada Kenji', customerKey:'yamada', interpreterKey:'park', lang:'한국어↔일본어', status:'active' },
-                { id:'foodex2026', name:'FOODEX 2026', customer:'한식글로벌㈜ (스즈키)', interpreter:'김하나', customerKey:'suzuki', interpreterKey:'', lang:'한국어↔일본어', status:'pending' }
-            ];
+            var chatmonChannels = [];
 
             // ── 기존 채팅 내역 시드 데이터 (고객사↔통역사 양측 대화) ──
-            var chatmonSeedData = {
-                medica2025: [
-                    { role:'customer', text:'안녕하세요 김하나님, MEDICA 2025 관련하여 연락드립니다.', time:'10:30', date:'2025-11-10' },
-                    { role:'interpreter', text:'안녕하세요! MEDICA 2025 배정 통역사 김하나입니다.', time:'10:35', date:'2025-11-10' },
-                    { role:'interpreter', text:'전시 관련 자료를 미리 보내주시면 전문 용어 준비에 도움이 됩니다.', time:'10:36', date:'2025-11-10' },
-                    { role:'customer', text:'제품 카탈로그와 용어집을 정리해서 보내드릴게요.', time:'10:45', date:'2025-11-10' },
-                    { role:'interpreter', text:'감사합니다. 의료기기 관련 독일어 용어는 제가 별도로 정리해두겠습니다.', time:'10:47', date:'2025-11-10' },
-                    { role:'customer', text:'좋습니다! 혹시 부스 배치도도 필요하신가요?', time:'11:02', date:'2025-11-10' },
-                    { role:'interpreter', text:'네, 부스 배치도와 함께 주요 미팅 스케줄도 공유해주시면 사전에 준비하겠습니다.', time:'11:05', date:'2025-11-10' },
-                    { role:'interpreter', text:'참고로 독일어 의료기기 전문 용어집을 정리해봤습니다.', time:'11:20', date:'2025-11-10', files:[{name:'MEDICA_의료기기_독일어_용어집.pdf'}] },
-                    { role:'customer', text:'감사합니다! 저도 제품 카탈로그 보내드립니다.', time:'11:35', date:'2025-11-10', files:[{name:'샘플기업_제품카탈로그_2025.pdf'},{name:'부스_배치도_MEDICA2025.png'}] },
-                    { role:'interpreter', text:'완벽합니다! 자료 잘 확인하겠습니다. 추가로 미팅 일정표도 있으시면 공유 부탁드립니다.', time:'11:42', date:'2025-11-10' }
-                ],
-                smartexpo2026: [
-                    { role:'interpreter', text:'안녕하세요, Smart Expo 2026 담당 통역사 김하나입니다.', time:'14:00', date:'2026-02-20' },
-                    { role:'customer', text:'안녕하세요! 잘 부탁드립니다.', time:'14:15', date:'2026-02-20' },
-                    { role:'interpreter', text:'전시 준비 관련해서 궁금한 사항 있으시면 편하게 말씀해주세요.', time:'14:16', date:'2026-02-20' },
-                    { role:'customer', text:'감사합니다. 배터리 분야 전문 용어가 많은데 괜찮으실까요?', time:'14:30', date:'2026-02-20' },
-                    { role:'interpreter', text:'물론입니다! 배터리/에너지 분야 통역 경험이 다수 있습니다. 관련 자료 공유해주시면 더욱 꼼꼼히 준비하겠습니다.', time:'14:32', date:'2026-02-20' },
-                    { role:'interpreter', text:'', time:'14:40', date:'2026-02-20', files:[{name:'Battery_Industry_Glossary_EN-KR.xlsx'}] },
-                    { role:'customer', text:'용어집 감사합니다! 전시 전까지 추가 자료도 보내드릴게요.', time:'14:50', date:'2026-02-20' }
-                ],
-                nanotech: [
-                    { role:'customer', text:'안녕하세요, Nano Tech Tokyo 담당 박민수입니다.', time:'09:00', date:'2026-02-15' },
-                    { role:'interpreter', text:'안녕하세요 박과장님! 잘 부탁드립니다.', time:'09:20', date:'2026-02-15' },
-                    { role:'customer', text:'일본 바이어 대응 위주로 부탁드립니다.', time:'09:22', date:'2026-02-15' },
-                    { role:'interpreter', text:'네, 전시장 안내와 일본 바이어 응대도 도와드리겠습니다.', time:'09:25', date:'2026-02-15' }
-                ],
-                foodex2026: []
-            };
+            var chatmonSeedData = {};
 
             var chatmonLogs = {};
             chatmonChannels.forEach(function(ch) {
@@ -8087,18 +7987,7 @@
             return 1;
         }
         // ══════════════ 고객사 관리 ══════════════
-        const _custData = [
-            { company: '삼성전자', industry: '제조업 · 반도체', grade: 'VIP', contact: '김민수 부장', phone: '02-1234-5678', email: 'minsu.kim@samsung.com', orders: 32, lastOrder: '2026-03-02', status: '활성' },
-            { company: '현대자동차', industry: '제조업 · 자동차', grade: 'VIP', contact: '박영희 차장', phone: '02-2345-6789', email: 'yh.park@hyundai.com', orders: 28, lastOrder: '2026-03-05', status: '활성' },
-            { company: 'LG에너지솔루션', industry: '제조업 · 배터리', grade: 'VIP', contact: '이정훈 과장', phone: '02-3456-7890', email: 'jh.lee@lgensol.com', orders: 19, lastOrder: '2026-03-01', status: '활성' },
-            { company: '네이버', industry: 'IT/테크 · 플랫폼', grade: '일반', contact: '최서윤 대리', phone: '031-784-5678', email: 'sy.choi@naver.com', orders: 12, lastOrder: '2026-02-25', status: '활성' },
-            { company: '카카오', industry: 'IT/테크 · 플랫폼', grade: '일반', contact: '정하윤 매니저', phone: '031-456-7890', email: 'hy.jung@kakao.com', orders: 8, lastOrder: '2026-02-18', status: '활성' },
-            { company: 'CJ제일제당', industry: '식품 · 바이오', grade: 'VIP', contact: '한도윤 부장', phone: '02-5678-1234', email: 'dy.han@cj.net', orders: 15, lastOrder: '2026-03-07', status: '활성' },
-            { company: '포스코홀딩스', industry: '제조업 · 철강', grade: 'VIP', contact: '송지원 차장', phone: '054-220-1234', email: 'jw.song@posco.com', orders: 11, lastOrder: '2026-03-10', status: '활성' },
-            { company: '한국무역협회', industry: '무역/유통 · 협회', grade: '일반', contact: '윤서현 과장', phone: '02-6000-5678', email: 'sh.yoon@kita.net', orders: 6, lastOrder: '2026-02-10', status: '활성' },
-            { company: '메디톡스', industry: '의료/제약 · 바이오', grade: '신규', contact: '김유진 대리', phone: '02-7890-1234', email: 'yj.kim@medytox.com', orders: 1, lastOrder: '2026-03-04', status: '활성' },
-            { company: '두산에너빌리티', industry: '제조업 · 에너지', grade: '일반', contact: '장민호 과장', phone: '055-278-1234', email: 'mh.jang@doosan.com', orders: 4, lastOrder: '2026-01-20', status: '비활성' },
-        ];
+        const _custData = [];
 
         let _custSortKey = 'orders';
         let _custSortAsc = false;
