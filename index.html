@@ -39,6 +39,37 @@
             border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
+        /* 인기 통역사 섹션 */
+        .popular-interpreters { padding: 80px 0; background: #fff; }
+        .popular-interpreters__inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .popular-interpreters__header { text-align: center; margin-bottom: 48px; }
+        .popular-interpreters__badge { display: inline-block; background: linear-gradient(135deg, #f57c00, #ef6c00); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 5px 14px; border-radius: 20px; letter-spacing: 1px; margin-bottom: 16px; }
+        .popular-interpreters__title { font-size: 1.8rem; font-weight: 800; color: #0a2a5e; margin-bottom: 12px; }
+        .popular-interpreters__desc { font-size: 0.92rem; color: #666; line-height: 1.6; }
+        .popular-interpreters__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+        .pi-card { background: #fff; border-radius: 16px; border: 1px solid #e8ecf2; padding: 28px 24px; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .pi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); border-color: #1565c0; }
+        .pi-card__top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+        .pi-card__avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1565c0, #0d47a1); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.2rem; flex-shrink: 0; }
+        .pi-card__avatar img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+        .pi-card__info { flex: 1; min-width: 0; }
+        .pi-card__name { font-size: 1rem; font-weight: 800; color: #1a2a4a; }
+        .pi-card__role { font-size: 0.78rem; color: #8a95a8; margin-top: 2px; }
+        .pi-card__rating { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+        .pi-card__stars { color: #f57c00; font-size: 0.9rem; letter-spacing: 1px; }
+        .pi-card__score { font-size: 0.92rem; font-weight: 800; color: #f57c00; }
+        .pi-card__reviews { font-size: 0.75rem; color: #999; }
+        .pi-card__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .pi-card__tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 12px; background: #f0f4ff; color: #1565c0; font-weight: 600; }
+        .pi-card__intro { font-size: 0.82rem; color: #555; line-height: 1.6; }
+        .pi-card__stats { display: flex; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0f2f5; }
+        .pi-card__stat { font-size: 0.75rem; color: #888; }
+        .pi-card__stat b { color: #333; font-weight: 700; }
+        @media (max-width: 640px) {
+            .popular-interpreters__title { font-size: 1.3rem; }
+            .popular-interpreters__grid { grid-template-columns: 1fr; }
+        }
+
         /* 카드 가격 */
         .ip-card__price { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: linear-gradient(135deg, #e8f0fe, #f0f4ff); border-radius: 8px; margin: 8px 0 4px; }
         .ip-card__price-label { font-size: 0.7rem; font-weight: 600; color: #666; }
@@ -362,6 +393,18 @@
         </section>
 
 
+
+        <!-- 인기 통역사 섹션 (DB 기반) -->
+        <section class="popular-interpreters" id="popularInterpreters" style="display:none;">
+            <div class="popular-interpreters__inner">
+                <div class="popular-interpreters__header">
+                    <span class="popular-interpreters__badge">BEST INTERPRETERS</span>
+                    <h2 class="popular-interpreters__title">고객이 선택한 인기 통역사</h2>
+                    <p class="popular-interpreters__desc">실제 전시회 현장에서 고객사가 직접 평가한 별점 기반으로 선별된 통역사입니다.</p>
+                </div>
+                <div class="popular-interpreters__grid" id="popularGrid"></div>
+            </div>
+        </section>
 
         <!-- Blue ITQ Section -->
         <section id="contact" class="blue-itq">
@@ -1045,6 +1088,115 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeIpModal();
         });
+
+        // ═══ 인기 통역사 DB 로드 ═══
+        (async function loadPopularInterpreters() {
+            if (!window.sbClient) return;
+            try {
+                // 리뷰가 있는 통역사 조회
+                var { data: reviews, error } = await window.sbClient
+                    .from('49_통역사리뷰')
+                    .select('interpreter_id, rating_expertise, rating_manner, rating_communication, rating_overall');
+                if (error || !reviews || reviews.length === 0) return;
+
+                // 통역사별 평균 계산
+                var interpMap = {};
+                reviews.forEach(function(r) {
+                    if (!interpMap[r.interpreter_id]) interpMap[r.interpreter_id] = { ratings: [], count: 0 };
+                    var avg = (r.rating_expertise + r.rating_manner + r.rating_communication + r.rating_overall) / 4;
+                    interpMap[r.interpreter_id].ratings.push(avg);
+                    interpMap[r.interpreter_id].count++;
+                });
+
+                var interpIds = Object.keys(interpMap);
+                if (interpIds.length === 0) return;
+
+                // 프로필 정보 가져오기
+                var { data: profiles } = await window.sbClient
+                    .from('40_통역사프로필')
+                    .select('user_id, display_name, languages, specialties, intro, experience_years, profile_image_url')
+                    .in('user_id', interpIds);
+
+                var { data: members } = await window.sbClient
+                    .from('01_회원')
+                    .select('id, name')
+                    .in('id', interpIds);
+
+                // 완료 건수
+                var { data: completedContracts } = await window.sbClient
+                    .from('42_통역계약')
+                    .select('interpreter_id')
+                    .in('interpreter_id', interpIds)
+                    .in('status', ['completed', 'settled', 'deposit_paid', 'in_progress']);
+
+                var contractCounts = {};
+                if (completedContracts) {
+                    completedContracts.forEach(function(c) {
+                        contractCounts[c.interpreter_id] = (contractCounts[c.interpreter_id] || 0) + 1;
+                    });
+                }
+
+                // 카드 데이터 생성
+                var cards = interpIds.map(function(id) {
+                    var ratings = interpMap[id].ratings;
+                    var avgScore = (ratings.reduce(function(a,b){return a+b;}, 0) / ratings.length).toFixed(1);
+                    var profile = profiles ? profiles.find(function(p){return p.user_id === id;}) : null;
+                    var member = members ? members.find(function(m){return m.id === id;}) : null;
+                    var name = (profile && profile.display_name) || (member && member.name) || '통역사';
+                    return {
+                        name: name,
+                        score: parseFloat(avgScore),
+                        reviewCount: interpMap[id].count,
+                        languages: profile ? profile.languages : null,
+                        specialties: profile ? profile.specialties : null,
+                        intro: profile ? profile.intro : '',
+                        years: profile ? profile.experience_years : 0,
+                        cases: contractCounts[id] || 0,
+                        photo: profile ? profile.profile_image_url : null
+                    };
+                });
+
+                // 별점 높은 순 정렬
+                cards.sort(function(a,b) { return b.score - a.score; });
+
+                // 렌더링
+                var grid = document.getElementById('popularGrid');
+                grid.innerHTML = cards.slice(0, 6).map(function(c) {
+                    var starsHtml = '';
+                    for (var i = 0; i < 5; i++) starsHtml += i < Math.round(c.score) ? '★' : '☆';
+                    var tagsHtml = '';
+                    if (c.languages) {
+                        try {
+                            var langs = typeof c.languages === 'string' ? JSON.parse(c.languages) : c.languages;
+                            if (Array.isArray(langs)) langs.forEach(function(l) { tagsHtml += '<span class="pi-card__tag">' + l + '</span>'; });
+                        } catch(e) { tagsHtml = '<span class="pi-card__tag">' + c.languages + '</span>'; }
+                    }
+                    var avatarHtml = c.photo
+                        ? '<img src="' + c.photo + '" alt="' + c.name + '">'
+                        : c.name.charAt(0);
+
+                    return '<div class="pi-card">' +
+                        '<div class="pi-card__top">' +
+                            '<div class="pi-card__avatar">' + avatarHtml + '</div>' +
+                            '<div class="pi-card__info"><div class="pi-card__name">' + c.name + '</div><div class="pi-card__role">전문 통역사</div></div>' +
+                        '</div>' +
+                        '<div class="pi-card__rating">' +
+                            '<span class="pi-card__stars">' + starsHtml + '</span>' +
+                            '<span class="pi-card__score">' + c.score + '</span>' +
+                            '<span class="pi-card__reviews">(' + c.reviewCount + '개 리뷰)</span>' +
+                        '</div>' +
+                        (tagsHtml ? '<div class="pi-card__tags">' + tagsHtml + '</div>' : '') +
+                        (c.intro ? '<div class="pi-card__intro">' + c.intro + '</div>' : '') +
+                        '<div class="pi-card__stats">' +
+                            '<span class="pi-card__stat">경력 <b>' + (c.years || 0) + '년</b></span>' +
+                            '<span class="pi-card__stat">파견 <b>' + c.cases + '건</b></span>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                document.getElementById('popularInterpreters').style.display = 'block';
+            } catch(e) { console.warn('인기 통역사 로드 실패:', e); }
+        })();
     </script>
 </body>
 
