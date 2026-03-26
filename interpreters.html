@@ -93,6 +93,7 @@
         .ip-card__price-label { font-size: 0.7rem; font-weight: 600; color: #666; }
         .ip-card__price-value { font-size: 0.88rem; font-weight: 800; color: #1565c0; letter-spacing: -0.3px; }
         .ip-card__price-unit { font-size: 0.68rem; color: #999; }
+        .profile-card__country-badge { display: inline-flex; align-items: center; gap: 2px; margin-left: 8px; padding: 2px 8px; background: #f0f4ff; border-radius: 10px; font-size: 0.68rem; font-weight: 600; color: #1565c0; }
         .ip-modal__price-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .ip-modal__price-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f5f8ff; border-radius: 10px; border: 1px solid #e3ecf7; }
         .ip-modal__price-type { font-size: 0.82rem; font-weight: 600; color: #333; }
@@ -509,7 +510,7 @@
         var currentField = '전체';
 
         // 유효한 국가 코드 확인
-        if (!interpData[currentCountry]) currentCountry = 'us';
+        if (currentCountry !== 'all' && !interpData[currentCountry]) currentCountry = 'all';
 
         function fmtPrice(arr) {
             var v = Array.isArray(arr) ? arr[0] : arr;
@@ -520,24 +521,58 @@
         // 페이지 렌더링
         // ═══════════════════════════
         function renderPage() {
-            var d = interpData[currentCountry];
-            var interpreters = d.interpreters;
+            var isAll = currentCountry === 'all';
+            var interpreters, d;
+
+            if (isAll) {
+                // 전체 국가 통역사 합치기
+                interpreters = [];
+                var allCodes = ['us', 'jp', 'cn', 'de', 'vn', 'ae', 'th'];
+                allCodes.forEach(function(code) {
+                    var cd = interpData[code];
+                    if (cd && cd.interpreters) {
+                        cd.interpreters.forEach(function(p) {
+                            var clone = Object.assign({}, p);
+                            clone._country = cd.country;
+                            clone._countryCode = code;
+                            clone._flag = cd.flag;
+                            interpreters.push(clone);
+                        });
+                    }
+                });
+                d = { country: '전체', flag: '', lang: '전체 국가' };
+            } else {
+                d = interpData[currentCountry];
+                interpreters = d.interpreters;
+            }
 
             // 페이지 타이틀 업데이트
-            document.title = d.country + ' 전문 통역사 - 콘텐츄어';
+            document.title = (isAll ? '전체 국가' : d.country) + ' 전문 통역사 - 콘텐츄어';
 
             // 헤더
-            document.getElementById('pageHeader').innerHTML =
-                '<div class="interp-page__flag">' +
-                    '<img src="https://flagcdn.com/w80/' + d.flag + '.png" srcset="https://flagcdn.com/w160/' + d.flag + '.png 2x" alt="' + d.country + '">' +
-                    '<span class="interp-page__country">' + d.lang + '</span>' +
-                '</div>' +
-                '<h1 class="interp-page__title">' + d.country + ' 전문 통역사</h1>' +
-                '<p class="interp-page__desc">' + d.country + ' 현지 전시회 통역 전문가들의 프로필을 확인하세요.<br>검증된 경력과 전문 분야를 갖춘 파트너를 만나보실 수 있습니다.</p>' +
-                '<div class="interp-page__count">등록 통역사 <strong>' + interpreters.length + '</strong>명</div>';
+            if (isAll) {
+                document.getElementById('pageHeader').innerHTML =
+                    '<div class="interp-page__flag">' +
+                        '<span style="font-size:2.5rem;">🌍</span>' +
+                        '<span class="interp-page__country">전체 국가</span>' +
+                    '</div>' +
+                    '<h1 class="interp-page__title">전체 국가 전문 통역사</h1>' +
+                    '<p class="interp-page__desc">콘텐츄어가 보유한 전 세계 통역사 네트워크를 한눈에 확인하세요.<br>국가별·분야별 최고의 통역 파트너를 만나보실 수 있습니다.</p>' +
+                    '<div class="interp-page__count">등록 통역사 <strong>' + interpreters.length + '</strong>명</div>';
+            } else {
+                document.getElementById('pageHeader').innerHTML =
+                    '<div class="interp-page__flag">' +
+                        '<img src="https://flagcdn.com/w80/' + d.flag + '.png" srcset="https://flagcdn.com/w160/' + d.flag + '.png 2x" alt="' + d.country + '">' +
+                        '<span class="interp-page__country">' + d.lang + '</span>' +
+                    '</div>' +
+                    '<h1 class="interp-page__title">' + d.country + ' 전문 통역사</h1>' +
+                    '<p class="interp-page__desc">' + d.country + ' 현지 전시회 통역 전문가들의 프로필을 확인하세요.<br>검증된 경력과 전문 분야를 갖춘 파트너를 만나보실 수 있습니다.</p>' +
+                    '<div class="interp-page__count">등록 통역사 <strong>' + interpreters.length + '</strong>명</div>';
+            }
 
-            // 국가 탭
-            var tabsHtml = '';
+            // 국가 탭 (전체 포함)
+            var tabsHtml = '<a href="interpreters.html?country=all" class="country-tab' + (currentCountry === 'all' ? ' active' : '') + '">' +
+                '<span style="font-size:1.1em;">🌍</span><span>전체</span></a>';
             var codes = ['us', 'jp', 'cn', 'de', 'vn', 'ae', 'th'];
             codes.forEach(function(code) {
                 var cd = interpData[code];
@@ -585,12 +620,15 @@
             filtered.forEach(function(p, idx) {
                 // 원래 인덱스 찾기
                 var origIdx = interpreters.indexOf(p);
-                gridHtml += '<div class="profile-card" onclick="openIpModal(\'' + currentCountry + '\',' + origIdx + ')">' +
+                var modalCountry = p._countryCode || currentCountry;
+                var modalIdx = p._countryCode ? interpData[p._countryCode].interpreters.indexOf(interpData[p._countryCode].interpreters.filter(function(x){return x.name===p.name && x.role===p.role;})[0]) : origIdx;
+                var countryBadge = isAll && p._country ? '<span class="profile-card__country-badge"><img src="https://flagcdn.com/w20/' + p._flag + '.png" style="width:14px;height:auto;border-radius:2px;vertical-align:middle;margin-right:4px;">' + p._country + '</span>' : '';
+                gridHtml += '<div class="profile-card" onclick="openIpModal(\'' + modalCountry + '\',' + modalIdx + ')">' +
                     '<div class="profile-card__top">' +
                         '<div class="profile-card__avatar"><img src="' + p.photo + '" alt="' + p.name + '"></div>' +
                         '<div class="profile-card__info">' +
                             '<div class="profile-card__name">' + p.name + '</div>' +
-                            '<div class="profile-card__role">' + p.role + '</div>' +
+                            '<div class="profile-card__role">' + p.role + countryBadge + '</div>' +
                         '</div>' +
                     '</div>' +
                     '<div class="profile-card__body">' +
