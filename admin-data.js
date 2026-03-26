@@ -153,6 +153,50 @@ const AdminData = {
         }
     },
 
+    // ── 정산 건 생성 (DB) ──
+    async createSettlement(contract) {
+        if (!supabase || !contract) return { success: false, error: 'DB 미연결' };
+        try {
+            const serviceFee = (contract.daily_rate || 0) * (contract.working_days || 0);
+            const platformFeeRate = 0.10;
+            const platformFee = Math.round(serviceFee * platformFeeRate);
+            const clientTotal = serviceFee + platformFee;
+            const taxAmount = Math.round(serviceFee * 0.033);
+            const netAmount = serviceFee - taxAmount;
+
+            const { data, error } = await supabase
+                .from('43_정산내역')
+                .insert({
+                    contract_id: contract.id,
+                    interpreter_id: contract.interpreter_id,
+                    exhibition_name: contract.exhibition_name,
+                    client_company: contract.client_company,
+                    language_pair: contract.language_pair,
+                    start_date: contract.start_date,
+                    end_date: contract.end_date,
+                    working_days: contract.working_days,
+                    daily_rate: contract.daily_rate,
+                    gross_amount: serviceFee,
+                    tax_amount: taxAmount,
+                    net_amount: netAmount,
+                    platform_fee: platformFee,
+                    client_total: clientTotal,
+                    platform_fee_rate: platformFeeRate,
+                    status: 'request',
+                    requested_at: new Date().toISOString(),
+                    journal_submitted: true
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { success: true, data };
+        } catch (e) {
+            console.error('정산 건 생성 실패:', e);
+            return { success: false, error: e.message };
+        }
+    },
+
     // ── 정산 승인 (DB) ──
     async approveSettlement(dbId) {
         if (!supabase || !dbId) return { success: false, error: 'DB 미연결' };

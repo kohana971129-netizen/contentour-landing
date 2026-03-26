@@ -6174,36 +6174,58 @@
                 });
                 ctAdminInit();
 
-                // ═══ 정산 건 자동 생성: 통역사에게 금액 전달 프로세스 시작 ═══
+                // ═══ 정산 건 자동 생성: DB에 INSERT ═══
                 var existsStl = stlAdminData.find(function(d){return d.contractId === contractId;});
-                if (!existsStl) {
-                    var newStlId = stlAdminData.length > 0 ? Math.max.apply(null, stlAdminData.map(function(d){return d.id;})) + 1 : 1;
-                    var interpreterFee = c.subtotal; // 통역사 서비스 금액 (플랫폼 수수료 제외)
-                    var tax = Math.round(interpreterFee * 0.033); // 원천징수 3.3%
-                    var newStl = {
-                        id: newStlId,
-                        contractId: contractId,
-                        interpreter: c.interpreter.name,
-                        interpColor: c.interpreter.color || '#1565c0',
-                        expo: c.expo,
-                        client: c.client.company,
-                        start: c.dates.start,
-                        end: c.dates.end,
-                        lang: c.lang,
-                        days: c.days,
-                        rate: Math.round(c.subtotal / c.days),
-                        amount: interpreterFee,
-                        tax: tax,
-                        status: 'request',
-                        statusText: '승인 대기',
-                        requestDate: today,
-                        journalSubmitted: true
-                    };
-                    stlAdminData.push(newStl);
-                    stlAdminInit();
-                    showToast('✅ ' + c.expo + ' 잔금 확인 완료! 통역사 정산 건이 자동 생성되었습니다. [정산 승인] 탭에서 확인하세요.');
-                } else {
+                if (!existsStl && typeof AdminData !== 'undefined' && AdminData.createSettlement) {
+                    // DB에서 계약 원본 데이터로 정산 생성
+                    (async function() {
+                        try {
+                            var contractDb = null;
+                            if (window.sbClient) {
+                                var res = await window.sbClient.from('42_통역계약').select('*').eq('id', contractId).single();
+                                if (res.data) contractDb = res.data;
+                            }
+                            if (contractDb) {
+                                var result = await AdminData.createSettlement(contractDb);
+                                if (result.success) {
+                                    // 로컬 데이터도 동기화
+                                    var dbStl = result.data;
+                                    stlAdminData.push({
+                                        id: dbStl.id, dbId: dbStl.id, contractId: contractId,
+                                        interpreter: c.interpreter.name, interpColor: c.interpreter.color || '#1565c0',
+                                        expo: c.expo, client: c.client.company,
+                                        start: c.dates.start, end: c.dates.end, lang: c.lang,
+                                        days: c.days, rate: dbStl.daily_rate, amount: dbStl.gross_amount, tax: dbStl.tax_amount,
+                                        status: 'request', statusText: '승인 대기', requestDate: today, journalSubmitted: true
+                                    });
+                                    stlAdminInit();
+                                    showToast('✅ ' + c.expo + ' 잔금 확인 완료! 통역사 정산 건이 생성되었습니다. [정산 승인] 탭에서 확인하세요.');
+                                } else {
+                                    console.error('정산 DB 생성 실패:', result.error);
+                                    showToast('⚠️ 잔금 확인 완료. 정산 건 생성 중 오류: ' + (result.error || ''));
+                                }
+                            }
+                        } catch(err) {
+                            console.error('정산 생성 에러:', err);
+                        }
+                    })();
+                } else if (existsStl) {
                     showToast('✅ ' + c.expo + ' 잔금이 확인되었습니다. 서비스 완료 처리됩니다.');
+                } else {
+                    // AdminData 미로드 시 기존 로컬 방식 폴백
+                    var newStlId = stlAdminData.length > 0 ? Math.max.apply(null, stlAdminData.map(function(d){return d.id;})) + 1 : 1;
+                    var interpreterFee = c.subtotal;
+                    var tax = Math.round(interpreterFee * 0.033);
+                    stlAdminData.push({
+                        id: newStlId, contractId: contractId,
+                        interpreter: c.interpreter.name, interpColor: c.interpreter.color || '#1565c0',
+                        expo: c.expo, client: c.client.company,
+                        start: c.dates.start, end: c.dates.end, lang: c.lang,
+                        days: c.days, rate: Math.round(c.subtotal / c.days), amount: interpreterFee, tax: tax,
+                        status: 'request', statusText: '승인 대기', requestDate: today, journalSubmitted: true
+                    });
+                    stlAdminInit();
+                    showToast('✅ ' + c.expo + ' 잔금 확인 완료! 정산 건이 생성되었습니다.');
                 }
 
                 // Broadcast to customer & interpreter dashboards
