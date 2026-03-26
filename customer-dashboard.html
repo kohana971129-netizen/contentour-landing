@@ -788,6 +788,31 @@
 
   <div class="toast" id="toast">&#9989; 문의가 성공적으로 접수되었습니다!</div>
 
+  <!-- 리뷰 작성 모달 -->
+  <div class="modal-overlay" id="reviewModalOverlay" onclick="if(event.target===this)closeReviewModal()" style="z-index:250;">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal__head" style="background:linear-gradient(135deg,#f57c00,#ef6c00);border-bottom:none;">
+        <div><h3 style="color:#fff;">⭐ 통역사 리뷰 작성</h3><p id="reviewExpoName" style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:4px;"></p></div>
+        <button class="modal__close" onclick="closeReviewModal()" style="color:rgba(255,255,255,0.7);">✕</button>
+      </div>
+      <div class="modal__body">
+        <input type="hidden" id="reviewContractId">
+        <div style="margin-bottom:20px;">
+          <div style="font-size:0.82rem;font-weight:700;color:#333;margin-bottom:12px;">통역사를 평가해주세요</div>
+          <div class="review-rating-row"><span class="review-rating-label">전문성</span><div class="review-stars" id="revStars-expertise"></div></div>
+          <div class="review-rating-row"><span class="review-rating-label">매너</span><div class="review-stars" id="revStars-manner"></div></div>
+          <div class="review-rating-row"><span class="review-rating-label">소통력</span><div class="review-stars" id="revStars-communication"></div></div>
+          <div class="review-rating-row"><span class="review-rating-label">종합 만족도</span><div class="review-stars" id="revStars-overall"></div></div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="font-size:0.82rem;font-weight:700;color:#333;">한줄 리뷰 (선택)</label>
+          <textarea id="reviewText" rows="3" placeholder="통역사에 대한 솔직한 후기를 남겨주세요." style="width:100%;margin-top:8px;padding:12px;border:2px solid #e0e5ec;border-radius:10px;font-size:0.85rem;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
+        </div>
+        <button onclick="submitReview()" style="width:100%;padding:14px;background:linear-gradient(135deg,#f57c00,#ef6c00);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">리뷰 제출하기</button>
+      </div>
+    </div>
+  </div>
+
 
   <script>
     // ── 로그아웃 ──
@@ -3237,6 +3262,7 @@
             });
             _contractsDbLoaded = true;
             renderContracts();
+            checkExistingReviews();
             console.log('계약 DB 로드 완료:', data.length + '건');
         } catch (e) { console.warn('계약 DB 로드 실패, 데모 데이터 유지:', e); }
     }
@@ -3288,8 +3314,14 @@
         else if (c.status === 'balance_pay') actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();openPaymentModal('${c.id}','balance')">잔금 결제</button>`;
         else if (c.status === 'balance_review') actionHtml = `<span class="contract-card__action label" style="background:#f3e5f5;color:#7b1fa2;">잔금 확인 대기중</span>`;
         else if (c.status === 'in_progress') actionHtml = `<span class="contract-card__action label">진행중</span>`;
-        else if (c.status === 'complete') actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();confirmServiceComplete('${c.id}')">완료 확인</button>`;
-        else if (c.status === 'settled') actionHtml = `<span class="contract-card__action label">정산 완료</span>`;
+        else if (c.status === 'complete') {
+          actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();confirmServiceComplete('${c.id}')">완료 확인</button>`;
+          if (!c._reviewDone) actionHtml += `<button class="contract-card__action pay" onclick="event.stopPropagation();openReviewModal('${c.id}')" style="background:linear-gradient(135deg,#f57c00,#ef6c00);margin-left:4px;">⭐ 리뷰 작성</button>`;
+        }
+        else if (c.status === 'settled') {
+          actionHtml = `<span class="contract-card__action label">정산 완료</span>`;
+          if (!c._reviewDone) actionHtml += `<button class="contract-card__action pay" onclick="event.stopPropagation();openReviewModal('${c.id}')" style="background:linear-gradient(135deg,#f57c00,#ef6c00);margin-left:4px;">⭐ 리뷰 작성</button>`;
+        }
         return `<div class="contract-card" onclick="openContractDetail('${c.id}')">
           <div style="flex:1;min-width:0;">
             <div class="contract-card__id">${c.id}</div>
@@ -3310,6 +3342,107 @@
           </div>
         </div>`;
       }).join('');
+    }
+
+    // ===== 리뷰 시스템 =====
+    var _reviewRatings = { expertise: 0, manner: 0, communication: 0, overall: 0 };
+
+    function initReviewStars(category, containerId) {
+      var el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = '';
+      for (var i = 1; i <= 5; i++) {
+        var star = document.createElement('button');
+        star.type = 'button';
+        star.className = 'rev-star';
+        star.textContent = '⭐';
+        star.dataset.val = i;
+        star.onclick = function() {
+          var val = parseInt(this.dataset.val);
+          _reviewRatings[category] = val;
+          this.parentNode.querySelectorAll('.rev-star').forEach(function(s, idx) {
+            s.classList.toggle('active', idx < val);
+          });
+        };
+        el.appendChild(star);
+      }
+    }
+
+    function openReviewModal(contractId) {
+      var c = contracts.find(function(x) { return x.id === contractId; });
+      if (!c) return;
+      document.getElementById('reviewContractId').value = contractId;
+      document.getElementById('reviewExpoName').textContent = c.expo + ' — ' + c.interpreter.name + ' 통역사';
+      document.getElementById('reviewText').value = '';
+      _reviewRatings = { expertise: 0, manner: 0, communication: 0, overall: 0 };
+      initReviewStars('expertise', 'revStars-expertise');
+      initReviewStars('manner', 'revStars-manner');
+      initReviewStars('communication', 'revStars-communication');
+      initReviewStars('overall', 'revStars-overall');
+      document.getElementById('reviewModalOverlay').style.display = 'flex';
+      document.getElementById('reviewModalOverlay').classList.add('open');
+    }
+
+    function closeReviewModal() {
+      document.getElementById('reviewModalOverlay').style.display = '';
+      document.getElementById('reviewModalOverlay').classList.remove('open');
+    }
+
+    async function submitReview() {
+      var contractId = document.getElementById('reviewContractId').value;
+      var c = contracts.find(function(x) { return x.id === contractId; });
+      if (!c) return;
+
+      if (!_reviewRatings.expertise || !_reviewRatings.manner || !_reviewRatings.communication || !_reviewRatings.overall) {
+        showContractToast('모든 항목에 별점을 선택해주세요.');
+        return;
+      }
+
+      if (!window.sbClient) { showContractToast('서비스 연결 오류'); return; }
+
+      try {
+        var user = await ContentourAuth.getCurrentUser();
+        if (!user) { showContractToast('로그인이 필요합니다.'); return; }
+
+        var { error } = await window.sbClient.from('49_통역사리뷰').insert({
+          contract_id: contractId,
+          customer_id: user.id,
+          interpreter_id: c.interpreter.id,
+          exhibition_name: c.expo,
+          rating_expertise: _reviewRatings.expertise,
+          rating_manner: _reviewRatings.manner,
+          rating_communication: _reviewRatings.communication,
+          rating_overall: _reviewRatings.overall,
+          review_text: document.getElementById('reviewText').value.trim() || null
+        });
+
+        if (error) throw error;
+
+        c._reviewDone = true;
+        closeReviewModal();
+        renderContracts();
+        showContractToast('리뷰가 등록되었습니다! 감사합니다.');
+      } catch (e) {
+        console.error('리뷰 제출 실패:', e);
+        showContractToast('리뷰 등록 중 오류가 발생했습니다: ' + (e.message || ''));
+      }
+    }
+
+    // 기존 리뷰 체크 (계약 로드 시)
+    async function checkExistingReviews() {
+      if (!window.sbClient) return;
+      try {
+        var user = await ContentourAuth.getCurrentUser();
+        if (!user) return;
+        var { data } = await window.sbClient.from('49_통역사리뷰').select('contract_id').eq('customer_id', user.id);
+        if (data) {
+          data.forEach(function(r) {
+            var c = contracts.find(function(x) { return x.id === r.contract_id; });
+            if (c) c._reviewDone = true;
+          });
+          renderContracts();
+        }
+      } catch(e) {}
     }
 
     function filterContracts(status, e) {

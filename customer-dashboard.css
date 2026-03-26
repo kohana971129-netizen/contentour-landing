@@ -222,6 +222,13 @@
     .modal__interpreter-info{flex:1;}
     .modal__interpreter-name{font-size:0.88rem;font-weight:700;color:var(--text);}
     .modal__interpreter-lang{font-size:0.75rem;color:var(--gray-400);margin-top:2px;}
+    .review-rating-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--gray-100);}
+    .review-rating-row:last-child{border-bottom:none;}
+    .review-rating-label{font-size:0.82rem;font-weight:600;color:var(--gray-500);min-width:90px;}
+    .review-stars{display:flex;gap:4px;}
+    .review-stars .rev-star{width:32px;height:32px;background:none;border:none;font-size:1.4rem;cursor:pointer;opacity:0.3;transition:all 0.15s;}
+    .review-stars .rev-star.active{opacity:1;transform:scale(1.1);}
+    .review-stars .rev-star:hover{opacity:0.8;transform:scale(1.15);}
     .detail-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-100);}
     .detail-row:last-child{border-bottom:none;}
     .detail-label{font-size:0.78rem;font-weight:700;color:var(--gray-400);min-width:100px;}
