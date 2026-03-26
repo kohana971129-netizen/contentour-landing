@@ -1053,6 +1053,13 @@
                                     </div>
                                 </div>
                                 <div class="pf-field">
+                                    <label class="pf-label">통역 경력 (년)</label>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <input type="number" id="pf-experience" min="0" max="30" value="3" class="pf-input" style="max-width:100px;" onchange="suggestRateByExperience()">
+                                        <button onclick="suggestRateByExperience()" style="padding:6px 14px;background:#e3f0ff;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">💡 경력별 단가 추천</button>
+                                    </div>
+                                </div>
+                                <div class="pf-field">
                                     <label class="pf-label">자기소개</label>
                                     <textarea id="pf-intro" rows="4" class="pf-input pf-textarea">전시/박람회 전문 통역사입니다. KOTRA, 부산테크노파크 등 다수의 해외전시 지원사업 경험이 있으며, 바이어 상담 통역에 강점이 있습니다.</textarea>
                                 </div>
@@ -4574,6 +4581,7 @@
                 if (saved.name) document.getElementById('pf-name').value = saved.name;
                 if (saved.email) document.getElementById('pf-email').value = saved.email;
                 if (saved.phone) document.getElementById('pf-phone').value = saved.phone;
+                if (saved.experience !== undefined) document.getElementById('pf-experience').value = saved.experience;
                 if (saved.intro) document.getElementById('pf-intro').value = saved.intro;
                 if (saved.bank) {
                     if (saved.bank.name) document.getElementById('bankName').value = saved.bank.name;
@@ -4674,8 +4682,30 @@
                 account: document.getElementById('bankAccount') ? document.getElementById('bankAccount').value : ''
             };
 
+            // 경력 추가
+            data.experience = parseInt(document.getElementById('pf-experience').value) || 0;
+
             // localStorage에 저장
             localStorage.setItem(RATE_STORAGE_KEY, JSON.stringify(data));
+
+            // DB에 저장
+            if (window.sbClient && window.InterpreterApp && InterpreterApp.currentUser) {
+                (async function() {
+                    try {
+                        await window.sbClient.from('40_통역사프로필').update({
+                            display_name: data.name,
+                            phone: data.phone,
+                            intro: data.intro,
+                            experience_years: data.experience,
+                            base_rate: data.rates.booth,
+                            languages: data.langs.map(function(l) { return l.replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '').trim(); }),
+                            specialties: data.fields.map(function(f) { return f.replace(/[\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]/gu, '').trim(); }),
+                            rate_by_type: data.rates,
+                            rate_by_language: data.langRates
+                        }).eq('user_id', InterpreterApp.currentUser.id);
+                    } catch(e) { console.warn('프로필 DB 저장 실패:', e); }
+                })();
+            }
 
             // 관리자 대시보드에 브로드캐스트
             try {
@@ -4712,11 +4742,36 @@
             }
         }
 
+        function getRecommendedRates(years) {
+            if (years <= 3) {
+                return { booth: 200000, meeting: 250000, conference: 300000, operation: 220000 };
+            } else if (years <= 7) {
+                return { booth: 250000, meeting: 300000, conference: 350000, operation: 270000 };
+            } else {
+                return { booth: 300000, meeting: 350000, conference: 400000, operation: 320000 };
+            }
+        }
+
+        function suggestRateByExperience() {
+            var years = parseInt(document.getElementById('pf-experience').value) || 0;
+            var rec = getRecommendedRates(years);
+            var label = years <= 3 ? '주니어 (1~3년)' : years <= 7 ? '경력 (3~7년)' : '시니어 (7년+)';
+
+            document.getElementById('rate-booth').value = rec.booth;
+            document.getElementById('rate-meeting').value = rec.meeting;
+            document.getElementById('rate-conference').value = rec.conference;
+            document.getElementById('rate-operation').value = rec.operation;
+            updateRatePreview();
+            showToast('💡 경력 ' + years + '년 (' + label + ') 기준 추천 단가가 적용되었습니다. 필요시 직접 수정 가능합니다.');
+        }
+
         function resetRates() {
-            document.getElementById('rate-booth').value = 350000;
-            document.getElementById('rate-meeting').value = 400000;
-            document.getElementById('rate-conference').value = 500000;
-            document.getElementById('rate-operation').value = 380000;
+            var years = parseInt(document.getElementById('pf-experience').value) || 0;
+            var rec = getRecommendedRates(years);
+            document.getElementById('rate-booth').value = rec.booth;
+            document.getElementById('rate-meeting').value = rec.meeting;
+            document.getElementById('rate-conference').value = rec.conference;
+            document.getElementById('rate-operation').value = rec.operation;
             document.getElementById('lrate-en').value = 0;
             document.getElementById('lrate-jp').value = 0;
             document.getElementById('lrate-cn').value = 0;
@@ -4724,7 +4779,7 @@
             document.getElementById('lrate-vn').value = 0;
             document.getElementById('lrate-ar').value = 80000;
             updateRatePreview();
-            showToast('단가가 초기값으로 복원되었습니다.');
+            showToast('단가가 경력 기준 초기값으로 복원되었습니다.');
         }
     </script>
 
