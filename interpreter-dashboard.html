@@ -4135,15 +4135,15 @@
 
         async function chatLoadFromDB() {
             if (_chatDbLoaded) return;
-            console.log('[Chat DB] 시작, ChatData:', typeof ChatData, 'sbClient:', !!window.sbClient);
-            if (typeof ChatData === 'undefined' || !window.sbClient) { console.warn('[Chat DB] ChatData 또는 sbClient 없음'); return; }
+            console.log('[ChatDB] start, ChatData:', typeof ChatData, 'sbClient:', !!window.sbClient);
+            if (typeof ChatData === 'undefined' || !window.sbClient) { console.warn('[ChatDB] no ChatData or sbClient'); return; }
             try {
                 const user = await ChatData.getUser();
-                console.log('[Chat DB] user:', user);
-                if (!user) { console.warn('[Chat DB] 유저 없음'); return; }
+                console.log('[ChatDB] user:', user);
+                if (!user) { console.warn('[ChatDB] no user'); return; }
                 const rooms = await ChatData.loadChatRooms();
-                console.log('[Chat DB] rooms:', rooms);
-                if (!rooms || rooms.length === 0) { console.warn('[Chat DB] 채팅방 없음'); return; }
+                console.log('[ChatDB] rooms:', rooms);
+                if (!rooms || rooms.length === 0) { console.warn('[ChatDB] no rooms'); return; }
 
                 const colors = ['#1565c0', '#00695c', '#6a1b9a', '#c62828', '#ef6c00', '#0277bd'];
                 const newContacts = [];
