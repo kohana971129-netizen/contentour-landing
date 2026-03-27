@@ -3449,7 +3449,7 @@ section {
 /* ══════════════ 신뢰 배지 섹션 ══════════════ */
 .trust-badges {
     padding: 36px 24px;
-    background: var(--navy);
+    background: linear-gradient(135deg, #0a2a5e, #1565c0);
 }
 .trust-badges__inner {
     max-width: 1100px;
@@ -3472,7 +3472,7 @@ section {
 .trust-badge__text {
     font-size: 0.82rem;
     font-weight: 700;
-    color: rgba(255,255,255,0.9);
+    color: #ffffff;
 }
 .trust-badge__dot {
     width: 4px;
