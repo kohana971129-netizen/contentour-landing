@@ -3249,16 +3249,113 @@ section {
     100% { transform: translateX(-50%); }
 }
 
-/* ── 고객 후기 + 파트너 반응형 ── */
+/* ══════════════ FAQ 섹션 ══════════════ */
+.faq-section {
+    padding: 80px 24px;
+    background: var(--light-bg);
+}
+.faq-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+}
+.faq-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+.faq-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+}
+.faq-sub {
+    font-size: 0.92rem;
+    color: var(--gray-600);
+    margin-bottom: 40px;
+}
+.faq-list {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.faq-item {
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.faq-item:hover {
+    border-color: var(--blue);
+}
+.faq-item.open {
+    border-color: var(--blue);
+    box-shadow: 0 4px 16px rgba(21, 101, 192, 0.08);
+}
+.faq-item__q {
+    padding: 20px 24px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.faq-item__arrow {
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--gray-400);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+}
+.faq-item.open .faq-item__arrow {
+    transform: rotate(90deg);
+    color: var(--blue);
+}
+.faq-item__a {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: var(--gray-600);
+    padding: 0 24px;
+}
+.faq-item.open .faq-item__a {
+    max-height: 300px;
+    padding: 0 24px 20px;
+}
+.faq-item__a strong {
+    color: var(--blue);
+    font-weight: 700;
+}
+
+/* ── 고객 후기 + 파트너 + FAQ 반응형 ── */
 @media (max-width: 768px) {
     .testimonials-section { padding: 56px 20px; }
     .testimonials-title { font-size: 1.4rem; }
     .testimonials-grid { grid-template-columns: 1fr; }
     .partners-section { padding: 40px 20px; }
     .partners-title { font-size: 1.2rem; }
+    .faq-section { padding: 56px 20px; }
+    .faq-title { font-size: 1.4rem; }
+    .faq-item__q { padding: 16px 20px; font-size: 0.85rem; }
+    .faq-item__a { padding: 0 20px; }
+    .faq-item.open .faq-item__a { padding: 0 20px 16px; }
 }
 @media (max-width: 520px) {
     .testimonials-title { font-size: 1.2rem; }
     .testi-card { padding: 20px 18px; }
     .testi-card__text { font-size: 0.82rem; }
+    .faq-title { font-size: 1.2rem; }
+    .faq-item__q { font-size: 0.82rem; }
+    .faq-item__a { font-size: 0.8rem; }
 }
