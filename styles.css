@@ -3293,11 +3293,7 @@ section {
     align-items: center;
 }
 .process-step__num {
-    font-size: 0.68rem;
-    font-weight: 800;
-    color: var(--blue);
-    letter-spacing: 1px;
-    margin-bottom: 12px;
+    display: none;
 }
 .process-step__icon {
     width: 68px;
@@ -3330,11 +3326,12 @@ section {
     color: var(--gray-600);
 }
 .process-arrow {
-    font-size: 1.2rem;
-    color: var(--gray-400);
+    font-size: 1.6rem;
+    color: var(--blue);
     font-weight: 300;
-    padding-top: 48px;
+    padding-top: 28px;
     flex-shrink: 0;
+    opacity: 0.4;
 }
 
 @media (max-width: 768px) {
