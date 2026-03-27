@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전시회 지원 프로세스 - 콘텐츄어</title>
+    <title>통역지원 서비스 - 콘텐츄어 | 고객사·통역사·관리자 협업 시스템</title>
+    <meta name="description" content="콘텐츄어 통역지원 서비스의 전체 이용 흐름. 고객사 문의부터 통역사 매칭, 현장 파견, 정산까지. 3자 협업 시스템으로 체계적 운영.">
     <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="styles.css?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -60,8 +61,8 @@
                 <a class="is-active" href="support.html">
                     <span class="nav__menu-icon">🤝</span>
                     <div class="nav__menu-text">
-                        <span class="nav__menu-title">전시회지원</span>
-                        <span class="nav__menu-desc">현장 운영 서비스</span>
+                        <span class="nav__menu-title">통역지원</span>
+                        <span class="nav__menu-desc">서비스 이용 안내</span>
                     </div>
                 </a>
                 <a href="portal.html">
@@ -109,86 +110,257 @@
     </header>
 
     <main class="page">
-        <!-- Hero Section for Support -->
-        <section class="hero"
-            style="min-height: 40vh; background: linear-gradient(rgba(26, 32, 44, 0.9), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center;">
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                <h1>전시회 지원 프로세스</h1>
-                <p>A to Z, 콘텐츄어만의 체계적인 4단계 운영 시스템을 소개합니다.</p>
+
+        <!-- 히어로 -->
+        <section class="svc-hero">
+            <div class="svc-hero__inner">
+                <p class="svc-hero__eyebrow">Interpretation Service</p>
+                <h1 class="svc-hero__title">통역지원 서비스</h1>
+                <p class="svc-hero__sub">문의부터 정산까지, 콘텐츄어가 전시회 통역의 모든 과정을 체계적으로 관리합니다.</p>
+                <a href="#contact" class="svc-hero__cta">견적 문의하기</a>
             </div>
         </section>
 
-        <!-- Exhibition Interpreter Summary -->
-        <section class="expo-summary">
-            <div class="expo-summary__inner">
-                <h2 class="expo-summary__title">해외 전시회 현장 통역사, 왜 중요한가요?</h2>
-                <div class="expo-summary__content">
-                    <p>
-                        해외 전시회에서 통역사는 단순 번역을 넘어 <strong>상담 흐름과 성과를 만드는 핵심 인력</strong>입니다.<br />
-                        정확한 커뮤니케이션으로 <strong>리드 전환(미팅·견적·샘플 요청)</strong>을 높이고, 기술·제품 설명의 신뢰를 지키며,
-                        문화 차이로 인한 오해를 줄입니다.<br />
-                        또한 상담 내용을 정리해 <strong>전시 후 팔로업</strong>까지 매끄럽게 연결해 줍니다.
-                    </p>
+        <!-- 서비스 이용 흐름 (타임라인) -->
+        <section class="svc-flow">
+            <div class="svc-flow__inner">
+                <p class="svc-section-eyebrow">Service Flow</p>
+                <h2 class="svc-section-title">서비스 이용 흐름</h2>
+                <p class="svc-section-sub">고객사 시점에서 처음부터 끝까지, 한눈에 확인하세요.</p>
+
+                <div class="svc-timeline">
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">1</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">📋</div>
+                            <h3>견적 문의</h3>
+                            <p>전시회 정보(국가, 일정, 언어)를 알려주세요. 홈페이지 폼, 이메일, 전화 모두 가능합니다.</p>
+                            <span class="svc-tl-who">고객사</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">2</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">💰</div>
+                            <h3>맞춤 견적 안내</h3>
+                            <p>영업일 기준 24시간 내 언어·기간·서비스 유형에 따른 맞춤 견적을 보내드립니다.</p>
+                            <span class="svc-tl-who admin">콘텐츄어</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">3</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">📝</div>
+                            <h3>계약 및 결제</h3>
+                            <p>견적 확인 후 온라인으로 계약을 체결하고 결제를 진행합니다. 계약서는 대시보드에서 확인 가능합니다.</p>
+                            <span class="svc-tl-who">고객사</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">4</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">🤝</div>
+                            <h3>통역사 매칭</h3>
+                            <p>산업 분야와 언어에 맞는 검증된 통역사를 선별하여 프로필과 함께 배정합니다.</p>
+                            <span class="svc-tl-who admin">콘텐츄어</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">5</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">✅</div>
+                            <h3>배정 수락</h3>
+                            <p>통역사가 배정을 확인하고 수락합니다. 고객사와 통역사 간 채팅방이 자동 생성됩니다.</p>
+                            <span class="svc-tl-who interp">통역사</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">6</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">💬</div>
+                            <h3>사전 소통</h3>
+                            <p>전시회 전 고객사와 통역사가 채팅으로 제품 자료, 일정, 현장 정보를 공유합니다.</p>
+                            <span class="svc-tl-who">고객사</span>
+                            <span class="svc-tl-who interp" style="margin-left:6px;">통역사</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">7</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">🌍</div>
+                            <h3>현장 파견</h3>
+                            <p>전시회 당일, 통역사가 현장에 투입됩니다. 부스 상주, 미팅 동행, 현장 운영을 수행합니다.</p>
+                            <span class="svc-tl-who interp">통역사</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">8</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">📊</div>
+                            <h3>상담일지 제출</h3>
+                            <p>파견 완료 후 바이어별 상담 내용, 관심 제품, 후속 조치 사항이 정리된 리포트를 전달합니다.</p>
+                            <span class="svc-tl-who interp">통역사</span>
+                        </div>
+                    </div>
+                    <div class="svc-tl-item">
+                        <div class="svc-tl-num">9</div>
+                        <div class="svc-tl-content">
+                            <div class="svc-tl-icon">💳</div>
+                            <h3>정산 완료</h3>
+                            <p>서비스 완료 후 통역사 보수가 정산됩니다. 고객사와 통역사 모두 대시보드에서 내역을 확인할 수 있습니다.</p>
+                            <span class="svc-tl-who admin">콘텐츄어</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Process Section (Migrated) -->
-        <section id="process" class="process-section">
-            <div class="container">
-                <div class="section-title">
-                    <span class="section-label">Our Process</span>
-                    <h2>완벽한 운영을 위한 4단계 프로세스</h2>
-                    <p class="section-subtitle">모든 단계에서 타협 없는 전문성을 보장합니다.</p>
+        <!-- 3자 협업 다이어그램 -->
+        <section class="svc-collab">
+            <div class="svc-collab__inner">
+                <p class="svc-section-eyebrow">Collaboration</p>
+                <h2 class="svc-section-title">3자 협업 시스템</h2>
+                <p class="svc-section-sub">고객사, 콘텐츄어(관리자), 통역사가 하나의 플랫폼에서 유기적으로 협업합니다.</p>
+
+                <div class="svc-collab-diagram">
+                    <!-- 고객사 -->
+                    <div class="svc-collab-card customer">
+                        <div class="svc-collab-card__icon">🏢</div>
+                        <h3>고객사</h3>
+                        <ul>
+                            <li>통역 견적 문의</li>
+                            <li>계약 및 결제</li>
+                            <li>통역사와 채팅 소통</li>
+                            <li>상담일지 확인</li>
+                            <li>파견 일정 관리</li>
+                        </ul>
+                    </div>
+
+                    <!-- 연결 화살표 -->
+                    <div class="svc-collab-arrows">
+                        <div class="svc-collab-arrow top">
+                            <span class="svc-arrow-label">문의 · 계약 · 결제</span>
+                            <div class="svc-arrow-line">→</div>
+                        </div>
+                        <div class="svc-collab-arrow bottom">
+                            <div class="svc-arrow-line">←</div>
+                            <span class="svc-arrow-label">견적 · 매칭 · 정산</span>
+                        </div>
+                    </div>
+
+                    <!-- 콘텐츄어 -->
+                    <div class="svc-collab-card admin">
+                        <div class="svc-collab-card__icon">⚙️</div>
+                        <h3>콘텐츄어 관리자</h3>
+                        <ul>
+                            <li>문의 접수 및 견적 산출</li>
+                            <li>통역사 배정 관리</li>
+                            <li>계약 · 결제 처리</li>
+                            <li>채팅 모니터링</li>
+                            <li>정산 승인 및 처리</li>
+                        </ul>
+                    </div>
+
+                    <!-- 연결 화살표 -->
+                    <div class="svc-collab-arrows">
+                        <div class="svc-collab-arrow top">
+                            <span class="svc-arrow-label">배정 · 일정 안내</span>
+                            <div class="svc-arrow-line">→</div>
+                        </div>
+                        <div class="svc-collab-arrow bottom">
+                            <div class="svc-arrow-line">←</div>
+                            <span class="svc-arrow-label">수락 · 일지 · 정산요청</span>
+                        </div>
+                    </div>
+
+                    <!-- 통역사 -->
+                    <div class="svc-collab-card interpreter">
+                        <div class="svc-collab-card__icon">🌐</div>
+                        <h3>통역사</h3>
+                        <ul>
+                            <li>배정 확인 및 수락</li>
+                            <li>고객사와 채팅 소통</li>
+                            <li>현장 파견 수행</li>
+                            <li>상담일지 작성 제출</li>
+                            <li>정산 내역 확인</li>
+                        </ul>
+                    </div>
                 </div>
 
-                <div class="process-grid">
-                    <article class="process-card">
-                        <div class="step-num">01</div>
-                        <h3>맞춤형 인적 구성</h3>
-                        <ul>
-                            <li>산업군별 전문 통역사 매칭</li>
-                            <li>언어별/역할별 최적화 실무진 구성</li>
-                        </ul>
-                    </article>
-                    <article class="process-card">
-                        <div class="step-num">02</div>
-                        <h3>철저한 사전 교육</h3>
-                        <ul>
-                            <li>산업군 및 품목(Glossary) 숙지</li>
-                            <li>비즈니스 에티켓 및 현장 매너 집중 교육</li>
-                        </ul>
-                    </article>
-                    <article class="process-card">
-                        <div class="step-num">03</div>
-                        <h3>현장 운영 및 밀착 관리</h3>
-                        <ul>
-                            <li>현장 운영 지원 부스 운영</li>
-                            <li>예측 불가능한 상황에 대한 즉각 대응</li>
-                        </ul>
-                    </article>
-                    <article class="process-card">
-                        <div class="step-num">04</div>
-                        <h3>성과 보고 및 피드백</h3>
-                        <ul>
-                            <li>상담 일지 기반 정량 성과 대시보드 제공</li>
-                            <li>향후 사업을 위한 리스크 및 개선안 제언</li>
-                        </ul>
-                    </article>
+                <!-- 고객사 ↔ 통역사 직접 소통 -->
+                <div class="svc-collab-direct">
+                    <div class="svc-collab-direct__line"></div>
+                    <span class="svc-collab-direct__label">💬 고객사 ↔ 통역사 실시간 채팅</span>
+                    <div class="svc-collab-direct__line"></div>
                 </div>
             </div>
         </section>
 
-        <section class="value-prop" style="background: var(--bg-light);">
-            <div class="container">
-                <h2>성공적인 전시 비즈니스를 약속합니다</h2>
-                <p>콘텐츄어의 프로세스는 단순한 인력 지원을 넘어, 고객사의 브랜드 가치를 현장에서 직접 실현하는 데 초점을 맞추고 있습니다.</p>
-                <div style="margin-top: 3rem; text-align: center;">
-                    <a href="#contact" class="btn btn-primary btn-large">지금 바로 문의하기</a>
+        <!-- 각 대시보드 소개 -->
+        <section class="svc-dashboards">
+            <div class="svc-dashboards__inner">
+                <p class="svc-section-eyebrow">Dashboards</p>
+                <h2 class="svc-section-title">전용 대시보드</h2>
+                <p class="svc-section-sub">각 역할에 맞는 전용 대시보드에서 모든 업무를 관리합니다.</p>
+
+                <div class="svc-dash-grid">
+                    <div class="svc-dash-card">
+                        <div class="svc-dash-card__head customer">
+                            <span class="svc-dash-card__emoji">🏢</span>
+                            <h3>고객사 대시보드</h3>
+                        </div>
+                        <div class="svc-dash-card__body">
+                            <div class="svc-dash-feat"><span>📋</span> 통역 문의 접수</div>
+                            <div class="svc-dash-feat"><span>📄</span> 계약 · 결제 관리</div>
+                            <div class="svc-dash-feat"><span>📅</span> 파견 일정 확인</div>
+                            <div class="svc-dash-feat"><span>💬</span> 통역사 채팅</div>
+                            <div class="svc-dash-feat"><span>📊</span> 상담일지 열람</div>
+                            <div class="svc-dash-feat"><span>👤</span> 마이페이지</div>
+                        </div>
+                    </div>
+
+                    <div class="svc-dash-card">
+                        <div class="svc-dash-card__head interp">
+                            <span class="svc-dash-card__emoji">🌐</span>
+                            <h3>통역사 대시보드</h3>
+                        </div>
+                        <div class="svc-dash-card__body">
+                            <div class="svc-dash-feat"><span>📌</span> 배정 요청 확인</div>
+                            <div class="svc-dash-feat"><span>📅</span> 스케줄 캘린더</div>
+                            <div class="svc-dash-feat"><span>💬</span> 고객사 채팅</div>
+                            <div class="svc-dash-feat"><span>📝</span> 상담일지 작성</div>
+                            <div class="svc-dash-feat"><span>💰</span> 정산 내역</div>
+                            <div class="svc-dash-feat"><span>👤</span> 프로필 관리</div>
+                        </div>
+                    </div>
+
+                    <div class="svc-dash-card">
+                        <div class="svc-dash-card__head admin">
+                            <span class="svc-dash-card__emoji">⚙️</span>
+                            <h3>관리자 대시보드</h3>
+                        </div>
+                        <div class="svc-dash-card__body">
+                            <div class="svc-dash-feat"><span>📋</span> 문의 · 계약 관리</div>
+                            <div class="svc-dash-feat"><span>🤝</span> 통역사 배정</div>
+                            <div class="svc-dash-feat"><span>💳</span> 정산 승인 처리</div>
+                            <div class="svc-dash-feat"><span>💬</span> 채팅 모니터링</div>
+                            <div class="svc-dash-feat"><span>📊</span> 통계 대시보드</div>
+                            <div class="svc-dash-feat"><span>👥</span> 회원 · 통역사 관리</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
+
+        <!-- CTA -->
+        <section class="svc-cta">
+            <div class="svc-cta__inner">
+                <h2>지금 바로 통역 서비스를 시작하세요</h2>
+                <p>전시회 정보만 알려주시면, 24시간 내 맞춤 견적을 안내드립니다.</p>
+                <a href="#contact" class="svc-cta__btn">견적 문의하기</a>
+            </div>
+        </section>
+
     </main>
 
     <!-- Blue ITQ Section -->

@@ -3534,3 +3534,122 @@ section {
     .faq-item__q { font-size: 0.82rem; }
     .faq-item__a { font-size: 0.8rem; }
 }
+
+/* ══════════════ 통역지원 서비스 페이지 ══════════════ */
+.svc-section-eyebrow { font-size:0.78rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;text-align:center; }
+.svc-section-title { font-size:1.8rem;font-weight:800;color:var(--text);margin-bottom:10px;text-align:center; }
+.svc-section-sub { font-size:0.92rem;color:var(--gray-600);margin-bottom:48px;text-align:center; }
+
+/* 히어로 */
+.svc-hero { padding:100px 24px 60px;background:linear-gradient(135deg,#0a2a5e 0%,#1565c0 100%);text-align:center; }
+.svc-hero__inner { max-width:700px;margin:0 auto; }
+.svc-hero__eyebrow { font-size:0.78rem;font-weight:700;color:var(--sky);text-transform:uppercase;letter-spacing:2px;margin-bottom:16px; }
+.svc-hero__title { font-size:2.4rem;font-weight:900;color:#fff;margin-bottom:16px; }
+.svc-hero__sub { font-size:1rem;color:rgba(255,255,255,0.8);line-height:1.7;margin-bottom:32px; }
+.svc-hero__cta { display:inline-block;padding:14px 36px;background:#fff;color:var(--blue);font-size:0.92rem;font-weight:800;border-radius:50px;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s; }
+.svc-hero__cta:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2); }
+
+/* 서비스 이용 흐름 타임라인 */
+.svc-flow { padding:80px 24px;background:var(--white); }
+.svc-flow__inner { max-width:700px;margin:0 auto; }
+.svc-timeline { position:relative;padding-left:40px; }
+.svc-timeline::before { content:'';position:absolute;left:16px;top:0;bottom:0;width:2px;background:var(--gray-200); }
+.svc-tl-item { position:relative;margin-bottom:32px; }
+.svc-tl-item:last-child { margin-bottom:0; }
+.svc-tl-num { position:absolute;left:-40px;top:0;width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1; }
+.svc-tl-content { background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:14px;padding:20px 24px;transition:border-color 0.2s,box-shadow 0.2s; }
+.svc-tl-content:hover { border-color:var(--blue);box-shadow:0 4px 16px rgba(21,101,192,0.08); }
+.svc-tl-icon { font-size:1.3rem;margin-bottom:8px; }
+.svc-tl-content h3 { font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:6px; }
+.svc-tl-content p { font-size:0.82rem;color:var(--gray-600);line-height:1.65;margin-bottom:10px; }
+.svc-tl-who { display:inline-block;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;background:#e3f0ff;color:var(--blue); }
+.svc-tl-who.admin { background:#fff3e0;color:#f57c00; }
+.svc-tl-who.interp { background:#e8f5e9;color:#2e7d32; }
+
+/* 3자 협업 다이어그램 */
+.svc-collab { padding:80px 24px;background:var(--light-bg); }
+.svc-collab__inner { max-width:1000px;margin:0 auto; }
+.svc-collab-diagram { display:flex;align-items:flex-start;justify-content:center;gap:0;margin-bottom:32px; }
+.svc-collab-card { flex:1;max-width:260px;background:var(--white);border-radius:16px;overflow:hidden;border:1.5px solid var(--gray-200);transition:transform 0.2s,box-shadow 0.2s; }
+.svc-collab-card:hover { transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+.svc-collab-card__icon { font-size:1.6rem;margin-bottom:8px; }
+.svc-collab-card h3 { font-size:0.95rem;font-weight:800;color:#fff;margin-bottom:0; }
+.svc-collab-card.customer h3, .svc-collab-card.customer .svc-collab-card__icon { text-align:center; }
+.svc-collab-card.customer > ul, .svc-collab-card.admin > ul, .svc-collab-card.interpreter > ul { padding:16px 20px;list-style:none;display:flex;flex-direction:column;gap:8px; }
+.svc-collab-card ul li { font-size:0.78rem;color:var(--gray-600);padding-left:16px;position:relative; }
+.svc-collab-card ul li::before { content:'•';position:absolute;left:0;color:var(--blue);font-weight:800; }
+.svc-collab-card.customer .svc-collab-card__icon,
+.svc-collab-card.admin .svc-collab-card__icon,
+.svc-collab-card.interpreter .svc-collab-card__icon { display:block;text-align:center; }
+.svc-collab-card.customer h3 { display:block;text-align:center; }
+.svc-collab-card.admin h3 { display:block;text-align:center; }
+.svc-collab-card.interpreter h3 { display:block;text-align:center; }
+
+/* 카드 헤더 색상 */
+.svc-collab-card.customer { border-top:4px solid var(--blue); }
+.svc-collab-card.customer .svc-collab-card__icon,
+.svc-collab-card.customer h3 { padding:16px 20px 0;color:var(--text); }
+.svc-collab-card.customer h3 { padding:4px 20px 12px;color:var(--text);border-bottom:1px solid var(--gray-200); }
+
+.svc-collab-card.admin { border-top:4px solid #f57c00; }
+.svc-collab-card.admin .svc-collab-card__icon { padding:16px 20px 0;color:var(--text); }
+.svc-collab-card.admin h3 { padding:4px 20px 12px;color:var(--text);border-bottom:1px solid var(--gray-200); }
+
+.svc-collab-card.interpreter { border-top:4px solid #2e7d32; }
+.svc-collab-card.interpreter .svc-collab-card__icon { padding:16px 20px 0;color:var(--text); }
+.svc-collab-card.interpreter h3 { padding:4px 20px 12px;color:var(--text);border-bottom:1px solid var(--gray-200); }
+
+/* 화살표 */
+.svc-collab-arrows { display:flex;flex-direction:column;justify-content:center;gap:12px;padding:0 8px;min-width:80px; }
+.svc-collab-arrow { display:flex;flex-direction:column;align-items:center;gap:2px; }
+.svc-arrow-label { font-size:0.6rem;color:var(--gray-400);white-space:nowrap;text-align:center; }
+.svc-arrow-line { font-size:1.2rem;color:var(--gray-400);font-weight:300; }
+
+/* 직접 소통 라인 */
+.svc-collab-direct { display:flex;align-items:center;justify-content:center;gap:16px;margin-top:24px; }
+.svc-collab-direct__line { flex:1;max-width:200px;height:1px;background:var(--gray-200); }
+.svc-collab-direct__label { font-size:0.78rem;font-weight:700;color:var(--blue);white-space:nowrap; }
+
+/* 대시보드 소개 */
+.svc-dashboards { padding:80px 24px;background:var(--white); }
+.svc-dashboards__inner { max-width:1000px;margin:0 auto; }
+.svc-dash-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:20px; }
+.svc-dash-card { background:var(--white);border:1.5px solid var(--gray-200);border-radius:16px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s; }
+.svc-dash-card:hover { transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+.svc-dash-card__head { padding:20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px; }
+.svc-dash-card__head.customer { background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff; }
+.svc-dash-card__head.interp { background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff; }
+.svc-dash-card__head.admin { background:linear-gradient(135deg,#f57c00,#ef6c00);color:#fff; }
+.svc-dash-card__emoji { font-size:1.6rem; }
+.svc-dash-card__head h3 { font-size:0.95rem;font-weight:800; }
+.svc-dash-card__body { padding:16px 20px;display:flex;flex-direction:column;gap:10px; }
+.svc-dash-feat { display:flex;align-items:center;gap:10px;font-size:0.82rem;color:var(--gray-600);padding:6px 0; }
+.svc-dash-feat span { font-size:1rem;flex-shrink:0; }
+
+/* CTA */
+.svc-cta { padding:60px 24px;background:linear-gradient(135deg,#0a2a5e,#1565c0);text-align:center; }
+.svc-cta__inner { max-width:600px;margin:0 auto; }
+.svc-cta h2 { font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:10px; }
+.svc-cta p { font-size:0.92rem;color:rgba(255,255,255,0.8);margin-bottom:28px; }
+.svc-cta__btn { display:inline-block;padding:14px 36px;background:#fff;color:var(--blue);font-size:0.92rem;font-weight:800;border-radius:50px;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s; }
+.svc-cta__btn:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2); }
+
+/* 반응형 */
+@media (max-width:768px) {
+    .svc-hero__title { font-size:1.6rem; }
+    .svc-section-title { font-size:1.4rem; }
+    .svc-collab-diagram { flex-direction:column;align-items:center;gap:16px; }
+    .svc-collab-card { max-width:100%;width:100%; }
+    .svc-collab-arrows { flex-direction:row;min-width:auto;padding:4px 0; }
+    .svc-collab-arrow { flex-direction:row;gap:8px; }
+    .svc-arrow-line { transform:rotate(90deg); }
+    .svc-dash-grid { grid-template-columns:1fr; }
+    .svc-collab-direct { display:none; }
+}
+@media (max-width:520px) {
+    .svc-hero { padding:80px 20px 48px; }
+    .svc-hero__title { font-size:1.3rem; }
+    .svc-flow { padding:56px 20px; }
+    .svc-collab { padding:56px 20px; }
+    .svc-dashboards { padding:56px 20px; }
+}
