@@ -3634,9 +3634,38 @@ section {
 .svc-cta__btn { display:inline-block;padding:14px 36px;background:#fff;color:var(--blue);font-size:0.92rem;font-weight:800;border-radius:50px;text-decoration:none;transition:transform 0.2s,box-shadow 0.2s; }
 .svc-cta__btn:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2); }
 
+/* 검증 시스템 */
+.svc-verify { padding:80px 24px;background:var(--light-bg); }
+.svc-verify__inner { max-width:1000px;margin:0 auto; }
+.svc-verify-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:20px; }
+.svc-verify-card { background:var(--white);border:1.5px solid var(--gray-200);border-radius:16px;padding:24px 20px;text-align:center;transition:transform 0.2s,box-shadow 0.2s; }
+.svc-verify-card:hover { transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.08);border-color:var(--blue); }
+.svc-verify-card__num { font-size:0.68rem;font-weight:800;color:var(--blue);letter-spacing:1px;margin-bottom:10px; }
+.svc-verify-card__icon { font-size:1.6rem;margin-bottom:12px; }
+.svc-verify-card h3 { font-size:0.88rem;font-weight:800;color:var(--text);margin-bottom:8px; }
+.svc-verify-card p { font-size:0.78rem;color:var(--gray-600);line-height:1.6; }
+
+/* 운영 가이드 */
+.svc-guide { padding:80px 24px;background:var(--white); }
+.svc-guide__inner { max-width:1000px;margin:0 auto; }
+.svc-guide-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:20px; }
+.svc-guide-card { background:var(--white);border:1.5px solid var(--gray-200);border-radius:16px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s; }
+.svc-guide-card:hover { transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.08); }
+.svc-guide-card__head { padding:16px 20px;font-size:0.88rem;font-weight:800;display:flex;align-items:center;gap:8px; }
+.svc-guide-card.must .svc-guide-card__head { background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff; }
+.svc-guide-card.dont .svc-guide-card__head { background:linear-gradient(135deg,#c62828,#e53935);color:#fff; }
+.svc-guide-card.checklist .svc-guide-card__head { background:linear-gradient(135deg,#2e7d32,#43a047);color:#fff; }
+.svc-guide-card ul { list-style:none;padding:16px 20px;display:flex;flex-direction:column;gap:10px; }
+.svc-guide-card ul li { font-size:0.82rem;color:var(--gray-600);padding-left:18px;position:relative;line-height:1.5; }
+.svc-guide-card ul li::before { content:'•';position:absolute;left:0;font-weight:800;color:var(--blue); }
+.svc-guide-card.dont ul li::before { color:var(--error); }
+.svc-guide-card.checklist ul li::before { color:var(--success); }
+
 /* 반응형 */
 @media (max-width:768px) {
     .svc-hero__title { font-size:1.6rem; }
+    .svc-verify-grid { grid-template-columns:repeat(2,1fr); }
+    .svc-guide-grid { grid-template-columns:1fr; }
     .svc-section-title { font-size:1.4rem; }
     .svc-collab-diagram { flex-direction:column;align-items:center;gap:16px; }
     .svc-collab-card { max-width:100%;width:100%; }
@@ -3652,4 +3681,7 @@ section {
     .svc-flow { padding:56px 20px; }
     .svc-collab { padding:56px 20px; }
     .svc-dashboards { padding:56px 20px; }
+    .svc-verify { padding:56px 20px; }
+    .svc-verify-grid { grid-template-columns:1fr 1fr; }
+    .svc-guide { padding:56px 20px; }
 }
