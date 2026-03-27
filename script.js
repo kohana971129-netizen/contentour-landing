@@ -290,8 +290,8 @@ function initInquiryForm() {
 
         try {
             // ── Supabase DB 저장 ──
-            if (typeof supabase !== 'undefined' && supabase) {
-                const { data, error } = await supabase
+            if (window.sbClient) {
+                const { data, error } = await window.sbClient
                     .from('46_ITQ견적문의')
                     .insert({
                         company: payload.company,
