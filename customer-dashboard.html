@@ -2004,7 +2004,7 @@
     // ── DB에서 채팅방 + 메시지 로드 ──
     async function chatLoadFromDB() {
         if (_chatDbLoaded) return;
-        if (typeof ChatData === 'undefined' || typeof supabase === 'undefined' || !supabase) return;
+        if (typeof ChatData === 'undefined' || !window.sbClient) return;
         try {
             const user = await ChatData.getUser();
             if (!user) return;
@@ -2650,7 +2650,7 @@
       });
 
       // ── DB 알림도 로드 ──
-      if (typeof ChatData !== 'undefined' && typeof supabase !== 'undefined' && supabase) {
+      if (typeof ChatData !== 'undefined' && window.sbClient) {
           ChatData.loadNotifications(20).then(function(dbNotifs) {
               if (!dbNotifs || dbNotifs.length === 0) return;
               dbNotifs.forEach(function(n) {
@@ -2708,7 +2708,7 @@
       renderChatContacts();
       showJToast('&#9989; 모든 알림을 읽음 처리했습니다.');
       // DB 알림도 모두 읽음 처리
-      if (typeof ChatData !== 'undefined' && typeof supabase !== 'undefined' && supabase) {
+      if (typeof ChatData !== 'undefined' && window.sbClient) {
           ChatData.markAllNotificationsRead();
       }
     }
@@ -4186,7 +4186,7 @@
       `;
 
       // DB에 가상계좌 정보 저장 (결제 대기 상태)
-      if (typeof PaymentData !== 'undefined' && typeof supabase !== 'undefined' && supabase && c.dbId) {
+      if (typeof PaymentData !== 'undefined' && window.sbClient && c.dbId) {
           PaymentData.verifyAndSavePayment(c.dbId, currentPayment.type, amount, 'virtual', 'VA_' + Date.now(), 'va_pending').catch(function(){});
       }
     }

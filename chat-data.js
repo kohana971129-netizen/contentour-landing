@@ -12,12 +12,12 @@ const ChatData = {
     // 현재 사용자 정보 캐시
     async getUser() {
         if (this._userId) return { id: this._userId, role: this._userRole, name: this._userName };
-        if (!supabase) return null;
-        const { data: { user } } = await supabase.auth.getUser();
+        if (!window.sbClient) return null;
+        const { data: { user } } = await window.sbClient.auth.getUser();
         if (!user) return null;
         this._userId = user.id;
         // 회원 테이블에서 역할과 이름 가져오기
-        const { data: profile } = await supabase
+        const { data: profile } = await window.sbClient
             .from('01_회원')
             .select('name, role')
             .eq('id', user.id)
@@ -33,13 +33,13 @@ const ChatData = {
 
     // 내가 참여한 계약 기반 채팅방 목록 로드
     async loadChatRooms() {
-        if (!supabase) return null;
+        if (!window.sbClient) return null;
         try {
             const user = await this.getUser();
             if (!user) return null;
 
             // 내가 참여한 계약 조회
-            let query = supabase
+            let query = window.sbClient
                 .from('42_통역계약')
                 .select('id, exhibition_name, client_company, language_pair, customer_id, interpreter_id, customer:customer_id (id, name), interpreter:interpreter_id (id, name)')
                 .order('created_at', { ascending: false });
@@ -64,7 +64,7 @@ const ChatData = {
                     : { id: c.customer_id, name: c.customer?.name || '고객' };
 
                 // 마지막 메시지
-                const { data: lastMsg } = await supabase
+                const { data: lastMsg } = await window.sbClient
                     .from('45_채팅메시지')
                     .select('message, created_at, sender_id')
                     .eq('room_id', roomId)
@@ -73,7 +73,7 @@ const ChatData = {
                     .maybeSingle();
 
                 // 안읽은 메시지 수
-                const { count: unreadCount } = await supabase
+                const { count: unreadCount } = await window.sbClient
                     .from('45_채팅메시지')
                     .select('id', { count: 'exact', head: true })
                     .eq('room_id', roomId)
@@ -113,20 +113,20 @@ const ChatData = {
 
     // 특정 채팅방의 메시지 히스토리 로드
     async loadMessages(roomId, limit) {
-        if (!supabase || !roomId) return [];
+        if (!window.sbClient|| !roomId) return [];
         try {
             // 클라이언트 측 접근 제어 (서버 RLS와 이중 보호)
             const contractId = roomId.replace('contract_', '');
             if (contractId) {
                 const user = await this.getUser();
                 if (user) {
-                    const { data: contract } = await supabase
+                    const { data: contract } = await window.sbClient
                         .from('42_통역계약')
                         .select('customer_id, interpreter_id')
                         .eq('id', contractId)
                         .single();
                     if (contract && contract.customer_id !== user.id && contract.interpreter_id !== user.id) {
-                        const { data: profile } = await supabase.from('01_회원').select('role').eq('id', user.id).single();
+                        const { data: profile } = await window.sbClient.from('01_회원').select('role').eq('id', user.id).single();
                         if (!profile || profile.role !== 'admin') {
                             console.warn('채팅 접근 권한 없음');
                             return [];
@@ -135,7 +135,7 @@ const ChatData = {
                 }
             }
 
-            const { data, error } = await supabase
+            const { data, error } = await window.sbClient
                 .from('45_채팅메시지')
                 .select('*')
                 .eq('room_id', roomId)
@@ -151,7 +151,7 @@ const ChatData = {
 
     // 메시지 전송
     async sendMessage(roomId, contractId, text, attachments) {
-        if (!supabase || !roomId) return null;
+        if (!window.sbClient|| !roomId) return null;
         try {
             const user = await this.getUser();
             if (!user) return null;
@@ -168,7 +168,7 @@ const ChatData = {
                 read_by: [user.id]
             };
 
-            const { data, error } = await supabase
+            const { data, error } = await window.sbClient
                 .from('45_채팅메시지')
                 .insert(msgData)
                 .select()
@@ -184,13 +184,13 @@ const ChatData = {
 
     // 메시지 읽음 처리
     async markAsRead(roomId) {
-        if (!supabase || !roomId) return;
+        if (!window.sbClient|| !roomId) return;
         try {
             const user = await this.getUser();
             if (!user) return;
 
             // 내가 보내지 않은 & 아직 안 읽은 메시지들 읽음 처리
-            const { data: unread } = await supabase
+            const { data: unread } = await window.sbClient
                 .from('45_채팅메시지')
                 .select('id, read_by')
                 .eq('room_id', roomId)
@@ -201,7 +201,7 @@ const ChatData = {
 
             for (const msg of unread) {
                 const newReadBy = [...(msg.read_by || []), user.id];
-                await supabase
+                await window.sbClient
                     .from('45_채팅메시지')
                     .update({ read_by: newReadBy })
                     .eq('id', msg.id);
@@ -213,12 +213,12 @@ const ChatData = {
 
     // 메시지 삭제
     async deleteMessage(msgId) {
-        if (!supabase || !msgId) return false;
+        if (!window.sbClient|| !msgId) return false;
         try {
             const user = await this.getUser();
             if (!user) return false;
             // 본인 메시지만 삭제 가능
-            const { error } = await supabase
+            const { error } = await window.sbClient
                 .from('45_채팅메시지')
                 .delete()
                 .eq('id', msgId)
@@ -231,12 +231,12 @@ const ChatData = {
 
     // 채팅 메시지 실시간 수신
     subscribeToRoom(roomId, onNewMessage) {
-        if (!supabase || !roomId) return null;
+        if (!window.sbClient|| !roomId) return null;
 
         // 기존 구독 해제
         this.unsubscribeChat();
 
-        this._subscription = supabase
+        this._subscription = window.sbClient
             .channel('chat-' + roomId)
             .on('postgres_changes',
                 { event: 'INSERT', schema: 'public', table: '45_채팅메시지', filter: 'room_id=eq.' + roomId },
@@ -251,20 +251,20 @@ const ChatData = {
 
     unsubscribeChat() {
         if (this._subscription) {
-            supabase.removeChannel(this._subscription);
+            window.sbClient.removeChannel(this._subscription);
             this._subscription = null;
         }
     },
 
     // 알림 실시간 수신
     subscribeToNotifications(onNewNotification) {
-        if (!supabase) return null;
+        if (!window.sbClient) return null;
         var self = this;
 
         this.getUser().then(function(user) {
             if (!user) return;
 
-            self._notifSubscription = supabase
+            self._notifSubscription = window.sbClient
                 .channel('notif-' + user.id)
                 .on('postgres_changes',
                     { event: 'INSERT', schema: 'public', table: '24_알림', filter: 'user_id=eq.' + user.id },
@@ -278,7 +278,7 @@ const ChatData = {
 
     unsubscribeNotifications() {
         if (this._notifSubscription) {
-            supabase.removeChannel(this._notifSubscription);
+            window.sbClient.removeChannel(this._notifSubscription);
             this._notifSubscription = null;
         }
     },
@@ -286,12 +286,12 @@ const ChatData = {
     // ══════════════ 알림 ══════════════
 
     async loadNotifications(limit) {
-        if (!supabase) return [];
+        if (!window.sbClient) return [];
         try {
             const user = await this.getUser();
             if (!user) return [];
 
-            const { data, error } = await supabase
+            const { data, error } = await window.sbClient
                 .from('24_알림')
                 .select('*')
                 .eq('user_id', user.id)
@@ -307,9 +307,9 @@ const ChatData = {
     },
 
     async markNotificationRead(notifId) {
-        if (!supabase || !notifId) return false;
+        if (!window.sbClient|| !notifId) return false;
         try {
-            const { error } = await supabase
+            const { error } = await window.sbClient
                 .from('24_알림')
                 .update({ is_read: true, read_at: new Date().toISOString() })
                 .eq('id', notifId);
@@ -318,11 +318,11 @@ const ChatData = {
     },
 
     async markAllNotificationsRead() {
-        if (!supabase) return false;
+        if (!window.sbClient) return false;
         try {
             const user = await this.getUser();
             if (!user) return false;
-            const { error } = await supabase
+            const { error } = await window.sbClient
                 .from('24_알림')
                 .update({ is_read: true, read_at: new Date().toISOString() })
                 .eq('user_id', user.id)
@@ -332,11 +332,11 @@ const ChatData = {
     },
 
     async getUnreadNotificationCount() {
-        if (!supabase) return 0;
+        if (!window.sbClient) return 0;
         try {
             const user = await this.getUser();
             if (!user) return 0;
-            const { count } = await supabase
+            const { count } = await window.sbClient
                 .from('24_알림')
                 .select('id', { count: 'exact', head: true })
                 .eq('user_id', user.id)

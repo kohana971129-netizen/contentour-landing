@@ -4135,7 +4135,7 @@
 
         async function chatLoadFromDB() {
             if (_chatDbLoaded) return;
-            if (typeof ChatData === 'undefined' || typeof supabase === 'undefined' || !supabase) return;
+            if (typeof ChatData === 'undefined' || !window.sbClient) return;
             try {
                 const user = await ChatData.getUser();
                 if (!user) return;
@@ -4299,7 +4299,7 @@
 
             // DB 채팅방: Realtime 구독 + 읽음 처리
             const roomInfo = chatRoomMap[id];
-            if (roomInfo && typeof ChatData !== 'undefined' && typeof supabase !== 'undefined' && supabase) {
+            if (roomInfo && typeof ChatData !== 'undefined' && window.sbClient) {
                 ChatData.markAsRead(roomInfo.roomId);
                 ChatData.subscribeToRoom(roomInfo.roomId, function(newMsg) {
                     ChatData.getUser().then(function(user) {
@@ -4490,7 +4490,7 @@
 
             // ── Supabase DB 저장 ──
             const roomInfo = chatRoomMap[activeChatId];
-            if (roomInfo && typeof ChatData !== 'undefined' && typeof supabase !== 'undefined' && supabase) {
+            if (roomInfo && typeof ChatData !== 'undefined' && window.sbClient) {
                 const attachments = msg.files ? msg.files.map(f => ({ name:f.name, size:f.size, type:f.type })) : [];
                 ChatData.sendMessage(roomInfo.roomId, roomInfo.contractId, text || '', attachments).then(function(saved) {
                     if (saved) console.log('메시지 DB 저장 완료');
