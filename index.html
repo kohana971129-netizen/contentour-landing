@@ -711,6 +711,12 @@
         </div>
     </footer>
 
+    <!-- 플로팅 CTA -->
+    <a href="#contact" class="floating-cta" id="floatingCta">
+        <span class="floating-cta__icon">📋</span>
+        <span class="floating-cta__text">견적 문의</span>
+    </a>
+
     <!-- 통역사 상세 모달 -->
     <div class="ip-modal-overlay" id="ipModalOverlay" onclick="if(event.target===this)closeIpModal()">
         <div class="ip-modal" onclick="event.stopPropagation()">
@@ -1283,6 +1289,18 @@
         _panelObserver.observe(document.getElementById('interpPanel'), { childList: true, subtree: true });
         _panelObserver.observe(document.getElementById('interpPanel2'), { childList: true, subtree: true });
 
+        // 플로팅 CTA: 스크롤 300px 이후 표시, 견적 폼 근처에서 숨김
+        (function() {
+            var cta = document.getElementById('floatingCta');
+            var contact = document.getElementById('contact');
+            if (!cta || !contact) return;
+            window.addEventListener('scroll', function() {
+                var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+                var contactTop = contact.getBoundingClientRect().top + scrollY;
+                var show = scrollY > 300 && scrollY < contactTop - 600;
+                cta.classList.toggle('show', show);
+            });
+        })();
     </script>
 </body>
 
