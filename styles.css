@@ -2231,27 +2231,7 @@ section {
     font-weight: 700;
 }
 
-/* ── Trust Badges ── */
-.trust-badges {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-
-.trust-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #fff;
-    border: 1.5px solid #e5eaf2;
-    border-radius: 50px;
-    padding: 10px 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #333;
-}
-
+/* ── Trust Badges (기존 — 신뢰 배지 섹션으로 통합) ── */
 .trust-icon {
     font-size: 1rem;
 }
@@ -2284,10 +2264,6 @@ section {
         grid-template-columns: 1fr;
     }
 
-    .trust-badges {
-        flex-direction: column;
-        align-items: center;
-    }
 }
 
 /* ── 4단계 검증 프로세스 ── */
@@ -3465,6 +3441,10 @@ section {
     align-items: center;
     gap: 8px;
     white-space: nowrap;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 10px 20px;
 }
 .trust-badge__icon {
     font-size: 1.1rem;
