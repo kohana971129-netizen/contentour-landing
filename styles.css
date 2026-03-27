@@ -3316,15 +3316,12 @@ section {
     color: var(--gray-600);
 }
 .process-arrow {
-    font-size: 1.4rem;
-    color: var(--blue);
-    font-weight: 300;
+    font-size: 1.2rem;
+    color: var(--gray-400);
     flex-shrink: 0;
-    opacity: 0.3;
-    height: 68px;
-    display: flex;
-    align-items: center;
-    padding: 0 4px;
+    opacity: 0.5;
+    margin-top: 22px;
+    padding: 0 2px;
 }
 
 @media (max-width: 768px) {
