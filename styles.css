@@ -3249,6 +3249,111 @@ section {
     100% { transform: translateX(-50%); }
 }
 
+/* ══════════════ 서비스 프로세스 섹션 ══════════════ */
+.process-section {
+    padding: 80px 24px;
+    background: var(--white);
+}
+.process-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+}
+.process-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+.process-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+}
+.process-title strong { color: var(--blue); }
+.process-sub {
+    font-size: 0.92rem;
+    color: var(--gray-600);
+    margin-bottom: 48px;
+}
+.process-steps {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+}
+.process-step {
+    flex: 1;
+    max-width: 220px;
+    padding: 0 12px;
+    text-align: center;
+}
+.process-step__num {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--blue);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+.process-step__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: var(--light-bg);
+    border: 1.5px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin: 0 auto 16px;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.process-step:hover .process-step__icon {
+    transform: translateY(-4px);
+    border-color: var(--blue);
+}
+.process-step__title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+.process-step__desc {
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--gray-600);
+}
+.process-arrow {
+    font-size: 1.2rem;
+    color: var(--gray-400);
+    font-weight: 300;
+    padding-top: 48px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .process-section { padding: 56px 20px; }
+    .process-title { font-size: 1.4rem; }
+    .process-steps {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .process-step { max-width: 400px; }
+    .process-arrow {
+        padding-top: 0;
+        transform: rotate(90deg);
+        font-size: 1rem;
+    }
+}
+@media (max-width: 520px) {
+    .process-title { font-size: 1.2rem; }
+    .process-step__icon { width: 56px; height: 56px; font-size: 1.3rem; }
+}
+
 /* ══════════════ FAQ 섹션 ══════════════ */
 .faq-section {
     padding: 80px 24px;
