@@ -38,10 +38,10 @@ const ChatData = {
             const user = await this.getUser();
             if (!user) return null;
 
-            // 내가 참여한 계약 조회
+            // 내가 참여한 계약 조회 (01_회원 조인 제거 — RLS 순환 참조 방지)
             let query = window.sbClient
                 .from('42_통역계약')
-                .select('id, exhibition_name, client_company, language_pair, customer_id, interpreter_id, customer:customer_id (id, name), interpreter:interpreter_id (id, name)')
+                .select('id, exhibition_name, client_company, language_pair, customer_id, interpreter_id')
                 .order('created_at', { ascending: false });
 
             if (user.role === 'customer') {
@@ -55,13 +55,22 @@ const ChatData = {
             if (error) throw error;
             if (!contracts || contracts.length === 0) return null;
 
+            // 상대방 이름 조회 (SECURITY DEFINER 함수로 RLS 안전하게 우회)
+            let partnerNames = {};
+            const { data: partners } = await window.sbClient
+                .rpc('get_contract_partner_names', { p_user_id: user.id });
+            if (partners) {
+                partners.forEach(p => { partnerNames[p.partner_id] = p.partner_name; });
+            }
+
             // 각 채팅방의 마지막 메시지 + 안읽은 수 조회
             const rooms = [];
             for (const c of contracts) {
                 const roomId = 'contract_' + c.id;
-                const partner = user.role === 'customer'
-                    ? { id: c.interpreter_id, name: c.interpreter?.name || '통역사' }
-                    : { id: c.customer_id, name: c.customer?.name || '고객' };
+                const partnerId = user.role === 'customer' ? c.interpreter_id : c.customer_id;
+                const partnerName = partnerNames[partnerId]
+                    || (user.role === 'customer' ? '통역사' : (c.client_company || '고객'));
+                const partner = { id: partnerId, name: partnerName };
 
                 // 마지막 메시지
                 const { data: lastMsg } = await window.sbClient
