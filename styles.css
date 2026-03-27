@@ -3269,7 +3269,7 @@ section {
 }
 .process-steps {
     display: flex;
-    align-items: stretch;
+    align-items: flex-start;
     justify-content: center;
     gap: 0;
 }
@@ -3316,12 +3316,15 @@ section {
     color: var(--gray-600);
 }
 .process-arrow {
-    font-size: 2.4rem;
+    font-size: 1.4rem;
     color: var(--blue);
     font-weight: 300;
-    padding-top: 20px;
     flex-shrink: 0;
-    opacity: 0.35;
+    opacity: 0.3;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
 }
 
 @media (max-width: 768px) {
