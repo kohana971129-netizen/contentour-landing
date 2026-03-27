@@ -2372,17 +2372,7 @@ section {
   color: #fff;
 }
 
-/* 화살표 */
-.process-arrow {
-  position: absolute;
-  right: -26px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.4rem;
-  color: #1565c0;
-  font-weight: 700;
-  z-index: 1;
-}
+/* 화살표 (portal용 — 통합 후 미사용) */
 
 /* 이용 방법 */
 .how-to {
