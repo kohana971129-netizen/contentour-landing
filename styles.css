@@ -2231,7 +2231,30 @@ section {
     font-weight: 700;
 }
 
-/* ── Trust Badges (기존 — 신뢰 배지 섹션으로 통합) ── */
+/* ── Trust Badges (통역사 네트워크 섹션 내) ── */
+.trust-badges {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+}
+.trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    transition: border-color 0.2s;
+}
+.trust-badge:hover {
+    border-color: var(--blue);
+}
 .trust-icon {
     font-size: 1rem;
 }
