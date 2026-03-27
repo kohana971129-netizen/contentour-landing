@@ -475,21 +475,19 @@ const InterpreterApp = {
             const sTypeKo = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' }[sType] || sType || '';
 
             return `
-                <div onclick="openAssignModal('${escHtml(c.id)}')" class="schedule-list-item"
-                    <div style="min-width:48px;text-align:center;">
-                        <div style="font-size:0.65rem;font-weight:700;color:${ddayColor};background:${ddayColor}12;padding:4px 8px;border-radius:6px;white-space:nowrap;">${ddayText}</div>
-                        <div style="font-size:0.65rem;color:var(--gray-400);margin-top:4px;">${days}일</div>
+                <div onclick="openAssignModal('${escHtml(c.id)}')" class="schedule-list-item">
+                    <div class="sch-home-dday">
+                        <div class="sch-home-dday__label" style="color:${ddayColor};background:${ddayColor}12;">${ddayText}</div>
+                        <div class="sch-home-dday__sub">${days}일</div>
                     </div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                            <span style="font-size:0.88rem;font-weight:700;color:var(--text);">${escHtml(c.exhibition_name)}</span>
-                            <span style="font-size:0.6rem;font-weight:700;color:${color};background:${color}14;padding:2px 8px;border-radius:4px;white-space:nowrap;">${stText}</span>
+                    <div class="sch-home-info">
+                        <div class="sch-home-info__top">
+                            <span class="sch-home-info__title">${escHtml(c.exhibition_name)}</span>
+                            <span class="sch-home-info__badge" style="color:${color};background:${color}14;">${stText}</span>
                         </div>
-                        <div style="font-size:0.75rem;color:var(--gray-400);display:flex;flex-wrap:wrap;gap:6px;">
+                        <div class="sch-home-info__meta">
                             <span>🏢 ${escHtml(c.client_company)}</span>
                             <span>📍 ${escHtml(c.venue) || '-'}</span>
-                        </div>
-                        <div style="font-size:0.72rem;color:var(--gray-400);margin-top:4px;display:flex;flex-wrap:wrap;gap:6px;">
                             <span>📅 ${this.formatDate(c.start_date)} ~ ${this.formatDate(c.end_date)}</span>
                             ${lang ? '<span>🌐 ' + lang + '</span>' : ''}
                             ${sTypeKo ? '<span>🏷️ ' + escHtml(sTypeKo) + '</span>' : ''}

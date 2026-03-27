@@ -57,15 +57,73 @@
 
         /* ── 스케줄 리스트 아이템 ── */
         .schedule-list-item {
-            padding: 14px 16px;
+            padding: 14px 18px;
             border-bottom: 1px solid var(--gray-100);
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 14px;
             cursor: pointer;
             transition: background 0.15s;
         }
+        .schedule-list-item:last-child { border-bottom: none; }
         .schedule-list-item:hover { background: var(--gray-50); }
+
+        .sch-home-dday {
+            min-width: 52px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .sch-home-dday__label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        .sch-home-dday__sub {
+            font-size: 0.62rem;
+            color: var(--gray-400);
+            margin-top: 3px;
+        }
+
+        .sch-home-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .sch-home-info__top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .sch-home-info__title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sch-home-info__badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .sch-home-info__meta {
+            font-size: 0.72rem;
+            color: var(--gray-400);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 10px;
+            line-height: 1.6;
+        }
+        .sch-home-info__meta span {
+            white-space: nowrap;
+        }
 
         body {
             font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
