@@ -4155,6 +4155,7 @@
                     newContacts.push({
                         id: contactId,
                         name: r.partnerName,
+                        partnerId: r.partnerId,
                         company: r.company || '',
                         expo: r.expo || '',
                         lang: r.lang || '',
@@ -4171,7 +4172,8 @@
                         time: m.created_at ? new Date(m.created_at).toTimeString().slice(0, 5) : '',
                         date: m.created_at ? m.created_at.split('T')[0] : '',
                         files: (m.attachments && m.attachments.length > 0) ? m.attachments : undefined,
-                        unread: m.sender_id !== user.id && !(m.read_by || []).includes(user.id)
+                        unread: m.sender_id !== user.id && !(m.read_by || []).includes(user.id),
+                        readByPartner: m.sender_id === user.id && (m.read_by || []).includes(r.partnerId)
                     }));
                 }
 
@@ -4326,6 +4328,27 @@
                         renderChatContacts();
                         playNotifSound();
                     });
+                }, function(updatedMsg) {
+                    // 상대방이 읽음 처리 → readByPartner 업데이트
+                    ChatData.getUser().then(function(user) {
+                        if (!user) return;
+                        const msgs = chatMessages[id] || [];
+                        let changed = false;
+                        msgs.forEach(function(m) {
+                            if (m.from === 'me' && m.dbId === updatedMsg.id && !m.readByPartner) {
+                                const readBy = updatedMsg.read_by || [];
+                                const partnerId = (chatContacts.find(c => c.id === id) || {}).partnerId;
+                                if (readBy.includes(partnerId) || readBy.length > 1) {
+                                    m.readByPartner = true;
+                                    changed = true;
+                                }
+                            }
+                        });
+                        if (changed && activeChatId === id) {
+                            renderChatMessages();
+                            chatSaveToLocal();
+                        }
+                    });
                 });
             }
 
@@ -4431,12 +4454,14 @@
                         }
                     });
                 }
-                const showRead = m.from === 'me' && i === lastMyMsgIdx;
+                const readStatus = m.from === 'me'
+                    ? (m.readByPartner ? '<span class="chat-msg__read read">✓✓ 읽음</span>' : '<span class="chat-msg__read unread">✓ 전송됨</span>')
+                    : '';
                 const deleteBtn = m.from === 'me' ? '<div class="chat-msg-actions"><button class="chat-msg-action-btn" onclick="deleteChatMsg(' + i + ')" title="삭제">🗑</button></div>' : '';
                 html += '<div class="chat-msg-wrap" id="chatMsg' + i + '"><div class="chat-msg ' + (m.from === 'me' ? 'me' : 'them') + '">' +
                     (m.from !== 'me' ? '<div class="chat-msg__avatar" style="background:' + contact.color + ';">' + escapeHtml(contact.name.charAt(0)) + '</div>' : '') +
                     '<div class="chat-msg__bubble' + (isFileOnly ? ' file-only' : '') + '">' + bubbleContent + '</div>' +
-                    '<div class="chat-msg__time">' + m.time + (showRead ? '<span class="chat-msg__read">✓✓ 읽음</span>' : '') + '</div></div>' +
+                    '<div class="chat-msg__time">' + m.time + readStatus + '</div></div>' +
                     deleteBtn + '</div>';
             });
             container.innerHTML = html;
@@ -4480,7 +4505,7 @@
             const now = new Date();
             const time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
             const date = now.toISOString().split('T')[0];
-            const msg = { from:'me', text: text || '', time, date };
+            const msg = { from:'me', text: text || '', time, date, readByPartner: false };
             if (hasFiles) { msg.files = [...pendingFiles]; pendingFiles = []; renderFilePreview(); }
             chatMessages[activeChatId].push(msg);
             input.value = ''; autoResizeChatInput(input);
@@ -4493,7 +4518,7 @@
             if (roomInfo && typeof ChatData !== 'undefined' && window.sbClient) {
                 const attachments = msg.files ? msg.files.map(f => ({ name:f.name, size:f.size, type:f.type })) : [];
                 ChatData.sendMessage(roomInfo.roomId, roomInfo.contractId, text || '', attachments).then(function(saved) {
-                    if (saved) console.log('메시지 DB 저장 완료');
+                    if (saved) { msg.dbId = saved.id; chatSaveToLocal(); }
                 });
             }
         }

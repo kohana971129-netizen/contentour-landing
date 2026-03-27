@@ -238,8 +238,8 @@ const ChatData = {
 
     // ══════════════ Realtime 구독 ══════════════
 
-    // 채팅 메시지 실시간 수신
-    subscribeToRoom(roomId, onNewMessage) {
+    // 채팅 메시지 실시간 수신 (INSERT + UPDATE)
+    subscribeToRoom(roomId, onNewMessage, onMessageUpdate) {
         if (!window.sbClient|| !roomId) return null;
 
         // 기존 구독 해제
@@ -251,6 +251,12 @@ const ChatData = {
                 { event: 'INSERT', schema: 'public', table: '45_채팅메시지', filter: 'room_id=eq.' + roomId },
                 function(payload) {
                     if (onNewMessage) onNewMessage(payload.new);
+                }
+            )
+            .on('postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: '45_채팅메시지', filter: 'room_id=eq.' + roomId },
+                function(payload) {
+                    if (onMessageUpdate) onMessageUpdate(payload.new);
                 }
             )
             .subscribe();

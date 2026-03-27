@@ -3648,7 +3648,9 @@
         .chat-msg.them .chat-msg__bubble.file-only .chat-file-bubble{background:var(--white);border-color:var(--gray-200);box-shadow:0 1px 3px rgba(0,0,0,0.06);}
         .chat-msg__time{font-size:0.6rem;color:var(--gray-400);flex-shrink:0;padding-bottom:2px;white-space:nowrap;}
         .chat-msg.me .chat-msg__time{text-align:right;}
-        .chat-msg__read{font-size:0.58rem;color:var(--sky);display:block;}
+        .chat-msg__read{font-size:0.58rem;display:block;}
+        .chat-msg__read.read{color:var(--sky);}
+        .chat-msg__read.unread{color:var(--gray-400);}
         .chat-msg__bubble mark{background:#fff3a8;color:var(--text);border-radius:2px;padding:0 1px;}
         .chat-msg-wrap{position:relative;}
         .chat-msg-wrap:hover .chat-msg-actions{opacity:1;pointer-events:all;}
