@@ -2240,20 +2240,19 @@ section {
     margin-top: 32px;
 }
 .trust-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #fff;
-    border: 1.5px solid var(--gray-200);
-    border-radius: 50px;
-    padding: 10px 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--gray-600);
-    transition: border-color 0.2s;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: #ffffff !important;
+    border: 1.5px solid #e5eaf2 !important;
+    border-radius: 50px !important;
+    padding: 10px 20px !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    color: #1a2a4a !important;
 }
 .trust-badge:hover {
-    border-color: var(--blue);
+    border-color: var(--blue) !important;
 }
 .trust-icon {
     font-size: 1rem;
