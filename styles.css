@@ -3281,7 +3281,7 @@ section {
 }
 .process-steps {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: center;
     gap: 0;
 }
@@ -3290,6 +3290,9 @@ section {
     max-width: 220px;
     padding: 0 12px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 .process-step__num {
     font-size: 0.68rem;
