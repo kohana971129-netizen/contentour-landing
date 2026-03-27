@@ -3446,6 +3446,48 @@ section {
     font-weight: 700;
 }
 
+/* ══════════════ 신뢰 배지 섹션 ══════════════ */
+.trust-badges {
+    padding: 36px 24px;
+    background: var(--navy);
+}
+.trust-badges__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+.trust-badge__icon {
+    font-size: 1.1rem;
+}
+.trust-badge__text {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+}
+.trust-badge__dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    flex-shrink: 0;
+}
+@media (max-width: 768px) {
+    .trust-badges { padding: 28px 20px; }
+    .trust-badges__inner { gap: 14px 20px; justify-content: center; }
+    .trust-badge__dot { display: none; }
+    .trust-badge__text { font-size: 0.75rem; }
+}
+
 /* ══════════════ 플로팅 CTA ══════════════ */
 .floating-cta {
     position: fixed;
