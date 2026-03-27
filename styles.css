@@ -2575,9 +2575,9 @@ section {
     text-align: left;
 }
 .footer-logo {
-    height: 40px;
+    height: 72px;
     width: auto;
-    opacity: 0.7;
+    opacity: 0.85;
     filter: grayscale(1) brightness(2);
 }
 .footer-info {
