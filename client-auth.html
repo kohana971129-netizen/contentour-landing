@@ -582,13 +582,24 @@
             // ── Supabase 인증 시도 ──
             if (window.sbClient) {
                 try {
+                    // 기존 세션 정리 후 로그인
+                    await window.sbClient.auth.signOut();
+
                     // 1) Supabase Auth 로그인
                     const { data: authData, error: authError } = await window.sbClient.auth.signInWithPassword({
                         email: email.value,
                         password: pw.value
                     });
 
-                    if (!authError && authData && authData.user) {
+                    if (authError) {
+                        btn.disabled = false;
+                        btn.classList.remove('loading');
+                        btn.textContent = '로그인';
+                        showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
+                        return;
+                    }
+
+                    if (authData && authData.user) {
                         // 2) 회원 테이블에서 역할 조회
                         const { data: profile } = await window.sbClient
                             .from('01_회원')
@@ -608,22 +619,20 @@
                         location.href = ContentourAuth.getDashboardUrl(profile.role);
                         return;
                     }
-
-                    if (authError) {
-                        // auth failed silently
-                    }
                 } catch (e) {
-                    // auth exception
+                    btn.disabled = false;
+                    btn.classList.remove('loading');
+                    btn.textContent = '로그인';
+                    showAlert('로그인 처리 중 오류가 발생했습니다: ' + e.message, 'error');
+                    return;
                 }
             }
 
             // ── Supabase 미연결 시 안내 ──
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.classList.remove('loading');
-                btn.textContent = '로그인';
-                showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
-            }, 500);
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            btn.textContent = '로그인';
+            showAlert('서비스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.', 'error');
         });
 
         // ── 통역사 로그인 폼 ──
@@ -649,6 +658,7 @@
             // Supabase 인증
             if (window.sbClient) {
                 try {
+                    await window.sbClient.auth.signOut();
                     const { data: authData, error: authError } = await window.sbClient.auth.signInWithPassword({
                         email: email.value,
                         password: pw.value
@@ -658,7 +668,12 @@
                     btn.classList.remove('loading');
                     btn.textContent = '통역사 대시보드 로그인';
 
-                    if (!authError && authData && authData.user) {
+                    if (authError) {
+                        showAlert('이메일 또는 비밀번호가 일치하지 않습니다.', 'error');
+                        return;
+                    }
+
+                    if (authData && authData.user) {
                         const { data: profile } = await window.sbClient
                             .from('01_회원')
                             .select('role, name')
