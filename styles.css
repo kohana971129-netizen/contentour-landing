@@ -283,6 +283,7 @@ body {
     gap: 16px;
     margin-top: 2rem;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
 }
 
