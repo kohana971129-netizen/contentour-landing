@@ -4796,7 +4796,7 @@
                 if (tab === 'journal' && typeof renderJList === 'function') { loadInterpreterJournals(); visibleJournals = journals.slice(); renderJList(); updateJournalKPI(); }
                 if (tab === 'contracts') { if (ctAdminContracts.length === 0) loadContractsFromDB(); else ctAdminInit(); }
                 if (tab === 'settlement') stlAdminInit();
-                if (tab === 'chatmon') { renderChatmonChannels(); renderChatmonStats(); }
+                if (tab === 'chatmon') { loadChatmonFromDB(); renderChatmonChannels(); renderChatmonStats(); }
             }
 
             var currentAssignInquiry = null;
@@ -7168,17 +7168,149 @@
             // ═══ 채팅 모니터링 시스템 ═══
             // ═══════════════════════════════════════════════
             var chatmonChannels = [];
-
-            // ── 기존 채팅 내역 시드 데이터 (고객사↔통역사 양측 대화) ──
-            var chatmonSeedData = {};
-
             var chatmonLogs = {};
-            chatmonChannels.forEach(function(ch) {
-                chatmonLogs[ch.id] = (chatmonSeedData[ch.id] || []).slice();
-            });
             var chatmonActiveChannel = null;
             var chatmonUnread = {};
-            chatmonChannels.forEach(function(ch) { chatmonUnread[ch.id] = 0; });
+            var chatmonLoaded = false;
+            var chatmonRealtimeSub = null;
+
+            // ── Supabase에서 채팅 채널 + 메시지 로드 ──
+            async function loadChatmonFromDB() {
+                if (!window.sbClient || chatmonLoaded) return;
+                try {
+                    // 전체 계약 조회 (관리자)
+                    var { data: contracts, error } = await window.sbClient
+                        .from('42_통역계약')
+                        .select('id, exhibition_name, client_company, language_pair, customer_id, interpreter_id, status')
+                        .order('created_at', { ascending: false });
+                    if (error) { console.error('계약 조회 실패:', error); return; }
+                    if (!contracts || contracts.length === 0) return;
+
+                    // 모든 관련 사용자 ID 수집 → 이름 일괄 조회
+                    var userIds = [];
+                    contracts.forEach(function(c) {
+                        if (c.customer_id && userIds.indexOf(c.customer_id) === -1) userIds.push(c.customer_id);
+                        if (c.interpreter_id && userIds.indexOf(c.interpreter_id) === -1) userIds.push(c.interpreter_id);
+                    });
+                    var nameMap = {};
+                    if (userIds.length > 0) {
+                        var { data: users } = await window.sbClient
+                            .from('01_회원')
+                            .select('id, name, company')
+                            .in('id', userIds);
+                        if (users) users.forEach(function(u) { nameMap[u.id] = u; });
+                    }
+
+                    // 채널 구성
+                    chatmonChannels = [];
+                    chatmonLogs = {};
+                    chatmonUnread = {};
+                    for (var i = 0; i < contracts.length; i++) {
+                        var c = contracts[i];
+                        var roomId = 'contract_' + c.id;
+                        var custInfo = nameMap[c.customer_id];
+                        var intpInfo = nameMap[c.interpreter_id];
+                        var custName = custInfo ? (c.client_company ? c.client_company + ' (' + custInfo.name + ')' : custInfo.name) : (c.client_company || '고객사');
+                        var intpName = intpInfo ? intpInfo.name : '통역사';
+
+                        chatmonChannels.push({
+                            id: roomId,
+                            contractId: c.id,
+                            name: c.exhibition_name || '전시회',
+                            customer: custName,
+                            interpreter: intpName,
+                            lang: c.language_pair || '',
+                            status: (c.status === 'completed' || c.status === 'cancelled') ? 'inactive' : 'active',
+                            customerId: c.customer_id,
+                            interpreterId: c.interpreter_id
+                        });
+
+                        // 메시지 로드
+                        var { data: msgs } = await window.sbClient
+                            .from('45_채팅메시지')
+                            .select('*')
+                            .eq('room_id', roomId)
+                            .order('created_at', { ascending: true })
+                            .limit(200);
+
+                        chatmonLogs[roomId] = (msgs || []).map(function(m) {
+                            var dt = new Date(m.created_at);
+                            return {
+                                dbId: m.id,
+                                role: m.sender_role,
+                                text: m.message || '',
+                                time: String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0'),
+                                date: m.created_at.split('T')[0],
+                                senderName: m.sender_name,
+                                files: m.attachments || [],
+                                ts: dt.getTime()
+                            };
+                        });
+                        chatmonUnread[roomId] = 0;
+                    }
+
+                    // 메시지 없는 채널은 뒤로
+                    chatmonChannels.sort(function(a, b) {
+                        var aLast = chatmonLogs[a.id] && chatmonLogs[a.id].length ? chatmonLogs[a.id][chatmonLogs[a.id].length - 1].ts : 0;
+                        var bLast = chatmonLogs[b.id] && chatmonLogs[b.id].length ? chatmonLogs[b.id][chatmonLogs[b.id].length - 1].ts : 0;
+                        return bLast - aLast;
+                    });
+
+                    chatmonLoaded = true;
+                    renderChatmonChannels();
+                    renderChatmonStats();
+
+                    // 실시간 구독 (전체 채팅 메시지 INSERT 감지)
+                    subscribeChatmonRealtime();
+                } catch(e) {
+                    console.error('채팅 모니터링 로드 실패:', e);
+                }
+            }
+
+            function subscribeChatmonRealtime() {
+                if (chatmonRealtimeSub) {
+                    window.sbClient.removeChannel(chatmonRealtimeSub);
+                }
+                chatmonRealtimeSub = window.sbClient
+                    .channel('admin-chatmon-all')
+                    .on('postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: '45_채팅메시지' },
+                        function(payload) {
+                            var msg = payload.new;
+                            if (!msg) return;
+                            var roomId = msg.room_id;
+                            // 이미 있는 채널인지 확인
+                            var ch = chatmonChannels.find(function(c) { return c.id === roomId; });
+                            if (!ch) return; // 새 계약 채널이면 무시 (새로고침 필요)
+
+                            var dt = new Date(msg.created_at);
+                            var entry = {
+                                dbId: msg.id,
+                                role: msg.sender_role,
+                                text: msg.message || '',
+                                time: String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0'),
+                                date: msg.created_at.split('T')[0],
+                                senderName: msg.sender_name,
+                                files: msg.attachments || [],
+                                ts: dt.getTime()
+                            };
+                            if (!chatmonLogs[roomId]) chatmonLogs[roomId] = [];
+                            chatmonLogs[roomId].push(entry);
+
+                            if (chatmonActiveChannel !== roomId) {
+                                chatmonUnread[roomId] = (chatmonUnread[roomId] || 0) + 1;
+                            }
+                            updateChatmonBadge();
+                            renderChatmonChannels();
+                            renderChatmonStats();
+                            if (chatmonActiveChannel === roomId) renderChatmonMessages();
+
+                            var roleName = msg.sender_role === 'customer' ? '고객사' : (msg.sender_role === 'interpreter' ? '통역사' : '관리자');
+                            showToast('💬 [' + ch.name + '] ' + roleName + ': ' + (entry.text || '📎 파일 전송').substring(0, 30));
+                        }
+                    )
+                    .subscribe();
+            }
 
             function renderChatmonChannels() {
                 var container = document.getElementById('chatmonChannels');
@@ -7326,22 +7458,46 @@
                 }).join('');
             }
 
-            function sendChatmonMsg() {
+            async function sendChatmonMsg() {
                 if (!chatmonActiveChannel) return;
                 var input = document.getElementById('chatmonMsgInput');
                 var text = (input.value || '').trim();
                 var hasFiles = chatmonPendingFiles.length > 0;
                 if (!text && !hasFiles) return;
-                var now = new Date();
-                var time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-                var date = now.toISOString().split('T')[0];
-                var msg = { role:'admin', text: text, time: time, date: date };
-                if (hasFiles) { msg.files = chatmonPendingFiles.slice(); chatmonPendingFiles = []; renderChatmonFilePreview(); }
-                chatmonLogs[chatmonActiveChannel].push(msg);
                 input.value = '';
-                renderChatmonMessages();
-                renderChatmonChannels();
-                renderChatmonStats();
+                var files = hasFiles ? chatmonPendingFiles.slice() : [];
+                if (hasFiles) { chatmonPendingFiles = []; renderChatmonFilePreview(); }
+
+                // Supabase에 저장
+                var ch = chatmonChannels.find(function(c) { return c.id === chatmonActiveChannel; });
+                if (!ch) return;
+                try {
+                    var { data: { user } } = await window.sbClient.auth.getUser();
+                    if (!user) { showToast('⚠️ 로그인이 필요합니다.'); return; }
+                    var adminName = (_adminProfile ? _adminProfile.name : null) || '관리자';
+                    var msgData = {
+                        room_id: chatmonActiveChannel,
+                        contract_id: ch.contractId || null,
+                        sender_id: user.id,
+                        sender_role: 'admin',
+                        sender_name: adminName,
+                        message: text,
+                        message_type: files.length > 0 ? 'file' : 'text',
+                        attachments: files,
+                        read_by: [user.id]
+                    };
+                    var { error } = await window.sbClient
+                        .from('45_채팅메시지')
+                        .insert(msgData);
+                    if (error) {
+                        console.error('관리자 메시지 전송 실패:', error);
+                        showToast('⚠️ 메시지 전송 실패');
+                    }
+                    // 실시간 구독이 INSERT를 감지하여 자동으로 UI 업데이트됨
+                } catch(e) {
+                    console.error('관리자 메시지 전송 오류:', e);
+                    showToast('⚠️ 메시지 전송 실패');
+                }
             }
 
             function renderChatmonMessages() {
@@ -7373,7 +7529,7 @@
                     var isCustomer = m.role === 'customer';
                     var isAdmin = m.role === 'admin';
                     var roleLabel = isAdmin ? '🛡️ 관리자' : (isCustomer ? '👤 고객사' : '🗣️ 통역사');
-                    var roleName = isAdmin ? (_adminProfile ? _adminProfile.name : '관리자') : (isCustomer ? (ch.customer.match(/\(([^)]+)\)/) ? ch.customer.match(/\(([^)]+)\)/)[1] : ch.customer) : ch.interpreter);
+                    var roleName = m.senderName || (isAdmin ? (_adminProfile ? _adminProfile.name : '관리자') : (isCustomer ? (ch.customer.match(/\(([^)]+)\)/) ? ch.customer.match(/\(([^)]+)\)/)[1] : ch.customer) : ch.interpreter));
                     var bubbleColor = isAdmin ? '#fff8e1' : (isCustomer ? '#e3f2fd' : '#f3e5f5');
                     var borderColor = isAdmin ? '#ffe082' : (isCustomer ? '#90caf9' : '#ce93d8');
 
@@ -7408,35 +7564,7 @@
                 }
             }
 
-            // 채팅 메시지 수신 리스너
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'contentour_chat_msg') {
-                    try {
-                        var data = JSON.parse(e.newValue);
-                        if (!data || !data.channel) return;
-                        var ch = chatmonChannels.find(function(c) { return c.id === data.channel; });
-                        if (!ch) return;
-                        var msgEntry = {
-                            role: data.from,
-                            text: data.msg.text || '',
-                            time: data.msg.time || '',
-                            date: data.msg.date || new Date().toISOString().split('T')[0],
-                            files: data.msg.files || [],
-                            ts: data.ts
-                        };
-                        chatmonLogs[data.channel].push(msgEntry);
-                        if (chatmonActiveChannel !== data.channel) {
-                            chatmonUnread[data.channel] = (chatmonUnread[data.channel] || 0) + 1;
-                        }
-                        updateChatmonBadge();
-                        renderChatmonChannels();
-                        renderChatmonStats();
-                        if (chatmonActiveChannel === data.channel) renderChatmonMessages();
-                        var roleName = data.from === 'customer' ? '고객사' : '통역사';
-                        showToast('💬 [' + ch.name + '] ' + roleName + ': ' + (msgEntry.text || '📎 파일 전송').substring(0, 30));
-                    } catch(ex) {}
-                }
-            });
+            // 채팅 메시지 수신: Supabase Realtime으로 처리 (subscribeChatmonRealtime)
 
             // ═══ 통역사 단가 자동 반영 ═══
             var interpreterRatesCache = {};
@@ -7544,6 +7672,7 @@
         var supabase = _sb;
         </script>
         <script src="admin-data.js"></script>
+        <script src="chat-data.js"></script>
         <script>
         // ── Supabase에서 문의 + 캘린더 데이터 로드 ──
         (async function() {
