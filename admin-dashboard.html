@@ -5007,8 +5007,8 @@
             const journals = [];
 
             // Supabase에서 상담일지 로드
-            window._loadJournals = async function() {
-                var sb = window.sbClient || window.supabase;
+            window._loadJournals = async function(sbArg) {
+                var sb = sbArg || window.sbClient || window._supabaseRef || window.supabase;
                 if (!sb) return;
                 try {
                     var { data: dbJournals } = await sb
@@ -7647,7 +7647,10 @@
 
             // 6) 상담일지 로드
             if (typeof window._loadJournals === 'function') {
-                await window._loadJournals();
+                try {
+                    window._supabaseRef = supabase;
+                    await window._loadJournals(supabase);
+                } catch(je) { console.error('상담일지 로드 에러:', je); }
             }
         })();
 
