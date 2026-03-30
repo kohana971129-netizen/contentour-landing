@@ -8385,25 +8385,28 @@
                             '<button onclick="closeCustDetail()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background=\'rgba(255,255,255,0.2)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.1)\'">&#10005;</button>' +
                         '</div>' +
 
-                        // KPI 카드 (헤더 안)
-                        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px;">' +
-                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
-                                '<div style="font-size:1.4rem;font-weight:900;">' + contracts.length + '</div>' +
-                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">총 계약</div></div>' +
-                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
-                                '<div style="font-size:1.4rem;font-weight:900;">&#8361;' + (totalAmount >= 10000 ? Math.round(totalAmount/10000) + '만' : totalAmount.toLocaleString()) + '</div>' +
-                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">총 계약액</div></div>' +
-                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
-                                '<div style="font-size:1.4rem;font-weight:900;">&#8361;' + (paidAmount >= 10000 ? Math.round(paidAmount/10000) + '만' : paidAmount.toLocaleString()) + '</div>' +
-                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">결제 완료</div></div>' +
-                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
-                                '<div style="font-size:1.4rem;font-weight:900;">' + completedCount + '</div>' +
-                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">완료 건수</div></div>' +
+                    '</div>' +
+
+                    // KPI 카드 (헤더 밖, 밝은 배경)
+                    '<div style="padding:0 32px;margin-top:-24px;position:relative;z-index:1;">' +
+                        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">' +
+                            '<div style="text-align:center;padding:16px 10px;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:1px solid #eef1f6;">' +
+                                '<div style="font-size:1.5rem;font-weight:900;color:#1565c0;">' + contracts.length + '</div>' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-top:3px;">총 계약</div></div>' +
+                            '<div style="text-align:center;padding:16px 10px;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:1px solid #eef1f6;">' +
+                                '<div style="font-size:1.5rem;font-weight:900;color:#2e7d32;">&#8361;' + (totalAmount >= 10000 ? Math.round(totalAmount/10000) + '만' : totalAmount.toLocaleString()) + '</div>' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-top:3px;">총 계약액</div></div>' +
+                            '<div style="text-align:center;padding:16px 10px;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:1px solid #eef1f6;">' +
+                                '<div style="font-size:1.5rem;font-weight:900;color:#e65100;">&#8361;' + (paidAmount >= 10000 ? Math.round(paidAmount/10000) + '만' : paidAmount.toLocaleString()) + '</div>' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-top:3px;">결제 완료</div></div>' +
+                            '<div style="text-align:center;padding:16px 10px;background:#fff;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:1px solid #eef1f6;">' +
+                                '<div style="font-size:1.5rem;font-weight:900;color:#6a1b9a;">' + completedCount + '</div>' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-top:3px;">완료 건수</div></div>' +
                         '</div>' +
                     '</div>' +
 
                     // 바디 (스크롤)
-                    '<div style="padding:24px 32px 28px;overflow-y:auto;flex:1;">' +
+                    '<div style="padding:36px 32px 28px;overflow-y:auto;flex:1;">' +
 
                         // 기본 정보
                         '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">' +
