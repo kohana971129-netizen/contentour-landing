@@ -994,15 +994,27 @@
                 if (myContracts && myContracts.length > 0) {
                     var sel = document.getElementById('j-expo');
                     if (sel) {
-                        // 통역사 이름 조회
+                        // 통역사 이름 조회 (01_회원 + 40_통역사프로필 fallback)
                         var interpIds = myContracts.map(function(ct) { return ct.interpreter_id; }).filter(Boolean);
                         var interpNames = {};
                         if (interpIds.length > 0) {
-                            var { data: interps } = await window.sbClient
-                                .from('01_회원')
-                                .select('id, name')
-                                .in('id', interpIds);
-                            if (interps) interps.forEach(function(i) { interpNames[i.id] = i.name; });
+                            try {
+                                var { data: interps } = await window.sbClient
+                                    .from('01_회원')
+                                    .select('id, name')
+                                    .in('id', interpIds);
+                                if (interps) interps.forEach(function(i) { interpNames[i.id] = i.name; });
+                            } catch(eI) {}
+                            // fallback: 40_통역사프로필
+                            try {
+                                var { data: profiles } = await window.sbClient
+                                    .from('40_통역사프로필')
+                                    .select('user_id, display_name')
+                                    .in('user_id', interpIds);
+                                if (profiles) profiles.forEach(function(p) {
+                                    if (!interpNames[p.user_id]) interpNames[p.user_id] = p.display_name;
+                                });
+                            } catch(eP) {}
                         }
 
                         myContracts.forEach(function(ct) {
