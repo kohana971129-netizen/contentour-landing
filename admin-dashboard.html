@@ -7176,7 +7176,6 @@
 
             // ── Supabase에서 채팅 채널 + 메시지 로드 ──
             async function loadChatmonFromDB() {
-                console.log('[chatmon] loadChatmonFromDB 시작, sbClient=' + !!window.sbClient + ' loaded=' + chatmonLoaded);
                 if (!window.sbClient || chatmonLoaded) return;
                 try {
                     // 전체 계약 조회 (관리자)
@@ -7184,7 +7183,6 @@
                         .from('42_통역계약')
                         .select('id, exhibition_name, client_company, language_pair, customer_id, interpreter_id, status')
                         .order('created_at', { ascending: false });
-                    console.log('[chatmon] 계약 조회: ' + (contracts ? contracts.length : 'null') + '건, error=' + (error ? error.message : 'none'));
                     if (error) { console.error('계약 조회 실패:', error); return; }
                     if (!contracts || contracts.length === 0) return;
 
@@ -7234,8 +7232,6 @@
                             .eq('room_id', roomId)
                             .order('created_at', { ascending: true })
                             .limit(200);
-                        console.log('[chatmon] room=' + roomId + ' msgs=' + (msgResult.data ? msgResult.data.length : 'null') + ' err=' + (msgResult.error ? msgResult.error.message : 'none'));
-
                         chatmonLogs[roomId] = (msgResult.data || []).map(function(m) {
                             var dt = new Date(m.created_at);
                             return {
@@ -7267,7 +7263,6 @@
                     subscribeChatmonRealtime();
                 } catch(e) {
                     console.error('채팅 모니터링 로드 실패:', e);
-                    showToast('⚠️ 채팅 로드 실패: ' + e.message);
                 }
             }
 
