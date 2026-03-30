@@ -6980,22 +6980,22 @@
             // ══════════════ 양식 권한 관리 ══════════════
             var fpClients = [];
 
-            // Supabase에서 고객사 목록 로드
-            (async function loadFpClients() {
-                if (!window.sbClient) return;
+            // Supabase에서 고객사 목록 로드 (sbClient 로드 후 호출)
+            window._loadFpClients = async function() {
+                var sb = window.sbClient || window.supabase;
+                if (!sb) return;
                 try {
-                    // 42_통역계약에서 고객사 목록 추출
-                    var { data: contracts } = await window.sbClient
+                    var { data: contracts } = await sb
                         .from('42_통역계약')
                         .select('customer_id, client_company');
 
-                    // 01_회원에서 고객 역할 회원 조회
-                    var { data: customers } = await window.sbClient
+                    var { data: customers } = await sb
                         .from('01_회원')
                         .select('id, name, email, company_name, phone')
                         .eq('role', 'customer');
 
                     var seen = {};
+                    fpClients.length = 0;
                     if (customers && customers.length > 0) {
                         customers.forEach(function(c) {
                             if (!seen[c.id]) {
@@ -7012,7 +7012,6 @@
                         });
                     }
 
-                    // 계약에서 추가 고객사 (회원 테이블에 없는 경우)
                     if (contracts && contracts.length > 0) {
                         contracts.forEach(function(ct) {
                             if (ct.customer_id && !seen[ct.customer_id]) {
@@ -7034,7 +7033,7 @@
                 } catch(e) {
                     console.error('양식 권한 고객사 로드 실패:', e);
                 }
-            })();
+            };
 
             // localStorage에서 저장된 권한 불러오기
             function loadFpPermissions() {
@@ -7569,6 +7568,11 @@
                 await loadContractsFromDB();
             } catch (e) {
                 console.warn('계약 DB 로드 실패:', e);
+            }
+
+            // 4) 양식 권한 고객사 로드
+            if (typeof window._loadFpClients === 'function') {
+                await window._loadFpClients();
             }
         })();
 
