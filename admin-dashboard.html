@@ -8115,9 +8115,13 @@
                 '</div>';
             }).join('') + '</div>';
 
-            if (_approvedListOpen) {
-                list.style.maxHeight = list.scrollHeight + 'px';
+            // 승인된 통역사가 있으면 기본으로 펼침
+            if (!_approvedListOpen) {
+                _approvedListOpen = true;
+                var toggle = document.getElementById('approvedListToggle');
+                if (toggle) toggle.style.transform = 'rotate(180deg)';
             }
+            list.style.maxHeight = list.scrollHeight + 'px';
         }
 
         function toggleApprovedList() {
@@ -8154,6 +8158,13 @@
             document.querySelectorAll('#view-applications .filter-chip').forEach(c => c.classList.remove('active'));
             if (btn) btn.classList.add('active');
             renderApps();
+            // 승인 필터 클릭 시 승인 통역사 목록 자동 펼침
+            if (status === 'approved') {
+                const approved = _allApps.filter(a => a.status === 'approved');
+                if (approved.length > 0 && !_approvedListOpen) {
+                    toggleApprovedList();
+                }
+            }
         }
 
         function renderApps() {
