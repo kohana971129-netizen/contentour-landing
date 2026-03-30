@@ -5006,6 +5006,71 @@
 
             const journals = [];
 
+            // Supabase에서 상담일지 로드
+            window._loadJournals = async function() {
+                var sb = window.sbClient || window.supabase;
+                if (!sb) return;
+                try {
+                    var { data: dbJournals } = await sb
+                        .from('44_상담일지')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (dbJournals && dbJournals.length > 0) {
+                        // 통역사/고객 이름 조회
+                        var userIds = [];
+                        dbJournals.forEach(function(j) {
+                            if (j.interpreter_id && userIds.indexOf(j.interpreter_id) === -1) userIds.push(j.interpreter_id);
+                            if (j.customer_id && userIds.indexOf(j.customer_id) === -1) userIds.push(j.customer_id);
+                        });
+                        var userNames = {};
+                        if (userIds.length > 0) {
+                            try {
+                                var { data: users } = await sb.from('01_회원').select('id, name, company_name').in('id', userIds);
+                                if (users) users.forEach(function(u) { userNames[u.id] = { name: u.name, company: u.company_name }; });
+                            } catch(e) {}
+                        }
+
+                        journals.length = 0;
+                        dbJournals.forEach(function(j, idx) {
+                            var interpInfo = userNames[j.interpreter_id] || {};
+                            var custInfo = userNames[j.customer_id] || {};
+                            var extra = {};
+                            try { extra = JSON.parse(j.attachments || '{}'); } catch(e) {}
+
+                            journals.push({
+                                id: idx + 1,
+                                dbId: j.id,
+                                expo: j.exhibition_name || '-',
+                                company: custInfo.company || custInfo.name || j.buyer_company || '-',
+                                date: j.consultation_date || '',
+                                interp: interpInfo.name || '-',
+                                lang: '',
+                                location: j.buyer_country || '',
+                                total: extra.total || 0,
+                                contract: extra.contract || 0,
+                                sample: extra.sample || 0,
+                                follow: extra.follow || 0,
+                                summary: j.discussion_summary || '',
+                                result: j.buyer_interest || '',
+                                issue: extra.issue || '',
+                                action: j.follow_up_notes || '',
+                                star1: 0, star2: 0, star3: 0, star4: 0,
+                                status: j.status === 'submitted' ? 'new' : (j.status === 'reviewed' ? 'reviewed' : 'draft'),
+                                source: j.interpreter_id === j.customer_id ? 'customer' : 'interpreter'
+                            });
+                        });
+
+                        updateJournalKPI();
+                        visibleJournals = journals.slice();
+                        renderJList();
+                        if (journals.length > 0) loadJournal(journals[0].id);
+                    }
+                } catch(e) {
+                    console.error('상담일지 DB 로드 실패:', e);
+                }
+            };
+
             // ═══════════════════════════════════
             // 캘린더 기능
             // ═══════════════════════════════════
@@ -7578,6 +7643,11 @@
             // 5) 고객사 관리 데이터 로드
             if (typeof window._loadCustData === 'function') {
                 await window._loadCustData();
+            }
+
+            // 6) 상담일지 로드
+            if (typeof window._loadJournals === 'function') {
+                await window._loadJournals();
             }
         })();
 

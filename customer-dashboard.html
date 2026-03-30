@@ -1339,16 +1339,61 @@
       document.getElementById('j-interp').value = interp || '';
       document.getElementById('j-lang').value = lang || '';
     }
-    function saveJournal(type) {
+    async function saveJournal(type) {
       const expo = document.getElementById('j-expo').value;
       const date = document.getElementById('j-date').value;
       const summary = document.getElementById('j-summary').value.trim();
       if (!expo) { showJToast('&#9888;&#65039; 전시회명을 선택해주세요.'); return; }
       if (!date) { showJToast('&#9888;&#65039; 작성 날짜를 선택해주세요.'); return; }
       if (type === 'complete' && !summary) { showJToast('&#9888;&#65039; 상담 내용 요약을 작성해주세요.'); return; }
+
+      const [expoName, location, period, interp, lang] = expo.split('|');
+      const total = parseInt(document.getElementById('j-total').value) || 0;
+      const contractCount = parseInt(document.getElementById('j-contract').value) || 0;
+      const sampleCount = parseInt(document.getElementById('j-sample').value) || 0;
+      const followCount = parseInt(document.getElementById('j-follow').value) || 0;
+      const result = (document.getElementById('j-result') || {}).value || '';
+      const issue = (document.getElementById('j-issue') || {}).value || '';
+      const action = (document.getElementById('j-action') || {}).value || '';
+
+      // Supabase DB에 저장
+      if (window.sbClient) {
+        try {
+          var user = await ContentourAuth.getCurrentUser();
+          if (user) {
+            var journalRecord = {
+              interpreter_id: user.id,
+              customer_id: user.id,
+              exhibition_name: expoName || '',
+              consultation_date: date,
+              buyer_company: _currentUserProfile.company || _currentUserProfile.name || '',
+              buyer_contact: _currentUserProfile.name || '',
+              buyer_country: location || '',
+              discussion_summary: summary,
+              buyer_interest: result || '',
+              follow_up_needed: followCount > 0,
+              follow_up_notes: action || '',
+              status: type === 'complete' ? 'submitted' : 'draft',
+              submitted_at: type === 'complete' ? new Date().toISOString() : null,
+              attachments: JSON.stringify({
+                total: total, contract: contractCount, sample: sampleCount, follow: followCount, issue: issue
+              })
+            };
+
+            if (activeJournalId && typeof activeJournalId === 'string' && activeJournalId.includes('-')) {
+              // 기존 일지 업데이트
+              await window.sbClient.from('44_상담일지').update(journalRecord).eq('id', activeJournalId);
+            } else {
+              // 새 일지 생성
+              var { data: newJ } = await window.sbClient.from('44_상담일지').insert(journalRecord).select('id').single();
+              if (newJ) activeJournalId = newJ.id;
+            }
+          }
+        } catch(e) { console.error('상담일지 DB 저장 실패:', e); }
+      }
+
       const now = new Date().toLocaleString('ko-KR');
       document.getElementById('jeditorSavedAt').textContent = '마지막 저장: ' + now;
-      const expoName = expo.split('|')[0];
       const msg = type === 'complete' ? '&#9989; "' + expoName + '" ' + date + ' 상담일지가 제출되었습니다!' : '&#128190; "' + expoName + '" ' + date + ' 상담일지가 임시저장되었습니다.';
       showJToast(msg);
     }
