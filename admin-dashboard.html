@@ -8331,69 +8331,116 @@
         function openCustDetail(custId) {
             var c = _custData.find(function(x) { return x.id === custId; });
             if (!c) return;
-
-            // 해당 고객의 계약 목록 조회
             var sb = window.sbClient || window.supabase;
             if (!sb) return;
 
-            sb.from('42_통역계약')
-                .select('*')
-                .eq('customer_id', custId)
-                .order('created_at', { ascending: false })
-                .then(function(res) {
-                    var contracts = res.data || [];
-                    var totalAmount = contracts.reduce(function(s, ct) { return s + (ct.total_amount || 0); }, 0);
-                    var paidAmount = contracts.reduce(function(s, ct) {
-                        var d = ct.deposit_status === 'paid' ? (ct.deposit_amount || 0) : 0;
-                        var b = ct.balance_status === 'paid' ? (ct.balance_amount || 0) : 0;
-                        return s + d + b;
-                    }, 0);
+            sb.from('42_통역계약').select('*').eq('customer_id', custId).order('created_at', { ascending: false })
+            .then(function(res) {
+                var contracts = res.data || [];
+                var totalAmount = contracts.reduce(function(s, ct) { return s + (ct.total_amount || 0); }, 0);
+                var paidAmount = contracts.reduce(function(s, ct) {
+                    return s + (ct.deposit_status === 'paid' ? (ct.deposit_amount || 0) : 0) + (ct.balance_status === 'paid' ? (ct.balance_amount || 0) : 0);
+                }, 0);
+                var completedCount = contracts.filter(function(ct) { return ct.status === 'completed' || ct.status === 'settled'; }).length;
+                var initial = c.company ? c.company.replace(/^\(주\)\s*/, '').charAt(0) : c.contact.charAt(0);
 
-                    var contractRows = contracts.length > 0 ? contracts.map(function(ct) {
-                        var statusLabels = { pending: '대기', deposit_paid: '계약금 결제', in_progress: '진행중', completed: '완료', settled: '정산완료', cancelled: '취소' };
-                        var statusColors = { pending: '#f57c00', deposit_paid: '#1565c0', in_progress: '#0277bd', completed: '#2e7d32', settled: '#6a1b9a', cancelled: '#c62828' };
-                        return '<tr>' +
-                            '<td style="font-weight:700;">' + (ct.exhibition_name || '-') + '</td>' +
-                            '<td>' + (ct.start_date || '') + ' ~ ' + (ct.end_date || '') + '</td>' +
-                            '<td>' + (ct.language_pair || '-') + '</td>' +
-                            '<td style="font-weight:700;">₩' + (ct.total_amount || 0).toLocaleString() + '</td>' +
-                            '<td><span style="padding:3px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;background:' + (statusColors[ct.status] || '#888') + '22;color:' + (statusColors[ct.status] || '#888') + ';">' + (statusLabels[ct.status] || ct.status) + '</span></td>' +
-                        '</tr>';
-                    }).join('') : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--gray-400);">계약 이력이 없습니다.</td></tr>';
+                var statusLabels = { pending: '대기', deposit_paid: '계약금 결제', in_progress: '진행중', completed: '완료', settled: '정산완료', cancelled: '취소' };
+                var statusColors = { pending: '#f57c00', deposit_paid: '#1565c0', in_progress: '#0277bd', completed: '#2e7d32', settled: '#6a1b9a', cancelled: '#c62828' };
+                var statusBgs = { pending: '#fff3e0', deposit_paid: '#e3f2fd', in_progress: '#e1f5fe', completed: '#e8f5e9', settled: '#f3e5f5', cancelled: '#ffebee' };
 
-                    var html = '<div style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;" id="custDetailOverlay" onclick="if(event.target===this)closeCustDetail()">' +
-                        '<div style="background:#fff;border-radius:16px;max-width:680px;width:95%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
-                            '<div style="padding:24px 28px;background:linear-gradient(135deg,#0d253f,#1565c0);border-radius:16px 16px 0 0;color:#fff;display:flex;justify-content:space-between;align-items:flex-start;">' +
-                                '<div>' +
-                                    '<div style="font-size:1.15rem;font-weight:900;">' + custEsc(c.company) + '</div>' +
-                                    '<div style="font-size:0.82rem;opacity:0.7;margin-top:4px;">' + custEsc(c.contact) + ' · ' + custEsc(c.email) + '</div>' +
-                                '</div>' +
-                                '<button onclick="closeCustDetail()" style="background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;opacity:0.7;">✕</button>' +
-                            '</div>' +
-                            '<div style="padding:24px 28px;">' +
-                                '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;">' +
-                                    '<div style="text-align:center;padding:16px;background:#f8f9fa;border-radius:10px;"><div style="font-size:1.3rem;font-weight:800;color:#1565c0;">' + contracts.length + '</div><div style="font-size:0.72rem;color:#888;margin-top:4px;">총 계약</div></div>' +
-                                    '<div style="text-align:center;padding:16px;background:#f8f9fa;border-radius:10px;"><div style="font-size:1.3rem;font-weight:800;color:#2e7d32;">₩' + totalAmount.toLocaleString() + '</div><div style="font-size:0.72rem;color:#888;margin-top:4px;">총 계약액</div></div>' +
-                                    '<div style="text-align:center;padding:16px;background:#f8f9fa;border-radius:10px;"><div style="font-size:1.3rem;font-weight:800;color:#e65100;">₩' + paidAmount.toLocaleString() + '</div><div style="font-size:0.72rem;color:#888;margin-top:4px;">결제 완료</div></div>' +
-                                    '<div style="text-align:center;padding:16px;background:#f8f9fa;border-radius:10px;"><div style="font-size:1.3rem;font-weight:800;color:#6a1b9a;">' + custEsc(c.grade) + '</div><div style="font-size:0.72rem;color:#888;margin-top:4px;">등급</div></div>' +
-                                '</div>' +
-                                '<div style="margin-bottom:12px;font-size:0.88rem;font-weight:800;color:#0d253f;">기본 정보</div>' +
-                                '<table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:0.82rem;">' +
-                                    '<tr><td style="padding:8px 12px;background:#f8f9fa;font-weight:700;width:100px;border-radius:6px 0 0 6px;">담당자</td><td style="padding:8px 12px;">' + custEsc(c.contact) + '</td><td style="padding:8px 12px;background:#f8f9fa;font-weight:700;width:100px;">연락처</td><td style="padding:8px 12px;">' + custEsc(c.phone) + '</td></tr>' +
-                                    '<tr><td style="padding:8px 12px;background:#f8f9fa;font-weight:700;border-radius:6px 0 0 6px;">이메일</td><td style="padding:8px 12px;">' + custEsc(c.email) + '</td><td style="padding:8px 12px;background:#f8f9fa;font-weight:700;">가입일</td><td style="padding:8px 12px;">' + (c.joined || '-') + '</td></tr>' +
-                                '</table>' +
-                                '<div style="margin-bottom:12px;font-size:0.88rem;font-weight:800;color:#0d253f;">계약 이력</div>' +
-                                '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">' +
-                                    '<thead><tr style="background:#f0f4ff;"><th style="padding:10px 12px;text-align:left;">전시회</th><th style="padding:10px 12px;text-align:left;">기간</th><th style="padding:10px 12px;text-align:left;">언어</th><th style="padding:10px 12px;text-align:left;">금액</th><th style="padding:10px 12px;text-align:left;">상태</th></tr></thead>' +
-                                    '<tbody>' + contractRows + '</tbody>' +
-                                '</table>' +
-                            '</div>' +
+                var contractCards = contracts.length > 0 ? contracts.map(function(ct) {
+                    var sc = statusColors[ct.status] || '#888';
+                    var sb2 = statusBgs[ct.status] || '#f5f5f5';
+                    return '<div style="border:1px solid #e8ecf2;border-radius:12px;padding:16px 18px;transition:all 0.15s;cursor:default;" onmouseover="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.08)\';this.style.borderColor=\'#1565c0\'" onmouseout="this.style.boxShadow=\'none\';this.style.borderColor=\'#e8ecf2\'">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">' +
+                            '<div style="font-size:0.88rem;font-weight:800;color:#0d253f;">' + (ct.exhibition_name || '-') + '</div>' +
+                            '<span style="padding:4px 12px;border-radius:20px;font-size:0.68rem;font-weight:700;background:' + sb2 + ';color:' + sc + ';white-space:nowrap;">' + (statusLabels[ct.status] || ct.status) + '</span>' +
+                        '</div>' +
+                        '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.78rem;color:#666;">' +
+                            '<span style="display:flex;align-items:center;gap:4px;">&#128197; ' + (ct.start_date || '').replace(/-/g, '.') + ' ~ ' + (ct.end_date || '').replace(/-/g, '.') + '</span>' +
+                            '<span style="display:flex;align-items:center;gap:4px;">&#127760; ' + (ct.language_pair || '-') + '</span>' +
+                            '<span style="display:flex;align-items:center;gap:4px;">&#128198; ' + (ct.working_days || 0) + '일</span>' +
+                        '</div>' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #f0f2f5;">' +
+                            '<div style="font-size:0.78rem;color:#888;">' + (ct.venue || '-') + '</div>' +
+                            '<div style="font-size:0.95rem;font-weight:800;color:#1565c0;">&#8361;' + (ct.total_amount || 0).toLocaleString() + '</div>' +
                         '</div>' +
                     '</div>';
+                }).join('') : '<div style="text-align:center;padding:40px 20px;color:#adb5bd;"><div style="font-size:2.5rem;margin-bottom:8px;opacity:0.4;">&#128203;</div><div style="font-size:0.85rem;">계약 이력이 없습니다.</div></div>';
 
-                    document.getElementById('custDetailOverlay')?.remove();
-                    document.body.insertAdjacentHTML('beforeend', html);
-                });
+                var html = '<div style="position:fixed;inset:0;z-index:9999;background:rgba(10,20,40,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;animation:cdFadeIn 0.2s ease;" id="custDetailOverlay" onclick="if(event.target===this)closeCustDetail()">' +
+                '<style>@keyframes cdFadeIn{from{opacity:0}to{opacity:1}}@keyframes cdSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>' +
+                '<div style="background:#fff;border-radius:20px;max-width:640px;width:95%;max-height:88vh;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.25);animation:cdSlideUp 0.25s ease;display:flex;flex-direction:column;">' +
+
+                    // 헤더
+                    '<div style="padding:28px 32px 24px;background:linear-gradient(135deg,#0a1628 0%,#1a3a6e 100%);color:#fff;flex-shrink:0;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+                            '<div style="display:flex;align-items:center;gap:16px;">' +
+                                '<div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;color:#fff;backdrop-filter:blur(8px);">' + initial + '</div>' +
+                                '<div>' +
+                                    '<div style="font-size:1.2rem;font-weight:900;letter-spacing:-0.3px;">' + custEsc(c.company) + '</div>' +
+                                    '<div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:3px;">' + custEsc(c.contact) + ' · ' + custEsc(c.grade) + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<button onclick="closeCustDetail()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:36px;height:36px;border-radius:10px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;" onmouseover="this.style.background=\'rgba(255,255,255,0.2)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.1)\'">&#10005;</button>' +
+                        '</div>' +
+
+                        // KPI 카드 (헤더 안)
+                        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px;">' +
+                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
+                                '<div style="font-size:1.4rem;font-weight:900;">' + contracts.length + '</div>' +
+                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">총 계약</div></div>' +
+                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
+                                '<div style="font-size:1.4rem;font-weight:900;">&#8361;' + (totalAmount >= 10000 ? Math.round(totalAmount/10000) + '만' : totalAmount.toLocaleString()) + '</div>' +
+                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">총 계약액</div></div>' +
+                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
+                                '<div style="font-size:1.4rem;font-weight:900;">&#8361;' + (paidAmount >= 10000 ? Math.round(paidAmount/10000) + '만' : paidAmount.toLocaleString()) + '</div>' +
+                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">결제 완료</div></div>' +
+                            '<div style="text-align:center;padding:12px 8px;background:rgba(255,255,255,0.08);border-radius:10px;backdrop-filter:blur(8px);">' +
+                                '<div style="font-size:1.4rem;font-weight:900;">' + completedCount + '</div>' +
+                                '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:2px;">완료 건수</div></div>' +
+                        '</div>' +
+                    '</div>' +
+
+                    // 바디 (스크롤)
+                    '<div style="padding:24px 32px 28px;overflow-y:auto;flex:1;">' +
+
+                        // 기본 정보
+                        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">' +
+                            '<div style="width:4px;height:16px;background:linear-gradient(135deg,#1565c0,#0d47a1);border-radius:2px;"></div>' +
+                            '<span style="font-size:0.9rem;font-weight:800;color:#0d253f;">기본 정보</span>' +
+                        '</div>' +
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px;">' +
+                            '<div style="padding:14px 16px;background:#f8f9fb;border-radius:10px;border:1px solid #eef1f6;">' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-bottom:4px;">담당자</div>' +
+                                '<div style="font-size:0.88rem;font-weight:700;color:#1a2a4a;">' + custEsc(c.contact) + '</div></div>' +
+                            '<div style="padding:14px 16px;background:#f8f9fb;border-radius:10px;border:1px solid #eef1f6;">' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-bottom:4px;">연락처</div>' +
+                                '<div style="font-size:0.88rem;font-weight:700;color:#1a2a4a;">' + custEsc(c.phone) + '</div></div>' +
+                            '<div style="padding:14px 16px;background:#f8f9fb;border-radius:10px;border:1px solid #eef1f6;">' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-bottom:4px;">이메일</div>' +
+                                '<div style="font-size:0.88rem;font-weight:700;color:#1a2a4a;">' + custEsc(c.email) + '</div></div>' +
+                            '<div style="padding:14px 16px;background:#f8f9fb;border-radius:10px;border:1px solid #eef1f6;">' +
+                                '<div style="font-size:0.68rem;color:#8a95a8;font-weight:600;margin-bottom:4px;">가입일</div>' +
+                                '<div style="font-size:0.88rem;font-weight:700;color:#1a2a4a;">' + (c.joined || '-').replace(/-/g, '.') + '</div></div>' +
+                        '</div>' +
+
+                        // 계약 이력
+                        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+                            '<div style="display:flex;align-items:center;gap:8px;">' +
+                                '<div style="width:4px;height:16px;background:linear-gradient(135deg,#f57c00,#e65100);border-radius:2px;"></div>' +
+                                '<span style="font-size:0.9rem;font-weight:800;color:#0d253f;">계약 이력</span>' +
+                            '</div>' +
+                            '<span style="font-size:0.72rem;color:#8a95a8;font-weight:600;">' + contracts.length + '건</span>' +
+                        '</div>' +
+                        '<div style="display:flex;flex-direction:column;gap:10px;">' + contractCards + '</div>' +
+
+                    '</div>' +
+                '</div></div>';
+
+                document.getElementById('custDetailOverlay')?.remove();
+                document.body.insertAdjacentHTML('beforeend', html);
+            });
         }
 
         function closeCustDetail() {
