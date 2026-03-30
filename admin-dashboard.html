@@ -8320,7 +8320,7 @@
                     <td style="font-weight:700;">${c.orders}건</td>
                     <td>${c.lastOrder.replace(/-/g, '.')}</td>
                     <td><span class="cust-badge ${statusMap[c.status] || ''}">${custEsc(c.status)}</span></td>
-                    <td><div style="display:flex;gap:6px;"><button class="cust-btn" onclick="openCustDetail('${c.id}')">상세</button><button class="cust-btn" onclick="openCustDetail('${c.id}')">이력</button></div></td>
+                    <td><button class="cust-btn" onclick="openCustDetail('${c.id}')">상세</button></td>
                 </tr>
             `).join('');
         }
