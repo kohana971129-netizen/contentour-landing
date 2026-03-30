@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>관리자 로그인 - 콘텐츄어</title>
+    <meta name="description" content="콘텐츄어 관리자 로그인. 통역사 및 전시 관리 시스템에 접속하세요.">
+    <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="styles.css?v=1.1">
     <style>
         * {
@@ -219,7 +221,10 @@
 
             <div class="form-group">
                 <label for="password">비밀번호</label>
-                <input type="password" id="password" name="password" required autocomplete="current-password">
+                <div style="position:relative;">
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                    <button type="button" onclick="var p=document.getElementById('password');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#94a3b8;padding:4px;" aria-label="비밀번호 보기">👁</button>
+                </div>
             </div>
 
             <button type="submit" class="btn-login">로그인</button>
@@ -259,10 +264,11 @@
                 </div>
             </div>
             <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
-                <a href="terms.html" class="footer-terms-link">서비스 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" class="footer-terms-link">고객사 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" class="footer-terms-link">통역사 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" class="footer-terms-link">개인정보처리방침</a>
+                <a href="terms.html#common" class="footer-terms-link">서비스 이용약관</a>
+                <a href="terms.html#customer" class="footer-terms-link">고객사 이용약관</a>
+                <a href="terms.html#interpreter" class="footer-terms-link">통역사 이용약관</a>
+                <a href="terms.html#operation" class="footer-terms-link">서비스 운영정책</a>
+                <a href="terms.html#privacy" class="footer-terms-link">개인정보처리방침</a>
             </div>
             <div class="footer-bottom-pro" style="margin-top:20px;">
                 <p>© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
@@ -309,7 +315,7 @@
             // 로그인 실패
             errorMessage.textContent = '아이디 또는 비밀번호가 일치하지 않습니다.';
             errorMessage.classList.add('show');
-            setTimeout(() => errorMessage.classList.remove('show'), 3000);
+            setTimeout(() => errorMessage.classList.remove('show'), 5000);
             if (btn) { btn.disabled = false; btn.textContent = '로그인'; }
         }
 

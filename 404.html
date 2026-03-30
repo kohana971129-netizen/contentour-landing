@@ -86,7 +86,7 @@
             } else {
                 document.getElementById('pwError').textContent='비밀번호가 올바르지 않습니다.';
                 document.getElementById('pwInput').style.borderColor='#c62828';
-                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},2000);
+                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},4000);
             }
         };
         document.getElementById('pwInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});

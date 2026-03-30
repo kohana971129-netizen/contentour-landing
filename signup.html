@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>파트너 회원가입 - 콘텐츄어</title>
+    <meta name="description" content="콘텐츄어의 전문 통역 파트너로 함께하세요. 통역사 파트너 회원가입.">
+    <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="styles.css?v=1.1">
     <style>
         * {
@@ -201,13 +203,31 @@
                     <option value="en">영어</option>
                     <option value="jp">일본어</option>
                     <option value="zh">중국어</option>
+                    <option value="de">독일어</option>
+                    <option value="vi">베트남어</option>
+                    <option value="th">태국어</option>
+                    <option value="ar">아랍어</option>
+                    <option value="es">스페인어</option>
+                    <option value="fr">프랑스어</option>
+                    <option value="ru">러시아어</option>
                     <option value="etc">기타</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="password">비밀번호 설정</label>
-                <input type="password" id="password" name="password" required minlength="8">
+                <div style="position:relative;">
+                    <input type="password" id="password" name="password" required minlength="8" placeholder="8자 이상 입력">
+                    <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#94a3b8;" aria-label="비밀번호 보기">👁</button>
+                </div>
+                <div id="pwStrength" style="margin-top:6px;font-size:0.78rem;color:#94a3b8;"></div>
+            </div>
+
+            <div class="form-group" style="margin-top:1rem;">
+                <label style="display:flex;align-items:flex-start;gap:8px;font-weight:400;font-size:0.85rem;color:#64748b;cursor:pointer;">
+                    <input type="checkbox" id="agreeTerms" required style="margin-top:3px;width:auto;">
+                    <span><a href="terms.html#common" target="_blank" style="color:#2563eb;text-decoration:underline;">이용약관</a> 및 <a href="terms.html#privacy" target="_blank" style="color:#2563eb;text-decoration:underline;">개인정보처리방침</a>에 동의합니다. <span style="color:#ef4444;">*</span></span>
+                </label>
             </div>
 
             <button type="submit" class="btn-submit">가입 신청하기</button>
@@ -374,10 +394,11 @@
                 </div>
             </div>
             <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
-                <a href="terms.html" class="footer-terms-link">서비스 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" class="footer-terms-link">고객사 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" class="footer-terms-link">통역사 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" class="footer-terms-link">개인정보처리방침</a>
+                <a href="terms.html#common" class="footer-terms-link">서비스 이용약관</a>
+                <a href="terms.html#customer" class="footer-terms-link">고객사 이용약관</a>
+                <a href="terms.html#interpreter" class="footer-terms-link">통역사 이용약관</a>
+                <a href="terms.html#operation" class="footer-terms-link">서비스 운영정책</a>
+                <a href="terms.html#privacy" class="footer-terms-link">개인정보처리방침</a>
             </div>
             <div class="footer-bottom-pro" style="margin-top:20px;">
                 <p>© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
@@ -389,6 +410,26 @@
     <script src="supabase-config.js"></script>
     <script src="script.js"></script>
     <script>
+        function togglePw() {
+            var pw = document.getElementById('password');
+            pw.type = pw.type === 'password' ? 'text' : 'password';
+        }
+        document.getElementById('password').addEventListener('input', function() {
+            var v = this.value, el = document.getElementById('pwStrength');
+            if (!v) { el.textContent = ''; return; }
+            var score = 0;
+            if (v.length >= 8) score++;
+            if (v.length >= 12) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            var labels = ['매우 약함', '약함', '보통', '강함', '매우 강함'];
+            var colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+            var idx = Math.min(score, 4);
+            el.textContent = '비밀번호 강도: ' + labels[idx];
+            el.style.color = colors[idx];
+        });
+
         async function handleSignup(event) {
             event.preventDefault();
 
@@ -403,6 +444,10 @@
             }
             if (password.length < 8) {
                 alert('비밀번호는 8자 이상이어야 합니다.');
+                return;
+            }
+            if (!document.getElementById('agreeTerms').checked) {
+                alert('이용약관 및 개인정보처리방침에 동의해주세요.');
                 return;
             }
 

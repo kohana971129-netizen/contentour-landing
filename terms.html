@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>콘텐츄어 CONTENTOUR - 이용약관</title>
+    <title>콘텐츄어 CONTENTOUR - 이용약관 및 정책</title>
+    <meta name="description" content="콘텐츄어 서비스 이용약관, 고객사 이용약관, 통역사 이용약관, 서비스 운영정책, 개인정보처리방침.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="이용약관 및 정책 - 콘텐츄어 CONTENTOUR">
+    <meta property="og:description" content="서비스 이용약관, 고객사·통역사 약관, 운영정책, 개인정보처리방침.">
+    <meta property="og:url" content="https://contentour-landing.vercel.app/terms.html">
+    <meta property="og:image" content="https://contentour-landing.vercel.app/assets/logo.png">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -330,7 +336,7 @@
             } else {
                 document.getElementById('pwError').textContent='비밀번호가 올바르지 않습니다.';
                 document.getElementById('pwInput').style.borderColor='#c62828';
-                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},2000);
+                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},4000);
             }
         };
         document.getElementById('pwInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});
@@ -1271,9 +1277,10 @@
             if (toggle) toggle.classList.toggle('open');
         }
 
-        // 외부에서 탭 지정하여 진입 시 자동 전환
+        // 외부에서 탭 지정하여 진입 시 자동 전환 (해시 또는 localStorage)
         (function() {
-            var savedTab = localStorage.getItem('terms_tab');
+            var hash = window.location.hash.replace('#', '');
+            var savedTab = hash || localStorage.getItem('terms_tab');
             if (savedTab) {
                 localStorage.removeItem('terms_tab');
                 var sec = document.getElementById('sec-' + savedTab);
@@ -1281,12 +1288,24 @@
                     document.querySelectorAll('.terms-tab').forEach(function(t) { t.classList.remove('active'); });
                     document.querySelectorAll('.terms-section').forEach(function(s) { s.classList.remove('active'); });
                     sec.classList.add('active');
-                    // 해당 탭 active
                     var tabMap = { common:0, customer:1, interpreter:2, operation:3, privacy:4 };
                     var tabs = document.querySelectorAll('.terms-tab');
                     if (tabs[tabMap[savedTab]]) tabs[tabMap[savedTab]].classList.add('active');
                 }
             }
+            // 해시 변경 시에도 탭 전환
+            window.addEventListener('hashchange', function() {
+                var h = window.location.hash.replace('#', '');
+                var s = document.getElementById('sec-' + h);
+                if (s) {
+                    document.querySelectorAll('.terms-tab').forEach(function(t) { t.classList.remove('active'); });
+                    document.querySelectorAll('.terms-section').forEach(function(s2) { s2.classList.remove('active'); });
+                    s.classList.add('active');
+                    var tabMap = { common:0, customer:1, interpreter:2, operation:3, privacy:4 };
+                    var tabs = document.querySelectorAll('.terms-tab');
+                    if (tabs[tabMap[h]]) tabs[tabMap[h]].classList.add('active');
+                }
+            });
         })();
     </script>
 </body>

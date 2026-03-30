@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>통역지원 서비스 - 콘텐츄어 | 고객사·통역사·관리자 협업 시스템</title>
     <meta name="description" content="콘텐츄어 통역지원 서비스의 전체 이용 흐름. 고객사 문의부터 통역사 매칭, 현장 파견, 정산까지. 3자 협업 시스템으로 체계적 운영.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="통역지원 서비스 - 콘텐츄어 | 고객사·통역사·관리자 협업 시스템">
+    <meta property="og:description" content="고객사 문의부터 통역사 매칭, 현장 파견, 정산까지. 3자 협업 시스템으로 체계적 운영.">
+    <meta property="og:url" content="https://contentour-landing.vercel.app/support.html">
+    <meta property="og:image" content="https://contentour-landing.vercel.app/assets/logo.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="통역지원 서비스 - 콘텐츄어">
+    <meta name="twitter:description" content="고객사 문의부터 통역사 매칭, 현장 파견, 정산까지. 체계적 협업 시스템.">
     <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="styles.css?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -36,7 +44,7 @@
             } else {
                 document.getElementById('pwError').textContent='비밀번호가 올바르지 않습니다.';
                 document.getElementById('pwInput').style.borderColor='#c62828';
-                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},2000);
+                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},4000);
             }
         };
         document.getElementById('pwInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});
@@ -593,10 +601,11 @@
                 </div>
             </div>
             <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
-                <a href="terms.html" class="footer-terms-link">서비스 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','customer')" class="footer-terms-link">고객사 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','interpreter')" class="footer-terms-link">통역사 이용약관</a>
-                <a href="terms.html" onclick="localStorage.setItem('terms_tab','privacy')" class="footer-terms-link">개인정보처리방침</a>
+                <a href="terms.html#common" class="footer-terms-link">서비스 이용약관</a>
+                <a href="terms.html#customer" class="footer-terms-link">고객사 이용약관</a>
+                <a href="terms.html#interpreter" class="footer-terms-link">통역사 이용약관</a>
+                <a href="terms.html#operation" class="footer-terms-link">서비스 운영정책</a>
+                <a href="terms.html#privacy" class="footer-terms-link">개인정보처리방침</a>
             </div>
             <div class="footer-bottom-pro" style="margin-top:20px;">
                 <p>© 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
