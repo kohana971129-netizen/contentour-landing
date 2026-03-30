@@ -983,6 +983,43 @@
             };
 
             applyUserProfile(_currentUserProfile);
+
+            // 상담일지 전시회 목록 채우기
+            try {
+                var { data: myContracts } = await window.sbClient
+                    .from('42_통역계약')
+                    .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id')
+                    .eq('customer_id', user.id);
+
+                if (myContracts && myContracts.length > 0) {
+                    var sel = document.getElementById('j-expo');
+                    if (sel) {
+                        // 통역사 이름 조회
+                        var interpIds = myContracts.map(function(ct) { return ct.interpreter_id; }).filter(Boolean);
+                        var interpNames = {};
+                        if (interpIds.length > 0) {
+                            var { data: interps } = await window.sbClient
+                                .from('01_회원')
+                                .select('id, name')
+                                .in('id', interpIds);
+                            if (interps) interps.forEach(function(i) { interpNames[i.id] = i.name; });
+                        }
+
+                        myContracts.forEach(function(ct) {
+                            var period = (ct.start_date || '') + ' ~ ' + (ct.end_date || '');
+                            var interp = interpNames[ct.interpreter_id] || '-';
+                            var val = [ct.exhibition_name, ct.venue || '', period, interp, ct.language_pair || ''].join('|');
+                            var opt = document.createElement('option');
+                            opt.value = val;
+                            opt.textContent = ct.exhibition_name;
+                            sel.appendChild(opt);
+                        });
+                    }
+                }
+            } catch(e3) {
+                console.error('전시회 목록 로드 실패:', e3);
+            }
+
         } catch (e) {
             console.error('프로필 로드 실패:', e);
         }
