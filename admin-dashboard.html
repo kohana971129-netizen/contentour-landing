@@ -3686,38 +3686,37 @@
                     <div class="kpi-card">
                         <div class="kpi-icon total">📋</div>
                         <div>
-                            <div class="kpi-num">12</div>
+                            <div class="kpi-num" id="kpi-total">0</div>
                             <div class="kpi-label">전체 문의</div>
-                            <div class="kpi-trend up">▲ 이번달 +3</div>
+                            <div class="kpi-trend" id="kpi-total-trend"></div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon pending">⏳</div>
                         <div>
-                            <div class="kpi-num" id="kpi-pending">5</div>
+                            <div class="kpi-num" id="kpi-pending">0</div>
                             <div class="kpi-label">검토 중 (미배정)</div>
-                            <div class="kpi-trend warn">빠른 처리 필요</div>
+                            <div class="kpi-trend warn" id="kpi-pending-trend"></div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon matched">🤝</div>
                         <div>
-                            <div class="kpi-num">4</div>
+                            <div class="kpi-num" id="kpi-matched">0</div>
                             <div class="kpi-label">매칭 완료</div>
-                            <div class="kpi-trend up">▲ 전월 대비 +1</div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon confirm">✅</div>
                         <div>
-                            <div class="kpi-num">2</div>
+                            <div class="kpi-num" id="kpi-confirm">0</div>
                             <div class="kpi-label">파견 확정</div>
                         </div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon done">🏁</div>
                         <div>
-                            <div class="kpi-num">1</div>
+                            <div class="kpi-num" id="kpi-done-inq">0</div>
                             <div class="kpi-label">완료</div>
                         </div>
                     </div>
@@ -4718,6 +4717,39 @@
                 document.getElementById('tableInfo').textContent = '전체 ' + filtered.length + '건';
             }
 
+            function updateInquiryKPI() {
+                var total = inquiries.length;
+                var pending = 0, matched = 0, confirm = 0, done = 0;
+                var thisMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+                var monthCount = 0;
+                inquiries.forEach(function(d) {
+                    if (d.status === '검토중') pending++;
+                    else if (d.status === '매칭완료') matched++;
+                    else if (d.status === '파견확정') confirm++;
+                    else if (d.status === '완료') done++;
+                    if (d.date && d.date.slice(0, 7) === thisMonth) monthCount++;
+                });
+                var el;
+                el = document.getElementById('kpi-total'); if (el) el.textContent = total;
+                el = document.getElementById('kpi-pending'); if (el) el.textContent = pending;
+                el = document.getElementById('kpi-matched'); if (el) el.textContent = matched;
+                el = document.getElementById('kpi-confirm'); if (el) el.textContent = confirm;
+                el = document.getElementById('kpi-done-inq'); if (el) el.textContent = done;
+                el = document.getElementById('kpi-total-trend');
+                if (el) {
+                    if (monthCount > 0) { el.textContent = '▲ 이번달 +' + monthCount; el.className = 'kpi-trend up'; }
+                    else { el.textContent = ''; }
+                }
+                el = document.getElementById('kpi-pending-trend');
+                if (el) {
+                    if (pending > 0) { el.textContent = '빠른 처리 필요'; el.className = 'kpi-trend warn'; }
+                    else { el.textContent = ''; }
+                }
+                // pendingBadge도 업데이트
+                el = document.getElementById('pendingBadge');
+                if (el) el.textContent = pending;
+            }
+
             function renderTable(data) {
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = data.map(d => {
@@ -4998,7 +5030,7 @@
                     }
                 }
 
-                renderTable(inquiries);
+                renderTable(inquiries); updateInquiryKPI();
                 closeModal();
                 showToast('✅ ' + selectedInterpreter.name + ' 통역사가 "' + currentAssignInquiry.expo + '"에 배정되었습니다.');
             }
@@ -6753,7 +6785,7 @@
                 currentQuoteInquiry.quoteData = quoteData;
                 var expoName = currentQuoteInquiry.expo;
                 closeQuoteModal();
-                renderTable(inquiries);
+                renderTable(inquiries); updateInquiryKPI();
                 showToast('📨 ' + expoName + ' 견적이 고객사에게 발송되었습니다.');
                 // Broadcast to customer dashboard (localStorage 폴백)
                 try {
@@ -6775,7 +6807,7 @@
                             if (data.action === 'accept') {
                                 inq.status = '매칭완료';
                                 inq.interpreter = data.interpreter;
-                                renderTable(inquiries);
+                                renderTable(inquiries); updateInquiryKPI();
                                 // 계약 목록에 새 계약 생성
                                 if (data.contractData && data.contractId) {
                                     var cd = data.contractData;
@@ -6815,7 +6847,7 @@
                                 showToast('✅ ' + inq.expo + ' 견적이 수락되었습니다! 계약이 생성되었습니다.');
                             } else if (data.action === 'reject') {
                                 inq.quoteSent = false;
-                                renderTable(inquiries);
+                                renderTable(inquiries); updateInquiryKPI();
                                 showToast('❌ ' + inq.expo + ' 견적이 거절되었습니다.');
                             }
                         }
@@ -7698,7 +7730,8 @@
                     if (dbData && dbData.length > 0) {
                         inquiries.length = 0;
                         dbData.forEach(d => inquiries.push(d));
-                        renderTable(inquiries);
+                        renderTable(inquiries); updateInquiryKPI();
+                        updateInquiryKPI();
                     }
                 } catch (e) {
                     console.warn('DB 문의 로드 실패, 샘플 데이터 유지:', e);
