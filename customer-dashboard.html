@@ -988,38 +988,39 @@
             try {
                 var { data: myContracts } = await window.sbClient
                     .from('42_통역계약')
-                    .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id')
+                    .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, 01_회원!42_통역계약_interpreter_id_fkey(name)')
                     .eq('customer_id', user.id);
+
+                // JOIN 실패 시 fallback
+                if (!myContracts) {
+                    var res2 = await window.sbClient
+                        .from('42_통역계약')
+                        .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id')
+                        .eq('customer_id', user.id);
+                    myContracts = res2.data || [];
+                }
 
                 if (myContracts && myContracts.length > 0) {
                     var sel = document.getElementById('j-expo');
                     if (sel) {
-                        // 통역사 이름 조회 (01_회원 + 40_통역사프로필 fallback)
-                        var interpIds = myContracts.map(function(ct) { return ct.interpreter_id; }).filter(Boolean);
+                        // JOIN 안 된 경우 통역사 이름 별도 조회
                         var interpNames = {};
-                        if (interpIds.length > 0) {
-                            try {
-                                var { data: interps } = await window.sbClient
-                                    .from('01_회원')
-                                    .select('id, name')
-                                    .in('id', interpIds);
-                                if (interps) interps.forEach(function(i) { interpNames[i.id] = i.name; });
-                            } catch(eI) {}
-                            // fallback: 40_통역사프로필
-                            try {
-                                var { data: profiles } = await window.sbClient
-                                    .from('40_통역사프로필')
-                                    .select('user_id, display_name')
-                                    .in('user_id', interpIds);
-                                if (profiles) profiles.forEach(function(p) {
-                                    if (!interpNames[p.user_id]) interpNames[p.user_id] = p.display_name;
-                                });
-                            } catch(eP) {}
+                        var needLookup = myContracts.some(function(ct) { return !ct['01_회원']; });
+                        if (needLookup) {
+                            var interpIds = myContracts.map(function(ct) { return ct.interpreter_id; }).filter(Boolean);
+                            if (interpIds.length > 0) {
+                                try {
+                                    var { data: profiles } = await window.sbClient
+                                        .from('40_통역사프로필')
+                                        .select('user_id, display_name');
+                                    if (profiles) profiles.forEach(function(p) { interpNames[p.user_id] = p.display_name; });
+                                } catch(eP) {}
+                            }
                         }
 
                         myContracts.forEach(function(ct) {
                             var period = (ct.start_date || '') + ' ~ ' + (ct.end_date || '');
-                            var interp = interpNames[ct.interpreter_id] || '-';
+                            var interp = (ct['01_회원'] && ct['01_회원'].name) ? ct['01_회원'].name : (interpNames[ct.interpreter_id] || '-');
                             var val = [ct.exhibition_name, ct.venue || '', period, interp, ct.language_pair || ''].join('|');
                             var opt = document.createElement('option');
                             opt.value = val;
