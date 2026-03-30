@@ -7574,6 +7574,11 @@
             if (typeof window._loadFpClients === 'function') {
                 await window._loadFpClients();
             }
+
+            // 5) 고객사 관리 데이터 로드
+            if (typeof window._loadCustData === 'function') {
+                await window._loadCustData();
+            }
         })();
 
         // ── 전역 관리자 프로필 ──
@@ -8179,6 +8184,45 @@
         let _custSortKey = 'orders';
         let _custSortAsc = false;
         let _custInited = false;
+
+        // Supabase에서 고객사 데이터 로드
+        window._loadCustData = async function() {
+            var sb = window.sbClient || window.supabase;
+            if (!sb) return;
+            try {
+                var { data: customers } = await sb
+                    .from('01_회원')
+                    .select('id, name, email, phone, company_name, position, created_at')
+                    .eq('role', 'customer');
+
+                var { data: contracts } = await sb
+                    .from('42_통역계약')
+                    .select('customer_id, exhibition_name, created_at, status');
+
+                _custData.length = 0;
+                if (customers && customers.length > 0) {
+                    customers.forEach(function(c) {
+                        var custContracts = (contracts || []).filter(function(ct) { return ct.customer_id === c.id; });
+                        var lastOrder = custContracts.length > 0 ? custContracts.sort(function(a, b) { return b.created_at.localeCompare(a.created_at); })[0].created_at.split('T')[0] : '-';
+                        _custData.push({
+                            id: c.id,
+                            company: c.company_name || c.name,
+                            grade: custContracts.length >= 3 ? 'VIP' : '일반',
+                            contact: c.name,
+                            phone: c.phone || '-',
+                            email: c.email,
+                            industry: '',
+                            orders: custContracts.length,
+                            lastOrder: lastOrder,
+                            status: '활성',
+                            joined: c.created_at ? c.created_at.split('T')[0] : '-'
+                        });
+                    });
+                }
+            } catch(e) {
+                console.error('고객사 데이터 로드 실패:', e);
+            }
+        };
 
         function custInit() {
             if (_custInited) return;
