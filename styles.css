@@ -278,6 +278,14 @@ body {
     animation: fadeInUp 1s ease-out;
 }
 
+.hero-cta {
+    display: flex;
+    gap: 16px;
+    margin-top: 2rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -528,6 +536,7 @@ body {
     border: 2px solid var(--white);
     color: var(--white);
     background: transparent;
+    position: relative;
 }
 
 .btn-outline-white:hover {
