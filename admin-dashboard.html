@@ -3799,12 +3799,53 @@
 
                 <!-- ══ 통역사 관리 탭 ══ -->
                 <div class="view" id="view-interpreters">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                         <h2 style="font-size:1.1rem;font-weight:800;color:var(--navy);">통역사 경력 인증 관리</h2>
                         <button onclick="loadInterpVerifyList()" style="padding:6px 14px;background:var(--g100);border:1px solid var(--g200);border-radius:8px;font-size:0.78rem;cursor:pointer;">새로고침</button>
                     </div>
+                    <!-- KPI 통계 -->
+                    <div id="interpKpiRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                        <div style="background:#fff;border:1.5px solid #e8ecf2;border-radius:10px;padding:14px;text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:900;color:var(--navy);" id="interp-kpi-total">0</div>
+                            <div style="font-size:0.72rem;color:#999;">전체</div>
+                        </div>
+                        <div style="background:#fff;border:1.5px solid #e8f5e9;border-radius:10px;padding:14px;text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:900;color:#2e7d32;" id="interp-kpi-verified">0</div>
+                            <div style="font-size:0.72rem;color:#999;">인증완료</div>
+                        </div>
+                        <div style="background:#fff;border:1.5px solid #fff3e0;border-radius:10px;padding:14px;text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:900;color:#e65100;" id="interp-kpi-review">0</div>
+                            <div style="font-size:0.72rem;color:#999;">서류검토</div>
+                        </div>
+                        <div style="background:#fff;border:1.5px solid #f5f5f5;border-radius:10px;padding:14px;text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:900;color:#999;" id="interp-kpi-none">0</div>
+                            <div style="font-size:0.72rem;color:#999;">미제출</div>
+                        </div>
+                    </div>
+                    <!-- 필터 + 검색 -->
+                    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+                        <button class="filter-chip active" onclick="filterInterp('all',this)">전체</button>
+                        <button class="filter-chip" onclick="filterInterp('verified',this)">인증완료</button>
+                        <button class="filter-chip" onclick="filterInterp('review',this)">서류검토</button>
+                        <button class="filter-chip" onclick="filterInterp('none',this)">미제출</button>
+                        <button class="filter-chip" onclick="filterInterp('inactive',this)">비활성</button>
+                        <div style="flex:1;"></div>
+                        <input type="text" id="interpSearchInput" placeholder="이름, 이메일, 언어 검색..." oninput="filterInterp(_interpFilter,null)" style="padding:8px 14px;border:1.5px solid var(--g200);border-radius:10px;font-size:0.78rem;outline:none;width:220px;">
+                    </div>
+                    <!-- 통역사 목록 -->
                     <div id="interpVerifyList" style="display:grid;gap:12px;">
                         <div style="text-align:center;padding:40px;color:var(--g400);">로딩 중...</div>
+                    </div>
+                    <!-- 통역사 상세 모달 -->
+                    <div id="interpDetailModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);overflow-y:auto;">
+                        <div style="max-width:700px;margin:40px auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;">
+                            <div style="background:linear-gradient(135deg,var(--navy),#1a3d7a);padding:24px 28px;color:#fff;display:flex;justify-content:space-between;align-items:center;">
+                                <div id="interpModalHeader"></div>
+                                <button onclick="closeInterpModal()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:1.1rem;">✕</button>
+                            </div>
+                            <div id="interpModalBody" style="padding:24px 28px;"></div>
+                            <div id="interpModalActions" style="padding:16px 28px;border-top:1.5px solid var(--g200);display:flex;gap:10px;justify-content:flex-end;"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -6991,55 +7032,227 @@
             }
 
             // ══════════════ 통역사 경력 인증 관리 ══════════════
+            var _interpAllData = [];
+            var _interpFilter = 'all';
+
             async function loadInterpVerifyList() {
                 var el = document.getElementById('interpVerifyList');
                 if (!el || !supabase) { el.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">DB 연결 필요</div>'; return; }
                 try {
-                    var { data, error } = await supabase.from('40_통역사프로필').select('*, user:user_id (name, email)').order('created_at', { ascending: false });
+                    var { data, error } = await supabase.from('40_통역사프로필').select('*, user:user_id (name, email, phone)').order('created_at', { ascending: false });
                     if (error) throw error;
-                    if (!data || data.length === 0) { el.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">등록된 통역사가 없습니다.</div>'; return; }
-
-                    el.innerHTML = data.map(function(p) {
-                        var docs = p.verification_docs || [];
-                        var statusBadge = p.is_verified
-                            ? '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">✅ 인증완료</span>'
-                            : (docs.length > 0
-                                ? '<span style="background:#fff3e0;color:#e65100;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">📋 서류검토 필요</span>'
-                                : '<span style="background:#f5f5f5;color:#999;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">⏳ 미제출</span>');
-
-                        var docsHtml = docs.length > 0
-                            ? docs.map(function(d) {
-                                return '<a href="#" onclick="event.preventDefault();viewInterpDoc(\'' + d.path + '\')" style="font-size:0.72rem;color:#1565c0;text-decoration:none;margin-right:8px;">📄 ' + d.name + '</a>';
-                            }).join('')
-                            : '<span style="font-size:0.72rem;color:#999;">제출된 서류 없음</span>';
-
-                        var actionsHtml = '';
-                        if (!p.is_verified && docs.length > 0) {
-                            actionsHtml = '<button onclick="verifyInterpreter(\'' + p.user_id + '\')" style="padding:5px 12px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;margin-right:6px;">✅ 인증 승인</button>' +
-                                '<button onclick="rejectVerification(\'' + p.user_id + '\')" style="padding:5px 12px;background:#fff;color:#c62828;border:1px solid #c62828;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">❌ 반려</button>';
-                        } else if (p.is_verified) {
-                            actionsHtml = '<button onclick="revokeVerification(\'' + p.user_id + '\')" style="padding:5px 12px;background:#fff;color:#999;border:1px solid #ddd;border-radius:6px;font-size:0.72rem;cursor:pointer;">인증 해제</button>';
-                        }
-
-                        return '<div style="background:#fff;border:1px solid #e8ecf2;border-radius:12px;padding:18px 20px;">' +
-                            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-                                '<div><span style="font-weight:800;color:#1a2a4a;">' + (p.display_name || p.user?.name || '통역사') + '</span>' +
-                                '<span style="font-size:0.75rem;color:#999;margin-left:8px;">' + (p.user?.email || '') + '</span></div>' +
-                                statusBadge +
-                            '</div>' +
-                            '<div style="display:flex;gap:16px;font-size:0.78rem;color:#666;margin-bottom:10px;">' +
-                                '<span>경력: <b>' + (p.experience_years || 0) + '년</b></span>' +
-                                '<span>기본단가: <b>₩' + (p.base_rate || 0).toLocaleString() + '</b></span>' +
-                                '<span>언어: <b>' + (p.languages || []).join(', ') + '</b></span>' +
-                            '</div>' +
-                            '<div style="margin-bottom:10px;">' + docsHtml + '</div>' +
-                            '<div>' + actionsHtml + '</div>' +
-                        '</div>';
-                    }).join('');
+                    _interpAllData = data || [];
+                    updateInterpKPI();
+                    renderInterpList();
                 } catch(e) {
                     console.error('통역사 목록 로드 실패:', e);
                     el.innerHTML = '<div style="text-align:center;padding:40px;color:#c62828;">로드 실패: ' + e.message + '</div>';
                 }
+            }
+
+            function updateInterpKPI() {
+                var total = _interpAllData.length, verified = 0, review = 0, none = 0;
+                _interpAllData.forEach(function(p) {
+                    var docs = p.verification_docs || [];
+                    if (p.is_verified) verified++;
+                    else if (docs.length > 0) review++;
+                    else none++;
+                });
+                var e;
+                e = document.getElementById('interp-kpi-total'); if (e) e.textContent = total;
+                e = document.getElementById('interp-kpi-verified'); if (e) e.textContent = verified;
+                e = document.getElementById('interp-kpi-review'); if (e) e.textContent = review;
+                e = document.getElementById('interp-kpi-none'); if (e) e.textContent = none;
+            }
+
+            function filterInterp(status, btn) {
+                _interpFilter = status;
+                var container = document.querySelector('#view-interpreters');
+                if (container) container.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
+                if (btn) btn.classList.add('active');
+                renderInterpList();
+            }
+
+            function getInterpStatus(p) {
+                if (p.is_verified) return 'verified';
+                if ((p.verification_docs || []).length > 0) return 'review';
+                return 'none';
+            }
+
+            function renderInterpList() {
+                var el = document.getElementById('interpVerifyList');
+                if (!el) return;
+                var query = (document.getElementById('interpSearchInput')?.value || '').toLowerCase().trim();
+                var list = _interpAllData.filter(function(p) {
+                    // 필터
+                    if (_interpFilter === 'inactive' && p.is_active !== false) return false;
+                    if (_interpFilter === 'verified' && !p.is_verified) return false;
+                    if (_interpFilter === 'review' && getInterpStatus(p) !== 'review') return false;
+                    if (_interpFilter === 'none' && getInterpStatus(p) !== 'none') return false;
+                    if (_interpFilter === 'all' && false) return false;
+                    // 검색
+                    if (query) {
+                        var name = (p.display_name || p.user?.name || '').toLowerCase();
+                        var email = (p.user?.email || '').toLowerCase();
+                        var langs = (p.languages || []).join(' ').toLowerCase();
+                        var specs = (p.specialties || []).join(' ').toLowerCase();
+                        if (name.indexOf(query) === -1 && email.indexOf(query) === -1 && langs.indexOf(query) === -1 && specs.indexOf(query) === -1) return false;
+                    }
+                    return true;
+                });
+
+                if (list.length === 0) {
+                    el.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">등록된 통역사가 없습니다.</div>';
+                    return;
+                }
+
+                el.innerHTML = list.map(function(p) {
+                    var docs = p.verification_docs || [];
+                    var statusBadge = p.is_verified
+                        ? '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">✅ 인증완료</span>'
+                        : (docs.length > 0
+                            ? '<span style="background:#fff3e0;color:#e65100;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">📋 서류검토 필요</span>'
+                            : '<span style="background:#f5f5f5;color:#999;padding:3px 10px;border-radius:8px;font-size:0.72rem;font-weight:700;">⏳ 미제출</span>');
+
+                    var activeBadge = p.is_active === false
+                        ? ' <span style="background:#fce4ec;color:#c62828;padding:2px 8px;border-radius:6px;font-size:0.68rem;font-weight:700;">비활성</span>'
+                        : '';
+
+                    var langs = (p.languages || []).join(', ');
+                    var specs = (p.specialties || []).join(', ');
+                    var certs = (p.certifications || []).join(', ');
+                    var phone = p.phone || p.user?.phone || '';
+                    var profileImg = p.profile_image_url
+                        ? '<img src="' + p.profile_image_url + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #e8ecf2;">'
+                        : '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1565c0,#1a3d7a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;">' + (p.display_name || 'T').charAt(0) + '</div>';
+
+                    var verifiedInfo = '';
+                    if (p.is_verified && p.verified_at) {
+                        verifiedInfo = '<span style="font-size:0.68rem;color:#2e7d32;margin-left:6px;">(' + new Date(p.verified_at).toLocaleDateString('ko-KR') + ' 인증)</span>';
+                    }
+
+                    return '<div onclick="openInterpDetail(\'' + p.user_id + '\')" style="background:#fff;border:1px solid #e8ecf2;border-radius:12px;padding:18px 20px;cursor:pointer;transition:box-shadow 0.15s;" onmouseenter="this.style.boxShadow=\'0 4px 16px rgba(0,0,0,0.08)\'" onmouseleave="this.style.boxShadow=\'none\'">' +
+                        '<div style="display:flex;gap:14px;align-items:flex-start;">' +
+                            '<div style="flex-shrink:0;">' + profileImg + '</div>' +
+                            '<div style="flex:1;min-width:0;">' +
+                                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">' +
+                                    '<span style="font-weight:800;color:#1a2a4a;font-size:0.92rem;">' + (p.display_name || p.user?.name || '통역사') + '</span>' +
+                                    statusBadge + activeBadge + verifiedInfo +
+                                '</div>' +
+                                '<div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:0.78rem;color:#666;margin-bottom:8px;">' +
+                                    '<span>📧 ' + (p.user?.email || '-') + '</span>' +
+                                    (phone ? '<span>📱 ' + phone + '</span>' : '') +
+                                    '<span>경력: <b>' + (p.experience_years || 0) + '년</b></span>' +
+                                    '<span>기본단가: <b>₩' + (p.base_rate || 0).toLocaleString() + '</b></span>' +
+                                '</div>' +
+                                '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">' +
+                                    (langs ? langs.split(', ').map(function(l) { return '<span style="padding:2px 8px;background:#e3f0ff;color:#1565c0;border-radius:5px;font-size:0.72rem;font-weight:600;">' + l + '</span>'; }).join('') : '') +
+                                    (specs ? specs.split(', ').map(function(s) { return '<span style="padding:2px 8px;background:#e8f5e9;color:#2e7d32;border-radius:5px;font-size:0.72rem;font-weight:600;">' + s + '</span>'; }).join('') : '') +
+                                '</div>' +
+                                (certs ? '<div style="font-size:0.72rem;color:#7b1fa2;">🏅 ' + certs + '</div>' : '') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+            }
+
+            // ── 통역사 상세 모달 ──
+            function openInterpDetail(userId) {
+                var p = _interpAllData.find(function(x) { return x.user_id === userId; });
+                if (!p) return;
+
+                var name = p.display_name || p.user?.name || '통역사';
+                var profileImg = p.profile_image_url
+                    ? '<img src="' + p.profile_image_url + '" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.3);">'
+                    : '<div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.3rem;">' + name.charAt(0) + '</div>';
+
+                document.getElementById('interpModalHeader').innerHTML =
+                    '<div style="display:flex;align-items:center;gap:14px;">' + profileImg +
+                    '<div><div style="font-size:1.1rem;font-weight:800;">' + name + '</div>' +
+                    '<div style="font-size:0.82rem;opacity:0.8;">' + (p.user?.email || '') + '</div></div></div>';
+
+                var row = function(label, val) { return val ? '<div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f0f0f0;"><span style="min-width:110px;font-weight:700;font-size:0.82rem;color:#666;">' + label + '</span><span style="font-size:0.85rem;">' + val + '</span></div>' : ''; };
+
+                var html = '<div style="font-size:0.85rem;">';
+
+                // 기본 정보
+                html += '<div style="font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">👤 기본 정보</div>';
+                html += row('이메일', p.user?.email);
+                html += row('연락처', p.phone || p.user?.phone || '-');
+                html += row('경력', (p.experience_years || 0) + '년');
+                html += row('활성 상태', p.is_active === false ? '<span style="color:#c62828;font-weight:700;">비활성</span>' : '<span style="color:#2e7d32;font-weight:700;">활성</span>');
+
+                // 자기소개
+                if (p.intro) {
+                    html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:8px;color:var(--navy);">💬 자기소개</div>';
+                    html += '<div style="background:#f8f9fb;padding:14px;border-radius:10px;font-size:0.84rem;line-height:1.7;">' + p.intro + '</div>';
+                }
+
+                // 언어 & 전문분야
+                html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">🌐 언어 & 전문분야</div>';
+                html += row('통역 언어', (p.languages || []).join(', ') || '-');
+                html += row('전문 분야', (p.specialties || []).join(', ') || '-');
+
+                // 자격증
+                if (p.certifications && p.certifications.length > 0) {
+                    html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">🏅 자격증</div>';
+                    html += row('보유 자격', p.certifications.join(', '));
+                }
+
+                // 단가 정보
+                html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">💰 단가 정보</div>';
+                html += row('기본 단가', '₩' + (p.base_rate || 0).toLocaleString() + ' /일');
+                var rateByType = p.rate_by_type || {};
+                if (Object.keys(rateByType).length > 0) {
+                    var typeNames = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' };
+                    Object.keys(rateByType).forEach(function(k) {
+                        html += row((typeNames[k] || k) + ' 단가', '₩' + Number(rateByType[k]).toLocaleString());
+                    });
+                }
+                var rateByLang = p.rate_by_language || {};
+                if (Object.keys(rateByLang).length > 0) {
+                    Object.keys(rateByLang).forEach(function(k) {
+                        html += row(k + ' 단가', '₩' + Number(rateByLang[k]).toLocaleString());
+                    });
+                }
+
+                // 인증 정보
+                html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">📋 인증 정보</div>';
+                html += row('인증 상태', p.is_verified ? '<span style="color:#2e7d32;font-weight:700;">인증완료</span>' : '<span style="color:#e65100;font-weight:700;">미인증</span>');
+                if (p.verified_at) html += row('인증일', new Date(p.verified_at).toLocaleString('ko-KR'));
+                if (p.verification_note) html += row('인증 메모', p.verification_note);
+
+                // 서류
+                var docs = p.verification_docs || [];
+                if (docs.length > 0) {
+                    html += '<div style="margin-top:12px;">';
+                    docs.forEach(function(d) {
+                        html += '<a href="#" onclick="event.preventDefault();viewInterpDoc(\'' + d.path + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-size:0.78rem;color:#1565c0;text-decoration:none;padding:4px 10px;background:#e3f0ff;border-radius:6px;">📄 ' + d.name + '</a>';
+                    });
+                    html += '</div>';
+                }
+
+                html += '</div>';
+                document.getElementById('interpModalBody').innerHTML = html;
+
+                // 액션 버튼
+                var actions = '';
+                if (!p.is_verified && docs.length > 0) {
+                    actions += '<button onclick="verifyInterpreter(\'' + userId + '\')" style="padding:10px 20px;border:none;color:#fff;background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">✅ 인증 승인</button>';
+                    actions += '<button onclick="rejectVerification(\'' + userId + '\')" style="padding:10px 20px;border:1.5px solid #c62828;color:#c62828;background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">❌ 반려</button>';
+                } else if (p.is_verified) {
+                    actions += '<button onclick="revokeVerification(\'' + userId + '\')" style="padding:10px 20px;border:1.5px solid #999;color:#999;background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">인증 해제</button>';
+                }
+                actions += '<button onclick="closeInterpModal()" style="padding:10px 20px;border:1.5px solid var(--g200);color:var(--g600);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">닫기</button>';
+                document.getElementById('interpModalActions').innerHTML = actions;
+
+                document.getElementById('interpDetailModal').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeInterpModal() {
+                document.getElementById('interpDetailModal').style.display = 'none';
+                document.body.style.overflow = '';
             }
 
             async function viewInterpDoc(path) {
@@ -7059,6 +7272,7 @@
                 }).eq('user_id', userId);
                 if (error) { showToast('⚠️ 인증 실패: ' + error.message); return; }
                 showToast('✅ 통역사 경력이 인증되었습니다.');
+                closeInterpModal();
                 loadInterpVerifyList();
             }
 
@@ -7072,6 +7286,7 @@
                 }).eq('user_id', userId);
                 if (error) { showToast('⚠️ 반려 처리 실패'); return; }
                 showToast('❌ 통역사 인증이 반려되었습니다.');
+                closeInterpModal();
                 loadInterpVerifyList();
             }
 
@@ -7085,6 +7300,7 @@
                     verification_note: '관리자에 의해 인증 해제됨'
                 }).eq('user_id', userId);
                 showToast('인증이 해제되었습니다.');
+                closeInterpModal();
                 loadInterpVerifyList();
             }
 
