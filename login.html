@@ -280,6 +280,17 @@
     <script src="supabase-config.js"></script>
     <script src="script.js"></script>
     <script>
+        // 이전 Supabase 세션 정리
+        (function() {
+            var expectedRef = 'jgeqbdrfpekzuumaklvx';
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+                var key = localStorage.key(i);
+                if (key && key.startsWith('sb-') && key.endsWith('-auth-token') && key.indexOf(expectedRef) === -1) {
+                    localStorage.removeItem(key);
+                }
+            }
+        })();
+
         async function handleLogin(event) {
             event.preventDefault();
             const username = document.getElementById('username').value;

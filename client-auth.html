@@ -439,6 +439,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script>
+        // ── 이전 세션 정리 (Supabase 프로젝트 변경 대응) ──
+        (function() {
+            var expectedRef = 'jgeqbdrfpekzuumaklvx';
+            var stored = localStorage.getItem('sb-' + expectedRef + '-auth-token');
+            // 이전 프로젝트 세션이 남아있으면 전부 정리
+            for (var i = localStorage.length - 1; i >= 0; i--) {
+                var key = localStorage.key(i);
+                if (key && key.startsWith('sb-') && key.endsWith('-auth-token') && key.indexOf(expectedRef) === -1) {
+                    localStorage.removeItem(key);
+                }
+            }
+        })();
+
         // ── 구글 OAuth 로그인 (Supabase Auth 연동) ──
         async function loginWithGoogle() {
             if (window.sbClient) {
