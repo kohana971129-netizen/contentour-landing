@@ -4084,7 +4084,7 @@
         </div>
         <div class="pm-input-group">
           <label>예금주명</label>
-          <input class="pm-input" id="pmTransferHolder" type="text" placeholder="예금주명을 입력하세요" autocomplete="name">
+          <input class="pm-input" id="pmTransferHolder" type="text" placeholder="예금주명을 입력하세요" autocomplete="name" value="${_currentUserProfile.name || ''}">
         </div>
         <div class="pm-security-badge">
           <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
@@ -4130,7 +4130,7 @@
         </div>
         <div class="pm-input-group">
           <label>입금자명</label>
-          <input class="pm-input" id="pmVaDepositor" type="text" placeholder="입금자명을 입력하세요 (미입력 시 예약자명)" autocomplete="name">
+          <input class="pm-input" id="pmVaDepositor" type="text" placeholder="입금자명을 입력하세요 (미입력 시 예약자명)" autocomplete="name" value="${_currentUserProfile.name || ''}">
         </div>
         <div class="pm-input-hint" style="margin-bottom:16px;">가상계좌 발급 후 24시간 이내에 입금해주세요.</div>
         <button class="pm-confirm-btn" id="pmConfirmBtn" ${!currentPayment.bankCode?'disabled':''} onclick="pmSubmitVirtual()">가상계좌 발급</button>
