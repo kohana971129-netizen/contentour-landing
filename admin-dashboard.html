@@ -7196,7 +7196,7 @@
                     if (userIds.length > 0) {
                         var { data: users } = await window.sbClient
                             .from('01_회원')
-                            .select('id, name, company')
+                            .select('id, name, company_name')
                             .in('id', userIds);
                         if (users) users.forEach(function(u) { nameMap[u.id] = u; });
                     }
