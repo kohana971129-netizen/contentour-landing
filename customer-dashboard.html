@@ -1468,8 +1468,9 @@
       // 로컬 목록에 추가/업데이트
       var selectedCountriesList = selectedCountries;
       var journalEntry = {
-        id: activeJournalId || ('local-' + Date.now()),
+        id: activeJournalId || Date.now(),
         expo: expoName || '-',
+        company: _currentUserProfile.company || _currentUserProfile.name || '',
         date: date,
         interp: interp || '-',
         lang: lang || '',
@@ -1484,7 +1485,11 @@
         result: result,
         issue: issue,
         action: action,
-        status: type === 'complete' ? 'complete' : 'draft',
+        status: type === 'complete' ? 'new' : 'draft',
+        source: 'customer',
+        stars: { term: starValues.term, manner: starValues.manner, comm: starValues.comm, overall: starValues.overall },
+        eval: (document.getElementById('j-eval') || {}).value || '',
+        adminComment: '',
         reviewComment: '',
         reviewedAt: ''
       };
@@ -1499,6 +1504,20 @@
         journalData.unshift(journalEntry);
       }
       renderJournalList();
+
+      // localStorage에도 저장 (관리자 대시보드에서 cross-tab으로 읽음)
+      if (type === 'complete') {
+        try {
+          var savedJournals = JSON.parse(localStorage.getItem('contentour_interpreter_journals') || '[]');
+          var existLocal = savedJournals.findIndex(function(x) { return x.id === journalEntry.id; });
+          if (existLocal !== -1) { savedJournals[existLocal] = journalEntry; }
+          else { savedJournals.push(journalEntry); }
+          localStorage.setItem('contentour_interpreter_journals', JSON.stringify(savedJournals));
+          // 관리자 대시보드에 실시간 알림
+          localStorage.removeItem('contentour_journal_submit');
+          setTimeout(function() { localStorage.setItem('contentour_journal_submit', JSON.stringify(journalEntry)); }, 50);
+        } catch(e) {}
+      }
 
       const now = new Date().toLocaleString('ko-KR');
       document.getElementById('jeditorSavedAt').textContent = '마지막 저장: ' + now;
