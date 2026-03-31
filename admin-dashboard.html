@@ -5575,16 +5575,7 @@
                     '<div class="jv-info-item"><label>고객사</label><span>' + j.company + '</span></div>' +
                     '<div class="jv-info-item"><label>작성일</label><span>' + j.date + '</span></div>' +
                     '<div class="jv-info-item"><label>통역사</label><span>' + j.interp + '</span></div>' +
-                    '<div class="jv-info-item"><label>언어</label><select id="jvLangSel-' + j.id + '" onchange="updateJournalLang(' + j.id + ',this.value)" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:0.82rem;">' +
-                      '<option value=""' + (!j.lang ? ' selected' : '') + '>선택</option>' +
-                      '<option value="한국어↔영어"' + (j.lang === '한국어↔영어' ? ' selected' : '') + '>한국어↔영어</option>' +
-                      '<option value="한국어↔일본어"' + (j.lang === '한국어↔일본어' ? ' selected' : '') + '>한국어↔일본어</option>' +
-                      '<option value="한국어↔중국어"' + (j.lang === '한국어↔중국어' ? ' selected' : '') + '>한국어↔중국어</option>' +
-                      '<option value="한국어↔독일어"' + (j.lang === '한국어↔독일어' ? ' selected' : '') + '>한국어↔독일어</option>' +
-                      '<option value="한국어↔베트남어"' + (j.lang === '한국어↔베트남어' ? ' selected' : '') + '>한국어↔베트남어</option>' +
-                      '<option value="영어↔일본어"' + (j.lang === '영어↔일본어' ? ' selected' : '') + '>영어↔일본어</option>' +
-                      '<option value="기타"' + (j.lang === '기타' ? ' selected' : '') + '>기타</option>' +
-                    '</select></div>' +
+                    '<div class="jv-info-item"><label>언어</label><span>' + (j.lang || '-') + '</span></div>' +
                     '<div class="jv-info-item"><label>작성자</label><span>' + (isInterp ? '통역사' : '고객사') + '</span></div>' +
                     '<div class="jv-info-item"><label>상태</label>' +
                       '<span style="color:' + (j.status === 'reviewed' ? 'var(--success)' : j.status === 'new' ? 'var(--warn)' : 'var(--gray-400)') + ';">' +
@@ -5637,11 +5628,6 @@
                 var idx = j.countries.indexOf(country);
                 if (idx !== -1) { j.countries.splice(idx, 1); el.style.background = ''; el.style.color = ''; el.classList.remove('selected'); }
                 else { j.countries.push(country); el.style.background = '#1565c0'; el.style.color = '#fff'; el.classList.add('selected'); }
-                _syncJournalToStorage(j);
-            }
-            function updateJournalLang(id, val) {
-                var j = journals.find(function(x) { return x.id === id; }); if (!j) return;
-                j.lang = val;
                 _syncJournalToStorage(j);
             }
             function _syncJournalToStorage(j) {
