@@ -8095,7 +8095,7 @@
         <script src="chat-data.js"></script>
         <script>
         // ── Supabase에서 문의 + 캘린더 데이터 로드 ──
-        (async function() {
+        async function _reloadAllData() {
             if (!supabase) return;
 
             // 1) 문의 데이터 로드
@@ -8215,7 +8215,7 @@
                     if (journals.length > 0 && !activeJId) loadJournal(journals[0].id);
                 }
             }
-        })();
+        }
 
         // ── 전역 관리자 프로필 ──
         var _adminProfile = null;
@@ -8309,6 +8309,9 @@
                 if (typeof CT !== 'undefined' && CT.logAudit) {
                     CT.logAudit('admin_login', '01_회원', data.user.id, { email });
                 }
+
+                // 로그인 후 데이터 로드
+                await _reloadAllData();
 
             } catch (e) {
                 errEl.textContent = e.message || '로그인에 실패했습니다.';
@@ -8465,6 +8468,7 @@
                     if (profile && profile.role === 'admin') {
                         document.getElementById('adminLoginOverlay').style.display = 'none';
                         applyAdminProfile(profile, user.email);
+                        await _reloadAllData();
                         return;
                     }
                 }
