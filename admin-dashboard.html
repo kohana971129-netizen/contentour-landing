@@ -5094,10 +5094,25 @@
             const journals = [];
 
             // Supabase에서 상담일지 로드
+            // 계약 데이터에서 전시회명→언어 매핑 (lang 자동 보정용)
+            var _expoLangMap = {};
+            async function _buildExpoLangMap(sb) {
+                if (Object.keys(_expoLangMap).length > 0) return;
+                try {
+                    var { data: contracts } = await sb.from('42_통역계약').select('exhibition_name, language_pair');
+                    if (contracts) contracts.forEach(function(c) {
+                        if (c.exhibition_name && c.language_pair) _expoLangMap[c.exhibition_name] = c.language_pair;
+                    });
+                } catch(e) {}
+            }
+
             window._loadJournals = async function(sbArg) {
                 var sb = sbArg || window.sbClient || window._supabaseRef || window.supabase;
                 if (!sb) return;
                 try {
+                    // 전시회→언어 매핑 빌드
+                    await _buildExpoLangMap(sb);
+
                     var { data: dbJournals } = await sb
                         .from('44_상담일지')
                         .select('*')
@@ -5132,7 +5147,7 @@
                                 company: custInfo.company || custInfo.name || j.buyer_company || '-',
                                 date: j.consultation_date || '',
                                 interp: interpInfo.name || '-',
-                                lang: extra.lang || '',
+                                lang: extra.lang || _expoLangMap[j.exhibition_name] || '',
                                 location: j.buyer_country || '',
                                 countries: extra.countries || [],
                                 total: extra.total || 0,
@@ -5344,6 +5359,10 @@
                     saved.forEach(function(sj) {
                         var exists = journals.find(function(x) { return x.id === sj.id; });
                         if (!exists) {
+                            // lang이 비어있으면 전시회명으로 자동 매칭
+                            if (!sj.lang && sj.expo && _expoLangMap[sj.expo]) {
+                                sj.lang = _expoLangMap[sj.expo];
+                            }
                             journals.push(sj);
                         }
                     });
@@ -5426,7 +5445,23 @@
             }
 
             // Supabase 초기화 후 마이그레이션 실행 (인증 세션 준비 대기)
-            setTimeout(function() { migrateLocalJournalsToDB(); }, 3000);
+            // Supabase 준비 후: 전시회→언어 매핑 빌드 → localStorage 일지 lang 보정 → 마이그레이션
+            setTimeout(async function() {
+                var sb = window.sbClient || window._supabaseRef;
+                if (sb) {
+                    await _buildExpoLangMap(sb);
+                    // localStorage에서 로드된 일지 중 lang 비어있는 것 자동 보정
+                    var updated = false;
+                    journals.forEach(function(j) {
+                        if (!j.lang && j.expo && _expoLangMap[j.expo]) {
+                            j.lang = _expoLangMap[j.expo];
+                            updated = true;
+                        }
+                    });
+                    if (updated) { visibleJournals = journals.slice(); renderJList(); if (activeJId) loadJournal(activeJId); }
+                }
+                migrateLocalJournalsToDB();
+            }, 3000);
 
             let visibleJournals = [...journals], activeJId = null;
 
