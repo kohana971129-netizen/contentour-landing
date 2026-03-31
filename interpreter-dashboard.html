@@ -1549,6 +1549,7 @@
                     updateRatePreview();
                     loadProfilePhoto();
                     loadVerifyDocs();
+                    loadRateLimits();
                 }
             } else {
                 showToast('📌 "' + getViewName(view) + '" 페이지는 준비 중입니다.');
@@ -4666,6 +4667,57 @@
         // ═══════════════════════════════════════════════
         var RATE_STORAGE_KEY = 'contentour_interpreter_rates';
 
+        // 단가 범위 제한 (관리자 설정값, 페이지 로드 시 DB에서 가져옴)
+        var RATE_LIMITS = null;
+        var RATE_TYPE_NAMES = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스/세미나', operation: '현장 운영' };
+
+        async function loadRateLimits() {
+            var sb = window.sbClient;
+            if (!sb) return;
+            try {
+                var { data, error } = await sb.from('90_시스템설정').select('value').eq('key', 'rate_limits').single();
+                if (error || !data) return;
+                var limits = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
+                RATE_LIMITS = limits;
+                // 입력 필드에 min/max 속성 설정 및 안내 텍스트 표시
+                ['booth','meeting','conference','operation'].forEach(function(type) {
+                    var input = document.getElementById('rate-' + type);
+                    if (!input || !limits[type]) return;
+                    input.min = limits[type].min;
+                    input.max = limits[type].max;
+                    // 안내 텍스트 삽입
+                    var hintId = 'rate-hint-' + type;
+                    var existing = document.getElementById(hintId);
+                    if (existing) existing.remove();
+                    var hint = document.createElement('div');
+                    hint.id = hintId;
+                    hint.style.cssText = 'font-size:0.7rem;color:#6b7280;margin-top:4px;';
+                    hint.textContent = '허용 범위: ' + Number(limits[type].min).toLocaleString() + '원 ~ ' + Number(limits[type].max).toLocaleString() + '원';
+                    // rate-row__input 다음에 삽입
+                    var rateRow = input.closest('.rate-row');
+                    if (rateRow) rateRow.appendChild(hint);
+                });
+                console.log('[RateLimits] 로드 완료:', limits);
+            } catch(e) {
+                console.warn('[RateLimits] 로드 실패:', e);
+            }
+        }
+
+        function validateRatesAgainstLimits() {
+            if (!RATE_LIMITS) return null; // 제한 없으면 통과
+            var errors = [];
+            ['booth','meeting','conference','operation'].forEach(function(type) {
+                if (!RATE_LIMITS[type]) return;
+                var val = parseInt(document.getElementById('rate-' + type).value) || 0;
+                var min = RATE_LIMITS[type].min;
+                var max = RATE_LIMITS[type].max;
+                if (val < min || val > max) {
+                    errors.push(RATE_TYPE_NAMES[type] + ': ' + Number(min).toLocaleString() + '원 ~ ' + Number(max).toLocaleString() + '원 범위로 설정해주세요. (현재: ' + Number(val).toLocaleString() + '원)');
+                }
+            });
+            return errors.length > 0 ? errors : null;
+        }
+
         function togglePfLang(el) {
             el.classList.toggle('active');
         }
@@ -4944,6 +4996,13 @@
         }
 
         function saveProfile() {
+            // 단가 범위 유효성 검사
+            var rateErrors = validateRatesAgainstLimits();
+            if (rateErrors) {
+                showToast('⚠️ 단가 범위 초과: ' + rateErrors[0]);
+                return;
+            }
+
             var data = getRateData();
             // 활성 언어 수집
             var langs = [];
