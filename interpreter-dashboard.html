@@ -4676,38 +4676,103 @@
 
         // 단가 범위 제한 (관리자 설정값, 페이지 로드 시 DB에서 가져옴)
         var RATE_LIMITS = null;
+        var RECOMMENDED_RATES = null;
+        var _interpExpYears = 0;
         var RATE_TYPE_NAMES = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스/세미나', operation: '현장 운영' };
 
         async function loadRateLimits() {
             var sb = window.sbClient;
             if (!sb) return;
             try {
-                var { data, error } = await sb.from('90_시스템설정').select('value').eq('key', 'rate_limits').single();
+                var { data, error } = await sb.from('90_시스템설정').select('key, value').in('key', ['rate_limits', 'recommended_rates']);
                 if (error || !data) return;
-                var limits = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-                RATE_LIMITS = limits;
-                // 입력 필드에 min/max 속성 설정 및 안내 텍스트 표시
-                ['booth','meeting','conference','operation'].forEach(function(type) {
-                    var input = document.getElementById('rate-' + type);
-                    if (!input || !limits[type]) return;
-                    input.min = limits[type].min;
-                    input.max = limits[type].max;
-                    // 안내 텍스트 삽입
-                    var hintId = 'rate-hint-' + type;
-                    var existing = document.getElementById(hintId);
-                    if (existing) existing.remove();
-                    var hint = document.createElement('div');
-                    hint.id = hintId;
-                    hint.style.cssText = 'font-size:0.7rem;color:#6b7280;margin-top:4px;';
-                    hint.textContent = '허용 범위: ' + Number(limits[type].min).toLocaleString() + '원 ~ ' + Number(limits[type].max).toLocaleString() + '원';
-                    // rate-row__input 다음에 삽입
-                    var rateRow = input.closest('.rate-row');
-                    if (rateRow) rateRow.appendChild(hint);
-                });
-                console.log('[RateLimits] 로드 완료:', limits);
+                var settings = {};
+                data.forEach(function(r) { settings[r.key] = typeof r.value === 'string' ? JSON.parse(r.value) : r.value; });
+
+                // 단가 범위 제한
+                var limits = settings.rate_limits;
+                if (limits) {
+                    RATE_LIMITS = limits;
+                    ['booth','meeting','conference','operation'].forEach(function(type) {
+                        var input = document.getElementById('rate-' + type);
+                        if (!input || !limits[type]) return;
+                        input.min = limits[type].min;
+                        input.max = limits[type].max;
+                    });
+                }
+
+                // 경력별 추천 단가
+                if (settings.recommended_rates && settings.recommended_rates.tiers) {
+                    RECOMMENDED_RATES = settings.recommended_rates.tiers;
+                }
+
+                // 통역사 경력 조회
+                try {
+                    var user = await ContentourAuth.getCurrentUser();
+                    if (user) {
+                        var { data: prof } = await sb.from('40_통역사프로필').select('experience_years').eq('user_id', user.id).single();
+                        if (prof) _interpExpYears = prof.experience_years || 0;
+                    }
+                } catch(e) {}
+
+                // 안내 텍스트 표시
+                _renderRateHints();
+                console.log('[RateLimits] 로드 완료, 경력:', _interpExpYears, '년');
             } catch(e) {
                 console.warn('[RateLimits] 로드 실패:', e);
             }
+        }
+
+        function _getRecommendedTier() {
+            if (!RECOMMENDED_RATES) return null;
+            for (var i = 0; i < RECOMMENDED_RATES.length; i++) {
+                var t = RECOMMENDED_RATES[i];
+                if (_interpExpYears >= t.min_years && _interpExpYears < t.max_years) return t;
+            }
+            return RECOMMENDED_RATES[RECOMMENDED_RATES.length - 1];
+        }
+
+        function _renderRateHints() {
+            var tier = _getRecommendedTier();
+            ['booth','meeting','conference','operation'].forEach(function(type) {
+                var input = document.getElementById('rate-' + type);
+                if (!input) return;
+                var rateRow = input.closest('.rate-row');
+                if (!rateRow) return;
+
+                // 기존 힌트 제거
+                var old1 = document.getElementById('rate-hint-' + type);
+                var old2 = document.getElementById('rate-rec-' + type);
+                if (old1) old1.remove();
+                if (old2) old2.remove();
+
+                // 허용 범위
+                if (RATE_LIMITS && RATE_LIMITS[type]) {
+                    var hint = document.createElement('div');
+                    hint.id = 'rate-hint-' + type;
+                    hint.style.cssText = 'font-size:0.7rem;color:#6b7280;margin-top:4px;';
+                    hint.textContent = '허용 범위: ' + Number(RATE_LIMITS[type].min).toLocaleString() + '원 ~ ' + Number(RATE_LIMITS[type].max).toLocaleString() + '원';
+                    rateRow.appendChild(hint);
+                }
+
+                // 추천 단가
+                if (tier && tier[type]) {
+                    var rec = document.createElement('div');
+                    rec.id = 'rate-rec-' + type;
+                    var val = parseInt(input.value) || 0;
+                    var rMin = tier[type].min, rMax = tier[type].max;
+                    var color = '#43a047'; // green
+                    var icon = '✅';
+                    if (val < rMin || val > rMax) {
+                        var diff = val < rMin ? rMin - val : val - rMax;
+                        if (diff > 100000) { color = '#e53935'; icon = '🔴'; }
+                        else { color = '#f57c00'; icon = '🟡'; }
+                    }
+                    rec.style.cssText = 'font-size:0.7rem;color:' + color + ';margin-top:2px;font-weight:600;';
+                    rec.textContent = icon + ' 추천 (' + tier.label + '): ' + Number(rMin).toLocaleString() + '원 ~ ' + Number(rMax).toLocaleString() + '원';
+                    rateRow.appendChild(rec);
+                }
+            });
         }
 
         function validateRatesAgainstLimits() {
@@ -4801,6 +4866,8 @@
 
             var el = document.getElementById('ratePreview');
             if (el) el.innerHTML = html;
+            // 추천 단가 색상 업데이트
+            if (typeof _renderRateHints === 'function') _renderRateHints();
         }
 
         function loadSavedRates() {

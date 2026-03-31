@@ -4084,6 +4084,17 @@
                         </div>
                     </div>
 
+                    <!-- 경력별 추천 단가 설정 -->
+                    <div style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);overflow:hidden;margin-top:20px;">
+                        <div style="background:linear-gradient(135deg,#f57c00,#ff9800);padding:16px 24px;color:#fff;">
+                            <div style="font-size:1rem;font-weight:800;">📊 경력별 추천 단가 설정</div>
+                            <div style="font-size:0.75rem;opacity:0.85;margin-top:4px;">통역사 경력 연차에 따른 권장 단가 범위를 설정합니다.</div>
+                        </div>
+                        <div style="padding:20px 24px;">
+                            <div id="recRateTiers"></div>
+                        </div>
+                    </div>
+
                     <!-- 저장 버튼 -->
                     <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
                         <button onclick="loadSystemSettings()" style="padding:10px 24px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:inherit;color:#6b7280;">초기화</button>
@@ -8730,10 +8741,69 @@
                     } catch(e) { console.warn('단가 범위 설정 파싱 실패:', e); }
                 }
 
+                // 경력별 추천 단가 로드
+                if (s.recommended_rates) {
+                    try {
+                        var rr = typeof s.recommended_rates === 'string' ? JSON.parse(s.recommended_rates) : s.recommended_rates;
+                        _renderRecRateTiers(rr.tiers || []);
+                    } catch(e) { console.warn('추천 단가 파싱 실패:', e); }
+                }
+
                 console.log('[Settings] 로드 완료:', Object.keys(s).length, '건');
             } catch (e) {
                 console.error('설정 로드 예외:', e);
             }
+        }
+
+        var _recTierKeys = ['junior','experienced','senior'];
+        function _renderRecRateTiers(tiers) {
+            var container = document.getElementById('recRateTiers');
+            if (!container) return;
+            var svcLabels = {booth:'부스 상주', meeting:'미팅 동행', conference:'컨퍼런스', operation:'현장 운영'};
+            var svcTypes = ['booth','meeting','conference','operation'];
+            var colors = ['#e3f2fd','#fff3e0','#fce4ec'];
+            var html = '';
+            tiers.forEach(function(tier, idx) {
+                var key = _recTierKeys[idx] || 'tier' + idx;
+                html += '<div style="background:' + colors[idx] + ';border-radius:12px;padding:14px 18px;margin-bottom:12px;">' +
+                    '<div style="font-weight:700;font-size:0.88rem;margin-bottom:10px;">' + tier.label + ' (경력 ' + tier.min_years + '~' + (tier.max_years >= 99 ? '∞' : tier.max_years) + '년)</div>' +
+                    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">';
+                svcTypes.forEach(function(svc) {
+                    var d = tier[svc] || {min:0, max:0};
+                    html += '<div>' +
+                        '<div style="font-size:0.72rem;color:#555;margin-bottom:4px;">' + svcLabels[svc] + '</div>' +
+                        '<div style="display:flex;gap:4px;align-items:center;">' +
+                        '<input type="number" id="rec-' + key + '-' + svc + '-min" value="' + d.min + '" min="0" step="10000" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:0.8rem;">' +
+                        '<span style="font-size:0.7rem;color:#999;">~</span>' +
+                        '<input type="number" id="rec-' + key + '-' + svc + '-max" value="' + d.max + '" min="0" step="10000" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:0.8rem;">' +
+                        '</div></div>';
+                });
+                html += '</div></div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function _collectRecRates() {
+            var tierDefs = [
+                {label:'주니어 (1~3년)', min_years:0, max_years:3},
+                {label:'경력 (3~7년)', min_years:3, max_years:7},
+                {label:'시니어 (7년 이상)', min_years:7, max_years:99}
+            ];
+            var svcTypes = ['booth','meeting','conference','operation'];
+            var tiers = tierDefs.map(function(def, idx) {
+                var key = _recTierKeys[idx];
+                var tier = {label: def.label, min_years: def.min_years, max_years: def.max_years};
+                svcTypes.forEach(function(svc) {
+                    var minEl = document.getElementById('rec-' + key + '-' + svc + '-min');
+                    var maxEl = document.getElementById('rec-' + key + '-' + svc + '-max');
+                    tier[svc] = {
+                        min: minEl ? Number(minEl.value) : 0,
+                        max: maxEl ? Number(maxEl.value) : 0
+                    };
+                });
+                return tier;
+            });
+            return {tiers: tiers};
         }
 
         async function saveSystemSettings() {
@@ -8762,7 +8832,8 @@
                 notify_kakao_enabled: document.getElementById('set-notify-kakao').checked,
                 notify_dashboard_realtime: document.getElementById('set-notify-realtime').checked,
                 notify_admin_email: document.getElementById('set-admin-email').value,
-                rate_limits: JSON.stringify(rateLimits)
+                rate_limits: JSON.stringify(rateLimits),
+                recommended_rates: JSON.stringify(_collectRecRates())
             };
 
             try {
