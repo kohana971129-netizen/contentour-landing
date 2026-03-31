@@ -8072,8 +8072,9 @@
                 showToast('통역사 희망 단가가 적용되었습니다.');
             }
 
-            // Init call
-            renderTable(inquiries);
+            // Init call - 로딩 표시
+            var _tableBody = document.getElementById('inquiryTableBody');
+            if (_tableBody) _tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#8a95a8;">⏳ 데이터를 불러오는 중...</td></tr>';
             renderInterpreters();
             renderCal();
             goToday();
@@ -8104,13 +8105,12 @@
                     if (dbData && dbData.length > 0) {
                         inquiries.length = 0;
                         dbData.forEach(d => inquiries.push(d));
-                        renderTable(inquiries); updateInquiryKPI();
-                        updateInquiryKPI();
                     }
                 } catch (e) {
-                    console.warn('DB 문의 로드 실패, 샘플 데이터 유지:', e);
+                    console.warn('DB 문의 로드 실패:', e);
                 }
             }
+            renderTable(inquiries); updateInquiryKPI();
 
             // 2) 캘린더 일정 로드 (42_통역계약에서)
             try {
@@ -8200,6 +8200,20 @@
                     window._supabaseRef = supabase;
                     await window._loadJournals(supabase);
                 } catch(je) { console.error('상담일지 로드 에러:', je); }
+            }
+            // DB 로드 후 localStorage 일지 병합 + lang 자동 보정
+            if (typeof loadInterpreterJournals === 'function') loadInterpreterJournals();
+            if (typeof _buildExpoLangMap === 'function' && supabase) {
+                await _buildExpoLangMap(supabase);
+                var _updated = false;
+                journals.forEach(function(j) {
+                    if (!j.lang && j.expo && _expoLangMap[j.expo]) { j.lang = _expoLangMap[j.expo]; _updated = true; }
+                });
+                if (_updated || journals.length > 0) {
+                    visibleJournals = journals.slice();
+                    renderJList(); updateJournalKPI();
+                    if (journals.length > 0 && !activeJId) loadJournal(journals[0].id);
+                }
             }
         })();
 
