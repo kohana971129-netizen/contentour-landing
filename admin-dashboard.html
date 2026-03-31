@@ -5354,23 +5354,32 @@
             // localStorage 일지를 DB로 자동 마이그레이션
             async function migrateLocalJournalsToDB() {
                 var sb = window.sbClient || window._supabaseRef;
-                if (!sb) return;
+                if (!sb) { console.log('[마이그레이션] sbClient 없음'); return; }
+
+                // 인증 세션 대기
+                var session = null;
+                try {
+                    var res = await sb.auth.getSession();
+                    session = res.data.session;
+                } catch(e) {}
+                if (!session) { console.log('[마이그레이션] 인증 세션 없음'); return; }
+
                 var saved = [];
                 try { saved = JSON.parse(localStorage.getItem('contentour_interpreter_journals') || '[]'); } catch(e) { return; }
+                console.log('[마이그레이션] localStorage 일지:', saved.length, '건');
                 if (saved.length === 0) return;
+
+                var userId = session.user.id;
+                var migrated = 0;
 
                 for (var i = 0; i < saved.length; i++) {
                     var sj = saved[i];
-                    if (sj._dbSynced) continue; // 이미 동기화된 항목 스킵
+                    if (sj._dbSynced) { console.log('[마이그레이션] 스킵 (이미 동기화):', sj.expo); continue; }
 
                     try {
-                        var profile = await ContentourAuth.getUserProfile();
-                        var interpId = profile ? profile.id : null;
-                        if (!interpId) continue;
-
                         var record = {
-                            interpreter_id: interpId,
-                            customer_id: sj.source === 'customer' ? interpId : null,
+                            interpreter_id: userId,
+                            customer_id: sj.source === 'customer' ? userId : null,
                             exhibition_name: sj.expo || '',
                             consultation_date: sj.date || new Date().toISOString().split('T')[0],
                             buyer_company: sj.company || '',
@@ -5394,22 +5403,30 @@
                         };
 
                         var { data: newJ, error } = await sb.from('44_상담일지').insert(record).select('id').single();
-                        if (!error && newJ) {
+                        if (error) {
+                            console.error('[마이그레이션] INSERT 실패:', sj.expo, error.message);
+                        } else if (newJ) {
                             saved[i]._dbSynced = true;
                             saved[i]._dbId = newJ.id;
-                            // journals 배열에서도 dbId 매핑
                             var match = journals.find(function(x) { return x.id === sj.id; });
                             if (match) match.dbId = newJ.id;
+                            migrated++;
+                            console.log('[마이그레이션] 성공:', sj.expo, newJ.id);
                         }
-                    } catch(e) { console.error('일지 마이그레이션 실패:', e); }
+                    } catch(e) { console.error('[마이그레이션] 예외:', sj.expo, e); }
                 }
 
                 // 동기화 상태 저장
                 try { localStorage.setItem('contentour_interpreter_journals', JSON.stringify(saved)); } catch(e) {}
+                if (migrated > 0) {
+                    console.log('[마이그레이션] 완료:', migrated, '건 동기화');
+                    // DB에서 다시 로드하여 최신 데이터 반영
+                    if (window._loadJournals) await window._loadJournals(sb);
+                }
             }
 
-            // Supabase 초기화 후 마이그레이션 실행
-            setTimeout(function() { migrateLocalJournalsToDB(); }, 2000);
+            // Supabase 초기화 후 마이그레이션 실행 (인증 세션 준비 대기)
+            setTimeout(function() { migrateLocalJournalsToDB(); }, 3000);
 
             let visibleJournals = [...journals], activeJId = null;
 
