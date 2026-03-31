@@ -5030,10 +5030,28 @@
             // localStorage에 저장
             localStorage.setItem(RATE_STORAGE_KEY, JSON.stringify(data));
 
-            // DB에 저장
+            // DB에 저장 (단가 변경 이력 추적 포함)
             if (window.sbClient && window.InterpreterApp && InterpreterApp.currentUser) {
                 (async function() {
                     try {
+                        var userId = InterpreterApp.currentUser.id;
+
+                        // 1) 기존 단가 조회 (변경 비교용)
+                        var prevRates = null;
+                        var prevLangRates = null;
+                        try {
+                            var { data: prevProfile } = await window.sbClient
+                                .from('40_통역사프로필')
+                                .select('rate_by_type, rate_by_language')
+                                .eq('user_id', userId)
+                                .single();
+                            if (prevProfile) {
+                                prevRates = prevProfile.rate_by_type || {};
+                                prevLangRates = prevProfile.rate_by_language || {};
+                            }
+                        } catch(e) { console.warn('기존 단가 조회 실패:', e); }
+
+                        // 2) 프로필 업데이트
                         await window.sbClient.from('40_통역사프로필').update({
                             display_name: data.name,
                             phone: data.phone,
@@ -5044,7 +5062,69 @@
                             specialties: data.fields.map(function(f) { return f.replace(/[\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]/gu, '').trim(); }),
                             rate_by_type: data.rates,
                             rate_by_language: data.langRates
-                        }).eq('user_id', InterpreterApp.currentUser.id);
+                        }).eq('user_id', userId);
+
+                        // 3) 단가 변경 감지 및 이력 저장
+                        if (prevRates !== null) {
+                            var ratesChanged = JSON.stringify(prevRates) !== JSON.stringify(data.rates);
+                            var langRatesChanged = JSON.stringify(prevLangRates) !== JSON.stringify(data.langRates || {});
+
+                            if (ratesChanged || langRatesChanged) {
+                                // 단가 변경 이력 삽입
+                                try {
+                                    await window.sbClient.from('91_단가변경이력').insert({
+                                        interpreter_id: userId,
+                                        interpreter_name: data.name,
+                                        previous_rates: prevRates,
+                                        new_rates: data.rates,
+                                        previous_lang_rates: prevLangRates,
+                                        new_lang_rates: data.langRates || {}
+                                    });
+                                } catch(e) { console.warn('단가 변경 이력 저장 실패:', e); }
+
+                                // 관리자에게 알림 발송
+                                try {
+                                    var { data: adminUser } = await window.sbClient
+                                        .from('01_회원')
+                                        .select('id')
+                                        .eq('role', 'admin')
+                                        .single();
+                                    if (adminUser) {
+                                        // 변경 요약 생성
+                                        var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
+                                        var changes = [];
+                                        Object.keys(data.rates).forEach(function(k) {
+                                            var prev = Number(prevRates[k] || 0);
+                                            var curr = Number(data.rates[k] || 0);
+                                            if (prev !== curr) {
+                                                changes.push((typeNames[k] || k) + ': ' + prev.toLocaleString() + '원 → ' + curr.toLocaleString() + '원');
+                                            }
+                                        });
+                                        if (langRatesChanged) {
+                                            var newLR = data.langRates || {};
+                                            Object.keys(Object.assign({}, prevLangRates, newLR)).forEach(function(k) {
+                                                var prev = Number(prevLangRates[k] || 0);
+                                                var curr = Number(newLR[k] || 0);
+                                                if (prev !== curr) {
+                                                    changes.push(k + ': ' + prev.toLocaleString() + '원 → ' + curr.toLocaleString() + '원');
+                                                }
+                                            });
+                                        }
+                                        var msgText = (data.name || '통역사') + '님이 단가를 변경했습니다.\n' + changes.join('\n');
+
+                                        await window.sbClient.from('24_알림').insert({
+                                            user_id: adminUser.id,
+                                            notification_type: 'rate_change',
+                                            title: '📊 통역사 단가 변경 알림',
+                                            message: msgText,
+                                            is_read: false
+                                        });
+                                    }
+                                } catch(e) { console.warn('관리자 알림 발송 실패:', e); }
+
+                                console.log('단가 변경 이력 저장 완료');
+                            }
+                        }
                     } catch(e) { console.warn('프로필 DB 저장 실패:', e); }
                 })();
             }

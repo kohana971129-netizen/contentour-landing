@@ -7443,6 +7443,10 @@
                     });
                 }
 
+                // 단가 변경 이력
+                html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">📊 단가 변경 이력</div>';
+                html += '<div id="rateChangeHistoryArea" style="font-size:0.82rem;color:#888;">로딩 중...</div>';
+
                 // 인증 정보
                 html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">📋 인증 정보</div>';
                 html += row('인증 상태', p.is_verified ? '<span style="color:#2e7d32;font-weight:700;">인증완료</span>' : '<span style="color:#e65100;font-weight:700;">미인증</span>');
@@ -7475,6 +7479,78 @@
 
                 document.getElementById('interpDetailModal').style.display = 'block';
                 document.body.style.overflow = 'hidden';
+
+                // 단가 변경 이력 로드
+                loadRateChangeHistory(userId);
+            }
+
+            async function loadRateChangeHistory(userId) {
+                var area = document.getElementById('rateChangeHistoryArea');
+                if (!area || !window.sbClient) { if (area) area.innerHTML = '<span style="color:#999;">데이터를 불러올 수 없습니다.</span>'; return; }
+                try {
+                    var { data: history, error } = await window.sbClient
+                        .from('91_단가변경이력')
+                        .select('*')
+                        .eq('interpreter_id', userId)
+                        .order('changed_at', { ascending: false })
+                        .limit(20);
+
+                    if (error || !history || history.length === 0) {
+                        area.innerHTML = '<span style="color:#999;font-size:0.8rem;">변경 이력이 없습니다.</span>';
+                        return;
+                    }
+
+                    var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영', BOOTH: '부스 상주', MEETING: '미팅 동행', ONSITE_OPS: '현장 운영' };
+
+                    var tbl = '<div style="max-height:260px;overflow-y:auto;">';
+                    tbl += '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">';
+                    tbl += '<thead><tr style="background:#f0f5ff;"><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경일시</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경 전 단가</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경 후 단가</th></tr></thead><tbody>';
+
+                    history.forEach(function(h) {
+                        var dateStr = new Date(h.changed_at).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                        var prevRates = h.previous_rates || {};
+                        var newRates = h.new_rates || {};
+                        var prevLangRates = h.previous_lang_rates || {};
+                        var newLangRates = h.new_lang_rates || {};
+
+                        // 유형별 단가 변경 내역
+                        var prevLines = [];
+                        var newLines = [];
+                        var allKeys = Object.keys(Object.assign({}, prevRates, newRates));
+                        allKeys.forEach(function(k) {
+                            var pv = Number(prevRates[k] || 0);
+                            var nv = Number(newRates[k] || 0);
+                            var label = typeNames[k] || k;
+                            var changed = pv !== nv;
+                            prevLines.push('<span' + (changed ? ' style="color:#c62828;"' : '') + '>' + label + ': ₩' + pv.toLocaleString() + '</span>');
+                            newLines.push('<span' + (changed ? ' style="color:#2e7d32;font-weight:700;"' : '') + '>' + label + ': ₩' + nv.toLocaleString() + '</span>');
+                        });
+
+                        // 언어별 단가 변경 내역
+                        var langKeys = Object.keys(Object.assign({}, prevLangRates, newLangRates));
+                        langKeys.forEach(function(k) {
+                            var pv = Number(prevLangRates[k] || 0);
+                            var nv = Number(newLangRates[k] || 0);
+                            var changed = pv !== nv;
+                            if (pv || nv) {
+                                prevLines.push('<span' + (changed ? ' style="color:#c62828;"' : '') + '>' + k + ': ₩' + pv.toLocaleString() + '</span>');
+                                newLines.push('<span' + (changed ? ' style="color:#2e7d32;font-weight:700;"' : '') + '>' + k + ': ₩' + nv.toLocaleString() + '</span>');
+                            }
+                        });
+
+                        tbl += '<tr style="border-bottom:1px solid #f0f0f0;">';
+                        tbl += '<td style="padding:8px 10px;vertical-align:top;white-space:nowrap;">' + dateStr + '</td>';
+                        tbl += '<td style="padding:8px 10px;vertical-align:top;line-height:1.8;">' + prevLines.join('<br>') + '</td>';
+                        tbl += '<td style="padding:8px 10px;vertical-align:top;line-height:1.8;">' + newLines.join('<br>') + '</td>';
+                        tbl += '</tr>';
+                    });
+
+                    tbl += '</tbody></table></div>';
+                    area.innerHTML = tbl;
+                } catch(e) {
+                    console.warn('단가 변경 이력 로드 실패:', e);
+                    area.innerHTML = '<span style="color:#c62828;font-size:0.8rem;">이력 로드 실패</span>';
+                }
             }
 
             function closeInterpModal() {
