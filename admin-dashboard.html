@@ -5132,8 +5132,9 @@
                                 company: custInfo.company || custInfo.name || j.buyer_company || '-',
                                 date: j.consultation_date || '',
                                 interp: interpInfo.name || '-',
-                                lang: '',
+                                lang: extra.lang || '',
                                 location: j.buyer_country || '',
+                                countries: extra.countries || [],
                                 total: extra.total || 0,
                                 contract: extra.contract || 0,
                                 sample: extra.sample || 0,
@@ -5143,6 +5144,7 @@
                                 issue: extra.issue || '',
                                 action: j.follow_up_notes || '',
                                 star1: 0, star2: 0, star3: 0, star4: 0,
+                                adminComment: j.review_comment || '',
                                 status: j.status === 'submitted' ? 'new' : (j.status === 'reviewed' ? 'reviewed' : 'draft'),
                                 source: j.interpreter_id === j.customer_id ? 'customer' : 'interpreter'
                             });
@@ -5527,9 +5529,27 @@
                 if (ac) j.adminComment = ac.value;
                 showToast('💾 코멘트가 저장되었습니다.');
             }
-            function sendComment(id) {
-                saveComment(id);
-                showToast('📨 코멘트가 고객사에 전송되었습니다.');
+            async function sendComment(id) {
+                const j = journals.find(x => x.id === id); if (!j) return;
+                const ac = document.getElementById(`ac-${id}`);
+                var comment = ac ? ac.value.trim() : '';
+                if (!comment) { showToast('⚠️ 코멘트를 입력해주세요.'); return; }
+                j.adminComment = comment;
+
+                // DB에 저장
+                if (j.dbId && typeof AdminData !== 'undefined') {
+                    var ok = await AdminData.reviewJournal(j.dbId, comment);
+                    if (ok) {
+                        j.status = 'reviewed';
+                        updateJournalKPI();
+                        visibleJournals = [...journals]; renderJList(); loadJournal(id);
+                        showToast('📨 코멘트가 ' + (j.source === 'interpreter' ? '통역사' : '고객사') + '에 전송되었습니다.');
+                    } else {
+                        showToast('❌ 전송 실패 — DB 저장 중 오류가 발생했습니다.');
+                    }
+                } else {
+                    showToast('📨 코멘트가 ' + (j.source === 'interpreter' ? '통역사' : '고객사') + '에 전송되었습니다. (로컬 저장)');
+                }
             }
 
             function exportJournalPDF(id) {
