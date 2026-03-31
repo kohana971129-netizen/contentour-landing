@@ -89,6 +89,11 @@ const AdminData = {
                 baseRate: d.base_rate,
                 rateByType: d.rate_by_type,
                 rateByLanguage: d.rate_by_language,
+                pendingRateByType: d.pending_rate_by_type,
+                pendingRateByLanguage: d.pending_rate_by_language,
+                rateStatus: d.rate_status || 'approved',
+                rateRejectedReason: d.rate_rejected_reason,
+                rateSubmittedAt: d.rate_submitted_at,
                 email: d.user?.email,
                 phone: d.user?.phone || d.phone
             }));

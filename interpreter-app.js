@@ -1007,7 +1007,7 @@ const InterpreterApp = {
             });
         }
 
-        // 단가 정보
+        // 단가 정보 (승인된 단가 표시)
         const rates = p.rate_by_type || {};
         setVal('rate-booth', rates.booth);
         setVal('rate-meeting', rates.meeting);
@@ -1021,6 +1021,11 @@ const InterpreterApp = {
         setVal('lrate-de', langRates.de);
         setVal('lrate-vn', langRates.vn);
         setVal('lrate-ar', langRates.ar);
+
+        // 단가 승인 상태 배너 표시
+        if (typeof renderRateStatusBanner === 'function') {
+            renderRateStatusBanner(p);
+        }
 
         // 계좌 정보
         if (this.bankAccount) {

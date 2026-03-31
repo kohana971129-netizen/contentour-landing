@@ -1077,6 +1077,10 @@
                                         <button onclick="document.getElementById('pfDocInput').click()" style="padding:8px 16px;background:#e3f0ff;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">📎 서류 업로드</button>
                                     </div>
                                 </div>
+                                <!-- 프로필 정보 저장 버튼 -->
+                                <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+                                    <button onclick="saveProfileOnly()" style="padding:10px 28px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;">💾 프로필 정보 저장</button>
+                                </div>
                             </div>
                         </div>
 
@@ -1087,6 +1091,9 @@
                                 <span style="font-size:0.7rem;color:#6b7280;background:#f3f4f6;padding:3px 10px;border-radius:8px;font-weight:500;">관리자·고객사에게 공개됩니다</span>
                             </div>
                             <div style="padding:20px 22px;">
+                                <!-- 단가 승인 상태 배너 -->
+                                <div id="rateStatusBanner" style="display:none;"></div>
+
                                 <!-- 안내 -->
                                 <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:0.78rem;color:#2e7d32;line-height:1.7;">
                                     💡 <strong>단가 설정 안내</strong><br>
@@ -1247,7 +1254,7 @@
                                 <!-- 저장 버튼 -->
                                 <div style="margin-top:24px;display:flex;gap:12px;justify-content:flex-end;">
                                     <button onclick="resetRates()" style="padding:10px 24px;border:1.5px solid #e5e7eb;background:#fff;border-radius:10px;font-size:0.82rem;cursor:pointer;color:#6b7280;">초기화</button>
-                                    <button onclick="saveProfile()" style="padding:10px 28px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;">💾 프로필 & 단가 저장</button>
+                                    <button id="btnSaveRates" onclick="saveRatesOnly()" style="padding:10px 28px;background:linear-gradient(135deg,#e65100,#bf360c);color:#fff;border:none;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;">📋 단가 변경 신청</button>
                                 </div>
                             </div>
                         </div>
@@ -4995,14 +5002,47 @@
             } catch(e) {}
         }
 
-        function saveProfile() {
-            // 단가 범위 유효성 검사
-            var rateErrors = validateRatesAgainstLimits();
-            if (rateErrors) {
-                showToast('⚠️ 단가 범위 초과: ' + rateErrors[0]);
-                return;
-            }
+        // ═══ 단가 승인 상태 배너 렌더링 ═══
+        function renderRateStatusBanner(profile) {
+            var banner = document.getElementById('rateStatusBanner');
+            if (!banner) return;
+            var status = profile.rate_status || 'approved';
+            var reason = profile.rate_rejected_reason || '';
+            var btn = document.getElementById('btnSaveRates');
 
+            if (status === 'pending') {
+                banner.style.display = 'block';
+                banner.innerHTML = '<div style="background:#fff8e1;border:1.5px solid #ffcc02;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:0.82rem;color:#e65100;line-height:1.7;">' +
+                    '<strong>⏳ 단가 변경 승인 대기 중입니다.</strong> 관리자 승인 후 적용됩니다.' +
+                    '</div>';
+                // 대기 중에는 입력 필드 비활성화
+                setRateInputsDisabled(true);
+                if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed'; }
+            } else if (status === 'rejected') {
+                banner.style.display = 'block';
+                banner.innerHTML = '<div style="background:#fce4ec;border:1.5px solid #ef9a9a;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:0.82rem;color:#c62828;line-height:1.7;">' +
+                    '<strong>❌ 단가 변경이 반려되었습니다.</strong>' +
+                    (reason ? '<br>사유: ' + reason : '') +
+                    '<br><span style="font-size:0.78rem;color:#666;">단가를 수정 후 다시 신청할 수 있습니다.</span>' +
+                    '</div>';
+                setRateInputsDisabled(false);
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+            } else {
+                banner.style.display = 'none';
+                setRateInputsDisabled(false);
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+            }
+        }
+
+        function setRateInputsDisabled(disabled) {
+            ['rate-booth','rate-meeting','rate-conference','rate-operation','lrate-en','lrate-jp','lrate-cn','lrate-de','lrate-vn','lrate-ar'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) { el.disabled = disabled; if (disabled) el.style.opacity = '0.6'; else el.style.opacity = '1'; }
+            });
+        }
+
+        // ═══ 프로필 정보만 저장 (단가 제외) ═══
+        function saveProfileOnly() {
             var data = getRateData();
             // 활성 언어 수집
             var langs = [];
@@ -5030,116 +5070,22 @@
             // localStorage에 저장
             localStorage.setItem(RATE_STORAGE_KEY, JSON.stringify(data));
 
-            // DB에 저장 (단가 변경 이력 추적 포함)
+            // DB에 프로필 정보만 저장 (단가 필드는 건드리지 않음)
             if (window.sbClient && window.InterpreterApp && InterpreterApp.currentUser) {
                 (async function() {
                     try {
                         var userId = InterpreterApp.currentUser.id;
-
-                        // 1) 기존 단가 조회 (변경 비교용)
-                        var prevRates = null;
-                        var prevLangRates = null;
-                        try {
-                            var { data: prevProfile } = await window.sbClient
-                                .from('40_통역사프로필')
-                                .select('rate_by_type, rate_by_language')
-                                .eq('user_id', userId)
-                                .single();
-                            if (prevProfile) {
-                                prevRates = prevProfile.rate_by_type || {};
-                                prevLangRates = prevProfile.rate_by_language || {};
-                            }
-                        } catch(e) { console.warn('기존 단가 조회 실패:', e); }
-
-                        // 2) 프로필 업데이트
                         await window.sbClient.from('40_통역사프로필').update({
                             display_name: data.name,
                             phone: data.phone,
                             intro: data.intro,
                             experience_years: data.experience,
-                            base_rate: data.rates.booth,
                             languages: data.langs.map(function(l) { return l.replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '').trim(); }),
-                            specialties: data.fields.map(function(f) { return f.replace(/[\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]/gu, '').trim(); }),
-                            rate_by_type: data.rates,
-                            rate_by_language: data.langRates
+                            specialties: data.fields.map(function(f) { return f.replace(/[\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]/gu, '').trim(); })
                         }).eq('user_id', userId);
-
-                        // 3) 단가 변경 감지 및 이력 저장
-                        if (prevRates !== null) {
-                            var ratesChanged = JSON.stringify(prevRates) !== JSON.stringify(data.rates);
-                            var langRatesChanged = JSON.stringify(prevLangRates) !== JSON.stringify(data.langRates || {});
-
-                            if (ratesChanged || langRatesChanged) {
-                                // 단가 변경 이력 삽입
-                                try {
-                                    await window.sbClient.from('91_단가변경이력').insert({
-                                        interpreter_id: userId,
-                                        interpreter_name: data.name,
-                                        previous_rates: prevRates,
-                                        new_rates: data.rates,
-                                        previous_lang_rates: prevLangRates,
-                                        new_lang_rates: data.langRates || {}
-                                    });
-                                } catch(e) { console.warn('단가 변경 이력 저장 실패:', e); }
-
-                                // 관리자에게 알림 발송
-                                try {
-                                    var { data: adminUser } = await window.sbClient
-                                        .from('01_회원')
-                                        .select('id')
-                                        .eq('role', 'admin')
-                                        .single();
-                                    if (adminUser) {
-                                        // 변경 요약 생성
-                                        var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
-                                        var changes = [];
-                                        Object.keys(data.rates).forEach(function(k) {
-                                            var prev = Number(prevRates[k] || 0);
-                                            var curr = Number(data.rates[k] || 0);
-                                            if (prev !== curr) {
-                                                changes.push((typeNames[k] || k) + ': ' + prev.toLocaleString() + '원 → ' + curr.toLocaleString() + '원');
-                                            }
-                                        });
-                                        if (langRatesChanged) {
-                                            var newLR = data.langRates || {};
-                                            Object.keys(Object.assign({}, prevLangRates, newLR)).forEach(function(k) {
-                                                var prev = Number(prevLangRates[k] || 0);
-                                                var curr = Number(newLR[k] || 0);
-                                                if (prev !== curr) {
-                                                    changes.push(k + ': ' + prev.toLocaleString() + '원 → ' + curr.toLocaleString() + '원');
-                                                }
-                                            });
-                                        }
-                                        var msgText = (data.name || '통역사') + '님이 단가를 변경했습니다.\n' + changes.join('\n');
-
-                                        await window.sbClient.from('24_알림').insert({
-                                            user_id: adminUser.id,
-                                            notification_type: 'rate_change',
-                                            title: '📊 통역사 단가 변경 알림',
-                                            message: msgText,
-                                            is_read: false
-                                        });
-                                    }
-                                } catch(e) { console.warn('관리자 알림 발송 실패:', e); }
-
-                                console.log('단가 변경 이력 저장 완료');
-                            }
-                        }
                     } catch(e) { console.warn('프로필 DB 저장 실패:', e); }
                 })();
             }
-
-            // 관리자 대시보드에 브로드캐스트
-            try {
-                localStorage.setItem('contentour_interpreter_rate_update', JSON.stringify({
-                    interpreter: data.name,
-                    rates: data.rates,
-                    langRates: data.langRates,
-                    langs: data.langs,
-                    ts: Date.now()
-                }));
-                setTimeout(function() { localStorage.removeItem('contentour_interpreter_rate_update'); }, 100);
-            } catch(e) {}
 
             // 계좌 상태 뱃지 업데이트
             var bankBadge = document.getElementById('bankStatusBadge');
@@ -5151,7 +5097,7 @@
                     bankBadge.textContent = '✅ 등록 완료 — ' + data.bank.name + ' ' + data.bank.holder;
                 }
                 stlUpdateBankStatus();
-                showToast('프로필과 단가가 저장되었습니다. 계좌 정보가 등록되어 입금이 가능합니다! 💰');
+                showToast('프로필 정보가 저장되었습니다. 계좌 정보가 등록되어 입금이 가능합니다! 💰');
             } else {
                 if (bankBadge) {
                     bankBadge.style.background = '#fff3e0';
@@ -5160,8 +5106,101 @@
                     bankBadge.textContent = '⚠️ 미등록 — 계좌를 등록해야 정산 입금을 받을 수 있습니다';
                 }
                 stlUpdateBankStatus();
-                showToast('프로필과 단가가 저장되었습니다.');
+                showToast('프로필 정보가 저장되었습니다.');
             }
+        }
+
+        // ═══ 단가 변경 신청 (pending 상태로 저장) ═══
+        function saveRatesOnly() {
+            // 단가 범위 유효성 검사
+            var rateErrors = validateRatesAgainstLimits();
+            if (rateErrors) {
+                showToast('⚠️ 단가 범위 초과: ' + rateErrors[0]);
+                return;
+            }
+
+            var data = getRateData();
+
+            if (!window.sbClient || !window.InterpreterApp || !InterpreterApp.currentUser) {
+                showToast('⚠️ 로그인이 필요합니다.');
+                return;
+            }
+
+            (async function() {
+                try {
+                    var userId = InterpreterApp.currentUser.id;
+
+                    // pending 단가로 저장 (실제 rate_by_type, rate_by_language는 변경하지 않음)
+                    var { error } = await window.sbClient.from('40_통역사프로필').update({
+                        pending_rate_by_type: data.rates,
+                        pending_rate_by_language: data.langRates,
+                        rate_status: 'pending',
+                        rate_rejected_reason: null,
+                        rate_submitted_at: new Date().toISOString()
+                    }).eq('user_id', userId);
+
+                    if (error) throw error;
+
+                    // interpProfile 캐시 업데이트
+                    if (InterpreterApp.interpProfile) {
+                        InterpreterApp.interpProfile.pending_rate_by_type = data.rates;
+                        InterpreterApp.interpProfile.pending_rate_by_language = data.langRates;
+                        InterpreterApp.interpProfile.rate_status = 'pending';
+                        InterpreterApp.interpProfile.rate_rejected_reason = null;
+                    }
+
+                    // 배너 업데이트
+                    renderRateStatusBanner(InterpreterApp.interpProfile || { rate_status: 'pending' });
+
+                    // 관리자에게 알림 발송
+                    try {
+                        var { data: adminUser } = await window.sbClient
+                            .from('01_회원')
+                            .select('id')
+                            .eq('role', 'admin')
+                            .single();
+                        if (adminUser) {
+                            var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
+                            var changes = [];
+                            Object.keys(data.rates).forEach(function(k) {
+                                changes.push((typeNames[k] || k) + ': ₩' + Number(data.rates[k] || 0).toLocaleString());
+                            });
+                            var msgText = (data.name || '통역사') + '님이 단가 변경을 신청했습니다.\n' + changes.join('\n');
+
+                            await window.sbClient.from('24_알림').insert({
+                                user_id: adminUser.id,
+                                notification_type: 'rate_change_request',
+                                title: '📋 통역사 단가 변경 승인 요청',
+                                message: msgText,
+                                is_read: false
+                            });
+                        }
+                    } catch(e) { console.warn('관리자 알림 발송 실패:', e); }
+
+                    // 관리자 대시보드에 브로드캐스트
+                    try {
+                        localStorage.setItem('contentour_interpreter_rate_update', JSON.stringify({
+                            interpreter: data.name,
+                            rates: data.rates,
+                            langRates: data.langRates,
+                            status: 'pending',
+                            ts: Date.now()
+                        }));
+                        setTimeout(function() { localStorage.removeItem('contentour_interpreter_rate_update'); }, 100);
+                    } catch(e) {}
+
+                    showToast('단가 변경이 신청되었습니다. 관리자 승인 후 적용됩니다.');
+                } catch(e) {
+                    console.warn('단가 변경 신청 실패:', e);
+                    showToast('⚠️ 단가 변경 신청에 실패했습니다: ' + (e.message || ''));
+                }
+            })();
+        }
+
+        // 기존 saveProfile은 하위 호환을 위해 유지 (두 함수 모두 호출)
+        function saveProfile() {
+            saveProfileOnly();
+            saveRatesOnly();
         }
 
         function getRecommendedRates(years) {

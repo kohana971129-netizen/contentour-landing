@@ -3804,7 +3804,7 @@
                         <button onclick="loadInterpVerifyList()" style="padding:6px 14px;background:var(--g100);border:1px solid var(--g200);border-radius:8px;font-size:0.78rem;cursor:pointer;">새로고침</button>
                     </div>
                     <!-- KPI 통계 -->
-                    <div id="interpKpiRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                    <div id="interpKpiRow" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;">
                         <div style="background:#fff;border:1.5px solid #e8ecf2;border-radius:10px;padding:14px;text-align:center;">
                             <div style="font-size:1.2rem;font-weight:900;color:var(--navy);" id="interp-kpi-total">0</div>
                             <div style="font-size:0.72rem;color:#999;">전체</div>
@@ -3821,6 +3821,10 @@
                             <div style="font-size:1.2rem;font-weight:900;color:#999;" id="interp-kpi-none">0</div>
                             <div style="font-size:0.72rem;color:#999;">미제출</div>
                         </div>
+                        <div style="background:#fff;border:1.5px solid #ffe0b2;border-radius:10px;padding:14px;text-align:center;cursor:pointer;" onclick="filterInterp('rate_pending',this)">
+                            <div style="font-size:1.2rem;font-weight:900;color:#e65100;" id="interp-kpi-rate-pending">0</div>
+                            <div style="font-size:0.72rem;color:#999;">단가 승인대기</div>
+                        </div>
                     </div>
                     <!-- 필터 + 검색 -->
                     <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
@@ -3829,6 +3833,7 @@
                         <button class="filter-chip" onclick="filterInterp('review',this)">서류검토</button>
                         <button class="filter-chip" onclick="filterInterp('none',this)">미제출</button>
                         <button class="filter-chip" onclick="filterInterp('inactive',this)">비활성</button>
+                        <button class="filter-chip" onclick="filterInterp('rate_pending',this)" style="border-color:#ffe0b2;color:#e65100;">단가 승인대기</button>
                         <div style="flex:1;"></div>
                         <input type="text" id="interpSearchInput" placeholder="이름, 이메일, 언어 검색..." oninput="filterInterp(_interpFilter,null)" style="padding:8px 14px;border:1.5px solid var(--g200);border-radius:10px;font-size:0.78rem;outline:none;width:220px;">
                     </div>
@@ -7278,18 +7283,20 @@
             }
 
             function updateInterpKPI() {
-                var total = _interpAllData.length, verified = 0, review = 0, none = 0;
+                var total = _interpAllData.length, verified = 0, review = 0, none = 0, ratePending = 0;
                 _interpAllData.forEach(function(p) {
                     var docs = p.verification_docs || [];
                     if (p.is_verified) verified++;
                     else if (docs.length > 0) review++;
                     else none++;
+                    if (p.rate_status === 'pending') ratePending++;
                 });
                 var e;
                 e = document.getElementById('interp-kpi-total'); if (e) e.textContent = total;
                 e = document.getElementById('interp-kpi-verified'); if (e) e.textContent = verified;
                 e = document.getElementById('interp-kpi-review'); if (e) e.textContent = review;
                 e = document.getElementById('interp-kpi-none'); if (e) e.textContent = none;
+                e = document.getElementById('interp-kpi-rate-pending'); if (e) e.textContent = ratePending;
             }
 
             function filterInterp(status, btn) {
@@ -7316,6 +7323,7 @@
                     if (_interpFilter === 'verified' && !p.is_verified) return false;
                     if (_interpFilter === 'review' && getInterpStatus(p) !== 'review') return false;
                     if (_interpFilter === 'none' && getInterpStatus(p) !== 'none') return false;
+                    if (_interpFilter === 'rate_pending' && p.rate_status !== 'pending') return false;
                     if (_interpFilter === 'all' && false) return false;
                     // 검색
                     if (query) {
@@ -7371,6 +7379,7 @@
                                     (phone ? '<span>📱 ' + phone + '</span>' : '') +
                                     '<span>경력: <b>' + (p.experience_years || 0) + '년</b></span>' +
                                     '<span>기본단가: <b>₩' + (p.base_rate || 0).toLocaleString() + '</b></span>' +
+                                    (p.rate_status === 'pending' ? '<span style="padding:2px 8px;background:#fff3e0;color:#e65100;border-radius:5px;font-size:0.7rem;font-weight:700;border:1px solid #ffcc02;">⏳ 단가 승인 대기</span>' : '') +
                                 '</div>' +
                                 '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">' +
                                     (langs ? langs.split(', ').map(function(l) { return '<span style="padding:2px 8px;background:#e3f0ff;color:#1565c0;border-radius:5px;font-size:0.72rem;font-weight:600;">' + l + '</span>'; }).join('') : '') +
@@ -7428,19 +7437,86 @@
 
                 // 단가 정보
                 html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">💰 단가 정보</div>';
-                html += row('기본 단가', '₩' + (p.base_rate || 0).toLocaleString() + ' /일');
-                var rateByType = p.rate_by_type || {};
-                if (Object.keys(rateByType).length > 0) {
-                    var typeNames = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' };
-                    Object.keys(rateByType).forEach(function(k) {
-                        html += row((typeNames[k] || k) + ' 단가', '₩' + Number(rateByType[k]).toLocaleString());
+
+                // 단가 승인 대기 배너 및 비교 표시
+                if (p.rate_status === 'pending' && p.pending_rate_by_type) {
+                    html += '<div style="background:#fff8e1;border:1.5px solid #ffcc02;border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:0.82rem;color:#e65100;line-height:1.7;">';
+                    html += '<strong>⏳ 단가 변경 승인 대기 중</strong>';
+                    if (p.rate_submitted_at) html += '<span style="font-size:0.72rem;color:#999;margin-left:8px;">' + new Date(p.rate_submitted_at).toLocaleString('ko-KR') + ' 신청</span>';
+                    html += '</div>';
+
+                    // 현재 vs 신청 단가 비교 테이블
+                    var typeNamesCompare = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
+                    var langNamesCompare = { en: '영어', jp: '일본어', cn: '중국어', de: '독일어', vn: '베트남어', ar: '아랍어' };
+                    var curRates = p.rate_by_type || {};
+                    var pendRates = p.pending_rate_by_type || {};
+                    var curLang = p.rate_by_language || {};
+                    var pendLang = p.pending_rate_by_language || {};
+
+                    html += '<div style="overflow-x:auto;margin-bottom:14px;">';
+                    html += '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;"><thead><tr style="background:#f0f5ff;">';
+                    html += '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">항목</th>';
+                    html += '<th style="padding:8px 10px;text-align:right;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">현재 단가</th>';
+                    html += '<th style="padding:8px 10px;text-align:right;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">신청 단가</th>';
+                    html += '<th style="padding:8px 10px;text-align:right;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변동</th>';
+                    html += '</tr></thead><tbody>';
+
+                    var allTypeKeys = Object.keys(Object.assign({}, curRates, pendRates));
+                    allTypeKeys.forEach(function(k) {
+                        var cur = Number(curRates[k] || 0);
+                        var pend = Number(pendRates[k] || 0);
+                        var diff = pend - cur;
+                        var diffColor = diff > 0 ? '#c62828' : diff < 0 ? '#2e7d32' : '#999';
+                        var diffText = diff === 0 ? '-' : (diff > 0 ? '+' : '') + '₩' + diff.toLocaleString();
+                        html += '<tr style="border-bottom:1px solid #f0f0f0;">';
+                        html += '<td style="padding:6px 10px;font-weight:600;">' + (typeNamesCompare[k] || k) + '</td>';
+                        html += '<td style="padding:6px 10px;text-align:right;">₩' + cur.toLocaleString() + '</td>';
+                        html += '<td style="padding:6px 10px;text-align:right;font-weight:700;color:#1565c0;">₩' + pend.toLocaleString() + '</td>';
+                        html += '<td style="padding:6px 10px;text-align:right;font-weight:700;color:' + diffColor + ';">' + diffText + '</td>';
+                        html += '</tr>';
                     });
-                }
-                var rateByLang = p.rate_by_language || {};
-                if (Object.keys(rateByLang).length > 0) {
-                    Object.keys(rateByLang).forEach(function(k) {
-                        html += row(k + ' 단가', '₩' + Number(rateByLang[k]).toLocaleString());
+
+                    var allLangKeys = Object.keys(Object.assign({}, curLang, pendLang));
+                    allLangKeys.forEach(function(k) {
+                        var cur = Number(curLang[k] || 0);
+                        var pend = Number(pendLang[k] || 0);
+                        if (cur === 0 && pend === 0) return;
+                        var diff = pend - cur;
+                        var diffColor = diff > 0 ? '#c62828' : diff < 0 ? '#2e7d32' : '#999';
+                        var diffText = diff === 0 ? '-' : (diff > 0 ? '+' : '') + '₩' + diff.toLocaleString();
+                        html += '<tr style="border-bottom:1px solid #f0f0f0;">';
+                        html += '<td style="padding:6px 10px;font-weight:600;">' + (langNamesCompare[k] || k) + ' (언어 가산)</td>';
+                        html += '<td style="padding:6px 10px;text-align:right;">+₩' + cur.toLocaleString() + '</td>';
+                        html += '<td style="padding:6px 10px;text-align:right;font-weight:700;color:#1565c0;">+₩' + pend.toLocaleString() + '</td>';
+                        html += '<td style="padding:6px 10px;text-align:right;font-weight:700;color:' + diffColor + ';">' + diffText + '</td>';
+                        html += '</tr>';
                     });
+                    html += '</tbody></table></div>';
+
+                    // 승인/반려 버튼
+                    html += '<div id="rateApprovalActions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">';
+                    html += '<button onclick="approveRate(\'' + userId + '\')" style="padding:8px 20px;border:none;color:#fff;background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.82rem;">✅ 단가 승인</button>';
+                    html += '<button onclick="showRejectRateInput(\'' + userId + '\')" style="padding:8px 20px;border:1.5px solid #c62828;color:#c62828;background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.82rem;">❌ 단가 반려</button>';
+                    html += '</div>';
+                    html += '<div id="rejectRateInputArea" style="display:none;margin-bottom:14px;">';
+                    html += '<input type="text" id="rejectRateReason" placeholder="반려 사유를 입력하세요..." style="width:100%;padding:10px 14px;border:1.5px solid #ef9a9a;border-radius:10px;font-size:0.82rem;font-family:inherit;margin-bottom:8px;">';
+                    html += '<button onclick="rejectRate(\'' + userId + '\')" style="padding:8px 20px;border:none;color:#fff;background:#c62828;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.82rem;">반려 확정</button>';
+                    html += '</div>';
+                } else {
+                    html += row('기본 단가', '₩' + (p.base_rate || 0).toLocaleString() + ' /일');
+                    var rateByType = p.rate_by_type || {};
+                    if (Object.keys(rateByType).length > 0) {
+                        var typeNames = { 'booth': '부스 상주', 'meeting': '미팅 동행', 'conference': '컨퍼런스', 'operation': '현장 운영', 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' };
+                        Object.keys(rateByType).forEach(function(k) {
+                            html += row((typeNames[k] || k) + ' 단가', '₩' + Number(rateByType[k]).toLocaleString());
+                        });
+                    }
+                    var rateByLang = p.rate_by_language || {};
+                    if (Object.keys(rateByLang).length > 0) {
+                        Object.keys(rateByLang).forEach(function(k) {
+                            html += row(k + ' 단가', '₩' + Number(rateByLang[k]).toLocaleString());
+                        });
+                    }
                 }
 
                 // 단가 변경 이력
@@ -7556,6 +7632,102 @@
             function closeInterpModal() {
                 document.getElementById('interpDetailModal').style.display = 'none';
                 document.body.style.overflow = '';
+            }
+
+            function showRejectRateInput(userId) {
+                var area = document.getElementById('rejectRateInputArea');
+                if (area) area.style.display = 'block';
+            }
+
+            async function approveRate(userId) {
+                if (!supabase) return;
+                // 프로필 조회
+                var p = _interpAllData.find(function(x) { return x.user_id === userId; });
+                if (!p || !p.pending_rate_by_type) { showToast('⚠️ 승인할 단가 변경이 없습니다.'); return; }
+
+                try {
+                    // 기존 단가 백업 (이력용)
+                    var prevRates = p.rate_by_type || {};
+                    var prevLangRates = p.rate_by_language || {};
+
+                    // pending → 실제 단가로 복사, pending 필드 초기화
+                    var { error } = await supabase.from('40_통역사프로필').update({
+                        rate_by_type: p.pending_rate_by_type,
+                        rate_by_language: p.pending_rate_by_language || {},
+                        base_rate: p.pending_rate_by_type.booth || p.base_rate,
+                        pending_rate_by_type: null,
+                        pending_rate_by_language: null,
+                        rate_status: 'approved',
+                        rate_rejected_reason: null
+                    }).eq('user_id', userId);
+
+                    if (error) throw error;
+
+                    // 단가 변경 이력 삽입
+                    try {
+                        await supabase.from('91_단가변경이력').insert({
+                            interpreter_id: userId,
+                            interpreter_name: p.display_name || p.user?.name || '통역사',
+                            previous_rates: prevRates,
+                            new_rates: p.pending_rate_by_type,
+                            previous_lang_rates: prevLangRates,
+                            new_lang_rates: p.pending_rate_by_language || {}
+                        });
+                    } catch(e) { console.warn('단가 변경 이력 저장 실패:', e); }
+
+                    // 통역사에게 알림 발송
+                    try {
+                        await supabase.from('24_알림').insert({
+                            user_id: userId,
+                            notification_type: 'rate_approved',
+                            title: '✅ 단가 변경이 승인되었습니다',
+                            message: '신청하신 단가 변경이 관리자에 의해 승인되었습니다. 변경된 단가가 즉시 적용됩니다.',
+                            is_read: false
+                        });
+                    } catch(e) { console.warn('통역사 알림 발송 실패:', e); }
+
+                    showToast('✅ 단가 변경이 승인되었습니다.');
+                    closeInterpModal();
+                    loadInterpVerifyList(); // 목록 새로고침
+                } catch(e) {
+                    console.error('단가 승인 실패:', e);
+                    showToast('⚠️ 단가 승인 실패: ' + (e.message || ''));
+                }
+            }
+
+            async function rejectRate(userId) {
+                if (!supabase) return;
+                var reason = (document.getElementById('rejectRateReason')?.value || '').trim();
+                if (!reason) { showToast('⚠️ 반려 사유를 입력해주세요.'); return; }
+
+                try {
+                    var { error } = await supabase.from('40_통역사프로필').update({
+                        rate_status: 'rejected',
+                        rate_rejected_reason: reason,
+                        pending_rate_by_type: null,
+                        pending_rate_by_language: null
+                    }).eq('user_id', userId);
+
+                    if (error) throw error;
+
+                    // 통역사에게 알림 발송
+                    try {
+                        await supabase.from('24_알림').insert({
+                            user_id: userId,
+                            notification_type: 'rate_rejected',
+                            title: '❌ 단가 변경이 반려되었습니다',
+                            message: '신청하신 단가 변경이 반려되었습니다.\n사유: ' + reason + '\n\n단가를 수정 후 다시 신청할 수 있습니다.',
+                            is_read: false
+                        });
+                    } catch(e) { console.warn('통역사 알림 발송 실패:', e); }
+
+                    showToast('❌ 단가 변경이 반려되었습니다.');
+                    closeInterpModal();
+                    loadInterpVerifyList(); // 목록 새로고침
+                } catch(e) {
+                    console.error('단가 반려 실패:', e);
+                    showToast('⚠️ 단가 반려 실패: ' + (e.message || ''));
+                }
             }
 
             async function viewInterpDoc(path) {
