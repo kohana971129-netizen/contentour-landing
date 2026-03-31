@@ -5479,9 +5479,11 @@
                     ? '<span style="display:inline-block;font-size:0.7rem;background:#e3f2fd;color:#1565c0;padding:2px 10px;border-radius:10px;margin-left:8px;font-weight:600;">통역사 작성</span>'
                     : '<span style="display:inline-block;font-size:0.7rem;background:#fff3e0;color:#e65100;padding:2px 10px;border-radius:10px;margin-left:8px;font-weight:600;">고객사 작성</span>';
 
-                var countriesHtml = (j.countries && j.countries.length > 0)
-                    ? j.countries.map(c => '<span class="jv-tag">' + c + '</span>').join('')
-                    : '<span style="color:var(--gray-300);">미입력</span>';
+                var allCountryOptions = ['🇩🇪 독일','🇺🇸 미국','🇯🇵 일본','🇨🇳 중국','🇬🇧 영국','🇫🇷 프랑스','🇮🇳 인도','🇧🇷 브라질','🇸🇦 UAE·중동','🇹🇭 동남아','기타'];
+                var countriesHtml = allCountryOptions.map(function(c) {
+                    var sel = (j.countries && j.countries.indexOf(c) !== -1) ? ' selected' : '';
+                    return '<span class="jv-tag' + sel + '" style="cursor:pointer;' + (sel ? 'background:#1565c0;color:#fff;' : '') + '" onclick="toggleJournalCountry(' + j.id + ',\'' + c.replace(/'/g,"\\'") + '\',this)">' + c + '</span>';
+                }).join('');
 
                 var issueHtml = '';
                 if (isInterp && j.issues && j.issues.length > 0) {
@@ -5538,7 +5540,16 @@
                     '<div class="jv-info-item"><label>고객사</label><span>' + j.company + '</span></div>' +
                     '<div class="jv-info-item"><label>작성일</label><span>' + j.date + '</span></div>' +
                     '<div class="jv-info-item"><label>통역사</label><span>' + j.interp + '</span></div>' +
-                    '<div class="jv-info-item"><label>언어</label><span>' + j.lang + '</span></div>' +
+                    '<div class="jv-info-item"><label>언어</label><select id="jvLangSel-' + j.id + '" onchange="updateJournalLang(' + j.id + ',this.value)" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:0.82rem;">' +
+                      '<option value=""' + (!j.lang ? ' selected' : '') + '>선택</option>' +
+                      '<option value="한국어↔영어"' + (j.lang === '한국어↔영어' ? ' selected' : '') + '>한국어↔영어</option>' +
+                      '<option value="한국어↔일본어"' + (j.lang === '한국어↔일본어' ? ' selected' : '') + '>한국어↔일본어</option>' +
+                      '<option value="한국어↔중국어"' + (j.lang === '한국어↔중국어' ? ' selected' : '') + '>한국어↔중국어</option>' +
+                      '<option value="한국어↔독일어"' + (j.lang === '한국어↔독일어' ? ' selected' : '') + '>한국어↔독일어</option>' +
+                      '<option value="한국어↔베트남어"' + (j.lang === '한국어↔베트남어' ? ' selected' : '') + '>한국어↔베트남어</option>' +
+                      '<option value="영어↔일본어"' + (j.lang === '영어↔일본어' ? ' selected' : '') + '>영어↔일본어</option>' +
+                      '<option value="기타"' + (j.lang === '기타' ? ' selected' : '') + '>기타</option>' +
+                    '</select></div>' +
                     '<div class="jv-info-item"><label>작성자</label><span>' + (isInterp ? '통역사' : '고객사') + '</span></div>' +
                     '<div class="jv-info-item"><label>상태</label>' +
                       '<span style="color:' + (j.status === 'reviewed' ? 'var(--success)' : j.status === 'new' ? 'var(--warn)' : 'var(--gray-400)') + ';">' +
@@ -5583,6 +5594,35 @@
 
                   (j.status === 'reviewed' ? '<div class="done-banner">✅ 검토 완료된 일지입니다.' + (j.adminComment ? ' 관리자 코멘트가 전달되었습니다.' : '') + '</div>' : '') +
                 '</div>';
+            }
+
+            function toggleJournalCountry(id, country, el) {
+                var j = journals.find(function(x) { return x.id === id; }); if (!j) return;
+                if (!j.countries) j.countries = [];
+                var idx = j.countries.indexOf(country);
+                if (idx !== -1) { j.countries.splice(idx, 1); el.style.background = ''; el.style.color = ''; el.classList.remove('selected'); }
+                else { j.countries.push(country); el.style.background = '#1565c0'; el.style.color = '#fff'; el.classList.add('selected'); }
+                _syncJournalToStorage(j);
+            }
+            function updateJournalLang(id, val) {
+                var j = journals.find(function(x) { return x.id === id; }); if (!j) return;
+                j.lang = val;
+                _syncJournalToStorage(j);
+            }
+            function _syncJournalToStorage(j) {
+                // localStorage에 반영
+                try {
+                    var saved = JSON.parse(localStorage.getItem('contentour_interpreter_journals') || '[]');
+                    var match = saved.find(function(x) { return x.id === j.id; });
+                    if (match) { match.countries = j.countries; match.lang = j.lang; localStorage.setItem('contentour_interpreter_journals', JSON.stringify(saved)); }
+                } catch(e) {}
+                // DB에도 반영 (dbId가 있으면)
+                if (j.dbId && window.sbClient) {
+                    try {
+                        var extra = { total: j.total||0, contract: j.contract||0, sample: j.sample||0, follow: j.follow||0, issue: j.issue||'', countries: j.countries||[], lang: j.lang||'' };
+                        window.sbClient.from('44_상담일지').update({ attachments: JSON.stringify(extra) }).eq('id', j.dbId);
+                    } catch(e) {}
+                }
             }
 
             function markReviewed(id) {
