@@ -5351,6 +5351,66 @@
             }
             loadInterpreterJournals();
 
+            // localStorage 일지를 DB로 자동 마이그레이션
+            async function migrateLocalJournalsToDB() {
+                var sb = window.sbClient || window._supabaseRef;
+                if (!sb) return;
+                var saved = [];
+                try { saved = JSON.parse(localStorage.getItem('contentour_interpreter_journals') || '[]'); } catch(e) { return; }
+                if (saved.length === 0) return;
+
+                for (var i = 0; i < saved.length; i++) {
+                    var sj = saved[i];
+                    if (sj._dbSynced) continue; // 이미 동기화된 항목 스킵
+
+                    try {
+                        var profile = await ContentourAuth.getUserProfile();
+                        var interpId = profile ? profile.id : null;
+                        if (!interpId) continue;
+
+                        var record = {
+                            interpreter_id: interpId,
+                            customer_id: sj.source === 'customer' ? interpId : null,
+                            exhibition_name: sj.expo || '',
+                            consultation_date: sj.date || new Date().toISOString().split('T')[0],
+                            buyer_company: sj.company || '',
+                            buyer_contact: sj.interp || '',
+                            buyer_country: sj.location || '',
+                            discussion_summary: sj.summary || '',
+                            buyer_interest: sj.result || '',
+                            follow_up_needed: (sj.follow || 0) > 0,
+                            follow_up_notes: sj.action || '',
+                            status: sj.status === 'new' ? 'submitted' : (sj.status === 'reviewed' ? 'reviewed' : 'draft'),
+                            submitted_at: sj.status === 'new' ? new Date().toISOString() : null,
+                            attachments: JSON.stringify({
+                                total: sj.total || 0,
+                                contract: sj.contract || 0,
+                                sample: sj.sample || 0,
+                                follow: sj.follow || 0,
+                                issue: sj.issue || '',
+                                countries: sj.countries || [],
+                                lang: sj.lang || ''
+                            })
+                        };
+
+                        var { data: newJ, error } = await sb.from('44_상담일지').insert(record).select('id').single();
+                        if (!error && newJ) {
+                            saved[i]._dbSynced = true;
+                            saved[i]._dbId = newJ.id;
+                            // journals 배열에서도 dbId 매핑
+                            var match = journals.find(function(x) { return x.id === sj.id; });
+                            if (match) match.dbId = newJ.id;
+                        }
+                    } catch(e) { console.error('일지 마이그레이션 실패:', e); }
+                }
+
+                // 동기화 상태 저장
+                try { localStorage.setItem('contentour_interpreter_journals', JSON.stringify(saved)); } catch(e) {}
+            }
+
+            // Supabase 초기화 후 마이그레이션 실행
+            setTimeout(function() { migrateLocalJournalsToDB(); }, 2000);
+
             let visibleJournals = [...journals], activeJId = null;
 
             function updateJournalKPI() {
