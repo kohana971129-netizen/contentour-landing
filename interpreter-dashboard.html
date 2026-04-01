@@ -1256,6 +1256,14 @@
                                     <button onclick="resetRates()" style="padding:10px 24px;border:1.5px solid #e5e7eb;background:#fff;border-radius:10px;font-size:0.82rem;cursor:pointer;color:#6b7280;">초기화</button>
                                     <button id="btnSaveRates" onclick="saveRatesOnly()" style="padding:10px 28px;background:linear-gradient(135deg,#e65100,#bf360c);color:#fff;border:none;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;">📋 단가 변경 신청</button>
                                 </div>
+
+                                <!-- 단가 변경 이력 -->
+                                <div style="margin-top:28px;">
+                                    <div class="interp-section-title">📊 나의 단가 변경 이력</div>
+                                    <div id="myRateHistoryArea" style="font-size:0.82rem;color:#888;background:#f8f9fb;border:1.5px solid #e5e7eb;border-radius:12px;padding:16px;">
+                                        로딩 중...
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1552,11 +1560,18 @@
                 }
                 // 프로필 뷰 진입 시 단가 미리보기 렌더링
                 if (view === 'profile') {
-                    loadSavedRates();
+                    // DB 프로필이 있으면 DB 값 우선, 없으면 localStorage
+                    if (window.InterpreterApp && InterpreterApp.interpProfile) {
+                        // DB에서 이미 로드된 최신 단가 반영 (관리자 직접 조정 포함)
+                        InterpreterApp.applyProfileToUI();
+                    } else {
+                        loadSavedRates();
+                    }
                     updateRatePreview();
                     loadProfilePhoto();
                     loadVerifyDocs();
                     loadRateLimits();
+                    loadMyRateHistory();
                 }
             } else {
                 showToast('📌 "' + getViewName(view) + '" 페이지는 준비 중입니다.');
@@ -4610,34 +4625,96 @@
             const body = document.getElementById('notifPanelBody');
             if (!body) return;
             const notifs = [];
+
+            // 채팅 알림
             chatContacts.forEach(c => {
                 const msgs = chatMessages[c.id] || [];
                 msgs.forEach((m, i) => {
                     if (m.from === 'them') {
                         const isUnread = c.unread > 0 && i >= msgs.length - c.unread;
-                        notifs.push({ contactId:c.id, contactName:c.name, contactColor:c.color, company:c.company,
+                        notifs.push({ type:'chat', contactId:c.id, contactName:c.name, contactColor:c.color, company:c.company,
                             text: m.text || (m.files ? '📎 파일 ' + m.files.length + '개' : ''), time:m.time, date:m.date, unread:isUnread, sortKey:m.date + ' ' + m.time });
                     }
                 });
             });
+
+            // DB 알림 (단가 승인/반려/조정 등)
+            var dbNotifs = (window.InterpreterApp && InterpreterApp._notifications) || [];
+            dbNotifs.forEach(function(n) {
+                var d = new Date(n.created_at);
+                var dateStr = d.toISOString().slice(0, 10);
+                var timeStr = d.toTimeString().slice(0, 5);
+                var iconMap = { rate_approved: '✅', rate_rejected: '❌', rate_admin_edit: '✏️', rate_change: '💰', assignment: '📋', contract: '📄', settlement: '💰', system: '🔔' };
+                var icon = iconMap[n.notification_type] || '🔔';
+                notifs.push({
+                    type: 'db', title: n.title || '알림', text: n.message || '',
+                    icon: icon, unread: !n.is_read, notifId: n.id,
+                    date: dateStr, time: timeStr, sortKey: dateStr + ' ' + timeStr
+                });
+            });
+
             notifs.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-            const display = notifs.slice(0, 20);
+            const display = notifs.slice(0, 30);
             if (!display.length) { body.innerHTML = '<div class="notif-empty"><div class="notif-empty__icon">🔔</div><div class="notif-empty__text">새로운 알림이 없습니다</div></div>'; return; }
+
+            // 읽지 않은 알림 수 뱃지
+            var unreadCount = display.filter(function(n) { return n.unread; }).length;
+            var badge = document.getElementById('topbarNotifBadge');
+            if (badge) {
+                if (unreadCount > 0) { badge.textContent = unreadCount; badge.style.display = 'flex'; }
+                else { badge.style.display = 'none'; }
+            }
+            var dot = document.getElementById('topbarNotifDot');
+            if (dot) dot.style.display = unreadCount > 0 ? '' : 'none';
+
             body.innerHTML = display.map(n => {
-                const preview = n.text.length > 40 ? n.text.slice(0, 40) + '...' : n.text;
-                return '<div class="notif-item' + (n.unread ? ' unread' : '') + '" onclick="notifGoToChat(\'' + n.contactId + '\')">' +
-                    '<div class="notif-item__avatar" style="background:' + n.contactColor + ';">' + escapeHtml(n.contactName.charAt(0)) + '</div>' +
-                    '<div class="notif-item__content"><div class="notif-item__title"><strong>' + escapeHtml(n.contactName) + '</strong> · ' + escapeHtml(n.company) + '</div>' +
-                    '<div class="notif-item__text">' + escapeHtml(preview) + '</div></div>' +
-                    '<div class="notif-item__time">' + n.date.slice(5) + ' ' + n.time + '</div>' +
-                    (n.unread ? '<div class="notif-item__dot"></div>' : '') + '</div>';
+                if (n.type === 'chat') {
+                    const preview = n.text.length > 40 ? n.text.slice(0, 40) + '...' : n.text;
+                    return '<div class="notif-item' + (n.unread ? ' unread' : '') + '" onclick="notifGoToChat(\'' + n.contactId + '\')">' +
+                        '<div class="notif-item__avatar" style="background:' + n.contactColor + ';">' + escapeHtml(n.contactName.charAt(0)) + '</div>' +
+                        '<div class="notif-item__content"><div class="notif-item__title"><strong>' + escapeHtml(n.contactName) + '</strong> · ' + escapeHtml(n.company) + '</div>' +
+                        '<div class="notif-item__text">' + escapeHtml(preview) + '</div></div>' +
+                        '<div class="notif-item__time">' + n.date.slice(5) + ' ' + n.time + '</div>' +
+                        (n.unread ? '<div class="notif-item__dot"></div>' : '') + '</div>';
+                } else {
+                    var preview = n.text.length > 50 ? n.text.slice(0, 50) + '...' : n.text;
+                    return '<div class="notif-item' + (n.unread ? ' unread' : '') + '" onclick="markNotifRead(\'' + n.notifId + '\')">' +
+                        '<div class="notif-item__avatar" style="background:#f0f5ff;font-size:1.1rem;">' + n.icon + '</div>' +
+                        '<div class="notif-item__content"><div class="notif-item__title"><strong>' + escapeHtml(n.title) + '</strong></div>' +
+                        '<div class="notif-item__text">' + escapeHtml(preview) + '</div></div>' +
+                        '<div class="notif-item__time">' + n.date.slice(5) + ' ' + n.time + '</div>' +
+                        (n.unread ? '<div class="notif-item__dot"></div>' : '') + '</div>';
+                }
             }).join('');
+        }
+
+        async function markNotifRead(notifId) {
+            if (!notifId || !window.sbClient) return;
+            try {
+                await window.sbClient.from('24_알림').update({ is_read: true, read_at: new Date().toISOString() }).eq('id', notifId);
+                // 로컬 데이터도 업데이트
+                if (InterpreterApp._notifications) {
+                    var n = InterpreterApp._notifications.find(function(x) { return x.id === notifId; });
+                    if (n) n.is_read = true;
+                }
+                renderNotifPanel();
+            } catch(e) { console.warn('알림 읽음 처리 실패:', e); }
         }
 
         function notifGoToChat(contactId) { closeNotifPanel(); switchView('chat'); setTimeout(() => openChat(contactId), 100); }
 
-        function markAllNotifsRead() {
+        async function markAllNotifsRead() {
             chatContacts.forEach(c => c.unread = 0);
+            // DB 알림도 모두 읽음 처리
+            if (window.sbClient && InterpreterApp && InterpreterApp._notifications) {
+                var unreadIds = InterpreterApp._notifications.filter(function(n) { return !n.is_read; }).map(function(n) { return n.id; });
+                if (unreadIds.length > 0) {
+                    try {
+                        await window.sbClient.from('24_알림').update({ is_read: true, read_at: new Date().toISOString() }).in('id', unreadIds);
+                        InterpreterApp._notifications.forEach(function(n) { n.is_read = true; });
+                    } catch(e) { console.warn('알림 일괄 읽음 처리 실패:', e); }
+                }
+            }
             updateChatBadges(); renderNotifPanel(); renderChatContacts();
             showToast('✅ 모든 알림을 읽음 처리했습니다.');
         }
@@ -5067,6 +5144,76 @@
                     document.getElementById('pfAvatarIcon').style.display = 'none';
                 }
             } catch(e) {}
+        }
+
+        // ═══ 나의 단가 변경 이력 로드 ═══
+        async function loadMyRateHistory() {
+            var area = document.getElementById('myRateHistoryArea');
+            if (!area) return;
+            var sb = window.sbClient;
+            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) {
+                area.innerHTML = '<span style="color:#999;">로그인 후 확인 가능합니다.</span>';
+                return;
+            }
+            try {
+                var { data: history, error } = await sb
+                    .from('91_단가변경이력')
+                    .select('*')
+                    .eq('interpreter_id', InterpreterApp.currentUser.id)
+                    .order('changed_at', { ascending: false })
+                    .limit(20);
+
+                if (error || !history || history.length === 0) {
+                    area.innerHTML = '<span style="color:#999;font-size:0.8rem;">변경 이력이 없습니다.</span>';
+                    return;
+                }
+
+                var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
+                var actionLabel = { approved: '✅ 승인', rejected: '❌ 반려', admin_edit: '✏️ 관리자 조정' };
+                var actionColor = { approved: '#2e7d32', rejected: '#c62828', admin_edit: '#1565c0' };
+
+                var html = '<div style="max-height:300px;overflow-y:auto;">';
+                html += '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">';
+                html += '<thead><tr style="background:#e3f0ff;">';
+                html += '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#1565c0;border-bottom:1.5px solid #bbdefb;">일시</th>';
+                html += '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#1565c0;border-bottom:1.5px solid #bbdefb;">구분</th>';
+                html += '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#1565c0;border-bottom:1.5px solid #bbdefb;">변경 전</th>';
+                html += '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#1565c0;border-bottom:1.5px solid #bbdefb;">변경 후</th>';
+                html += '</tr></thead><tbody>';
+
+                history.forEach(function(h) {
+                    var dateStr = new Date(h.changed_at).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    var actionType = h.action_type || 'approved';
+                    var prevRates = h.previous_rates || {};
+                    var newRates = h.new_rates || {};
+
+                    var prevLines = [];
+                    var newLines = [];
+                    var allKeys = Object.keys(Object.assign({}, prevRates, newRates));
+                    allKeys.forEach(function(k) {
+                        var pv = Number(prevRates[k] || 0);
+                        var nv = Number(newRates[k] || 0);
+                        var label = typeNames[k] || k;
+                        var changed = pv !== nv;
+                        prevLines.push('<span' + (changed ? ' style="color:#c62828;"' : '') + '>' + label + ': ₩' + pv.toLocaleString() + '</span>');
+                        newLines.push('<span' + (changed ? ' style="color:#2e7d32;font-weight:700;"' : '') + '>' + label + ': ₩' + nv.toLocaleString() + '</span>');
+                    });
+
+                    var reason = h.reason || '';
+                    html += '<tr style="border-bottom:1px solid #f0f0f0;">';
+                    html += '<td style="padding:8px 10px;vertical-align:top;white-space:nowrap;">' + dateStr + '</td>';
+                    html += '<td style="padding:8px 10px;vertical-align:top;font-weight:700;color:' + (actionColor[actionType] || '#333') + ';">' + (actionLabel[actionType] || actionType) + (reason ? '<br><span style="font-size:0.7rem;font-weight:400;color:#999;">사유: ' + reason + '</span>' : '') + '</td>';
+                    html += '<td style="padding:8px 10px;vertical-align:top;line-height:1.8;">' + prevLines.join('<br>') + '</td>';
+                    html += '<td style="padding:8px 10px;vertical-align:top;line-height:1.8;">' + newLines.join('<br>') + '</td>';
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table></div>';
+                area.innerHTML = html;
+            } catch(e) {
+                console.warn('[RateHistory] 로드 실패:', e);
+                area.innerHTML = '<span style="color:#c62828;font-size:0.8rem;">이력 로드 실패</span>';
+            }
         }
 
         // ═══ 단가 승인 상태 배너 렌더링 ═══
