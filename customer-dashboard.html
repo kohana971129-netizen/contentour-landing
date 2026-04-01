@@ -1096,7 +1096,7 @@
       const navItems = document.querySelectorAll('.nav-item');
       if (navMap[v] !== undefined && navItems[navMap[v]]) navItems[navMap[v]].classList.add('active');
       if (v === 'journal') { journalLoadFromDB(); renderJournalList(); }
-      if (v === 'schedule') schInit();
+      if (v === 'schedule') { schLoadFromDB(); schInit(); }
       if (v === 'chat') { renderChatContacts(); chatLoadFromDB(); }
       if (v === 'contract') { _contractsDbLoaded = false; renderContracts(); contractsLoadFromDB(); }
       if (v === 'list') { loadMyInquiries(); }
@@ -1121,6 +1121,82 @@
     }
 
     let schY = 2026, schM = 2, schSelDate = null, schInitDone = false;
+    var _schDbLoaded = false;
+
+    async function schLoadFromDB() {
+        if (_schDbLoaded) return;
+        var sb = window.sbClient;
+        if (!sb) return;
+        try {
+            var { data: { user } } = await sb.auth.getUser();
+            if (!user) return;
+
+            // 계약 데이터 조회
+            var { data: contractData, error } = await sb
+                .from('42_통역계약')
+                .select('*, interpreter:interpreter_id(display_name)')
+                .eq('customer_id', user.id)
+                .order('start_date', { ascending: true });
+
+            if (error) throw error;
+            if (!contractData || contractData.length === 0) return;
+
+            // 통역사 프로필 조회 (이름 표시용)
+            var interpIds = contractData.map(function(c) { return c.interpreter_id; }).filter(Boolean);
+            var interpMap = {};
+            if (interpIds.length > 0) {
+                var { data: interpData } = await sb
+                    .from('40_통역사프로필')
+                    .select('user_id, display_name')
+                    .in('user_id', interpIds);
+                if (interpData) {
+                    interpData.forEach(function(p) { interpMap[p.user_id] = p.display_name; });
+                }
+            }
+
+            // schData 배열에 데이터 추가
+            var statusMap = {
+                pending: '검토중',
+                deposit_paid: '매칭완료',
+                in_progress: '파견확정',
+                completed: '파견확정',
+                settled: '파견확정',
+                cancelled: '취소'
+            };
+            var statusClsMap = {
+                '파견확정': 'st-confirmed',
+                '매칭완료': 'st-matched',
+                '검토중': 'st-review'
+            };
+            var colors = ['#1565c0','#0277bd','#00695c','#6a1b9a','#c62828','#2e7d32','#e65100','#4527a0'];
+
+            schData.length = 0; // 기존 데이터 클리어
+            contractData.forEach(function(c, i) {
+                if (c.status === 'cancelled') return;
+                var interpName = interpMap[c.interpreter_id] || '배정 대기';
+                var uiStatus = statusMap[c.status] || '검토중';
+                schData.push({
+                    expo: c.exhibition_name || '전시회',
+                    location: c.venue || '',
+                    start: c.start_date,
+                    end: c.end_date,
+                    lang: c.language_pair || '',
+                    type: c.service_type || '통역',
+                    interp: interpName,
+                    interpColor: colors[i % colors.length],
+                    status: uiStatus,
+                    statusCls: statusClsMap[uiStatus] || 'st-review'
+                });
+            });
+
+            _schDbLoaded = true;
+            schInitDone = false; // 재렌더링을 위해 리셋
+            schInit();
+            console.log('[Schedule] DB 로드 완료:', schData.length + '건');
+        } catch(e) {
+            console.warn('[Schedule] DB 로드 실패:', e);
+        }
+    }
 
     function schInit() {
       if (!schInitDone) { schInitDone = true; schGoToday(); }
@@ -4990,6 +5066,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       const dateEl = document.getElementById('j-date');
       if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+      schLoadFromDB();
       schInit();
       updateChatBadges();
       setupDragDrop(); // #1
