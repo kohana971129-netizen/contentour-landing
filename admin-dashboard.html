@@ -3629,6 +3629,10 @@
             <a class="sb-item" href="admin-interpreters.html">
                 <span class="sb-item__icon">👥</span> 통역사 관리
             </a>
+            <a class="sb-item" id="sb-interp-verify" onclick="switchTab('interp-verify')">
+                <span class="sb-item__icon">💰</span> 통역사 단가 관리
+                <span class="sb-item__badge" id="ratePendingBadge" style="display:none;background:#e65100;">0</span>
+            </a>
             <a class="sb-item" id="sb-customers" onclick="switchTab('customers')">
                 <span class="sb-item__icon">🏢</span> 고객사 관리
             </a>
@@ -7308,6 +7312,12 @@
                 e = document.getElementById('interp-kpi-review'); if (e) e.textContent = review;
                 e = document.getElementById('interp-kpi-none'); if (e) e.textContent = none;
                 e = document.getElementById('interp-kpi-rate-pending'); if (e) e.textContent = ratePending;
+                // 사이드바 뱃지 업데이트
+                var badge = document.getElementById('ratePendingBadge');
+                if (badge) {
+                    if (ratePending > 0) { badge.textContent = ratePending; badge.style.display = ''; }
+                    else { badge.style.display = 'none'; }
+                }
             }
 
             function filterInterp(status, btn) {
@@ -7514,20 +7524,65 @@
                     html += '<button onclick="rejectRate(\'' + userId + '\')" style="padding:8px 20px;border:none;color:#fff;background:#c62828;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.82rem;">반려 확정</button>';
                     html += '</div>';
                 } else {
-                    html += row('기본 단가', '₩' + (p.base_rate || 0).toLocaleString() + ' /일');
                     var rateByType = p.rate_by_type || {};
+                    var rateByLang = p.rate_by_language || {};
+                    var typeNamesEdit = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
+                    var langNamesEdit = { en: '영어', jp: '일본어', cn: '중국어', de: '독일어', vn: '베트남어', ar: '아랍어' };
+
+                    // 현재 단가 표시
+                    html += row('기본 단가', '₩' + (p.base_rate || 0).toLocaleString() + ' /일');
                     if (Object.keys(rateByType).length > 0) {
-                        var typeNames = { 'booth': '부스 상주', 'meeting': '미팅 동행', 'conference': '컨퍼런스', 'operation': '현장 운영', 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'ONSITE_OPS': '현장 운영' };
                         Object.keys(rateByType).forEach(function(k) {
-                            html += row((typeNames[k] || k) + ' 단가', '₩' + Number(rateByType[k]).toLocaleString());
+                            html += row((typeNamesEdit[k] || k) + ' 단가', '₩' + Number(rateByType[k]).toLocaleString());
                         });
                     }
-                    var rateByLang = p.rate_by_language || {};
                     if (Object.keys(rateByLang).length > 0) {
                         Object.keys(rateByLang).forEach(function(k) {
-                            html += row(k + ' 단가', '₩' + Number(rateByLang[k]).toLocaleString());
+                            html += row((langNamesEdit[k] || k) + ' 언어 가산', '+₩' + Number(rateByLang[k]).toLocaleString());
                         });
                     }
+
+                    // 관리자 직접 단가 조정 버튼
+                    html += '<div style="margin-top:12px;">';
+                    html += '<button onclick="toggleAdminRateEdit(\'' + userId + '\')" style="padding:8px 20px;border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.82rem;">✏️ 관리자 직접 단가 조정</button>';
+                    html += '</div>';
+
+                    // 관리자 단가 편집 폼 (숨김)
+                    html += '<div id="adminRateEditArea" style="display:none;margin-top:14px;background:#f0f5ff;border:1.5px solid #bbdefb;border-radius:12px;padding:16px;">';
+                    html += '<div style="font-weight:800;font-size:0.85rem;color:#1565c0;margin-bottom:12px;">관리자 직접 단가 조정</div>';
+
+                    // 유형별 단가 입력
+                    ['booth','meeting','conference','operation'].forEach(function(type) {
+                        var curVal = Number(rateByType[type] || 0);
+                        html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">';
+                        html += '<label style="width:90px;font-size:0.8rem;font-weight:600;">' + (typeNamesEdit[type] || type) + '</label>';
+                        html += '<input type="number" id="admin-rate-' + type + '" value="' + curVal + '" style="flex:1;padding:8px 12px;border:1.5px solid #dbeafe;border-radius:8px;font-size:0.82rem;font-family:inherit;" placeholder="원">';
+                        html += '</div>';
+                    });
+
+                    // 언어별 가산 단가 입력
+                    html += '<div style="font-weight:700;font-size:0.8rem;color:#666;margin:12px 0 8px;">언어별 가산 단가</div>';
+                    ['en','jp','cn','de','vn','ar'].forEach(function(lang) {
+                        var curVal = Number(rateByLang[lang] || 0);
+                        if (curVal === 0 && !p.languages) return; // 설정 안 된 언어는 기본 표시
+                        html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">';
+                        html += '<label style="width:90px;font-size:0.8rem;font-weight:600;">' + (langNamesEdit[lang] || lang) + '</label>';
+                        html += '<input type="number" id="admin-lang-' + lang + '" value="' + curVal + '" style="flex:1;padding:8px 12px;border:1.5px solid #dbeafe;border-radius:8px;font-size:0.82rem;font-family:inherit;" placeholder="원">';
+                        html += '</div>';
+                    });
+
+                    // 조정 사유
+                    html += '<div style="margin-top:12px;">';
+                    html += '<label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:4px;">조정 사유</label>';
+                    html += '<input type="text" id="adminRateReason" placeholder="예: 시장 단가 조정, 경력 반영, 프리미엄 통역사 등" style="width:100%;padding:8px 12px;border:1.5px solid #dbeafe;border-radius:8px;font-size:0.82rem;font-family:inherit;">';
+                    html += '</div>';
+
+                    // 저장 버튼
+                    html += '<div style="margin-top:14px;display:flex;gap:10px;">';
+                    html += '<button onclick="saveAdminRateEdit(\'' + userId + '\')" style="padding:8px 20px;border:none;color:#fff;background:linear-gradient(135deg,#1565c0,#0d47a1);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.82rem;">💾 단가 저장</button>';
+                    html += '<button onclick="document.getElementById(\'adminRateEditArea\').style.display=\'none\'" style="padding:8px 20px;border:1.5px solid #e5e7eb;color:#6b7280;background:#fff;border-radius:10px;cursor:pointer;font-weight:600;font-size:0.82rem;">취소</button>';
+                    html += '</div>';
+                    html += '</div>';
                 }
 
                 // 단가 변경 이력
@@ -7591,7 +7646,7 @@
 
                     var tbl = '<div style="max-height:260px;overflow-y:auto;">';
                     tbl += '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">';
-                    tbl += '<thead><tr style="background:#f0f5ff;"><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경일시</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경 전 단가</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경 후 단가</th></tr></thead><tbody>';
+                    tbl += '<thead><tr style="background:#f0f5ff;"><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경일시</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">구분</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">처리자</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경 전</th><th style="padding:8px 10px;text-align:left;font-weight:700;color:#1e40af;border-bottom:1.5px solid #dbeafe;">변경 후</th></tr></thead><tbody>';
 
                     history.forEach(function(h) {
                         var dateStr = new Date(h.changed_at).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
@@ -7625,8 +7680,17 @@
                             }
                         });
 
+                        // 구분 및 처리자 정보
+                        var actionType = h.action_type || 'approved';
+                        var actionLabel = { approved: '✅ 승인', rejected: '❌ 반려', admin_edit: '✏️ 관리자 조정' };
+                        var actionColor = { approved: '#2e7d32', rejected: '#c62828', admin_edit: '#1565c0' };
+                        var actorName = h.actor_name || '-';
+                        var reason = h.reason || '';
+
                         tbl += '<tr style="border-bottom:1px solid #f0f0f0;">';
                         tbl += '<td style="padding:8px 10px;vertical-align:top;white-space:nowrap;">' + dateStr + '</td>';
+                        tbl += '<td style="padding:8px 10px;vertical-align:top;font-weight:700;color:' + (actionColor[actionType] || '#333') + ';">' + (actionLabel[actionType] || actionType) + (reason ? '<br><span style="font-size:0.7rem;font-weight:400;color:#999;">사유: ' + reason + '</span>' : '') + '</td>';
+                        tbl += '<td style="padding:8px 10px;vertical-align:top;font-size:0.78rem;">' + actorName + '</td>';
                         tbl += '<td style="padding:8px 10px;vertical-align:top;line-height:1.8;">' + prevLines.join('<br>') + '</td>';
                         tbl += '<td style="padding:8px 10px;vertical-align:top;line-height:1.8;">' + newLines.join('<br>') + '</td>';
                         tbl += '</tr>';
@@ -7657,6 +7721,10 @@
                 if (!p || !p.pending_rate_by_type) { showToast('⚠️ 승인할 단가 변경이 없습니다.'); return; }
 
                 try {
+                    // 현재 관리자 정보
+                    var adminProfile = await ContentourAuth.getUserProfile();
+                    var adminName = (adminProfile && adminProfile.name) || '관리자';
+
                     // 기존 단가 백업 (이력용)
                     var prevRates = p.rate_by_type || {};
                     var prevLangRates = p.rate_by_language || {};
@@ -7674,7 +7742,7 @@
 
                     if (error) throw error;
 
-                    // 단가 변경 이력 삽입
+                    // 단가 변경 이력 삽입 (감사 로그 포함)
                     try {
                         await supabase.from('91_단가변경이력').insert({
                             interpreter_id: userId,
@@ -7682,7 +7750,10 @@
                             previous_rates: prevRates,
                             new_rates: p.pending_rate_by_type,
                             previous_lang_rates: prevLangRates,
-                            new_lang_rates: p.pending_rate_by_language || {}
+                            new_lang_rates: p.pending_rate_by_language || {},
+                            action_type: 'approved',
+                            actor_id: adminProfile ? adminProfile.id : null,
+                            actor_name: adminName
                         });
                     } catch(e) { console.warn('단가 변경 이력 저장 실패:', e); }
 
@@ -7712,6 +7783,16 @@
                 if (!reason) { showToast('⚠️ 반려 사유를 입력해주세요.'); return; }
 
                 try {
+                    // 현재 관리자 정보
+                    var adminProfile = await ContentourAuth.getUserProfile();
+                    var adminName = (adminProfile && adminProfile.name) || '관리자';
+
+                    var p = _interpAllData.find(function(x) { return x.user_id === userId; });
+                    var prevRates = p ? (p.rate_by_type || {}) : {};
+                    var prevLangRates = p ? (p.rate_by_language || {}) : {};
+                    var pendRates = p ? (p.pending_rate_by_type || {}) : {};
+                    var pendLangRates = p ? (p.pending_rate_by_language || {}) : {};
+
                     var { error } = await supabase.from('40_통역사프로필').update({
                         rate_status: 'rejected',
                         rate_rejected_reason: reason,
@@ -7720,6 +7801,22 @@
                     }).eq('user_id', userId);
 
                     if (error) throw error;
+
+                    // 반려 이력 기록 (감사 로그)
+                    try {
+                        await supabase.from('91_단가변경이력').insert({
+                            interpreter_id: userId,
+                            interpreter_name: p ? (p.display_name || p.user?.name || '통역사') : '통역사',
+                            previous_rates: prevRates,
+                            new_rates: pendRates,
+                            previous_lang_rates: prevLangRates,
+                            new_lang_rates: pendLangRates,
+                            action_type: 'rejected',
+                            actor_id: adminProfile ? adminProfile.id : null,
+                            actor_name: adminName,
+                            reason: reason
+                        });
+                    } catch(e) { console.warn('반려 이력 저장 실패:', e); }
 
                     // 통역사에게 알림 발송
                     try {
@@ -7738,6 +7835,92 @@
                 } catch(e) {
                     console.error('단가 반려 실패:', e);
                     showToast('⚠️ 단가 반려 실패: ' + (e.message || ''));
+                }
+            }
+
+            // ═══ 관리자 직접 단가 조정 ═══
+            function toggleAdminRateEdit(userId) {
+                var area = document.getElementById('adminRateEditArea');
+                if (area) area.style.display = area.style.display === 'none' ? 'block' : 'none';
+            }
+
+            async function saveAdminRateEdit(userId) {
+                if (!supabase) return;
+                var p = _interpAllData.find(function(x) { return x.user_id === userId; });
+                if (!p) { showToast('⚠️ 통역사 정보를 찾을 수 없습니다.'); return; }
+
+                var reason = (document.getElementById('adminRateReason')?.value || '').trim();
+                if (!reason) { showToast('⚠️ 조정 사유를 입력해주세요.'); return; }
+
+                // 관리자 정보
+                var adminProfile = await ContentourAuth.getUserProfile();
+                var adminName = (adminProfile && adminProfile.name) || '관리자';
+
+                // 기존 단가 백업
+                var prevRates = p.rate_by_type || {};
+                var prevLangRates = p.rate_by_language || {};
+
+                // 새 단가 수집
+                var newRates = {};
+                ['booth','meeting','conference','operation'].forEach(function(type) {
+                    var input = document.getElementById('admin-rate-' + type);
+                    if (input) { var val = parseInt(input.value) || 0; if (val > 0) newRates[type] = val; }
+                });
+                var newLangRates = {};
+                ['en','jp','cn','de','vn','ar'].forEach(function(lang) {
+                    var input = document.getElementById('admin-lang-' + lang);
+                    if (input) { var val = parseInt(input.value) || 0; if (val > 0) newLangRates[lang] = val; }
+                });
+
+                if (Object.keys(newRates).length === 0) { showToast('⚠️ 최소 1개 이상의 유형별 단가를 입력해주세요.'); return; }
+
+                try {
+                    // 프로필 업데이트 (직접 반영, 승인 대기 없음)
+                    var { error } = await supabase.from('40_통역사프로필').update({
+                        rate_by_type: newRates,
+                        rate_by_language: newLangRates,
+                        base_rate: newRates.booth || p.base_rate,
+                        rate_status: 'approved',
+                        rate_rejected_reason: null,
+                        pending_rate_by_type: null,
+                        pending_rate_by_language: null
+                    }).eq('user_id', userId);
+
+                    if (error) throw error;
+
+                    // 감사 로그 기록
+                    try {
+                        await supabase.from('91_단가변경이력').insert({
+                            interpreter_id: userId,
+                            interpreter_name: p.display_name || p.user?.name || '통역사',
+                            previous_rates: prevRates,
+                            new_rates: newRates,
+                            previous_lang_rates: prevLangRates,
+                            new_lang_rates: newLangRates,
+                            action_type: 'admin_edit',
+                            actor_id: adminProfile ? adminProfile.id : null,
+                            actor_name: adminName,
+                            reason: reason
+                        });
+                    } catch(e) { console.warn('관리자 단가 조정 이력 저장 실패:', e); }
+
+                    // 통역사에게 알림
+                    try {
+                        await supabase.from('24_알림').insert({
+                            user_id: userId,
+                            notification_type: 'rate_admin_edit',
+                            title: '✏️ 관리자에 의해 단가가 조정되었습니다',
+                            message: '관리자가 회원님의 단가를 직접 조정하였습니다.\n사유: ' + reason + '\n\n대시보드에서 변경된 단가를 확인해주세요.',
+                            is_read: false
+                        });
+                    } catch(e) { console.warn('통역사 알림 발송 실패:', e); }
+
+                    showToast('✅ 단가가 관리자에 의해 직접 조정되었습니다.');
+                    closeInterpModal();
+                    loadInterpVerifyList();
+                } catch(e) {
+                    console.error('관리자 단가 조정 실패:', e);
+                    showToast('⚠️ 단가 조정 실패: ' + (e.message || ''));
                 }
             }
 
