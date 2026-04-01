@@ -76,8 +76,8 @@
         .pi-card { background: #fff; border-radius: 16px; border: 1px solid #e8ecf2; padding: 28px 24px; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
         .pi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); border-color: #1565c0; }
         .pi-card__top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
-        .pi-card__avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1565c0, #0d47a1); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.2rem; flex-shrink: 0; }
-        .pi-card__avatar img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; }
+        .pi-card__avatar { width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(135deg, #1565c0, #0d47a1); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(21,101,192,0.25); border: 3px solid #fff; }
+        .pi-card__avatar img { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; }
         .pi-card__info { flex: 1; min-width: 0; }
         .pi-card__name { font-size: 1rem; font-weight: 800; color: #1a2a4a; }
         .pi-card__role { font-size: 0.78rem; color: #8a95a8; margin-top: 2px; }
@@ -130,7 +130,7 @@
         .diq { background: #f0f4ff; border-radius: 14px; padding: 24px; margin-top: 8px; }
         .diq__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
         .diq__interp { display: flex; align-items: center; gap: 12px; }
-        .diq__photo { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #1565c0; }
+        .diq__photo { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2.5px solid #1565c0; box-shadow: 0 3px 10px rgba(21,101,192,0.2); }
         .diq__name { font-size: 0.9rem; font-weight: 800; color: #0a2a5e; }
         .diq__role { font-size: 0.72rem; color: #666; }
         .diq__title { font-size: 0.95rem; font-weight: 800; color: #1565c0; }
@@ -1008,20 +1008,29 @@
             var v = Array.isArray(arr) ? arr[0] : arr;
             return '₩' + v.toLocaleString() + '~';
         }
-        var avatarColors = ['#1565c0','#0d47a1','#e65100','#2e7d32','#6a1b9a','#c62828','#00838f','#4e342e'];
+        var avatarGradients = [
+            ['#1565c0','#42a5f5'], ['#0d47a1','#1e88e5'], ['#e65100','#ff9800'],
+            ['#2e7d32','#66bb6a'], ['#6a1b9a','#ab47bc'], ['#c62828','#ef5350'],
+            ['#00838f','#4dd0e1'], ['#4e342e','#8d6e63'], ['#283593','#5c6bc0'],
+            ['#00695c','#26a69a'], ['#ad1457','#ec407a'], ['#37474f','#78909c']
+        ];
         function getInitial(name) {
             if (!name) return '?';
             var n = name.replace(/\s/g,'');
             return n.charAt(0);
         }
         function avatarHtml(photo, name, size) {
-            size = size || 56;
-            if (photo) return '<img src="' + photo + '" alt="' + name + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;">';
+            size = size || 68;
+            if (photo) return '<img src="' + photo + '" alt="' + name + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,0.15);">';
             var idx = 0;
             for(var i=0;i<name.length;i++) idx += name.charCodeAt(i);
-            var color = avatarColors[idx % avatarColors.length];
-            var fs = Math.round(size * 0.42);
-            return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:linear-gradient(135deg,' + color + ',' + color + 'cc);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:' + fs + 'px;">' + getInitial(name) + '</div>';
+            var grad = avatarGradients[idx % avatarGradients.length];
+            var fs = Math.round(size * 0.38);
+            var shadow = 'box-shadow:0 4px 14px ' + grad[0] + '40;';
+            return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:linear-gradient(145deg,' + grad[0] + ',' + grad[1] + ');display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:' + fs + 'px;letter-spacing:-1px;border:3px solid #fff;' + shadow + 'position:relative;">' +
+                '<span style="position:relative;z-index:1;">' + getInitial(name) + '</span>' +
+                '<div style="position:absolute;bottom:0;right:0;width:' + Math.round(size*0.32) + 'px;height:' + Math.round(size*0.32) + 'px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:' + Math.round(size*0.18) + 'px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">&#127760;</div>' +
+            '</div>';
         }
 
         // 1행 국가: us, jp, cn, de → interpPanel
@@ -1138,7 +1147,7 @@
             // 헤더
             document.getElementById('ipModalHeader').innerHTML =
                 '<button class="ip-modal__close" onclick="closeIpModal()">&times;</button>' +
-                '<div class="ip-modal__photo">' + avatarHtml(p.photo, p.name, 80) + '</div>' +
+                '<div class="ip-modal__photo">' + avatarHtml(p.photo, p.name, 90) + '</div>' +
                 '<div class="ip-modal__header-info">' +
                     '<div class="ip-modal__name">' + p.name + '</div>' +
                     '<div class="ip-modal__role-text">' + p.role + '</div>' +
@@ -1219,7 +1228,7 @@
             '<div class="diq">' +
               '<div class="diq__head">' +
                 '<div class="diq__interp">' +
-                  '<img src="' + photo + '" class="diq__photo">' +
+                  (photo ? '<img src="' + photo + '" class="diq__photo">' : avatarHtml('', name, 48)) +
                   '<div><div class="diq__name">' + name + '</div><div class="diq__role">' + role + ' · ' + lang + '</div></div>' +
                 '</div>' +
                 '<div class="diq__title">직접 견적 의뢰</div>' +
