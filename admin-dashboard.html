@@ -9153,6 +9153,8 @@
                 await Promise.all(promises);
                 showToast('✅ 시스템 설정이 저장되었습니다.');
                 console.log('[Settings] 저장 완료');
+                // 저장 후 DB에서 다시 로드하여 UI 반영
+                await loadSystemSettings();
             } catch (e) {
                 console.error('설정 저장 실패:', e);
                 showToast('⚠️ 설정 저장에 실패했습니다.');
