@@ -1563,7 +1563,7 @@
                     // DB 프로필이 있으면 DB 값 우선, 없으면 localStorage
                     if (window.InterpreterApp && InterpreterApp.interpProfile) {
                         // DB에서 이미 로드된 최신 단가 반영 (관리자 직접 조정 포함)
-                        InterpreterApp.applyProfileToUI();
+                        InterpreterApp.loadProfileView();
                     } else {
                         loadSavedRates();
                     }
