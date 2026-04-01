@@ -36,12 +36,13 @@
     </div>
     <nav class="sidebar__nav">
       <div class="nav-section-label">메인</div>
+      <a class="nav-item active" href="#home" onclick="switchView('home');if(event)event.preventDefault()"><span class="nav-item__icon">&#127968;</span> 홈</a>
       <a class="nav-item" href="#inquiry" onclick="switchView('inquiry');if(event)event.preventDefault()"><span class="nav-item__icon">&#128203;</span> 통역 문의 접수</a>
       <a class="nav-item" href="#list" onclick="switchView('list');if(event)event.preventDefault()"><span class="nav-item__icon">&#128194;</span> 나의 문의 현황<span class="nav-item__badge">3</span></a>
       <a class="nav-item" href="#contract" onclick="switchView('contract');if(event)event.preventDefault()"><span class="nav-item__icon">&#128196;</span> 계약·결제<span class="nav-item__badge" id="contractNavBadge">2</span></a>
       <div class="nav-section-label">관리</div>
       <a class="nav-item" href="#chat" onclick="switchView('chat');if(event)event.preventDefault()"><span class="nav-item__icon">&#128172;</span> 통역사 채팅<span class="nav-item__badge" id="chatNavBadge">2</span></a>
-      <a class="nav-item active" href="#schedule" onclick="switchView('schedule');if(event)event.preventDefault()"><span class="nav-item__icon">&#128197;</span> 일정 확인</a>
+      <a class="nav-item" href="#schedule" onclick="switchView('schedule');if(event)event.preventDefault()"><span class="nav-item__icon">&#128197;</span> 일정 확인</a>
       <a class="nav-item" href="#journal" onclick="switchView('journal');if(event)event.preventDefault()"><span class="nav-item__icon">&#128221;</span> 상담일지 작성</a>
       <div class="nav-section-label">계정</div>
       <a class="nav-item" href="#mypage" onclick="switchView('mypage');if(event)event.preventDefault()"><span class="nav-item__icon">&#128100;</span> 마이페이지</a>
@@ -56,8 +57,8 @@
       <div class="topbar__left">
         <button class="mobile-menu-btn" onclick="toggleSidebar()">&#9776;</button>
         <div>
-          <div class="topbar__title" id="topbarTitle">파견 일정 확인</div>
-          <div class="topbar__breadcrumb">홈 › 파견 일정 확인</div>
+          <div class="topbar__title" id="topbarTitle">홈</div>
+          <div class="topbar__breadcrumb">홈</div>
         </div>
       </div>
       <div class="topbar__right">
@@ -80,10 +81,11 @@
     </header>
 
     <div class="page-tabs">
+      <button class="page-tab active" id="ptab-home" onclick="switchView('home')">&#127968; 홈</button>
       <button class="page-tab" id="ptab-inquiry" onclick="switchView('inquiry')">&#128203; 통역 문의 접수</button>
       <button class="page-tab" id="ptab-list" onclick="switchView('list')">&#128194; 나의 문의 현황 <span style="background:#e53935;color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-left:4px;">3</span></button>
       <button class="page-tab" id="ptab-contract" onclick="switchView('contract')">&#128196; 계약·결제 <span style="background:#f57c00;color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-left:4px;" id="contractTabBadge">2</span></button>
-      <button class="page-tab active" id="ptab-schedule" onclick="switchView('schedule')">&#128197; 파견 일정 확인</button>
+      <button class="page-tab" id="ptab-schedule" onclick="switchView('schedule')">&#128197; 파견 일정 확인</button>
       <button class="page-tab" id="ptab-chat" onclick="switchView('chat')">&#128172; 통역사 채팅 <span style="background:#e53935;color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-left:4px;" id="chatTabBadge">2</span></button>
       <button class="page-tab" id="ptab-journal" onclick="switchView('journal')">&#128221; 상담일지</button>
       <button class="page-tab" id="ptab-mypage" onclick="switchView('mypage')">&#128100; 마이페이지</button>
@@ -136,8 +138,63 @@
         </div>
       </div>
 
+      <!-- VIEW: 홈 대시보드 -->
+      <div class="view active" id="view-home">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;" id="homeKpiRow">
+          <div style="background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.04);display:flex;align-items:center;gap:14px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:#e3f0ff;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">&#128196;</div>
+            <div><div style="font-size:1.4rem;font-weight:900;color:#0a2a5e;" id="homeKpiContracts">0</div><div style="font-size:0.75rem;color:#9daec8;">진행중 계약</div></div>
+          </div>
+          <div style="background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.04);display:flex;align-items:center;gap:14px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">&#128197;</div>
+            <div><div style="font-size:1.4rem;font-weight:900;color:#f57c00;" id="homeKpiSchedule">0</div><div style="font-size:0.75rem;color:#9daec8;">예정 일정</div></div>
+          </div>
+          <div style="background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.04);display:flex;align-items:center;gap:14px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">&#128179;</div>
+            <div><div style="font-size:1.4rem;font-weight:900;color:#c62828;" id="homeKpiUnpaid">0</div><div style="font-size:0.75rem;color:#9daec8;">미결제</div></div>
+          </div>
+          <div style="background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 2px 10px rgba(0,0,0,0.04);display:flex;align-items:center;gap:14px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">&#9989;</div>
+            <div><div style="font-size:1.4rem;font-weight:900;color:#2e7d32;" id="homeKpiCompleted">0</div><div style="font-size:0.75rem;color:#9daec8;">완료</div></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+          <!-- 예정 일정 -->
+          <div style="background:#fff;border-radius:14px;padding:20px 22px;box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+            <div style="font-weight:800;font-size:0.95rem;color:#0a2a5e;margin-bottom:14px;">&#128197; 다가오는 일정</div>
+            <div id="homeUpcoming" style="font-size:0.85rem;color:#9daec8;">로딩 중...</div>
+          </div>
+          <!-- 최근 알림 -->
+          <div style="background:#fff;border-radius:14px;padding:20px 22px;box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+            <div style="font-weight:800;font-size:0.95rem;color:#0a2a5e;margin-bottom:14px;">&#128276; 최근 알림</div>
+            <div id="homeNotifs" style="font-size:0.85rem;color:#9daec8;">로딩 중...</div>
+          </div>
+        </div>
+
+        <!-- 빠른 바로가기 -->
+        <div style="margin-top:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+          <button onclick="switchView('inquiry')" style="padding:16px;background:#fff;border:1.5px solid #e5eaf2;border-radius:12px;cursor:pointer;text-align:center;font-family:inherit;">
+            <div style="font-size:1.5rem;margin-bottom:6px;">&#128203;</div>
+            <div style="font-size:0.82rem;font-weight:700;color:#0a2a5e;">통역 문의</div>
+          </button>
+          <button onclick="switchView('contract')" style="padding:16px;background:#fff;border:1.5px solid #e5eaf2;border-radius:12px;cursor:pointer;text-align:center;font-family:inherit;">
+            <div style="font-size:1.5rem;margin-bottom:6px;">&#128196;</div>
+            <div style="font-size:0.82rem;font-weight:700;color:#0a2a5e;">계약 관리</div>
+          </button>
+          <button onclick="switchView('chat')" style="padding:16px;background:#fff;border:1.5px solid #e5eaf2;border-radius:12px;cursor:pointer;text-align:center;font-family:inherit;">
+            <div style="font-size:1.5rem;margin-bottom:6px;">&#128172;</div>
+            <div style="font-size:0.82rem;font-weight:700;color:#0a2a5e;">통역사 채팅</div>
+          </button>
+          <button onclick="switchView('schedule')" style="padding:16px;background:#fff;border:1.5px solid #e5eaf2;border-radius:12px;cursor:pointer;text-align:center;font-family:inherit;">
+            <div style="font-size:1.5rem;margin-bottom:6px;">&#128197;</div>
+            <div style="font-size:0.82rem;font-weight:700;color:#0a2a5e;">일정 확인</div>
+          </button>
+        </div>
+      </div>
+
       <!-- VIEW: 파견 일정 확인 -->
-      <div class="view active" id="view-schedule">
+      <div class="view" id="view-schedule">
         <div class="sch-layout">
           <div class="sch-cal-card">
             <div class="sch-cal-header">
@@ -1086,21 +1143,116 @@
       var tabEl = document.getElementById('ptab-' + v);
       if (viewEl) viewEl.classList.add('active');
       if (tabEl) tabEl.classList.add('active');
-      const titles = { inquiry:'통역 문의 접수', list:'나의 문의 현황', contract:'계약·결제 관리', schedule:'파견 일정 확인', chat:'통역사 채팅', journal:'상담일지 작성', mypage:'마이페이지' };
+      const titles = { home:'홈', inquiry:'통역 문의 접수', list:'나의 문의 현황', contract:'계약·결제 관리', schedule:'파견 일정 확인', chat:'통역사 채팅', journal:'상담일지 작성', mypage:'마이페이지' };
       document.getElementById('topbarTitle').textContent = titles[v] || '';
       // 의뢰 현황 카드: 의뢰 접수/문의 현황 뷰에서만 표시
       const inquiryCards = document.getElementById('inquirySummaryCards');
       if (inquiryCards) inquiryCards.style.display = (v === 'inquiry' || v === 'list') ? '' : 'none';
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      const navMap = { inquiry:0, list:1, contract:2, chat:3, schedule:4, journal:5, mypage:6 };
+      const navMap = { home:0, inquiry:1, list:2, contract:3, chat:4, schedule:5, journal:6, mypage:7 };
       const navItems = document.querySelectorAll('.nav-item');
       if (navMap[v] !== undefined && navItems[navMap[v]]) navItems[navMap[v]].classList.add('active');
+      if (v === 'home') { loadHomeDashboard(); }
       if (v === 'journal') { journalLoadFromDB(); renderJournalList(); }
       if (v === 'schedule') { schLoadFromDB(); schInit(); }
       if (v === 'chat') { renderChatContacts(); chatLoadFromDB(); }
       if (v === 'contract') { _contractsDbLoaded = false; renderContracts(); contractsLoadFromDB(); }
       if (v === 'list') { loadMyInquiries(); }
       if (v === 'mypage') { loyRenderAll(); mypRenderStats(); }
+    }
+
+    // ══════════════ 홈 대시보드 ══════════════
+    async function loadHomeDashboard() {
+        var sb = window.sbClient;
+        if (!sb) return;
+        try {
+            var { data: { user } } = await sb.auth.getUser();
+            if (!user) return;
+
+            // 계약 데이터 조회
+            var { data: contracts } = await sb
+                .from('42_통역계약')
+                .select('*')
+                .eq('customer_id', user.id)
+                .order('start_date', { ascending: true });
+            contracts = contracts || [];
+
+            var today = new Date().toISOString().split('T')[0];
+            var active = contracts.filter(function(c) { return c.status === 'in_progress' || c.status === 'deposit_paid'; }).length;
+            var upcoming = contracts.filter(function(c) { return c.start_date >= today && c.status !== 'cancelled'; }).length;
+            var unpaid = contracts.filter(function(c) { return (c.deposit_status !== 'paid' || c.balance_status !== 'paid') && c.status !== 'cancelled' && c.status !== 'settled'; }).length;
+            var completed = contracts.filter(function(c) { return c.status === 'completed' || c.status === 'settled'; }).length;
+
+            // KPI 업데이트
+            var el;
+            el = document.getElementById('homeKpiContracts'); if (el) el.textContent = active;
+            el = document.getElementById('homeKpiSchedule'); if (el) el.textContent = upcoming;
+            el = document.getElementById('homeKpiUnpaid'); if (el) el.textContent = unpaid;
+            el = document.getElementById('homeKpiCompleted'); if (el) el.textContent = completed;
+
+            // 다가오는 일정
+            var upcomingList = contracts
+                .filter(function(c) { return c.end_date >= today && c.status !== 'cancelled'; })
+                .sort(function(a, b) { return a.start_date.localeCompare(b.start_date); })
+                .slice(0, 5);
+
+            var upEl = document.getElementById('homeUpcoming');
+            if (upEl) {
+                if (upcomingList.length === 0) {
+                    upEl.innerHTML = '<div style="color:#9daec8;padding:10px 0;">예정된 일정이 없습니다.</div>';
+                } else {
+                    upEl.innerHTML = upcomingList.map(function(c) {
+                        var diff = Math.ceil((new Date(c.start_date) - new Date(today)) / 86400000);
+                        var dday = diff < 0 ? '진행중' : diff === 0 ? 'D-Day' : 'D-' + diff;
+                        var ddayColor = diff <= 0 ? '#2e7d32' : diff <= 7 ? '#f57c00' : '#1565c0';
+                        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f4f6fb;">' +
+                            '<div style="padding:4px 10px;background:' + ddayColor + '14;color:' + ddayColor + ';border-radius:8px;font-size:0.75rem;font-weight:800;white-space:nowrap;">' + dday + '</div>' +
+                            '<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:0.85rem;color:#0a2a5e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (c.exhibition_name || '') + '</div>' +
+                            '<div style="font-size:0.75rem;color:#9daec8;">' + c.start_date + ' ~ ' + c.end_date + ' · ' + (c.venue || '') + '</div></div></div>';
+                    }).join('');
+                }
+            }
+
+            // 최근 알림
+            var notiEl = document.getElementById('homeNotifs');
+            if (notiEl) {
+                try {
+                    var { data: notifs } = await sb
+                        .from('24_알림')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+
+                    if (!notifs || notifs.length === 0) {
+                        notiEl.innerHTML = '<div style="color:#9daec8;padding:10px 0;">새로운 알림이 없습니다.</div>';
+                    } else {
+                        notiEl.innerHTML = notifs.map(function(n) {
+                            var iconMap = { system: '&#128276;', service: '&#128203;', payment: '&#128179;', contract: '&#128196;', chat: '&#128172;', assignment: '&#128203;', settlement: '&#128176;' };
+                            var icon = iconMap[n.notification_type] || '&#128276;';
+                            var timeAgo = getTimeAgo(n.created_at);
+                            return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f4f6fb;' + (n.is_read ? 'opacity:0.6;' : '') + '">' +
+                                '<div style="font-size:1.1rem;flex-shrink:0;">' + icon + '</div>' +
+                                '<div style="flex:1;min-width:0;"><div style="font-weight:' + (n.is_read ? '500' : '700') + ';font-size:0.82rem;color:#0a2a5e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (n.title || '') + '</div>' +
+                                '<div style="font-size:0.72rem;color:#9daec8;">' + timeAgo + '</div></div>' +
+                                (!n.is_read ? '<div style="width:8px;height:8px;border-radius:50%;background:#e53935;flex-shrink:0;"></div>' : '') + '</div>';
+                        }).join('');
+                    }
+                } catch(e) { notiEl.innerHTML = '<div style="color:#9daec8;padding:10px 0;">알림을 불러올 수 없습니다.</div>'; }
+            }
+        } catch(e) {
+            console.warn('[Home] 대시보드 로드 실패:', e);
+        }
+    }
+
+    function getTimeAgo(dateStr) {
+        if (!dateStr) return '';
+        var diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+        if (diff < 60) return '방금 전';
+        if (diff < 3600) return Math.floor(diff / 60) + '분 전';
+        if (diff < 86400) return Math.floor(diff / 3600) + '시간 전';
+        if (diff < 604800) return Math.floor(diff / 86400) + '일 전';
+        return new Date(dateStr).toLocaleDateString('ko-KR');
     }
 
     // 캘린더 데이터
@@ -1292,7 +1444,8 @@
     // 해시 라우팅 초기화
     (function() {
       var hash = window.location.hash.replace('#', '');
-      if (hash && hash !== 'schedule') { setTimeout(function(){ switchView(hash); }, 300); }
+      if (hash && hash !== 'home') { setTimeout(function(){ switchView(hash); }, 300); }
+      else { setTimeout(function(){ loadHomeDashboard(); }, 300); }
       window.addEventListener('hashchange', function() {
         var h = window.location.hash.replace('#', '');
         if (h) switchView(h);
@@ -5066,8 +5219,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       const dateEl = document.getElementById('j-date');
       if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
-      schLoadFromDB();
-      schInit();
+      loadHomeDashboard();
       updateChatBadges();
       setupDragDrop(); // #1
     });
