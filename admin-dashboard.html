@@ -5162,6 +5162,19 @@
                     }
                 }
 
+                // 고객사에게 알림 발송
+                if (supabase && customerId) {
+                    try {
+                        await supabase.from('24_알림').insert({
+                            user_id: customerId,
+                            notification_type: 'service',
+                            title: '🤝 통역사가 배정되었습니다',
+                            message: '"' + (currentAssignInquiry.expo || '') + '" 건에 ' + selectedInterpreter.name + ' 통역사가 배정되었습니다. 계약·결제 탭에서 확인해주세요.',
+                            is_read: false
+                        });
+                    } catch(e) { console.warn('고객사 알림 발송 실패:', e); }
+                }
+
                 renderTable(inquiries); updateInquiryKPI();
                 closeModal();
                 showToast('✅ ' + selectedInterpreter.name + ' 통역사가 "' + currentAssignInquiry.expo + '"에 배정되었습니다.');
@@ -6636,6 +6649,21 @@
                     showToast('✅ ' + c.expo + ' 잔금 확인 완료! 정산 건이 생성되었습니다.');
                 }
 
+                // 고객사에게 서비스 완료 알림
+                if (window.sbClient && c.customer_id) {
+                    (async function() {
+                        try {
+                            await window.sbClient.from('24_알림').insert({
+                                user_id: c.customer_id,
+                                notification_type: 'service',
+                                title: '✅ 서비스가 완료되었습니다',
+                                message: '"' + c.expo + '" 통역 서비스가 완료 처리되었습니다. 이용해주셔서 감사합니다.',
+                                is_read: false
+                            });
+                        } catch(e) { console.warn('고객사 완료 알림 실패:', e); }
+                    })();
+                }
+
                 // Broadcast to customer & interpreter dashboards
                 try {
                     localStorage.removeItem('contentour_admin_approve');
@@ -7074,6 +7102,34 @@
                 currentQuoteInquiry.quoteSent = true;
                 currentQuoteInquiry.quoteData = quoteData;
                 var expoName = currentQuoteInquiry.expo;
+
+                // 고객사에게 견적 발송 알림
+                if (supabase && currentQuoteInquiry.user_id) {
+                    try {
+                        await supabase.from('24_알림').insert({
+                            user_id: currentQuoteInquiry.user_id,
+                            notification_type: 'service',
+                            title: '📨 견적서가 도착했습니다',
+                            message: '"' + expoName + '" 건의 견적서가 발송되었습니다. 총 금액: ₩' + total.toLocaleString() + '. 나의 문의 현황에서 확인해주세요.',
+                            is_read: false
+                        });
+                    } catch(e) { console.warn('고객사 견적 알림 발송 실패:', e); }
+                } else if (supabase && currentQuoteInquiry.email) {
+                    // user_id가 없으면 이메일로 회원 조회
+                    try {
+                        var { data: custUser } = await supabase.from('01_회원').select('id').eq('email', currentQuoteInquiry.email).single();
+                        if (custUser) {
+                            await supabase.from('24_알림').insert({
+                                user_id: custUser.id,
+                                notification_type: 'service',
+                                title: '📨 견적서가 도착했습니다',
+                                message: '"' + expoName + '" 건의 견적서가 발송되었습니다. 총 금액: ₩' + total.toLocaleString() + '. 나의 문의 현황에서 확인해주세요.',
+                                is_read: false
+                            });
+                        }
+                    } catch(e) { console.warn('고객사 알림 발송 실패:', e); }
+                }
+
                 closeQuoteModal();
                 renderTable(inquiries); updateInquiryKPI();
                 showToast('📨 ' + expoName + ' 견적이 고객사에게 발송되었습니다.');
