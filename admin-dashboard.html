@@ -9034,6 +9034,13 @@
                         var rr = typeof s.recommended_rates === 'string' ? JSON.parse(s.recommended_rates) : s.recommended_rates;
                         _renderRecRateTiers(rr.tiers || []);
                     } catch(e) { console.warn('추천 단가 파싱 실패:', e); }
+                } else {
+                    // DB에 데이터 없으면 기본 틀 렌더링
+                    _renderRecRateTiers([
+                        { label: '주니어 (1~3년)', min_years: 0, max_years: 3, booth:{min:150000,max:200000}, meeting:{min:150000,max:200000}, conference:{min:200000,max:250000}, operation:{min:180000,max:220000} },
+                        { label: '경력 (3~7년)', min_years: 3, max_years: 7, booth:{min:200000,max:300000}, meeting:{min:200000,max:300000}, conference:{min:250000,max:350000}, operation:{min:220000,max:320000} },
+                        { label: '시니어 (7년 이상)', min_years: 7, max_years: 99, booth:{min:300000,max:500000}, meeting:{min:300000,max:500000}, conference:{min:350000,max:550000}, operation:{min:320000,max:500000} }
+                    ]);
                 }
 
                 console.log('[Settings] 로드 완료:', Object.keys(s).length, '건');
