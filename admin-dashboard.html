@@ -5754,9 +5754,50 @@
                 }
             }
 
-            function markReviewed(id) {
+            async function markReviewed(id) {
                 const j = journals.find(x => x.id === id); if (!j) return;
                 j.status = 'reviewed';
+
+                // DB 상태 업데이트
+                if (j.dbId && typeof AdminData !== 'undefined') {
+                    var comment = j.adminComment || '';
+                    await AdminData.reviewJournal(j.dbId, comment);
+                }
+
+                // 고객사에게 알림 발송 (상담일지 검토 완료)
+                if (j.dbId && window.sbClient) {
+                    try {
+                        // 상담일지에서 고객사 ID 조회
+                        var { data: journalData } = await window.sbClient
+                            .from('44_상담일지')
+                            .select('customer_id, contract_id')
+                            .eq('id', j.dbId)
+                            .single();
+
+                        var customerId = journalData ? journalData.customer_id : null;
+
+                        // customer_id가 없으면 계약에서 조회
+                        if (!customerId && journalData && journalData.contract_id) {
+                            var { data: contractData } = await window.sbClient
+                                .from('42_통역계약')
+                                .select('customer_id')
+                                .eq('id', journalData.contract_id)
+                                .single();
+                            if (contractData) customerId = contractData.customer_id;
+                        }
+
+                        if (customerId) {
+                            await window.sbClient.from('24_알림').insert({
+                                user_id: customerId,
+                                notification_type: 'service',
+                                title: '📝 상담일지 검토가 완료되었습니다',
+                                message: '"' + (j.expo || '') + '" 건의 상담일지가 관리자 검토 완료되었습니다. 상담일지 탭에서 확인해주세요.',
+                                is_read: false
+                            });
+                        }
+                    } catch(e) { console.warn('고객사 상담일지 알림 실패:', e); }
+                }
+
                 const nc = journals.filter(x => x.status === 'new').length;
                 const dc = journals.filter(x => x.status === 'reviewed').length;
                 const kn = document.getElementById('kpi-new');
@@ -5766,7 +5807,7 @@
                 if (kd) kd.textContent = dc;
                 if (nb) nb.textContent = nc;
                 visibleJournals = [...journals]; renderJList(); loadJournal(id);
-                showToast('✅ 검토 완료 처리되었습니다.');
+                showToast('✅ 검토 완료 처리 및 고객사 전달 완료');
             }
 
             function saveComment(id) {
