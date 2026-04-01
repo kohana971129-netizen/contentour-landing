@@ -3594,7 +3594,7 @@
         </a>
         <div class="sb-admin">
             <div class="sb-admin__name" id="sbAdminName">관리자</div>
-            <div class="sb-admin__email" id="sbAdminEmail">로딩 중...</div>
+            <div class="sb-admin__email" id="sbAdminEmail">info@contentour.co.kr</div>
         </div>
         <nav class="sb-nav">
             <div class="sb-label">운영 관리</div>
@@ -8836,14 +8836,15 @@
 
         function applyAdminProfile(profile, email) {
             _adminProfile = profile;
-            var name = profile.name || '관리자';
-            var initial = name.charAt(0) || '-';
+            var name = '관리자';
+            var initial = 'C';
+            var displayEmail = 'info@contentour.co.kr';
             var el;
-            el = document.getElementById('sbAdminName'); if (el) el.textContent = name + ' 관리자';
-            el = document.getElementById('sbAdminEmail'); if (el) el.textContent = email || '';
+            el = document.getElementById('sbAdminName'); if (el) el.textContent = name;
+            el = document.getElementById('sbAdminEmail'); if (el) el.textContent = displayEmail;
             el = document.getElementById('topAdminAvatar'); if (el) el.textContent = initial;
             el = document.getElementById('topAdminName'); if (el) el.textContent = name;
-            el = document.querySelector('.sb-admin__name'); if (el && el.id !== 'sbAdminName') el.textContent = name + ' 관리자';
+            el = document.querySelector('.sb-admin__name'); if (el && el.id !== 'sbAdminName') el.textContent = name;
             el = document.querySelector('.admin-avatar'); if (el && el.id !== 'topAdminAvatar') el.textContent = initial;
             el = document.querySelector('.admin-name'); if (el && el.id !== 'topAdminName') el.textContent = name;
         }

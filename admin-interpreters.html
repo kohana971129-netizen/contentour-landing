@@ -1084,8 +1084,8 @@
             </div>
         </div>
         <div class="sb-admin">
-            <div class="sb-admin__name">이수경 관리자</div>
-            <div class="sb-admin__email">admin@contentour.co.kr</div>
+            <div class="sb-admin__name" id="sbAdminName">관리자</div>
+            <div class="sb-admin__email" id="sbAdminEmail">info@contentour.co.kr</div>
         </div>
         <nav class="sb-nav">
             <div class="sb-label">운영 관리</div>
@@ -1114,8 +1114,8 @@
                     <button class="btn-ghost" style="padding:8px 14px;font-size:0.82rem;">🔗 지원 페이지 공유</button>
                 </a>
                 <div class="tb-admin">
-                    <div class="tb-avatar">이</div>
-                    <span style="font-size:0.8rem;font-weight:700;">이수경</span>
+                    <div class="tb-avatar" id="tbAvatar">C</div>
+                    <span style="font-size:0.8rem;font-weight:700;" id="tbAdminName">관리자</span>
                 </div>
             </div>
         </header>
@@ -1574,10 +1574,28 @@
             }
         }
 
+        // 관리자 프로필 로드
+        async function loadAdminProfile() {
+            if (!_sbInterp) return;
+            try {
+                var { data: { session } } = await _sbInterp.auth.getSession();
+                if (!session) return;
+                var { data: profile } = await _sbInterp.from('01_회원').select('name, email, role').eq('id', session.user.id).single();
+                if (profile && profile.role === 'admin') {
+                    var el;
+                    el = document.getElementById('sbAdminName'); if (el) el.textContent = '관리자';
+                    el = document.getElementById('sbAdminEmail'); if (el) el.textContent = 'info@contentour.co.kr';
+                    el = document.getElementById('tbAvatar'); if (el) el.textContent = 'C';
+                    el = document.getElementById('tbAdminName'); if (el) el.textContent = '관리자';
+                }
+            } catch(e) { console.warn('관리자 프로필 로드 실패:', e); }
+        }
+
         // 초기화
         renderKPI();
         renderGrid();
         loadFromDB();
+        loadAdminProfile();
     </script>
 </body>
 
