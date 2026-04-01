@@ -9135,11 +9135,12 @@
                 try { var { data: { user } } = await supabase.auth.getUser(); userId = user?.id; } catch(e) {}
 
                 var promises = Object.keys(settings).map(function(key) {
-                    return supabase.from('90_시스템설정').update({
+                    return supabase.from('90_시스템설정').upsert({
+                        key: key,
                         value: JSON.stringify(settings[key]),
                         updated_at: new Date().toISOString(),
                         updated_by: userId
-                    }).eq('key', key);
+                    }, { onConflict: 'key' });
                 });
 
                 await Promise.all(promises);
