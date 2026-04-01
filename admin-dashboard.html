@@ -9141,33 +9141,43 @@
                 var userId = null;
                 try { var { data: { user } } = await supabase.auth.getUser(); userId = user?.id; } catch(e) {}
 
+                // 기존 키 목록 조회
+                var { data: existingRows } = await supabase.from('90_시스템설정').select('key');
+                var existingKeys = (existingRows || []).map(function(r) { return r.key; });
+
                 var errors = [];
                 var keys = Object.keys(settings);
                 for (var i = 0; i < keys.length; i++) {
                     var key = keys[i];
-                    var { error: upsertErr } = await supabase.from('90_시스템설정').upsert({
-                        key: key,
+                    var payload = {
                         value: settings[key],
                         updated_at: new Date().toISOString(),
                         updated_by: userId
-                    }, { onConflict: 'key' });
-                    if (upsertErr) {
-                        console.error('[Settings] ' + key + ' 저장 실패:', upsertErr.message);
-                        // upsert 실패 시 update로 폴백
-                        var { error: updateErr } = await supabase.from('90_시스템설정').update({
-                            value: settings[key],
-                            updated_at: new Date().toISOString(),
-                            updated_by: userId
-                        }).eq('key', key);
-                        if (updateErr) {
-                            errors.push(key + ': ' + updateErr.message);
+                    };
+
+                    if (existingKeys.indexOf(key) >= 0) {
+                        // 이미 존재 → UPDATE
+                        var { error: err } = await supabase.from('90_시스템설정').update(payload).eq('key', key);
+                        if (err) errors.push(key + ': ' + err.message);
+                    } else {
+                        // 신규 → INSERT
+                        payload.key = key;
+                        var { error: err } = await supabase.from('90_시스템설정').insert(payload);
+                        if (err) {
+                            console.warn('[Settings] INSERT 실패 (' + key + '), RPC 시도:', err.message);
+                            // INSERT RLS 없을 경우 RPC로 시도
+                            try {
+                                await supabase.rpc('admin_upsert_setting', { setting_key: key, setting_value: JSON.stringify(settings[key]) });
+                            } catch(e2) {
+                                errors.push(key + ': INSERT 권한 없음');
+                            }
                         }
                     }
                 }
 
                 if (errors.length > 0) {
                     console.error('[Settings] 저장 실패 항목:', errors);
-                    showToast('⚠️ 일부 설정 저장 실패: ' + errors[0]);
+                    showToast('⚠️ 일부 설정 저장 실패: ' + errors.join(', '));
                 } else {
                     showToast('✅ 시스템 설정이 저장되었습니다.');
                 }
