@@ -3629,7 +3629,7 @@
             <a class="sb-item" href="admin-interpreters.html">
                 <span class="sb-item__icon">👥</span> 통역사 관리
             </a>
-            <a class="sb-item" id="sb-interp-verify" onclick="switchTab('interp-verify')">
+            <a class="sb-item" id="sb-interp-verify" onclick="switchTab('interpreters')">
                 <span class="sb-item__icon">💰</span> 통역사 단가 관리
                 <span class="sb-item__badge" id="ratePendingBadge" style="display:none;background:#e65100;">0</span>
             </a>
@@ -4946,14 +4946,16 @@
                 if (tab === 'system-settings') { title = '시스템 설정'; loadSystemSettings(); }
                 document.getElementById('pageTitle').textContent = title;
 
+                if (tab === 'interpreters') { title = '통역사 단가 관리'; loadInterpVerifyList(); }
+
                 // Sidebar highlighting
-                ['sb-inquiries', 'sb-contracts', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-format-perm', 'sb-applications', 'sb-customers', 'sb-system-settings'].forEach(id => {
+                ['sb-inquiries', 'sb-contracts', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-format-perm', 'sb-applications', 'sb-customers', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
 
                 if (tab === 'interpreters') {
-                    if (document.getElementById('sb-applications')) document.getElementById('sb-applications').classList.add('active');
+                    if (document.getElementById('sb-interp-verify')) document.getElementById('sb-interp-verify').classList.add('active');
                 } else if (tab === 'inquiries') {
                     if (document.getElementById('sb-inquiries')) document.getElementById('sb-inquiries').classList.add('active');
                 } else {
