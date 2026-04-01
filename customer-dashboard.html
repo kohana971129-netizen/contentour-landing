@@ -80,13 +80,14 @@
       </div>
     </header>
 
-    <div class="page-tabs">
+    <!-- 상단 탭바 제거: 사이드바와 중복되므로 사이드바만 사용 -->
+    <div class="page-tabs" style="display:none;">
       <button class="page-tab active" id="ptab-home" onclick="switchView('home')">&#127968; 홈</button>
       <button class="page-tab" id="ptab-inquiry" onclick="switchView('inquiry')">&#128203; 통역 문의 접수</button>
-      <button class="page-tab" id="ptab-list" onclick="switchView('list')">&#128194; 나의 문의 현황 <span style="background:#e53935;color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-left:4px;">3</span></button>
-      <button class="page-tab" id="ptab-contract" onclick="switchView('contract')">&#128196; 계약·결제 <span style="background:#f57c00;color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-left:4px;" id="contractTabBadge">2</span></button>
+      <button class="page-tab" id="ptab-list" onclick="switchView('list')">&#128194; 나의 문의 현황</button>
+      <button class="page-tab" id="ptab-contract" onclick="switchView('contract')">&#128196; 계약·결제</button>
       <button class="page-tab" id="ptab-schedule" onclick="switchView('schedule')">&#128197; 파견 일정 확인</button>
-      <button class="page-tab" id="ptab-chat" onclick="switchView('chat')">&#128172; 통역사 채팅 <span style="background:#e53935;color:#fff;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-left:4px;" id="chatTabBadge">2</span></button>
+      <button class="page-tab" id="ptab-chat" onclick="switchView('chat')">&#128172; 통역사 채팅</button>
       <button class="page-tab" id="ptab-journal" onclick="switchView('journal')">&#128221; 상담일지</button>
       <button class="page-tab" id="ptab-mypage" onclick="switchView('mypage')">&#128100; 마이페이지</button>
     </div>
