@@ -9000,7 +9000,14 @@
                 var { data, error } = await supabase.from('90_시스템설정').select('key, value');
                 if (error) { console.error('설정 로드 실패:', error); return; }
                 var s = {};
-                (data || []).forEach(function(r) { s[r.key] = r.value; });
+                (data || []).forEach(function(r) {
+                    var v = r.value;
+                    // 이중 따옴표된 문자열 보정 (예: "\"abc\"" → "abc")
+                    if (typeof v === 'string' && v.startsWith('"') && v.endsWith('"')) {
+                        try { v = JSON.parse(v); } catch(e) {}
+                    }
+                    s[r.key] = v;
+                });
 
                 if (s.default_daily_rate) document.getElementById('set-daily-rate').value = s.default_daily_rate;
                 if (s.platform_fee_rate) document.getElementById('set-fee-rate').value = s.platform_fee_rate;
@@ -9126,8 +9133,8 @@
                 notify_kakao_enabled: document.getElementById('set-notify-kakao').checked,
                 notify_dashboard_realtime: document.getElementById('set-notify-realtime').checked,
                 notify_admin_email: document.getElementById('set-admin-email').value,
-                rate_limits: JSON.stringify(rateLimits),
-                recommended_rates: JSON.stringify(_collectRecRates())
+                rate_limits: rateLimits,
+                recommended_rates: _collectRecRates()
             };
 
             try {
@@ -9137,7 +9144,7 @@
                 var promises = Object.keys(settings).map(function(key) {
                     return supabase.from('90_시스템설정').upsert({
                         key: key,
-                        value: JSON.stringify(settings[key]),
+                        value: settings[key],
                         updated_at: new Date().toISOString(),
                         updated_by: userId
                     }, { onConflict: 'key' });
