@@ -478,7 +478,7 @@
                 <h2 class="testimonials-title">고객사가 직접 전하는 <strong>현장 후기</strong></h2>
                 <p class="testimonials-sub">콘텐츄어와 함께한 고객사 담당자분들의 실제 이용 후기입니다.</p>
 
-                <div class="testimonials-grid">
+                <div class="testimonials-grid" id="testimonialsGrid">
                     <div class="testi-card">
                         <div class="testi-card__stars">★★★★★</div>
                         <p class="testi-card__text">"독일 MEDICA 전시회에서 3일간 통역을 맡겨봤는데, 의료기기 전문 용어까지 완벽하게 소화해주셨어요. 덕분에 바이어 미팅 12건 중 8건이 샘플 요청으로 이어졌습니다."</p>
@@ -1366,6 +1366,70 @@
                     if (r) window._dbRatings[m.name] = { score: (r.total / r.count).toFixed(1), count: r.count };
                 });
             } catch(e) {}
+        })();
+
+        // ═══ DB 리뷰를 메인 후기 섹션에 동적 표시 ═══
+        (async function loadMainTestimonials() {
+            if (!window.sbClient) return;
+            try {
+                var { data: reviews } = await window.sbClient
+                    .from('49_통역사리뷰')
+                    .select('customer_id, exhibition_name, rating_expertise, rating_manner, rating_communication, rating_overall, review_text, created_at')
+                    .not('review_text', 'is', null)
+                    .order('created_at', { ascending: false })
+                    .limit(8);
+
+                if (!reviews || reviews.length === 0) return;
+
+                var custIds = reviews.map(function(r) { return r.customer_id; }).filter(Boolean);
+                if (custIds.length === 0) return;
+
+                var { data: customers } = await window.sbClient
+                    .from('01_회원')
+                    .select('id, name, company_name')
+                    .in('id', custIds);
+                if (!customers) return;
+
+                var custMap = {};
+                customers.forEach(function(c) { custMap[c.id] = c; });
+
+                var gradients = [
+                    ['#1565c0','#42a5f5'], ['#00695c','#26a69a'], ['#6a1b9a','#ab47bc'],
+                    ['#e65100','#ff9800'], ['#c62828','#ef5350'], ['#0d47a1','#1e88e5'],
+                    ['#2e7d32','#66bb6a'], ['#ad1457','#ec407a']
+                ];
+
+                var cards = reviews.map(function(r, idx) {
+                    var cust = custMap[r.customer_id] || {};
+                    var name = cust.name || '고객';
+                    var company = cust.company_name || '';
+                    var avg = ((r.rating_expertise + r.rating_manner + r.rating_communication + r.rating_overall) / 4);
+                    var fullStars = Math.round(avg);
+                    var starsHtml = '';
+                    for (var i = 0; i < 5; i++) {
+                        starsHtml += i < fullStars ? '★' : '<span style="color:#ddd;">★</span>';
+                    }
+                    var grad = gradients[idx % gradients.length];
+                    var initial = name.charAt(0);
+
+                    return '<div class="testi-card">' +
+                        '<div class="testi-card__stars">' + starsHtml + '</div>' +
+                        '<p class="testi-card__text">"' + r.review_text.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '"</p>' +
+                        '<div class="testi-card__author">' +
+                            '<div class="testi-card__avatar" style="background:linear-gradient(135deg,' + grad[0] + ',' + grad[1] + ');">' + initial + '</div>' +
+                            '<div>' +
+                                '<div class="testi-card__name">' + name + '</div>' +
+                                (company ? '<div class="testi-card__company">' + company + '</div>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        (r.exhibition_name ? '<div class="testi-card__tag">' + r.exhibition_name + '</div>' : '') +
+                    '</div>';
+                });
+
+                document.getElementById('testimonialsGrid').innerHTML = cards.join('');
+            } catch(e) {
+                console.error('후기 로드 실패:', e);
+            }
         })();
 
         // 패널 열린 후 별점 배지 삽입 (MutationObserver)
