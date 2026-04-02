@@ -4508,12 +4508,12 @@
                         <p style="color:#666;font-size:0.85rem;">고객사/통역사의 계약 취소 신청을 관리합니다.</p>
                     </div>
                     <div class="cancel-summary" id="cancelSummary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;"></div>
-                    <div class="cancel-filter" style="margin-bottom:16px;display:flex;gap:8px;">
-                        <button class="filter-tab active" onclick="filterCancels('all',this)">전체</button>
-                        <button class="filter-tab" onclick="filterCancels('pending',this)">대기중</button>
-                        <button class="filter-tab" onclick="filterCancels('approved',this)">승인됨</button>
-                        <button class="filter-tab" onclick="filterCancels('refunded',this)">환불완료</button>
-                        <button class="filter-tab" onclick="filterCancels('rejected',this)">거절됨</button>
+                    <div class="contract-filter-tabs" style="margin-bottom:20px;">
+                        <button class="contract-filter-tab active" onclick="filterCancels('all',this)">전체 <span class="cft-count" id="cfc-all">0</span></button>
+                        <button class="contract-filter-tab" onclick="filterCancels('pending',this)">⏳ 대기중 <span class="cft-count" id="cfc-pending">0</span></button>
+                        <button class="contract-filter-tab" onclick="filterCancels('approved',this)">✅ 승인됨 <span class="cft-count" id="cfc-approved">0</span></button>
+                        <button class="contract-filter-tab" onclick="filterCancels('refunded',this)">💰 환불완료 <span class="cft-count" id="cfc-refunded">0</span></button>
+                        <button class="contract-filter-tab" onclick="filterCancels('rejected',this)">❌ 거절됨 <span class="cft-count" id="cfc-rejected">0</span></button>
                     </div>
                     <div id="cancelList" style="display:flex;flex-direction:column;gap:10px;">
                         <div style="padding:40px;text-align:center;color:#8a95a8;">취소 내역을 불러오는 중...</div>
@@ -6828,6 +6828,7 @@
             function renderCancellations() {
                 var listEl = document.getElementById('cancelList');
                 if (!listEl) return;
+                updateCancelFilterCounts();
 
                 var filtered = cancelAdminData;
                 if (cancelFilterStatus !== 'all') {
@@ -6888,9 +6889,18 @@
 
             function filterCancels(status, btn) {
                 cancelFilterStatus = status;
-                document.querySelectorAll('.cancel-filter .filter-tab').forEach(function(el) { el.classList.remove('active'); });
+                document.querySelectorAll('.contract-filter-tab').forEach(function(el) { el.classList.remove('active'); });
                 if (btn) btn.classList.add('active');
                 renderCancellations();
+            }
+
+            function updateCancelFilterCounts() {
+                var counts = { all: cancelAdminData.length, pending: 0, approved: 0, refunded: 0, rejected: 0 };
+                cancelAdminData.forEach(function(d) { if (counts[d.status] !== undefined) counts[d.status]++; });
+                ['all','pending','approved','refunded','rejected'].forEach(function(k) {
+                    var el = document.getElementById('cfc-' + k);
+                    if (el) el.textContent = counts[k];
+                });
             }
 
             async function approveCancellation(cancelId) {
