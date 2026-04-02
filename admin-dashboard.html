@@ -3970,6 +3970,23 @@
                                     <div class="cf-field"><label>통역사명</label><input type="text" id="cfInterpreter" placeholder="예: 고하나"></div>
                                     <div class="cf-field"><label>산업 분야</label><input type="text" id="cfIndustry" placeholder="예: 의료기기"></div>
                                 </div>
+                                <div class="cf-field" style="margin-top:14px;"><label>통역사 현장 코멘트</label><textarea id="cfInterpComment" rows="2" placeholder="예: 의료기기 전문 용어를 정확하게 통역하여 바이어 상담이 원활하게 진행되었습니다." style="width:100%;padding:10px 12px;border:1.5px solid #dde3ed;border-radius:10px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;resize:none;outline:none;"></textarea></div>
+                            </div>
+
+                            <!-- 상세 정보 (상세 페이지용) -->
+                            <div style="background:#f3e8ff;border-radius:12px;padding:18px;margin-bottom:20px;border:1px solid #d1b3ff;">
+                                <div style="font-size:0.82rem;font-weight:700;color:#6a1b9a;margin-bottom:14px;">상세 페이지 정보</div>
+                                <div class="cf-field" style="margin-bottom:14px;"><label>업무 내용 요약</label><textarea id="cfWorkSummary" rows="3" placeholder="예: 3일간 부스 상주 통역, 바이어 32건 상담 통역, 상담일지 작성 지원..." style="width:100%;padding:10px 12px;border:1.5px solid #dde3ed;border-radius:10px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;resize:none;outline:none;"></textarea></div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                                    <div class="cf-field"><label>담당자명</label><input type="text" id="cfManager" placeholder="예: 박재현"></div>
+                                    <div class="cf-field"><label>담당자 직책</label><input type="text" id="cfManagerRole" placeholder="예: 콘텐츄어 PM"></div>
+                                </div>
+                                <div style="margin-bottom:8px;">
+                                    <label style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:8px;display:block;">현장 사진 추가 (여러 장)</label>
+                                    <div id="cfPhotosPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;"></div>
+                                    <button onclick="document.getElementById('cfPhotosFile').click()" style="padding:8px 16px;background:#f3e8ff;color:#6a1b9a;border:1.5px dashed #d1b3ff;border-radius:10px;font-size:0.82rem;font-weight:600;cursor:pointer;">+ 사진 추가</button>
+                                    <input type="file" id="cfPhotosFile" accept="image/*" multiple onchange="previewCasePhotos(this)" style="display:none;">
+                                </div>
                             </div>
 
                             <!-- 성과 지표 -->
@@ -7134,6 +7151,44 @@
                 return urlData ? urlData.publicUrl : null;
             }
 
+            var pendingPhotos = [];
+            var existingPhotos = [];
+
+            function previewCasePhotos(input) {
+                if (!input.files) return;
+                Array.from(input.files).forEach(function(file) {
+                    if (file.size > 5 * 1024 * 1024) { showToast(file.name + ' - 5MB 초과'); return; }
+                    pendingPhotos.push(file);
+                    var reader = new FileReader();
+                    reader.onload = function(e) { renderPhotoPreviews(); };
+                    reader.readAsDataURL(file);
+                });
+                renderPhotoPreviews();
+                input.value = '';
+            }
+
+            function renderPhotoPreviews() {
+                var wrap = document.getElementById('cfPhotosPreview');
+                if (!wrap) return;
+                var html = '';
+                existingPhotos.forEach(function(url, idx) {
+                    html += '<div style="position:relative;width:90px;height:65px;border-radius:8px;overflow:hidden;border:1.5px solid #e0e0e0;">' +
+                        '<img src="' + url + '" style="width:100%;height:100%;object-fit:cover;">' +
+                        '<button onclick="removeExistingPhoto(' + idx + ')" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;border:none;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">x</button>' +
+                    '</div>';
+                });
+                pendingPhotos.forEach(function(file, idx) {
+                    html += '<div style="position:relative;width:90px;height:65px;border-radius:8px;overflow:hidden;border:1.5px dashed #d1b3ff;display:flex;align-items:center;justify-content:center;background:#f9f5ff;">' +
+                        '<span style="font-size:0.7rem;color:#6a1b9a;">' + file.name.substring(0,8) + '...</span>' +
+                        '<button onclick="removePendingPhoto(' + idx + ')" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;border:none;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">x</button>' +
+                    '</div>';
+                });
+                wrap.innerHTML = html;
+            }
+
+            function removeExistingPhoto(idx) { existingPhotos.splice(idx, 1); renderPhotoPreviews(); }
+            function removePendingPhoto(idx) { pendingPhotos.splice(idx, 1); renderPhotoPreviews(); }
+
             function openCaseForm() {
                 document.getElementById('caseFormId').value = '';
                 document.getElementById('caseFormTitle').textContent = '새 성과사례 등록';
@@ -7147,6 +7202,13 @@
                 document.getElementById('cfSort').value = caseAdminData.length + 1;
                 document.getElementById('cfPublished').checked = true;
                 removeCaseImage();
+                pendingPhotos = [];
+                existingPhotos = [];
+                renderPhotoPreviews();
+                document.getElementById('cfInterpComment').value = '';
+                document.getElementById('cfWorkSummary').value = '';
+                document.getElementById('cfManager').value = '';
+                document.getElementById('cfManagerRole').value = '';
                 document.getElementById('caseFormOverlay').style.display = 'flex';
             }
 
@@ -7171,6 +7233,15 @@
                 document.getElementById('cfM2Value').value = c.metric2_value || '';
                 document.getElementById('cfSort').value = c.sort_order || 0;
                 document.getElementById('cfPublished').checked = c.is_published;
+                // 새 필드 로드
+                document.getElementById('cfInterpComment').value = c.interpreter_comment || '';
+                document.getElementById('cfWorkSummary').value = c.work_summary || '';
+                document.getElementById('cfManager').value = c.manager_name || '';
+                document.getElementById('cfManagerRole').value = c.manager_role || '';
+                pendingPhotos = [];
+                try { existingPhotos = Array.isArray(c.photos) ? c.photos.map(function(p) { return typeof p === 'string' ? p : p.url; }) : JSON.parse(c.photos || '[]'); } catch(e) { existingPhotos = []; }
+                renderPhotoPreviews();
+
                 // 기존 이미지 미리보기
                 document.getElementById('cfImageFile').value = '';
                 if (c.image_url) {
@@ -7219,10 +7290,23 @@
                     metric1_value: document.getElementById('cfM1Value').value.trim() || null,
                     metric2_label: document.getElementById('cfM2Label').value.trim() || null,
                     metric2_value: document.getElementById('cfM2Value').value.trim() || null,
+                    interpreter_comment: document.getElementById('cfInterpComment').value.trim() || null,
+                    work_summary: document.getElementById('cfWorkSummary').value.trim() || null,
+                    manager_name: document.getElementById('cfManager').value.trim() || null,
+                    manager_role: document.getElementById('cfManagerRole').value.trim() || null,
                     sort_order: parseInt(document.getElementById('cfSort').value) || 0,
                     is_published: document.getElementById('cfPublished').checked,
                     updated_at: new Date().toISOString()
                 };
+
+                // 현장 사진 업로드
+                var allPhotos = existingPhotos.slice();
+                for (var pi = 0; pi < pendingPhotos.length; pi++) {
+                    showToast('사진 업로드 중... (' + (pi+1) + '/' + pendingPhotos.length + ')');
+                    var photoUrl = await uploadCaseImage(pendingPhotos[pi]);
+                    if (photoUrl) allPhotos.push(photoUrl);
+                }
+                payload.photos = allPhotos;
 
                 try {
                     if (id) {

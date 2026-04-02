@@ -241,8 +241,8 @@
                 grid.innerHTML = cases.map(function(c) {
                     var tagClass = typeTagClass[c.case_type] || 'expo';
                     var imgStyle = c.image_url ? "background-image:url('" + c.image_url + "')" : "background:#e3f0ff;";
-                    var href = c.link_url || '#';
-                    var target = c.link_url ? ' target="_blank" rel="noopener"' : '';
+                    var href = 'case-detail.html?id=' + c.id;
+                    var target = '';
 
                     var metricsHtml = '<div class="case-card__metrics">';
                     if (c.interpreter_name) metricsHtml += '<span>통역사 <b>' + c.interpreter_name + '</b></span>';

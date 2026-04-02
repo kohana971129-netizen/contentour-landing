@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성과사례 상세 - 콘텐츄어</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Montserrat','Noto Sans KR',sans-serif; color: #1a1a2e; background: #f5f7fa; line-height: 1.7; }
+        a { text-decoration: none; color: inherit; }
+
+        /* 헤더 */
+        .detail-header { background: linear-gradient(135deg, #0a1628 0%, #1a3a6a 100%); padding: 60px 0 40px; color: #fff; }
+        .detail-header__inner { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+        .detail-header__back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 20px; transition: color 0.2s; }
+        .detail-header__back:hover { color: #fff; }
+        .detail-header__tag { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 14px; }
+        .detail-header__tag.expo { background: rgba(33,150,243,0.2); color: #64b5f6; }
+        .detail-header__tag.buyer { background: rgba(255,152,0,0.2); color: #ffb74d; }
+        .detail-header__title { font-size: 1.8rem; font-weight: 900; line-height: 1.3; margin-bottom: 10px; }
+        .detail-header__meta { display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.88rem; color: rgba(255,255,255,0.7); }
+        .detail-header__meta span { display: flex; align-items: center; gap: 5px; }
+
+        /* 메인 콘텐츠 */
+        .detail-main { max-width: 960px; margin: -20px auto 40px; padding: 0 24px; }
+
+        /* 성과 카드 */
+        .metrics-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 32px; }
+        .metric-card { background: #fff; border-radius: 14px; padding: 20px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1.5px solid #e5eaf2; }
+        .metric-card__label { font-size: 0.75rem; color: #888; font-weight: 600; margin-bottom: 4px; }
+        .metric-card__value { font-size: 1.4rem; font-weight: 900; color: #1565c0; }
+
+        /* 섹션 */
+        .detail-section { background: #fff; border-radius: 16px; padding: 28px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border: 1.5px solid #e5eaf2; }
+        .detail-section__title { font-size: 1rem; font-weight: 800; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .detail-section__title span { font-size: 1.2rem; }
+
+        /* 사진 갤러리 */
+        .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .photo-gallery__item { border-radius: 12px; overflow: hidden; aspect-ratio: 4/3; cursor: pointer; position: relative; }
+        .photo-gallery__item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .photo-gallery__item:hover img { transform: scale(1.05); }
+        .photo-gallery__caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 12px; color: #fff; font-size: 0.78rem; font-weight: 600; }
+
+        /* 통역사 프로필 */
+        .interpreter-profile { display: flex; gap: 20px; align-items: center; padding: 20px; background: linear-gradient(135deg, #f0f7ff, #e8f0fe); border-radius: 14px; }
+        .interpreter-profile__photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.12); flex-shrink: 0; }
+        .interpreter-profile__avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #1565c0, #42a5f5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.8rem; font-weight: 800; flex-shrink: 0; border: 3px solid #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+        .interpreter-profile__info { flex: 1; }
+        .interpreter-profile__name { font-size: 1.1rem; font-weight: 800; color: #1a1a2e; }
+        .interpreter-profile__role { font-size: 0.82rem; color: #666; margin-top: 2px; }
+        .interpreter-profile__comment { margin-top: 10px; padding: 12px 16px; background: #fff; border-radius: 10px; font-size: 0.85rem; color: #555; line-height: 1.6; border-left: 3px solid #1565c0; }
+
+        /* 담당자 */
+        .manager-card { display: flex; align-items: center; gap: 14px; padding: 16px; background: #fafafa; border-radius: 12px; border: 1px solid #e5eaf2; }
+        .manager-card__avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #00695c, #26a69a); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem; font-weight: 800; flex-shrink: 0; }
+        .manager-card__name { font-weight: 700; font-size: 0.92rem; }
+        .manager-card__role { font-size: 0.78rem; color: #888; }
+
+        /* 업무 요약 */
+        .work-summary { font-size: 0.9rem; color: #444; line-height: 1.8; white-space: pre-line; }
+
+        /* 대표 이미지 */
+        .hero-image { width: 100%; height: 360px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+        /* 풀스크린 이미지 뷰어 */
+        .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; cursor: pointer; }
+        .lightbox.open { display: flex; }
+        .lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 8px; }
+
+        /* 로딩 */
+        .loading { text-align: center; padding: 80px 20px; color: #888; font-size: 0.9rem; }
+
+        /* 반응형 */
+        @media (max-width: 640px) {
+            .detail-header__title { font-size: 1.3rem; }
+            .interpreter-profile { flex-direction: column; text-align: center; }
+            .photo-gallery { grid-template-columns: 1fr 1fr; }
+            .hero-image { height: 220px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="detailContent">
+        <div class="loading">성과사례를 불러오는 중...</div>
+    </div>
+
+    <!-- 풀스크린 이미지 뷰어 -->
+    <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+        <img id="lightboxImg" src="" alt="">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script>
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.add('open');
+        }
+
+        (async function loadCaseDetail() {
+            var params = new URLSearchParams(window.location.search);
+            var caseId = params.get('id');
+            var container = document.getElementById('detailContent');
+
+            if (!caseId || !window.sbClient) {
+                container.innerHTML = '<div class="loading">사례를 찾을 수 없습니다. <a href="performance.html" style="color:#1565c0;">목록으로 돌아가기</a></div>';
+                return;
+            }
+
+            try {
+                var { data: c, error } = await window.sbClient
+                    .from('52_성과사례')
+                    .select('*')
+                    .eq('id', caseId)
+                    .single();
+
+                if (error || !c) {
+                    container.innerHTML = '<div class="loading">사례를 찾을 수 없습니다. <a href="performance.html" style="color:#1565c0;">목록으로 돌아가기</a></div>';
+                    return;
+                }
+
+                document.title = '[' + c.client_company + '] ' + c.exhibition_name + ' - 콘텐츄어 성과사례';
+
+                var typeTagClass = { '부스 통역':'expo', '미팅 통역':'buyer', '현장 통역':'expo', '동시통역':'buyer', '수행 통역':'expo' };
+                var tagClass = typeTagClass[c.case_type] || 'expo';
+
+                var html = '';
+
+                // 헤더
+                html += '<div class="detail-header"><div class="detail-header__inner">' +
+                    '<a href="performance.html" class="detail-header__back">&larr; 성과사례 목록</a>' +
+                    '<div class="detail-header__tag ' + tagClass + '">' + c.case_type + '</div>' +
+                    '<h1 class="detail-header__title">[' + c.client_company + '] ' + c.exhibition_name + '</h1>' +
+                    '<div class="detail-header__meta">' +
+                        '<span>' + c.country_flag + ' ' + c.country + '</span>' +
+                        '<span>&#128197; ' + c.exhibition_date + '</span>' +
+                        (c.interpreter_name ? '<span>&#128100; 통역사: ' + c.interpreter_name + '</span>' : '') +
+                        (c.industry ? '<span>&#127981; ' + c.industry + '</span>' : '') +
+                    '</div>' +
+                '</div></div>';
+
+                // 메인 콘텐츠
+                html += '<div class="detail-main">';
+
+                // 대표 이미지
+                if (c.image_url) {
+                    html += '<img src="' + c.image_url + '" alt="' + c.exhibition_name + '" class="hero-image">';
+                }
+
+                // 성과 지표 바
+                var hasMetrics = c.metric1_value || c.metric2_value;
+                if (hasMetrics) {
+                    html += '<div class="metrics-bar">';
+                    if (c.interpreter_name) html += '<div class="metric-card"><div class="metric-card__label">투입 통역사</div><div class="metric-card__value">' + c.interpreter_name + '</div></div>';
+                    if (c.metric1_value) html += '<div class="metric-card"><div class="metric-card__label">' + (c.metric1_label || '성과 1') + '</div><div class="metric-card__value">' + c.metric1_value + '</div></div>';
+                    if (c.metric2_value) html += '<div class="metric-card"><div class="metric-card__label">' + (c.metric2_label || '성과 2') + '</div><div class="metric-card__value">' + c.metric2_value + '</div></div>';
+                    if (c.industry) html += '<div class="metric-card"><div class="metric-card__label">산업 분야</div><div class="metric-card__value" style="font-size:1rem;">' + c.industry + '</div></div>';
+                    html += '</div>';
+                }
+
+                // 업무 요약
+                if (c.work_summary || c.description) {
+                    html += '<div class="detail-section">' +
+                        '<div class="detail-section__title"><span>&#128203;</span> 업무 내용</div>' +
+                        '<div class="work-summary">' + (c.work_summary || c.description) + '</div>' +
+                    '</div>';
+                }
+
+                // 통역사 프로필
+                if (c.interpreter_name) {
+                    html += '<div class="detail-section">' +
+                        '<div class="detail-section__title"><span>&#127891;</span> 투입 통역사</div>' +
+                        '<div class="interpreter-profile">';
+
+                    if (c.interpreter_photo) {
+                        html += '<img src="' + c.interpreter_photo + '" alt="' + c.interpreter_name + '" class="interpreter-profile__photo">';
+                    } else {
+                        html += '<div class="interpreter-profile__avatar">' + c.interpreter_name.charAt(0) + '</div>';
+                    }
+
+                    html += '<div class="interpreter-profile__info">' +
+                            '<div class="interpreter-profile__name">' + c.interpreter_name + '</div>' +
+                            '<div class="interpreter-profile__role">' + c.case_type + ' · ' + c.country + ' · ' + (c.industry || '') + '</div>' +
+                            (c.interpreter_comment ? '<div class="interpreter-profile__comment">"' + c.interpreter_comment + '"</div>' : '') +
+                        '</div>' +
+                    '</div></div>';
+                }
+
+                // 현장 사진 갤러리
+                var photos = [];
+                try { photos = Array.isArray(c.photos) ? c.photos : JSON.parse(c.photos || '[]'); } catch(e) {}
+                if (photos.length > 0) {
+                    html += '<div class="detail-section">' +
+                        '<div class="detail-section__title"><span>&#128247;</span> 현장 사진</div>' +
+                        '<div class="photo-gallery">';
+                    photos.forEach(function(p) {
+                        var src = typeof p === 'string' ? p : p.url;
+                        var caption = typeof p === 'object' && p.caption ? p.caption : '';
+                        html += '<div class="photo-gallery__item" onclick="openLightbox(\'' + src + '\')">' +
+                            '<img src="' + src + '" alt="현장 사진">' +
+                            (caption ? '<div class="photo-gallery__caption">' + caption + '</div>' : '') +
+                        '</div>';
+                    });
+                    html += '</div></div>';
+                }
+
+                // 담당자 정보
+                if (c.manager_name) {
+                    html += '<div class="detail-section">' +
+                        '<div class="detail-section__title"><span>&#128188;</span> 프로젝트 담당자</div>' +
+                        '<div class="manager-card">' +
+                            '<div class="manager-card__avatar">' + c.manager_name.charAt(0) + '</div>' +
+                            '<div>' +
+                                '<div class="manager-card__name">' + c.manager_name + '</div>' +
+                                (c.manager_role ? '<div class="manager-card__role">' + c.manager_role + '</div>' : '') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+                }
+
+                // 목록으로 돌아가기
+                html += '<div style="text-align:center;margin-top:32px;">' +
+                    '<a href="performance.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border-radius:12px;font-weight:700;font-size:0.9rem;box-shadow:0 4px 16px rgba(21,101,192,0.3);">&larr; 성과사례 목록으로</a>' +
+                '</div>';
+
+                html += '</div>'; // detail-main
+
+                container.innerHTML = html;
+            } catch(e) {
+                console.error('사례 로드 실패:', e);
+                container.innerHTML = '<div class="loading">로드 중 오류가 발생했습니다. <a href="performance.html" style="color:#1565c0;">목록으로 돌아가기</a></div>';
+            }
+        })();
+    </script>
+</body>
+</html>
