@@ -5177,9 +5177,19 @@
             if (!file.type.startsWith('image/')) { showToast('⚠️ 이미지 파일만 업로드 가능합니다.'); return; }
 
             var sb = window.sbClient;
-            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
+            if (!sb) { showToast('⚠️ 서비스 연결 오류'); return; }
 
-            var userId = InterpreterApp.currentUser.id;
+            var userId = null;
+            if (window.InterpreterApp && InterpreterApp.currentUser) {
+                userId = InterpreterApp.currentUser.id;
+            } else {
+                try {
+                    var user = await ContentourAuth.getCurrentUser();
+                    if (user) userId = user.id;
+                } catch(e) {}
+            }
+            if (!userId) { showToast('⚠️ 로그인이 필요합니다. 페이지를 새로고침해주세요.'); return; }
+
             var ext = file.name.split('.').pop();
             var filePath = userId + '/profile.' + ext;
 
@@ -5220,9 +5230,19 @@
             if (file.size > 10 * 1024 * 1024) { showToast('⚠️ 파일 크기는 10MB 이하로 업로드해주세요.'); return; }
 
             var sb = window.sbClient;
-            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) { showToast('⚠️ 로그인이 필요합니다.'); return; }
+            if (!sb) { showToast('⚠️ 서비스 연결 오류'); return; }
 
-            var userId = InterpreterApp.currentUser.id;
+            var userId = null;
+            if (window.InterpreterApp && InterpreterApp.currentUser) {
+                userId = InterpreterApp.currentUser.id;
+            } else {
+                try {
+                    var user = await ContentourAuth.getCurrentUser();
+                    if (user) userId = user.id;
+                } catch(e) {}
+            }
+            if (!userId) { showToast('⚠️ 로그인이 필요합니다. 페이지를 새로고침해주세요.'); return; }
+
             var ext = file.name.split('.').pop();
             var fileName = 'doc_' + Date.now() + '.' + ext;
             var filePath = userId + '/' + fileName;
@@ -5253,9 +5273,12 @@
 
         async function loadVerifyDocs() {
             var sb = window.sbClient;
-            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
+            if (!sb) return;
+            var userId = null;
+            if (window.InterpreterApp && InterpreterApp.currentUser) userId = InterpreterApp.currentUser.id;
+            else { try { var u = await ContentourAuth.getCurrentUser(); if (u) userId = u.id; } catch(e) {} }
+            if (!userId) return;
             try {
-                var userId = InterpreterApp.currentUser.id;
                 var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs, is_verified, verified_at, verification_note').eq('user_id', userId).single();
                 if (!profile) return;
 
