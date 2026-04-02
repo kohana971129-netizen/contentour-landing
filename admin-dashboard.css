@@ -2978,6 +2978,7 @@
         .csb-balance{background:#fff3e0;color:var(--warn);}
         .csb-complete{background:#e8f5e9;color:var(--success);}
         .csb-settled{background:#e8f5e9;color:#558b2f;}
+        .csb-cancelled{background:#ffebee;color:#c62828;}
         .contract-card__action{padding:7px 16px;border-radius:8px;font-size:0.78rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.15s;border:none;}
         .contract-card__action.pay{background:var(--blue);color:#fff;}
         .contract-card__action.pay:hover{background:var(--navy);}

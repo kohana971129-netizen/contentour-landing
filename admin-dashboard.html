@@ -3610,6 +3610,10 @@
                 <span class="sb-item__icon">💰</span> 정산 승인
                 <span class="sb-item__badge" id="stlBadge">2</span>
             </a>
+            <a class="sb-item" id="sb-cancellations" onclick="switchTab('cancellations')">
+                <span class="sb-item__icon">⚠️</span> 취소 관리
+                <span class="sb-item__badge" id="cancelBadge" style="display:none;">0</span>
+            </a>
             <a class="sb-item" id="sb-calendar" onclick="switchTab('calendar')">
                 <span class="sb-item__icon">📅</span> 스케줄
             </a>
@@ -4497,6 +4501,25 @@
                     </div>
                 </div>
 
+                <!-- ══ 취소 관리 뷰 ══ -->
+                <div class="view" id="view-cancellations">
+                    <div class="view-header">
+                        <h2>⚠️ 취소 관리</h2>
+                        <p style="color:#666;font-size:0.85rem;">고객사/통역사의 계약 취소 신청을 관리합니다.</p>
+                    </div>
+                    <div class="cancel-summary" id="cancelSummary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;"></div>
+                    <div class="cancel-filter" style="margin-bottom:16px;display:flex;gap:8px;">
+                        <button class="filter-tab active" onclick="filterCancels('all',this)">전체</button>
+                        <button class="filter-tab" onclick="filterCancels('pending',this)">대기중</button>
+                        <button class="filter-tab" onclick="filterCancels('approved',this)">승인됨</button>
+                        <button class="filter-tab" onclick="filterCancels('refunded',this)">환불완료</button>
+                        <button class="filter-tab" onclick="filterCancels('rejected',this)">거절됨</button>
+                    </div>
+                    <div id="cancelList" style="display:flex;flex-direction:column;gap:10px;">
+                        <div style="padding:40px;text-align:center;color:#8a95a8;">취소 내역을 불러오는 중...</div>
+                    </div>
+                </div>
+
                 <!-- ══ 정산 승인 관리 뷰 ══ -->
                 <div class="view" id="view-settlement">
 
@@ -4945,13 +4968,14 @@
                 if (tab === 'format-perm') title = '양식 권한 관리';
                 if (tab === 'applications') { title = '통역사 지원서 관리'; loadApplications(); }
                 if (tab === 'customers') { title = '고객사 관리'; custInit(); }
+                if (tab === 'cancellations') { title = '취소 관리'; loadCancellations(); }
                 if (tab === 'system-settings') { title = '시스템 설정'; loadSystemSettings(); }
                 document.getElementById('pageTitle').textContent = title;
 
                 if (tab === 'interpreters') { title = '통역사 관리'; loadInterpVerifyList(); }
 
                 // Sidebar highlighting
-                ['sb-inquiries', 'sb-contracts', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
+                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
@@ -6754,6 +6778,165 @@
                         localStorage.setItem('contentour_admin_approve', JSON.stringify({ contractId: contractId, action:'reject_balance', ts:Date.now() }));
                     }, 50);
                 } catch(e) {}
+            }
+
+            // ═══ 취소 관리 시스템 ═══
+            var cancelAdminData = [];
+            var cancelFilterStatus = 'all';
+
+            async function loadCancellations() {
+                var listEl = document.getElementById('cancelList');
+                if (!listEl) return;
+                if (!supabase) { listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;">DB 연결 없음</div>'; return; }
+
+                try {
+                    var { data, error } = await supabase
+                        .from('51_취소내역')
+                        .select('*, contract:42_통역계약(exhibition_name, customer_id, interpreter_id, total_amount, deposit_amount)')
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    if (!data || data.length === 0) {
+                        listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;">취소 내역이 없습니다.</div>';
+                        return;
+                    }
+
+                    // 사용자 이름 조회
+                    var userIds = data.map(function(d) { return d.cancelled_user_id; }).filter(Boolean);
+                    var userMap = {};
+                    if (userIds.length > 0) {
+                        var { data: users } = await supabase.from('01_회원').select('id, name, company_name').in('id', userIds);
+                        if (users) users.forEach(function(u) { userMap[u.id] = u; });
+                    }
+
+                    cancelAdminData = data.map(function(d) {
+                        var user = userMap[d.cancelled_user_id] || {};
+                        d._userName = user.name || '알 수 없음';
+                        d._company = user.company_name || '';
+                        d._expoName = d.contract ? d.contract.exhibition_name : '';
+                        return d;
+                    });
+
+                    renderCancellations();
+                    updateCancelBadge();
+                } catch(e) {
+                    console.error('취소 내역 로드 실패:', e);
+                    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;">로드 실패: ' + e.message + '</div>';
+                }
+            }
+
+            function renderCancellations() {
+                var listEl = document.getElementById('cancelList');
+                if (!listEl) return;
+
+                var filtered = cancelAdminData;
+                if (cancelFilterStatus !== 'all') {
+                    filtered = cancelAdminData.filter(function(d) { return d.status === cancelFilterStatus; });
+                }
+
+                // 요약 카드
+                var pending = cancelAdminData.filter(function(d){return d.status==='pending';}).length;
+                var approved = cancelAdminData.filter(function(d){return d.status==='approved';}).length;
+                var refunded = cancelAdminData.filter(function(d){return d.status==='refunded';}).length;
+                var rejected = cancelAdminData.filter(function(d){return d.status==='rejected';}).length;
+                var summaryEl = document.getElementById('cancelSummary');
+                if (summaryEl) {
+                    summaryEl.innerHTML =
+                        '<div style="background:#fff3e0;padding:16px;border-radius:12px;text-align:center;"><div style="font-size:1.5rem;font-weight:800;color:#e65100;">'+pending+'</div><div style="font-size:0.75rem;color:#666;">대기중</div></div>' +
+                        '<div style="background:#e8f5e9;padding:16px;border-radius:12px;text-align:center;"><div style="font-size:1.5rem;font-weight:800;color:#2e7d32;">'+approved+'</div><div style="font-size:0.75rem;color:#666;">승인됨</div></div>' +
+                        '<div style="background:#e3f0ff;padding:16px;border-radius:12px;text-align:center;"><div style="font-size:1.5rem;font-weight:800;color:#1565c0;">'+refunded+'</div><div style="font-size:0.75rem;color:#666;">환불완료</div></div>' +
+                        '<div style="background:#ffebee;padding:16px;border-radius:12px;text-align:center;"><div style="font-size:1.5rem;font-weight:800;color:#c62828;">'+rejected+'</div><div style="font-size:0.75rem;color:#666;">거절됨</div></div>';
+                }
+
+                if (filtered.length === 0) {
+                    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;">해당 상태의 취소 내역이 없습니다.</div>';
+                    return;
+                }
+
+                var statusLabels = { pending:'대기중', approved:'승인됨', refunded:'환불완료', rejected:'거절됨' };
+                var statusColors = { pending:'#e65100', approved:'#2e7d32', refunded:'#1565c0', rejected:'#c62828' };
+                var typeLabels = { customer:'고객사', interpreter:'통역사', admin:'관리자' };
+
+                listEl.innerHTML = filtered.map(function(d) {
+                    var stLabel = statusLabels[d.status] || d.status;
+                    var stColor = statusColors[d.status] || '#666';
+                    var typeLabel = typeLabels[d.cancelled_by] || d.cancelled_by;
+                    var date = d.created_at ? d.created_at.split('T')[0] : '';
+                    var actions = '';
+                    if (d.status === 'pending') {
+                        actions = '<div style="display:flex;gap:6px;margin-top:10px;">' +
+                            '<button onclick="approveCancellation(\''+d.id+'\')" style="padding:8px 16px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">승인</button>' +
+                            '<button onclick="rejectCancellation(\''+d.id+'\')" style="padding:8px 16px;background:#c62828;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">거절</button>' +
+                        '</div>';
+                    }
+                    return '<div style="background:#fff;border:1px solid #e5eaf2;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">' +
+                        '<div style="flex:1;">' +
+                            '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">' +
+                                '<span style="background:' + (d.cancelled_by==='customer'?'#e3f0ff':'#fff3e0') + ';color:' + (d.cancelled_by==='customer'?'#1565c0':'#e65100') + ';padding:3px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;">' + typeLabel + ' 취소</span>' +
+                                '<span style="background:' + stColor + '15;color:' + stColor + ';padding:3px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;">' + stLabel + '</span>' +
+                            '</div>' +
+                            '<div style="font-weight:700;font-size:0.92rem;margin-bottom:4px;">' + (d._expoName || '전시회') + '</div>' +
+                            '<div style="font-size:0.8rem;color:#666;">신청자: ' + d._userName + (d._company ? ' (' + d._company + ')' : '') + '</div>' +
+                            '<div style="font-size:0.8rem;color:#666;">사유: ' + d.cancel_reason + '</div>' +
+                            '<div style="font-size:0.78rem;color:#999;margin-top:4px;">남은 일수: ' + d.days_remaining + '일 | 위약금: ' + (d.penalty_amount||0).toLocaleString() + '원 (' + d.penalty_rate + '%) | 환불: ' + (d.refund_amount||0).toLocaleString() + '원</div>' +
+                            actions +
+                        '</div>' +
+                        '<div style="font-size:0.75rem;color:#999;white-space:nowrap;">' + date + '</div>' +
+                    '</div>';
+                }).join('');
+            }
+
+            function filterCancels(status, btn) {
+                cancelFilterStatus = status;
+                document.querySelectorAll('.cancel-filter .filter-tab').forEach(function(el) { el.classList.remove('active'); });
+                if (btn) btn.classList.add('active');
+                renderCancellations();
+            }
+
+            async function approveCancellation(cancelId) {
+                if (!supabase) return;
+                try {
+                    await supabase.from('51_취소내역').update({ status: 'approved', admin_note: '관리자 승인', updated_at: new Date().toISOString() }).eq('id', cancelId);
+                    showToast('✅ 취소가 승인되었습니다.');
+                    loadCancellations();
+                } catch(e) {
+                    showToast('승인 실패: ' + e.message);
+                }
+            }
+
+            async function rejectCancellation(cancelId) {
+                if (!supabase) return;
+                var reason = prompt('거절 사유를 입력해주세요:');
+                if (!reason) return;
+                try {
+                    // 취소내역 거절
+                    await supabase.from('51_취소내역').update({ status: 'rejected', admin_note: reason, updated_at: new Date().toISOString() }).eq('id', cancelId);
+
+                    // 계약 상태 복구
+                    var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
+                    if (cancel) {
+                        await supabase.from('42_통역계약').update({
+                            status: 'pending',
+                            cancelled_by: null,
+                            cancel_reason: null,
+                            cancelled_at: null
+                        }).eq('id', cancel.contract_id);
+                    }
+
+                    showToast('❌ 취소가 거절되었습니다. 계약이 복구되었습니다.');
+                    loadCancellations();
+                } catch(e) {
+                    showToast('거절 실패: ' + e.message);
+                }
+            }
+
+            function updateCancelBadge() {
+                var pending = cancelAdminData.filter(function(d){return d.status==='pending';}).length;
+                var badge = document.getElementById('cancelBadge');
+                if (badge) {
+                    badge.textContent = pending;
+                    badge.style.display = pending > 0 ? '' : 'none';
+                }
             }
 
             // ═══ Cross-tab 실시간 연동: 고객사 결제 이벤트 수신 ═══
