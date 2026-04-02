@@ -3921,10 +3921,12 @@
                 <!-- 성과사례 등록/수정 모달 -->
                 <div class="modal-overlay" id="caseFormOverlay" onclick="if(event.target===this)closeCaseForm()" style="z-index:260;display:none;">
                     <div class="modal" onclick="event.stopPropagation()" style="max-width:640px;">
-                        <div class="modal__header" style="background:linear-gradient(135deg,#1565c0,#0d47a1);border-bottom:none;">
-                            <div><div class="modal__header-title" style="color:#fff;" id="caseFormTitle">새 성과사례 등록</div>
-                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:2px;">성과사례 페이지에 표시될 정보를 입력하세요</div></div>
-                            <button class="modal__close" onclick="closeCaseForm()" style="color:rgba(255,255,255,0.7);">✕</button>
+                        <div style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#1565c0,#0d47a1);padding:20px 24px;border-radius:14px 14px 0 0;">
+                            <div>
+                                <div style="font-size:1.05rem;font-weight:800;color:#fff;" id="caseFormTitle">새 성과사례 등록</div>
+                                <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:3px;">성과사례 페이지에 표시될 정보를 입력하세요</div>
+                            </div>
+                            <button onclick="closeCaseForm()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
                         </div>
                         <div class="modal__body" style="padding:28px;max-height:70vh;overflow-y:auto;">
                             <input type="hidden" id="caseFormId">
