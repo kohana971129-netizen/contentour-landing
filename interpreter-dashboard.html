@@ -1364,6 +1364,42 @@
         </div>
     </div>
 
+    <!-- ══════════════ 통역사 취소 모달 ══════════════ -->
+    <div class="modal-overlay" id="intCancelModal" onclick="if(event.target===this)closeIntCancelModal()" style="z-index:260;">
+        <div class="modal" onclick="event.stopPropagation()" style="max-width:500px;">
+            <div class="modal__header" style="background:linear-gradient(135deg,#c62828,#e53935);border-bottom:none;">
+                <div>
+                    <div class="modal__header-title" style="color:#fff;">⚠️ 파견 취소 신청</div>
+                    <div class="modal__header-sub" id="intCancelExpo" style="color:rgba(255,255,255,0.7);"></div>
+                </div>
+                <button class="modal__close" onclick="closeIntCancelModal()" style="color:rgba(255,255,255,0.7);">✕</button>
+            </div>
+            <div class="modal__body" style="padding:24px;">
+                <input type="hidden" id="intCancelContractId">
+                <div id="intCancelPenaltyInfo" style="margin-bottom:20px;padding:16px;background:#fff3e0;border-radius:12px;border:1px solid #ffe0b2;"></div>
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:0.82rem;font-weight:700;color:#333;">취소 사유 <span style="color:#c62828;">*</span></label>
+                    <select id="intCancelReasonSelect" onchange="var o=document.getElementById('intCancelOtherWrap');o.style.display=(this.value==='기타')?'':'none';" style="width:100%;margin-top:8px;padding:12px;border:2px solid #e0e5ec;border-radius:10px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+                        <option value="">선택해주세요</option>
+                        <option value="개인 사정">개인 사정 (건강, 가족 등)</option>
+                        <option value="일정 충돌">다른 일정과 충돌</option>
+                        <option value="이동 불가">해당 지역 이동 불가</option>
+                        <option value="언어 미스매치">언어/분야 미스매치</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div id="intCancelOtherWrap" style="display:none;margin-bottom:16px;">
+                    <label style="font-size:0.82rem;font-weight:700;color:#333;">상세 사유</label>
+                    <textarea id="intCancelReasonText" rows="3" placeholder="취소 사유를 자세히 입력해주세요." style="width:100%;margin-top:8px;padding:12px;border:2px solid #e0e5ec;border-radius:10px;font-size:0.85rem;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="closeIntCancelModal()" style="flex:1;padding:14px;background:#f5f5f5;color:#666;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">돌아가기</button>
+                    <button onclick="submitIntCancelRequest()" style="flex:1;padding:14px;background:linear-gradient(135deg,#c62828,#e53935);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">취소 신청하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ══════════════ 상세 모달 ══════════════ -->
     <div class="modal-overlay" id="assignModal" onclick="closeModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
@@ -3551,6 +3587,14 @@
                 html += '<div style="margin-top:20px;text-align:center;"><button onclick="openIntContractDocument(\'' + c.id + '\')" style="background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(21,101,192,0.3);">📄 계약서 보기 / PDF 다운로드</button></div>';
             }
 
+            // 취소 가능 상태
+            var intCancelable = ['contract_sign','pending','deposit_paid','in_progress'];
+            if (intCancelable.indexOf(c.status) >= 0 && c.status !== 'cancelled') {
+                html += '<div style="margin-top:16px;padding:14px;background:#fafafa;border-radius:12px;border:1px solid #eee;text-align:center;">' +
+                    '<button onclick="openIntCancelModal(\'' + c.id + '\')" style="padding:10px 24px;background:none;color:#c62828;border:1.5px solid #e57373;border-radius:10px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">파견 취소 신청</button>' +
+                '</div>';
+            }
+
             document.getElementById('ctModalBody').innerHTML = html;
             document.getElementById('ctModal').classList.add('open');
         }
@@ -3558,6 +3602,143 @@
         function closeIntContractModal(e) {
             if (e && e.target !== e.currentTarget) return;
             document.getElementById('ctModal').classList.remove('open');
+        }
+
+        // ===== 통역사 취소 시스템 =====
+        async function openIntCancelModal(contractId) {
+            var c = interpreterContracts.find(function(x) { return x.id === contractId; });
+            if (!c) return;
+
+            document.getElementById('intCancelContractId').value = contractId;
+            document.getElementById('intCancelExpo').textContent = c.expo;
+            document.getElementById('intCancelReasonSelect').value = '';
+            document.getElementById('intCancelReasonText').value = '';
+            document.getElementById('intCancelOtherWrap').style.display = 'none';
+
+            var startDate = c.dates ? c.dates.start : null;
+            var daysRemaining = 999;
+            if (startDate) {
+                var start = new Date(startDate);
+                var today = new Date();
+                today.setHours(0,0,0,0);
+                start.setHours(0,0,0,0);
+                daysRemaining = Math.floor((start - today) / (1000 * 60 * 60 * 24));
+                if (daysRemaining < 0) daysRemaining = 0;
+            }
+
+            var penaltyInfo = { penalty_rate: 0, penalty_amount: 0, interpreter_action: '확인 중...', description: '정책 조회 중...' };
+            if (window.sbClient) {
+                try {
+                    var { data: pData } = await window.sbClient.rpc('calculate_penalty', {
+                        p_cancel_type: 'interpreter',
+                        p_days_remaining: daysRemaining,
+                        p_deposit_amount: 0,
+                        p_total_amount: c.serviceFee || 0
+                    });
+                    if (pData && pData.length > 0) penaltyInfo = pData[0];
+                } catch(e) { console.error('위약금 계산 실패:', e); }
+            }
+
+            var actionColor = '#2e7d32';
+            var action = penaltyInfo.interpreter_action || '없음';
+            if (action.indexOf('정지') >= 0) actionColor = '#c62828';
+            else if (action.indexOf('제한') >= 0 || action.indexOf('패널티') >= 0) actionColor = '#e65100';
+
+            var infoEl = document.getElementById('intCancelPenaltyInfo');
+            infoEl.innerHTML =
+                '<div style="font-weight:700;font-size:0.9rem;color:#333;margin-bottom:12px;">📋 취소 시 패널티 안내</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">' +
+                    '<div style="color:#666;">전시 시작일</div><div style="font-weight:600;">' + (startDate || '미정') + '</div>' +
+                    '<div style="color:#666;">남은 일수</div><div style="font-weight:600;">' + daysRemaining + '일</div>' +
+                    '<div style="color:#666;">적용 정책</div><div style="font-weight:600;">' + (penaltyInfo.description || '') + '</div>' +
+                    '<div style="color:#666;">패널티</div><div style="font-weight:700;color:' + actionColor + ';">' + action + '</div>' +
+                '</div>' +
+                '<div style="margin-top:12px;padding:10px;background:#ffebee;border-radius:8px;font-size:0.78rem;color:#c62828;">' +
+                    '⚠️ 취소 시 패널티가 누적되며, 3회 이상 시 매칭이 정지될 수 있습니다.' +
+                '</div>';
+
+            document.getElementById('intCancelModal').dataset.daysRemaining = daysRemaining;
+            document.getElementById('intCancelModal').dataset.policyId = penaltyInfo.policy_id || '';
+            document.getElementById('intCancelModal').dataset.penaltyRate = penaltyInfo.penalty_rate || 0;
+            document.getElementById('intCancelModal').dataset.action = action;
+
+            document.getElementById('intCancelModal').style.display = 'flex';
+            document.getElementById('intCancelModal').classList.add('open');
+        }
+
+        function closeIntCancelModal() {
+            document.getElementById('intCancelModal').style.display = '';
+            document.getElementById('intCancelModal').classList.remove('open');
+        }
+
+        async function submitIntCancelRequest() {
+            var contractId = document.getElementById('intCancelContractId').value;
+            var c = interpreterContracts.find(function(x) { return x.id === contractId; });
+            if (!c) return;
+
+            var reasonSelect = document.getElementById('intCancelReasonSelect').value;
+            var reasonText = document.getElementById('intCancelReasonText').value.trim();
+            if (!reasonSelect) { alert('취소 사유를 선택해주세요.'); return; }
+            var fullReason = reasonSelect === '기타' ? (reasonText || '기타') : reasonSelect + (reasonText ? ' - ' + reasonText : '');
+
+            if (!window.sbClient) { alert('서비스 연결 오류'); return; }
+
+            try {
+                var user = await ContentourAuth.getCurrentUser();
+                if (!user) { alert('로그인이 필요합니다.'); return; }
+
+                var modal = document.getElementById('intCancelModal');
+                var startDate = c.dates ? c.dates.start : new Date().toISOString().split('T')[0];
+
+                // 51_취소내역 삽입
+                var { error: cancelErr } = await window.sbClient.from('51_취소내역').insert({
+                    contract_id: c.id,
+                    cancelled_by: 'interpreter',
+                    cancelled_user_id: user.id,
+                    cancel_reason: fullReason,
+                    exhibition_start: startDate,
+                    days_remaining: parseInt(modal.dataset.daysRemaining) || 0,
+                    applied_policy_id: modal.dataset.policyId || null,
+                    penalty_rate: 0,
+                    penalty_amount: 0,
+                    refund_amount: 0,
+                    status: 'pending'
+                });
+                if (cancelErr) throw cancelErr;
+
+                // 42_통역계약 상태 업데이트
+                await window.sbClient.from('42_통역계약').update({
+                    status: 'cancelled',
+                    cancelled_by: 'interpreter',
+                    cancel_reason: fullReason,
+                    cancelled_at: new Date().toISOString()
+                }).eq('id', c.id);
+
+                // 40_통역사프로필 패널티 카운트 증가
+                var action = modal.dataset.action || '';
+                if (action.indexOf('패널티') >= 0 || action.indexOf('정지') >= 0 || action.indexOf('제한') >= 0) {
+                    try {
+                        var { data: profile } = await window.sbClient.from('40_통역사프로필').select('penalty_count').eq('user_id', user.id).single();
+                        var newCount = (profile ? profile.penalty_count : 0) + 1;
+                        var isSuspended = newCount >= 3;
+                        await window.sbClient.from('40_통역사프로필').update({
+                            penalty_count: newCount,
+                            is_suspended: isSuspended,
+                            suspended_until: isSuspended ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : null
+                        }).eq('user_id', user.id);
+                    } catch(pe) { console.error('패널티 업데이트 실패:', pe); }
+                }
+
+                c.status = 'cancelled';
+                c.statusText = '취소됨';
+                closeIntCancelModal();
+                closeIntContractModal();
+                ctRenderList();
+                alert('파견 취소가 신청되었습니다. 관리자 확인 후 처리됩니다.');
+            } catch(e) {
+                console.error('취소 신청 실패:', e);
+                alert('취소 신청 중 오류가 발생했습니다: ' + (e.message || ''));
+            }
         }
 
         async function intAgreeContractFromModal(contractId, btn) {
