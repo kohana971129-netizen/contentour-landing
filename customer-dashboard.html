@@ -3404,7 +3404,7 @@
       if (!listEl || receivedQuotes.length === 0) return;
       // 기존 견적 카드 제거 (중복 방지)
       listEl.querySelectorAll('.quote-notif-card').forEach(function(el) { el.remove(); });
-      var quoteHtml = receivedQuotes.filter(function(q) { return q.status === 'sent' || q.status === 'accepted'; }).map(function(q) {
+      var quoteHtml = receivedQuotes.filter(function(q) { return q.status === 'sent'; }).map(function(q) {
         var statusLabel = q.status === 'accepted' ? '<span style="color:var(--gray-400);font-weight:700;">[수락됨]</span>' : '';
         return '<div class="quote-notif-card' + (q.status === 'accepted' ? ' reviewed' : '') + '" onclick="openQuoteDetail(\'' + q.quoteId + '\')">' +
           '<div class="quote-notif-card__title">&#128200; ' + q.expo + ' 견적서 도착 ' + statusLabel + '</div>' +
@@ -3528,13 +3528,19 @@
         ]
       };
       contracts.push(newContract);
+
+      // 문의 상태를 '계약진행'으로 업데이트 → 문의 현황에서 자동 반영
+      if (window.sbClient && q.inquiryId) {
+        try {
+          await window.sbClient.from('46_ITQ견적문의').update({ status: '계약진행' }).eq('id', q.inquiryId);
+        } catch(e) { console.error('문의 상태 업데이트 실패:', e); }
+      }
+
       closeQuoteDetail();
       showContractToast('견적을 수락했습니다! 계약서를 확인하고 동의해주세요.');
       renderContracts();
-      var currentView = document.querySelector('.view.active');
-      if (currentView && currentView.id === 'view-list') {
-        renderQuoteCards();
-      }
+      // 문의 목록 새로고침 (수락된 건 상태 반영)
+      loadMyInquiries();
     }
 
     // Customer agrees to contract
