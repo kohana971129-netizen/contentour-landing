@@ -3920,45 +3920,94 @@
 
                 <!-- 성과사례 등록/수정 모달 -->
                 <div class="modal-overlay" id="caseFormOverlay" onclick="if(event.target===this)closeCaseForm()" style="z-index:260;display:none;">
-                    <div class="modal" onclick="event.stopPropagation()" style="max-width:600px;">
+                    <div class="modal" onclick="event.stopPropagation()" style="max-width:640px;">
                         <div class="modal__header" style="background:linear-gradient(135deg,#1565c0,#0d47a1);border-bottom:none;">
-                            <div><div class="modal__header-title" style="color:#fff;" id="caseFormTitle">새 성과사례 등록</div></div>
+                            <div><div class="modal__header-title" style="color:#fff;" id="caseFormTitle">새 성과사례 등록</div>
+                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:2px;">성과사례 페이지에 표시될 정보를 입력하세요</div></div>
                             <button class="modal__close" onclick="closeCaseForm()" style="color:rgba(255,255,255,0.7);">✕</button>
                         </div>
-                        <div class="modal__body" style="padding:24px;max-height:70vh;overflow-y:auto;">
+                        <div class="modal__body" style="padding:28px;max-height:70vh;overflow-y:auto;">
                             <input type="hidden" id="caseFormId">
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">고객사명 *</label><input type="text" id="cfCompany" placeholder="예: 태림산업" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">전시회명 *</label><input type="text" id="cfExpo" placeholder="예: Nano Tech 2026" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">국가 *</label><input type="text" id="cfCountry" placeholder="예: 일본" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">국기 이모지</label><input type="text" id="cfFlag" placeholder="예: 🇯🇵" value="🌐" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">전시 시기 *</label><input type="text" id="cfDate" placeholder="예: 2026.02" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">통역 유형 *</label>
-                                    <select id="cfType" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;">
-                                        <option value="부스 통역">부스 통역</option><option value="미팅 통역">미팅 통역</option><option value="현장 통역">현장 통역</option><option value="동시통역">동시통역</option><option value="수행 통역">수행 통역</option>
-                                    </select>
+
+                            <!-- 이미지 업로드 영역 -->
+                            <div style="margin-bottom:24px;">
+                                <label style="font-size:0.82rem;font-weight:700;color:#333;margin-bottom:8px;display:block;">현장 사진</label>
+                                <div id="cfImagePreview" onclick="document.getElementById('cfImageFile').click()" style="width:100%;height:180px;border:2px dashed #c5cee0;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#f8fafc;transition:all 0.2s;">
+                                    <div id="cfImagePlaceholder" style="text-align:center;">
+                                        <div style="font-size:2.5rem;margin-bottom:8px;">📷</div>
+                                        <div style="font-size:0.85rem;font-weight:600;color:#666;">클릭하여 이미지 업로드</div>
+                                        <div style="font-size:0.72rem;color:#999;margin-top:4px;">JPG, PNG (최대 5MB)</div>
+                                    </div>
                                 </div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">통역사명</label><input type="text" id="cfInterpreter" placeholder="예: 고하나" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">산업 분야</label><input type="text" id="cfIndustry" placeholder="예: 의료기기" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                            </div>
-                            <div style="margin-top:12px;"><label style="font-size:0.78rem;font-weight:700;color:#666;">이미지 URL</label><input type="text" id="cfImage" placeholder="https://..." style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                            <div style="margin-top:12px;"><label style="font-size:0.78rem;font-weight:700;color:#666;">링크 URL</label><input type="text" id="cfLink" placeholder="https://..." style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 1 라벨</label><input type="text" id="cfM1Label" placeholder="예: 상담 통역" value="상담 통역" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 1 값</label><input type="text" id="cfM1Value" placeholder="예: 32건" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 2 라벨</label><input type="text" id="cfM2Label" placeholder="예: 상담액" value="상담액" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 2 값</label><input type="text" id="cfM2Value" placeholder="예: ₩8.5억" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                            </div>
-                            <div style="display:flex;gap:12px;margin-top:12px;">
-                                <div style="flex:1;"><label style="font-size:0.78rem;font-weight:700;color:#666;">정렬 순서</label><input type="number" id="cfSort" value="0" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
-                                <div style="flex:1;display:flex;align-items:flex-end;">
-                                    <label style="font-size:0.85rem;cursor:pointer;"><input type="checkbox" id="cfPublished" checked style="margin-right:6px;">공개</label>
+                                <input type="file" id="cfImageFile" accept="image/*" onchange="previewCaseImage(this)" style="display:none;">
+                                <input type="hidden" id="cfImage">
+                                <div id="cfImageActions" style="display:none;margin-top:8px;text-align:right;">
+                                    <button onclick="removeCaseImage()" style="padding:6px 14px;background:#ffebee;color:#c62828;border:none;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;">이미지 제거</button>
                                 </div>
                             </div>
-                            <button onclick="saveCaseForm()" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;">저장</button>
+
+                            <!-- 기본 정보 -->
+                            <div style="background:#f8fafc;border-radius:12px;padding:18px;margin-bottom:20px;border:1px solid #e5eaf2;">
+                                <div style="font-size:0.82rem;font-weight:700;color:#1565c0;margin-bottom:14px;">기본 정보</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                                    <div class="cf-field"><label>고객사명 <span style="color:#c62828;">*</span></label><input type="text" id="cfCompany" placeholder="예: 태림산업"></div>
+                                    <div class="cf-field"><label>전시회명 <span style="color:#c62828;">*</span></label><input type="text" id="cfExpo" placeholder="예: Nano Tech 2026"></div>
+                                    <div class="cf-field"><label>국가 <span style="color:#c62828;">*</span></label><input type="text" id="cfCountry" placeholder="예: 일본"></div>
+                                    <div class="cf-field"><label>국기 이모지</label><input type="text" id="cfFlag" placeholder="예: 🇯🇵" value="🌐"></div>
+                                    <div class="cf-field"><label>전시 시기 <span style="color:#c62828;">*</span></label><input type="text" id="cfDate" placeholder="예: 2026.02"></div>
+                                    <div class="cf-field"><label>통역 유형 <span style="color:#c62828;">*</span></label>
+                                        <select id="cfType"><option value="부스 통역">부스 통역</option><option value="미팅 통역">미팅 통역</option><option value="현장 통역">현장 통역</option><option value="동시통역">동시통역</option><option value="수행 통역">수행 통역</option></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 통역사 정보 -->
+                            <div style="background:#f0f7f0;border-radius:12px;padding:18px;margin-bottom:20px;border:1px solid #c8e6c9;">
+                                <div style="font-size:0.82rem;font-weight:700;color:#2e7d32;margin-bottom:14px;">통역사 정보</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                                    <div class="cf-field"><label>통역사명</label><input type="text" id="cfInterpreter" placeholder="예: 고하나"></div>
+                                    <div class="cf-field"><label>산업 분야</label><input type="text" id="cfIndustry" placeholder="예: 의료기기"></div>
+                                </div>
+                            </div>
+
+                            <!-- 성과 지표 -->
+                            <div style="background:#fff8e1;border-radius:12px;padding:18px;margin-bottom:20px;border:1px solid #ffe0b2;">
+                                <div style="font-size:0.82rem;font-weight:700;color:#e65100;margin-bottom:14px;">성과 지표</div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                                    <div class="cf-field"><label>성과 1 항목</label><input type="text" id="cfM1Label" placeholder="예: 상담 통역" value="상담 통역"></div>
+                                    <div class="cf-field"><label>성과 1 수치</label><input type="text" id="cfM1Value" placeholder="예: 32건"></div>
+                                    <div class="cf-field"><label>성과 2 항목</label><input type="text" id="cfM2Label" placeholder="예: 상담액" value="상담액"></div>
+                                    <div class="cf-field"><label>성과 2 수치</label><input type="text" id="cfM2Value" placeholder="예: ₩8.5억"></div>
+                                </div>
+                            </div>
+
+                            <!-- 추가 설정 -->
+                            <div style="background:#f5f5f5;border-radius:12px;padding:18px;margin-bottom:20px;border:1px solid #e0e0e0;">
+                                <div style="font-size:0.82rem;font-weight:700;color:#666;margin-bottom:14px;">추가 설정</div>
+                                <div class="cf-field" style="margin-bottom:14px;"><label>외부 링크 URL (선택)</label><input type="text" id="cfLink" placeholder="https://..."></div>
+                                <div style="display:flex;gap:20px;align-items:center;">
+                                    <div class="cf-field" style="flex:1;"><label>정렬 순서</label><input type="number" id="cfSort" value="0"></div>
+                                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding-top:18px;">
+                                        <input type="checkbox" id="cfPublished" checked style="width:18px;height:18px;accent-color:#1565c0;">
+                                        <span style="font-size:0.85rem;font-weight:600;color:#333;">공개</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;gap:10px;">
+                                <button onclick="closeCaseForm()" style="flex:1;padding:14px;background:#f5f5f5;color:#666;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
+                                <button onclick="saveCaseForm()" style="flex:2;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">저장하기</button>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <style>
+                    .cf-field { display:flex;flex-direction:column; }
+                    .cf-field label { font-size:0.78rem;font-weight:700;color:#555;margin-bottom:5px; }
+                    .cf-field input, .cf-field select { padding:10px 12px;border:1.5px solid #dde3ed;border-radius:10px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;transition:border-color 0.2s;outline:none;width:100%; }
+                    .cf-field input:focus, .cf-field select:focus { border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,0.1); }
+                    #cfImagePreview:hover { border-color:#1565c0;background:#f0f5ff; }
+                </style>
 
                 <div class="view" id="view-system-settings">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
@@ -7048,6 +7097,41 @@
                 }).join('');
             }
 
+            // 이미지 미리보기
+            function previewCaseImage(input) {
+                if (!input.files || !input.files[0]) return;
+                var file = input.files[0];
+                if (file.size > 5 * 1024 * 1024) { showToast('이미지 크기는 5MB 이하여야 합니다.'); input.value = ''; return; }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('cfImagePreview').innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+                    document.getElementById('cfImageActions').style.display = '';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function removeCaseImage() {
+                document.getElementById('cfImageFile').value = '';
+                document.getElementById('cfImage').value = '';
+                document.getElementById('cfImagePreview').innerHTML =
+                    '<div id="cfImagePlaceholder" style="text-align:center;">' +
+                        '<div style="font-size:2.5rem;margin-bottom:8px;">📷</div>' +
+                        '<div style="font-size:0.85rem;font-weight:600;color:#666;">클릭하여 이미지 업로드</div>' +
+                        '<div style="font-size:0.72rem;color:#999;margin-top:4px;">JPG, PNG (최대 5MB)</div>' +
+                    '</div>';
+                document.getElementById('cfImageActions').style.display = 'none';
+            }
+
+            async function uploadCaseImage(file) {
+                if (!supabase || !file) return null;
+                var ext = file.name.split('.').pop().toLowerCase();
+                var fileName = 'case_' + Date.now() + '.' + ext;
+                var { data, error } = await supabase.storage.from('case-images').upload(fileName, file, { contentType: file.type });
+                if (error) { console.error('이미지 업로드 실패:', error); return null; }
+                var { data: urlData } = supabase.storage.from('case-images').getPublicUrl(fileName);
+                return urlData ? urlData.publicUrl : null;
+            }
+
             function openCaseForm() {
                 document.getElementById('caseFormId').value = '';
                 document.getElementById('caseFormTitle').textContent = '새 성과사례 등록';
@@ -7060,6 +7144,7 @@
                 document.getElementById('cfM2Label').value = '상담액';
                 document.getElementById('cfSort').value = caseAdminData.length + 1;
                 document.getElementById('cfPublished').checked = true;
+                removeCaseImage();
                 document.getElementById('caseFormOverlay').style.display = 'flex';
             }
 
@@ -7084,6 +7169,14 @@
                 document.getElementById('cfM2Value').value = c.metric2_value || '';
                 document.getElementById('cfSort').value = c.sort_order || 0;
                 document.getElementById('cfPublished').checked = c.is_published;
+                // 기존 이미지 미리보기
+                document.getElementById('cfImageFile').value = '';
+                if (c.image_url) {
+                    document.getElementById('cfImagePreview').innerHTML = '<img src="' + c.image_url + '" style="width:100%;height:100%;object-fit:cover;">';
+                    document.getElementById('cfImageActions').style.display = '';
+                } else {
+                    removeCaseImage();
+                }
                 document.getElementById('caseFormOverlay').style.display = 'flex';
             }
 
@@ -7098,6 +7191,16 @@
                 var country = document.getElementById('cfCountry').value.trim();
                 if (!company || !expo || !country) { showToast('고객사명, 전시회명, 국가는 필수입니다.'); return; }
 
+                // 이미지 업로드 처리
+                var imageUrl = document.getElementById('cfImage').value;
+                var fileInput = document.getElementById('cfImageFile');
+                if (fileInput.files && fileInput.files[0]) {
+                    showToast('이미지 업로드 중...');
+                    var uploaded = await uploadCaseImage(fileInput.files[0]);
+                    if (uploaded) imageUrl = uploaded;
+                    else { showToast('이미지 업로드에 실패했습니다.'); return; }
+                }
+
                 var payload = {
                     title: country + ' ' + expo,
                     client_company: company,
@@ -7108,7 +7211,7 @@
                     case_type: document.getElementById('cfType').value,
                     interpreter_name: document.getElementById('cfInterpreter').value.trim() || null,
                     industry: document.getElementById('cfIndustry').value.trim() || null,
-                    image_url: document.getElementById('cfImage').value.trim() || null,
+                    image_url: imageUrl || null,
                     link_url: document.getElementById('cfLink').value.trim() || null,
                     metric1_label: document.getElementById('cfM1Label').value.trim() || null,
                     metric1_value: document.getElementById('cfM1Value').value.trim() || null,
