@@ -37,12 +37,20 @@
         .detail-section__title { font-size: 1rem; font-weight: 800; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .detail-section__title span { font-size: 1.2rem; }
 
-        /* 사진 갤러리 */
-        .photo-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        .photo-gallery__item { border-radius: 12px; overflow: hidden; aspect-ratio: 4/3; cursor: pointer; position: relative; }
-        .photo-gallery__item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-        .photo-gallery__item:hover img { transform: scale(1.05); }
-        .photo-gallery__caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 12px; color: #fff; font-size: 0.78rem; font-weight: 600; }
+        /* 사진 슬라이더 */
+        .photo-slider { position: relative; border-radius: 16px; overflow: hidden; background: #000; }
+        .photo-slider__track { display: flex; transition: transform 0.4s ease; }
+        .photo-slider__slide { min-width: 100%; position: relative; aspect-ratio: 16/9; cursor: pointer; }
+        .photo-slider__slide img { width: 100%; height: 100%; object-fit: contain; background: #0a0a0a; }
+        .photo-slider__caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 16px 20px; color: #fff; font-size: 0.85rem; font-weight: 600; }
+        .photo-slider__btn { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.9); border: none; font-size: 1.2rem; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); transition: all 0.2s; color: #333; }
+        .photo-slider__btn:hover { background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+        .photo-slider__btn--prev { left: 12px; }
+        .photo-slider__btn--next { right: 12px; }
+        .photo-slider__dots { display: flex; justify-content: center; gap: 8px; padding: 14px 0; }
+        .photo-slider__dot { width: 10px; height: 10px; border-radius: 50%; background: #d0d0d0; border: none; cursor: pointer; transition: all 0.2s; padding: 0; }
+        .photo-slider__dot.active { background: #1565c0; width: 28px; border-radius: 5px; }
+        .photo-slider__counter { position: absolute; top: 14px; right: 14px; background: rgba(0,0,0,0.6); color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; z-index: 2; }
 
         /* 통역사 프로필 */
         .interpreter-profile { display: flex; gap: 20px; align-items: center; padding: 20px; background: linear-gradient(135deg, #f0f7ff, #e8f0fe); border-radius: 14px; }
@@ -95,6 +103,39 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script>
+        var currentSlide = 0;
+        var totalSlides = 0;
+
+        function slidePhoto(dir) {
+            var track = document.getElementById('sliderTrack');
+            if (!track) return;
+            totalSlides = track.children.length;
+            currentSlide = (currentSlide + dir + totalSlides) % totalSlides;
+            updateSlider();
+        }
+
+        function goToSlide(idx) {
+            currentSlide = idx;
+            updateSlider();
+        }
+
+        function updateSlider() {
+            var track = document.getElementById('sliderTrack');
+            if (!track) return;
+            track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+            var counter = document.getElementById('sliderCurrent');
+            if (counter) counter.textContent = currentSlide + 1;
+            var dots = document.querySelectorAll('.photo-slider__dot');
+            dots.forEach(function(d, i) { d.classList.toggle('active', i === currentSlide); });
+        }
+
+        // 키보드 좌우 화살표
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') slidePhoto(-1);
+            if (e.key === 'ArrowRight') slidePhoto(1);
+            if (e.key === 'Escape') document.getElementById('lightbox').classList.remove('open');
+        });
+
         function openLightbox(src) {
             document.getElementById('lightboxImg').src = src;
             document.getElementById('lightbox').classList.add('open');
@@ -189,22 +230,37 @@
                     '</div></div>';
                 }
 
-                // 현장 사진 갤러리
+                // 현장 사진 슬라이더
                 var photos = [];
                 try { photos = Array.isArray(c.photos) ? c.photos : JSON.parse(c.photos || '[]'); } catch(e) {}
                 if (photos.length > 0) {
                     html += '<div class="detail-section">' +
-                        '<div class="detail-section__title"><span>&#128247;</span> 현장 사진</div>' +
-                        '<div class="photo-gallery">';
+                        '<div class="detail-section__title"><span>&#128247;</span> 현장 사진 (' + photos.length + '장)</div>' +
+                        '<div class="photo-slider" id="photoSlider">' +
+                            '<div class="photo-slider__counter"><span id="sliderCurrent">1</span> / ' + photos.length + '</div>' +
+                            '<div class="photo-slider__track" id="sliderTrack">';
                     photos.forEach(function(p) {
                         var src = typeof p === 'string' ? p : p.url;
                         var caption = typeof p === 'object' && p.caption ? p.caption : '';
-                        html += '<div class="photo-gallery__item" onclick="openLightbox(\'' + src + '\')">' +
+                        html += '<div class="photo-slider__slide" onclick="openLightbox(\'' + src + '\')">' +
                             '<img src="' + src + '" alt="현장 사진">' +
-                            (caption ? '<div class="photo-gallery__caption">' + caption + '</div>' : '') +
+                            (caption ? '<div class="photo-slider__caption">' + caption + '</div>' : '') +
                         '</div>';
                     });
-                    html += '</div></div>';
+                    html += '</div>';
+                    if (photos.length > 1) {
+                        html += '<button class="photo-slider__btn photo-slider__btn--prev" onclick="event.stopPropagation();slidePhoto(-1)">&#10094;</button>' +
+                            '<button class="photo-slider__btn photo-slider__btn--next" onclick="event.stopPropagation();slidePhoto(1)">&#10095;</button>';
+                    }
+                    html += '</div>';
+                    if (photos.length > 1) {
+                        html += '<div class="photo-slider__dots" id="sliderDots">';
+                        photos.forEach(function(p, i) {
+                            html += '<button class="photo-slider__dot' + (i === 0 ? ' active' : '') + '" onclick="goToSlide(' + i + ')"></button>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
                 }
 
                 // 담당자 정보
