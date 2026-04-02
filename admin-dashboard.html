@@ -3636,6 +3636,9 @@
             <a class="sb-item" id="sb-customers" onclick="switchTab('customers')">
                 <span class="sb-item__icon">🏢</span> 고객사 관리
             </a>
+            <a class="sb-item" id="sb-cases" onclick="switchTab('cases')">
+                <span class="sb-item__icon">🏆</span> 성과사례 관리
+            </a>
             <div class="sb-label">설정</div>
             <a class="sb-item" id="sb-system-settings" onclick="switchTab('system-settings')">
                 <span class="sb-item__icon">⚙️</span> 시스템 설정
@@ -3901,6 +3904,62 @@
                 </div>
 
                 <!-- ══ 시스템 설정 탭 ══ -->
+                <!-- ══ 성과사례 관리 뷰 ══ -->
+                <div class="view" id="view-cases">
+                    <div class="view-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <h2>🏆 성과사례 관리</h2>
+                            <p style="color:#666;font-size:0.85rem;">성과사례 페이지에 표시될 고객사례를 관리합니다.</p>
+                        </div>
+                        <button onclick="openCaseForm()" style="padding:10px 20px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;">+ 새 사례 등록</button>
+                    </div>
+                    <div id="caseAdminList" style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
+                        <div style="padding:40px;text-align:center;color:#8a95a8;">사례를 불러오는 중...</div>
+                    </div>
+                </div>
+
+                <!-- 성과사례 등록/수정 모달 -->
+                <div class="modal-overlay" id="caseFormOverlay" onclick="if(event.target===this)closeCaseForm()" style="z-index:260;display:none;">
+                    <div class="modal" onclick="event.stopPropagation()" style="max-width:600px;">
+                        <div class="modal__header" style="background:linear-gradient(135deg,#1565c0,#0d47a1);border-bottom:none;">
+                            <div><div class="modal__header-title" style="color:#fff;" id="caseFormTitle">새 성과사례 등록</div></div>
+                            <button class="modal__close" onclick="closeCaseForm()" style="color:rgba(255,255,255,0.7);">✕</button>
+                        </div>
+                        <div class="modal__body" style="padding:24px;max-height:70vh;overflow-y:auto;">
+                            <input type="hidden" id="caseFormId">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">고객사명 *</label><input type="text" id="cfCompany" placeholder="예: 태림산업" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">전시회명 *</label><input type="text" id="cfExpo" placeholder="예: Nano Tech 2026" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">국가 *</label><input type="text" id="cfCountry" placeholder="예: 일본" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">국기 이모지</label><input type="text" id="cfFlag" placeholder="예: 🇯🇵" value="🌐" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">전시 시기 *</label><input type="text" id="cfDate" placeholder="예: 2026.02" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">통역 유형 *</label>
+                                    <select id="cfType" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;">
+                                        <option value="부스 통역">부스 통역</option><option value="미팅 통역">미팅 통역</option><option value="현장 통역">현장 통역</option><option value="동시통역">동시통역</option><option value="수행 통역">수행 통역</option>
+                                    </select>
+                                </div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">통역사명</label><input type="text" id="cfInterpreter" placeholder="예: 고하나" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">산업 분야</label><input type="text" id="cfIndustry" placeholder="예: 의료기기" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                            </div>
+                            <div style="margin-top:12px;"><label style="font-size:0.78rem;font-weight:700;color:#666;">이미지 URL</label><input type="text" id="cfImage" placeholder="https://..." style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                            <div style="margin-top:12px;"><label style="font-size:0.78rem;font-weight:700;color:#666;">링크 URL</label><input type="text" id="cfLink" placeholder="https://..." style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 1 라벨</label><input type="text" id="cfM1Label" placeholder="예: 상담 통역" value="상담 통역" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 1 값</label><input type="text" id="cfM1Value" placeholder="예: 32건" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 2 라벨</label><input type="text" id="cfM2Label" placeholder="예: 상담액" value="상담액" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div><label style="font-size:0.78rem;font-weight:700;color:#666;">성과 2 값</label><input type="text" id="cfM2Value" placeholder="예: ₩8.5억" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                            </div>
+                            <div style="display:flex;gap:12px;margin-top:12px;">
+                                <div style="flex:1;"><label style="font-size:0.78rem;font-weight:700;color:#666;">정렬 순서</label><input type="number" id="cfSort" value="0" style="width:100%;padding:10px;border:1.5px solid #e0e5ec;border-radius:8px;font-size:0.85rem;box-sizing:border-box;margin-top:4px;"></div>
+                                <div style="flex:1;display:flex;align-items:flex-end;">
+                                    <label style="font-size:0.85rem;cursor:pointer;"><input type="checkbox" id="cfPublished" checked style="margin-right:6px;">공개</label>
+                                </div>
+                            </div>
+                            <button onclick="saveCaseForm()" style="width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;">저장</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="view" id="view-system-settings">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                         <!-- 서비스 설정 -->
@@ -4969,13 +5028,14 @@
                 if (tab === 'applications') { title = '통역사 지원서 관리'; loadApplications(); }
                 if (tab === 'customers') { title = '고객사 관리'; custInit(); }
                 if (tab === 'cancellations') { title = '취소 관리'; loadCancellations(); }
+                if (tab === 'cases') { title = '성과사례 관리'; loadAdminCases(); }
                 if (tab === 'system-settings') { title = '시스템 설정'; loadSystemSettings(); }
                 document.getElementById('pageTitle').textContent = title;
 
                 if (tab === 'interpreters') { title = '통역사 관리'; loadInterpVerifyList(); }
 
                 // Sidebar highlighting
-                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
+                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-cases', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
@@ -6946,6 +7006,145 @@
                 if (badge) {
                     badge.textContent = pending;
                     badge.style.display = pending > 0 ? '' : 'none';
+                }
+            }
+
+            // ═══ 성과사례 관리 ═══
+            var caseAdminData = [];
+
+            async function loadAdminCases() {
+                var listEl = document.getElementById('caseAdminList');
+                if (!listEl || !supabase) return;
+                try {
+                    var { data, error } = await supabase.from('52_성과사례').select('*').order('sort_order', { ascending: true });
+                    if (error) throw error;
+                    caseAdminData = data || [];
+                    renderAdminCases();
+                } catch(e) {
+                    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;">로드 실패: ' + e.message + '</div>';
+                }
+            }
+
+            function renderAdminCases() {
+                var listEl = document.getElementById('caseAdminList');
+                if (!listEl) return;
+                if (caseAdminData.length === 0) {
+                    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;">등록된 성과사례가 없습니다.</div>';
+                    return;
+                }
+                listEl.innerHTML = caseAdminData.map(function(c) {
+                    return '<div style="background:#fff;border:1.5px solid #e5eaf2;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:16px;cursor:pointer;" onclick="editCaseForm(\'' + c.id + '\')">' +
+                        '<div style="width:80px;height:55px;border-radius:8px;background-size:cover;background-position:center;flex-shrink:0;' + (c.image_url ? 'background-image:url(' + c.image_url + ')' : 'background:#e3f0ff;') + '"></div>' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<div style="font-weight:700;font-size:0.9rem;">[' + c.client_company + '] ' + c.exhibition_name + '</div>' +
+                            '<div style="font-size:0.78rem;color:#666;margin-top:2px;">' + c.country_flag + ' ' + c.country + ' · ' + c.exhibition_date + ' · ' + c.case_type + (c.interpreter_name ? ' · 통역사: ' + c.interpreter_name : '') + '</div>' +
+                            '<div style="font-size:0.75rem;color:#999;margin-top:2px;">' + (c.metric1_label||'') + ' ' + (c.metric1_value||'') + ' | ' + (c.metric2_label||'') + ' ' + (c.metric2_value||'') + '</div>' +
+                        '</div>' +
+                        '<div style="display:flex;gap:6px;flex-shrink:0;">' +
+                            '<span style="padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;' + (c.is_published ? 'background:#e8f5e9;color:#2e7d32;' : 'background:#f5f5f5;color:#999;') + '">' + (c.is_published ? '공개' : '비공개') + '</span>' +
+                            '<button onclick="event.stopPropagation();deleteCase(\'' + c.id + '\')" style="padding:4px 10px;background:#ffebee;color:#c62828;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">삭제</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+            }
+
+            function openCaseForm() {
+                document.getElementById('caseFormId').value = '';
+                document.getElementById('caseFormTitle').textContent = '새 성과사례 등록';
+                ['cfCompany','cfExpo','cfCountry','cfDate','cfInterpreter','cfIndustry','cfImage','cfLink','cfM1Value','cfM2Value'].forEach(function(id) {
+                    document.getElementById(id).value = '';
+                });
+                document.getElementById('cfFlag').value = '🌐';
+                document.getElementById('cfType').value = '부스 통역';
+                document.getElementById('cfM1Label').value = '상담 통역';
+                document.getElementById('cfM2Label').value = '상담액';
+                document.getElementById('cfSort').value = caseAdminData.length + 1;
+                document.getElementById('cfPublished').checked = true;
+                document.getElementById('caseFormOverlay').style.display = 'flex';
+            }
+
+            function editCaseForm(id) {
+                var c = caseAdminData.find(function(x) { return x.id === id; });
+                if (!c) return;
+                document.getElementById('caseFormId').value = c.id;
+                document.getElementById('caseFormTitle').textContent = '성과사례 수정';
+                document.getElementById('cfCompany').value = c.client_company || '';
+                document.getElementById('cfExpo').value = c.exhibition_name || '';
+                document.getElementById('cfCountry').value = c.country || '';
+                document.getElementById('cfFlag').value = c.country_flag || '🌐';
+                document.getElementById('cfDate').value = c.exhibition_date || '';
+                document.getElementById('cfType').value = c.case_type || '부스 통역';
+                document.getElementById('cfInterpreter').value = c.interpreter_name || '';
+                document.getElementById('cfIndustry').value = c.industry || '';
+                document.getElementById('cfImage').value = c.image_url || '';
+                document.getElementById('cfLink').value = c.link_url || '';
+                document.getElementById('cfM1Label').value = c.metric1_label || '';
+                document.getElementById('cfM1Value').value = c.metric1_value || '';
+                document.getElementById('cfM2Label').value = c.metric2_label || '';
+                document.getElementById('cfM2Value').value = c.metric2_value || '';
+                document.getElementById('cfSort').value = c.sort_order || 0;
+                document.getElementById('cfPublished').checked = c.is_published;
+                document.getElementById('caseFormOverlay').style.display = 'flex';
+            }
+
+            function closeCaseForm() {
+                document.getElementById('caseFormOverlay').style.display = 'none';
+            }
+
+            async function saveCaseForm() {
+                var id = document.getElementById('caseFormId').value;
+                var company = document.getElementById('cfCompany').value.trim();
+                var expo = document.getElementById('cfExpo').value.trim();
+                var country = document.getElementById('cfCountry').value.trim();
+                if (!company || !expo || !country) { showToast('고객사명, 전시회명, 국가는 필수입니다.'); return; }
+
+                var payload = {
+                    title: country + ' ' + expo,
+                    client_company: company,
+                    exhibition_name: expo,
+                    country: country,
+                    country_flag: document.getElementById('cfFlag').value || '🌐',
+                    exhibition_date: document.getElementById('cfDate').value.trim(),
+                    case_type: document.getElementById('cfType').value,
+                    interpreter_name: document.getElementById('cfInterpreter').value.trim() || null,
+                    industry: document.getElementById('cfIndustry').value.trim() || null,
+                    image_url: document.getElementById('cfImage').value.trim() || null,
+                    link_url: document.getElementById('cfLink').value.trim() || null,
+                    metric1_label: document.getElementById('cfM1Label').value.trim() || null,
+                    metric1_value: document.getElementById('cfM1Value').value.trim() || null,
+                    metric2_label: document.getElementById('cfM2Label').value.trim() || null,
+                    metric2_value: document.getElementById('cfM2Value').value.trim() || null,
+                    sort_order: parseInt(document.getElementById('cfSort').value) || 0,
+                    is_published: document.getElementById('cfPublished').checked,
+                    updated_at: new Date().toISOString()
+                };
+
+                try {
+                    if (id) {
+                        var { error } = await supabase.from('52_성과사례').update(payload).eq('id', id);
+                        if (error) throw error;
+                        showToast('성과사례가 수정되었습니다.');
+                    } else {
+                        var { error } = await supabase.from('52_성과사례').insert(payload);
+                        if (error) throw error;
+                        showToast('새 성과사례가 등록되었습니다.');
+                    }
+                    closeCaseForm();
+                    loadAdminCases();
+                } catch(e) {
+                    showToast('저장 실패: ' + e.message);
+                }
+            }
+
+            async function deleteCase(id) {
+                if (!confirm('이 성과사례를 삭제하시겠습니까?')) return;
+                try {
+                    var { error } = await supabase.from('52_성과사례').delete().eq('id', id);
+                    if (error) throw error;
+                    showToast('삭제되었습니다.');
+                    loadAdminCases();
+                } catch(e) {
+                    showToast('삭제 실패: ' + e.message);
                 }
             }
 
