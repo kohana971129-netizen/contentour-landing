@@ -1352,6 +1352,73 @@
             if (e.key === 'Escape') closeIpModal();
         });
 
+        // ═══ DB 등록 통역사를 국가별 패널에 병합 ═══
+        (async function loadDbInterpreters() {
+            if (!window.sbClient) return;
+            try {
+                var { data: profiles } = await window.sbClient
+                    .from('40_통역사프로필')
+                    .select('user_id, display_name, languages, specialties, experience_years, intro, profile_image_url, country_code, field_tag, cases_count, rating, satisfaction, rate_by_type, is_active')
+                    .eq('is_active', true);
+
+                if (!profiles || profiles.length === 0) return;
+
+                profiles.forEach(function(p) {
+                    if (!p.country_code || !interpData[p.country_code]) return;
+
+                    var langs = Array.isArray(p.languages) ? p.languages : [];
+                    var specs = Array.isArray(p.specialties) ? p.specialties : [];
+                    var tags = langs.concat(specs).slice(0, 3);
+                    var rates = p.rate_by_type || {};
+                    var boothRate = rates.booth || rates['부스 상주'] || 250000;
+                    var meetingRate = rates.meeting || rates['미팅 동행'] || 300000;
+                    var confRate = rates.conference || rates['동시통역'] || 400000;
+                    var opRate = rates.operation || rates['현장 운영'] || 280000;
+
+                    var newInterp = {
+                        name: p.display_name || '통역사',
+                        photo: p.profile_image_url || '',
+                        role: langs.join('·') + ' 전문 통역사',
+                        intro: p.intro || '',
+                        tags: tags,
+                        fieldTag: p.field_tag || (specs[0] || ''),
+                        cases: p.cases_count || 0,
+                        rating: p.rating || 0,
+                        years: p.experience_years || 0,
+                        satisfaction: p.satisfaction || 0,
+                        prices: {
+                            booth: [boothRate, boothRate + 50000],
+                            meeting: [meetingRate, meetingRate + 50000],
+                            conference: [confRate, confRate + 50000],
+                            operation: [opRate, opRate + 50000]
+                        },
+                        bio: p.intro || '',
+                        history: [],
+                        _dbId: p.user_id,
+                        _fromDb: true
+                    };
+
+                    // 기존 하드코딩에 같은 이름이 있으면 교체, 없으면 추가
+                    var existing = interpData[p.country_code].interpreters.findIndex(function(x) {
+                        return x.name === p.display_name;
+                    });
+                    if (existing >= 0) {
+                        // DB 데이터로 교체 (사진, 소개 등 최신 반영)
+                        var old = interpData[p.country_code].interpreters[existing];
+                        newInterp.history = old.history || [];
+                        if (!newInterp.intro && old.intro) newInterp.intro = old.intro;
+                        if (!newInterp.bio && old.bio) newInterp.bio = old.bio;
+                        interpData[p.country_code].interpreters[existing] = newInterp;
+                    } else {
+                        interpData[p.country_code].interpreters.push(newInterp);
+                    }
+                });
+                console.log('[통역사] DB 프로필 ' + profiles.length + '명 병합 완료');
+            } catch(e) {
+                console.error('[통역사] DB 로드 실패:', e);
+            }
+        })();
+
         // ═══ DB 리뷰 별점을 패널 카드에 반영 ═══
         (async function loadMainPageRatings() {
             if (!window.sbClient) return;
