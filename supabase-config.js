@@ -1,7 +1,7 @@
 // ══════════════ Supabase 설정 ══════════════
 (function () {
-    var SUPABASE_URL = 'https://jgeqbdrfpekzuumaklvx.supabase.co';
-    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnZXFiZHJmcGVrenV1bWFrbHZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MzgwMzQsImV4cCI6MjA5MDQxNDAzNH0.C2y3UiPtHIF2s4nPvbGycN927HOG4YpO86FfgZAelUw';
+    var SUPABASE_URL = 'https://yvtgfieoeoqhfbofzunk.supabase.co';
+    var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2dGdmaWVvZW9xaGZib2Z6dW5rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1NzI4NTksImV4cCI6MjA4NzE0ODg1OX0.49XWIHjMWG2YN8sI58GunPsSl2UyhJgx88mEtV613Pg';
 
     // Supabase 클라이언트 초기화 (SDK의 window.supabase와 충돌 방지)
     var sb = window.supabase
