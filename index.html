@@ -1386,7 +1386,8 @@
                     starsHtml += i < fullStars ? '★' : '<span style="color:#ddd;">★</span>';
                 }
                 var grad = gradients[idx % gradients.length];
-                var name = r._customerName || '고객';
+                var rawName = r._customerName || '고객';
+                var name = rawName.length >= 2 ? rawName.charAt(0) + Array(rawName.length - 1).fill('○').join('').slice(0, 2) : rawName;
                 var company = r._companyName || '';
                 var initial = name.charAt(0);
 
