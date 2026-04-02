@@ -1392,7 +1392,7 @@
 
                 return '<div class="testi-card">' +
                     '<div class="testi-card__stars">' + starsHtml + '</div>' +
-                    '<p class="testi-card__text">"' + (r.review_text || '').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '"</p>' +
+                    '<p class="testi-card__text">"' + (r.review_text || '').replace(/\u003c/g,'&lt;').replace(/\u003e/g,'&gt;') + '"</p>' +
                     '<div class="testi-card__author">' +
                         '<div class="testi-card__avatar" style="background:linear-gradient(135deg,' + grad[0] + ',' + grad[1] + ');">' + initial + '</div>' +
                         '<div>' +
