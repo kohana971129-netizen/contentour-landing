@@ -567,6 +567,7 @@
     .csb-balance{background:#fff3e0;color:var(--warn);}
     .csb-complete{background:#e8f5e9;color:var(--success);}
     .csb-settled{background:#e8f5e9;color:#558b2f;}
+    .csb-cancelled{background:#ffebee;color:#c62828;}
     .cm-review-box{background:#f3e5f5;border:1px solid #ce93d8;border-radius:12px;padding:20px;margin-top:16px;text-align:center;}
     .cm-review-box__icon{font-size:2rem;margin-bottom:8px;}
     .cm-review-box__title{font-size:0.95rem;font-weight:800;color:#7b1fa2;margin-bottom:4px;}

@@ -872,6 +872,39 @@
   </div>
 
 
+  <!-- 계약 취소 모달 -->
+  <div class="modal-overlay" id="cancelModalOverlay" onclick="if(event.target===this)closeCancelModal()" style="z-index:260;">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal__head" style="background:linear-gradient(135deg,#c62828,#e53935);border-bottom:none;">
+        <div><h3 style="color:#fff;">⚠️ 계약 취소 신청</h3><p id="cancelExpoName" style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:4px;"></p></div>
+        <button class="modal__close" onclick="closeCancelModal()" style="color:rgba(255,255,255,0.7);">✕</button>
+      </div>
+      <div class="modal__body">
+        <input type="hidden" id="cancelContractId">
+        <div id="cancelPenaltyInfo" style="margin-bottom:20px;padding:16px;background:#fff3e0;border-radius:12px;border:1px solid #ffe0b2;"></div>
+        <div style="margin-bottom:16px;">
+          <label style="font-size:0.82rem;font-weight:700;color:#333;">취소 사유 <span style="color:#c62828;">*</span></label>
+          <select id="cancelReasonSelect" onchange="toggleCancelOther()" style="width:100%;margin-top:8px;padding:12px;border:2px solid #e0e5ec;border-radius:10px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;">
+            <option value="">선택해주세요</option>
+            <option value="일정 변경">전시회 일정 변경</option>
+            <option value="내부 사정">내부 사정 (예산, 인력 등)</option>
+            <option value="전시회 취소">전시회 자체 취소/연기</option>
+            <option value="통역사 변경 요청">통역사 변경 요청</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div id="cancelOtherWrap" style="display:none;margin-bottom:16px;">
+          <label style="font-size:0.82rem;font-weight:700;color:#333;">상세 사유</label>
+          <textarea id="cancelReasonText" rows="3" placeholder="취소 사유를 자세히 입력해주세요." style="width:100%;margin-top:8px;padding:12px;border:2px solid #e0e5ec;border-radius:10px;font-size:0.85rem;font-family:inherit;resize:none;box-sizing:border-box;"></textarea>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="closeCancelModal()" style="flex:1;padding:14px;background:#f5f5f5;color:#666;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">돌아가기</button>
+          <button onclick="submitCancelRequest()" style="flex:1;padding:14px;background:linear-gradient(135deg,#c62828,#e53935);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;font-family:inherit;">취소 신청하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ── 로그아웃 ──
     async function handleLogout(e) {
@@ -3642,7 +3675,7 @@
     }
 
     function getStatusBadgeClass(status) {
-      const map = { quote_review:'csb-quote', contract_sign:'csb-quote', deposit_pay:'csb-deposit', deposit_review:'csb-review', balance_review:'csb-review', in_progress:'csb-progress', balance_pay:'csb-balance', complete:'csb-complete', settled:'csb-settled' };
+      const map = { quote_review:'csb-quote', contract_sign:'csb-quote', deposit_pay:'csb-deposit', deposit_review:'csb-review', balance_review:'csb-review', in_progress:'csb-progress', balance_pay:'csb-balance', complete:'csb-complete', settled:'csb-settled', cancelled:'csb-cancelled' };
       return map[status] || 'csb-quote';
     }
 
@@ -3810,6 +3843,9 @@
           actionHtml = `<span class="contract-card__action label">정산 완료</span>`;
           if (!c._reviewDone) actionHtml += `<button class="contract-card__action pay" onclick="event.stopPropagation();openReviewModal('${c.id}')" style="background:linear-gradient(135deg,#f57c00,#ef6c00);margin-left:4px;">⭐ 리뷰 작성</button>`;
         }
+        else if (c.status === 'cancelled') {
+          actionHtml = `<span class="contract-card__action label" style="background:#ffebee;color:#c62828;">취소됨</span>`;
+        }
         return `<div class="contract-card" onclick="openContractDetail('${c.id}')">
           <div style="flex:1;min-width:0;">
             <div class="contract-card__id">${c.id}</div>
@@ -3933,6 +3969,133 @@
       } catch(e) {}
     }
 
+    // ===== 계약 취소 시스템 =====
+    function toggleCancelOther() {
+      var sel = document.getElementById('cancelReasonSelect');
+      document.getElementById('cancelOtherWrap').style.display = (sel.value === '기타' || sel.value === '통역사 변경 요청') ? '' : 'none';
+    }
+
+    async function openCancelModal(contractId) {
+      var c = contracts.find(function(x) { return x.id === contractId; });
+      if (!c) return;
+
+      document.getElementById('cancelContractId').value = contractId;
+      document.getElementById('cancelExpoName').textContent = c.expo;
+      document.getElementById('cancelReasonSelect').value = '';
+      document.getElementById('cancelReasonText').value = '';
+      document.getElementById('cancelOtherWrap').style.display = 'none';
+
+      // 남은 일수 계산
+      var startDate = c.dates ? c.dates.start : null;
+      var daysRemaining = 999;
+      if (startDate) {
+        var start = new Date(startDate);
+        var today = new Date();
+        today.setHours(0,0,0,0);
+        start.setHours(0,0,0,0);
+        daysRemaining = Math.floor((start - today) / (1000 * 60 * 60 * 24));
+        if (daysRemaining < 0) daysRemaining = 0;
+      }
+
+      // 위약금 계산 (DB 조회)
+      var penaltyInfo = { penalty_rate: 0, penalty_amount: 0, refund_amount: 0, description: '정책 조회 중...' };
+      if (window.sbClient) {
+        try {
+          var { data: pData } = await window.sbClient.rpc('calculate_penalty', {
+            p_cancel_type: 'customer',
+            p_days_remaining: daysRemaining,
+            p_deposit_amount: c.deposit || 0,
+            p_total_amount: c.total || 0
+          });
+          if (pData && pData.length > 0) penaltyInfo = pData[0];
+        } catch(e) { console.error('위약금 계산 실패:', e); }
+      }
+
+      // 위약금 정보 표시
+      var infoEl = document.getElementById('cancelPenaltyInfo');
+      var penaltyColor = penaltyInfo.penalty_rate === 0 ? '#2e7d32' : (penaltyInfo.penalty_rate >= 100 ? '#c62828' : '#e65100');
+      infoEl.innerHTML =
+        '<div style="font-weight:700;font-size:0.9rem;color:#333;margin-bottom:12px;">📋 위약금 안내</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">' +
+          '<div style="color:#666;">전시 시작일</div><div style="font-weight:600;">' + (startDate || '미정') + '</div>' +
+          '<div style="color:#666;">남은 일수</div><div style="font-weight:600;">' + daysRemaining + '일</div>' +
+          '<div style="color:#666;">적용 정책</div><div style="font-weight:600;color:' + penaltyColor + ';">' + (penaltyInfo.description || '') + '</div>' +
+          '<div style="color:#666;">위약금</div><div style="font-weight:700;color:' + penaltyColor + ';">' + formatMoney(penaltyInfo.penalty_amount) + ' (' + penaltyInfo.penalty_rate + '%)</div>' +
+          '<div style="color:#666;">환불 예정액</div><div style="font-weight:700;color:#1565c0;">' + formatMoney(penaltyInfo.refund_amount) + '</div>' +
+        '</div>';
+
+      // 모달에 데이터 저장
+      document.getElementById('cancelModalOverlay').dataset.daysRemaining = daysRemaining;
+      document.getElementById('cancelModalOverlay').dataset.policyId = penaltyInfo.policy_id || '';
+      document.getElementById('cancelModalOverlay').dataset.penaltyRate = penaltyInfo.penalty_rate;
+      document.getElementById('cancelModalOverlay').dataset.penaltyAmount = penaltyInfo.penalty_amount;
+      document.getElementById('cancelModalOverlay').dataset.refundAmount = penaltyInfo.refund_amount;
+
+      document.getElementById('cancelModalOverlay').style.display = 'flex';
+      document.getElementById('cancelModalOverlay').classList.add('open');
+    }
+
+    function closeCancelModal() {
+      document.getElementById('cancelModalOverlay').style.display = '';
+      document.getElementById('cancelModalOverlay').classList.remove('open');
+    }
+
+    async function submitCancelRequest() {
+      var contractId = document.getElementById('cancelContractId').value;
+      var c = contracts.find(function(x) { return x.id === contractId; });
+      if (!c) return;
+
+      var reasonSelect = document.getElementById('cancelReasonSelect').value;
+      var reasonText = document.getElementById('cancelReasonText').value.trim();
+      if (!reasonSelect) { showContractToast('취소 사유를 선택해주세요.'); return; }
+      var fullReason = reasonSelect === '기타' ? (reasonText || '기타') : reasonSelect + (reasonText ? ' - ' + reasonText : '');
+
+      if (!window.sbClient) { showContractToast('서비스 연결 오류'); return; }
+
+      try {
+        var user = await ContentourAuth.getCurrentUser();
+        if (!user) { showContractToast('로그인이 필요합니다.'); return; }
+
+        var overlay = document.getElementById('cancelModalOverlay');
+        var startDate = c.dates ? c.dates.start : new Date().toISOString().split('T')[0];
+
+        // 51_취소내역 삽입
+        var { error: cancelErr } = await window.sbClient.from('51_취소내역').insert({
+          contract_id: c.dbId || c.id,
+          cancelled_by: 'customer',
+          cancelled_user_id: user.id,
+          cancel_reason: fullReason,
+          exhibition_start: startDate,
+          days_remaining: parseInt(overlay.dataset.daysRemaining) || 0,
+          applied_policy_id: overlay.dataset.policyId || null,
+          penalty_rate: parseInt(overlay.dataset.penaltyRate) || 0,
+          penalty_amount: parseInt(overlay.dataset.penaltyAmount) || 0,
+          refund_amount: parseInt(overlay.dataset.refundAmount) || 0,
+          status: 'pending'
+        });
+        if (cancelErr) throw cancelErr;
+
+        // 42_통역계약 상태 업데이트
+        var dbId = c.dbId || c.id;
+        await window.sbClient.from('42_통역계약').update({
+          status: 'cancelled',
+          cancelled_by: 'customer',
+          cancel_reason: fullReason,
+          cancelled_at: new Date().toISOString()
+        }).eq('id', dbId);
+
+        c.status = 'cancelled';
+        c.statusText = '취소됨';
+        closeCancelModal();
+        closeContractModal();
+        renderContracts();
+        showContractToast('계약 취소가 신청되었습니다. 관리자 확인 후 환불이 처리됩니다.');
+      } catch(e) {
+        console.error('취소 신청 실패:', e);
+        showContractToast('취소 신청 중 오류가 발생했습니다: ' + (e.message || ''));
+      }
+    }
+
     function filterContracts(status, e) {
       contractFilter = status;
       document.querySelectorAll('.contract-filter-tab').forEach(el => el.classList.remove('active'));
@@ -4009,6 +4172,13 @@
           <div class="cm-pay-section__amount">${formatMoney(c.balance)}</div>
           <button class="cm-pay-btn" onclick="closeContractModal();openPaymentModal('${c.id}','balance')">잔금 결제하기</button>
         </div>`;
+      }
+      // 취소 가능 상태: cancelled, settled, completed 아닌 경우
+      var cancelableStatuses = ['contract_sign','deposit_pay','deposit_review','in_progress','balance_pay','balance_review'];
+      if (cancelableStatuses.indexOf(c.status) >= 0) {
+        bodyHtml += '<div style="margin-top:16px;padding:14px;background:#fafafa;border-radius:12px;border:1px solid #eee;text-align:center;">' +
+          '<button onclick="openCancelModal(\'' + c.id + '\')" style="padding:10px 24px;background:none;color:#c62828;border:1.5px solid #e57373;border-radius:10px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">계약 취소 신청</button>' +
+        '</div>';
       }
       bodyHtml += '<div style="margin-top:20px;text-align:center;"><button onclick="openContractDocument(\'' + c.id + '\')" class="contract-view-btn">📄 계약서 보기 / PDF 다운로드</button></div>';
 
