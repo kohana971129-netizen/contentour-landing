@@ -1022,6 +1022,14 @@ const InterpreterApp = {
         setVal('lrate-vn', langRates.vn);
         setVal('lrate-ar', langRates.ar);
 
+        // 프로필 사진 로드
+        if (p.profile_image_url) {
+            const pfImg = document.getElementById('pfAvatarImg');
+            const pfIcon = document.getElementById('pfAvatarIcon');
+            if (pfImg) { pfImg.src = p.profile_image_url; pfImg.style.display = 'block'; }
+            if (pfIcon) { pfIcon.style.display = 'none'; }
+        }
+
         // 단가 승인 상태 배너 표시
         if (typeof renderRateStatusBanner === 'function') {
             renderRateStatusBanner(p);
