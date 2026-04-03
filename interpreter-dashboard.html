@@ -2055,8 +2055,17 @@
 
         async function loadJnlContracts() {
             var sb = window.sbClient;
-            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
-            var userId = InterpreterApp.currentUser.id;
+            if (!sb) return;
+            var userId = null;
+            if (window.InterpreterApp && InterpreterApp.currentUser) {
+                userId = InterpreterApp.currentUser.id;
+            } else {
+                try {
+                    var u = await ContentourAuth.getCurrentUser();
+                    if (u) userId = u.id;
+                } catch(e) {}
+            }
+            if (!userId) return;
             try {
                 var { data: contracts } = await sb
                     .from('42_통역계약')
