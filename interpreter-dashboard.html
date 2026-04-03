@@ -394,17 +394,33 @@
                                         </select>
                                     </div>
                                     <div class="jnl-field">
-                                        <label>개최지 <span class="req">*</span></label>
-                                        <select id="jnl-location">
+                                        <label>개최지 (국가/도시) <span class="req">*</span></label>
+                                        <select id="jnl-location" onchange="if(this.value==='기타'){this.style.display='none';document.getElementById('jnl-location-custom').style.display='block';document.getElementById('jnl-location-custom').focus();}">
                                             <option value="">선택해주세요</option>
-                                            <option value="COEX, 서울">COEX, 서울</option>
-                                            <option value="KINTEX, 고양">KINTEX, 고양</option>
-                                            <option value="KINTEX 제1전시장, 고양">KINTEX 제1전시장, 고양</option>
-                                            <option value="aT센터, 서울">aT센터, 서울</option>
-                                            <option value="BEXCO, 부산">BEXCO, 부산</option>
-                                            <option value="SETEC, 서울">SETEC, 서울</option>
+                                            <optgroup label="해외">
+                                                <option value="일본 / 도쿄">일본 / 도쿄</option>
+                                                <option value="일본 / 오사카">일본 / 오사카</option>
+                                                <option value="독일 / 뒤셀도르프">독일 / 뒤셀도르프</option>
+                                                <option value="독일 / 베를린">독일 / 베를린</option>
+                                                <option value="독일 / 슈투트가르트">독일 / 슈투트가르트</option>
+                                                <option value="미국 / 라스베이거스">미국 / 라스베이거스</option>
+                                                <option value="미국 / 시카고">미국 / 시카고</option>
+                                                <option value="미국 / 디트로이트">미국 / 디트로이트</option>
+                                                <option value="중국 / 상하이">중국 / 상하이</option>
+                                                <option value="중국 / 선전">중국 / 선전</option>
+                                                <option value="태국 / 방콕">태국 / 방콕</option>
+                                                <option value="베트남 / 호치민">베트남 / 호치민</option>
+                                            </optgroup>
+                                            <optgroup label="국내">
+                                                <option value="한국 / 서울 (COEX)">한국 / 서울 (COEX)</option>
+                                                <option value="한국 / 고양 (KINTEX)">한국 / 고양 (KINTEX)</option>
+                                                <option value="한국 / 부산 (BEXCO)">한국 / 부산 (BEXCO)</option>
+                                                <option value="한국 / 서울 (aT센터)">한국 / 서울 (aT센터)</option>
+                                                <option value="한국 / 서울 (SETEC)">한국 / 서울 (SETEC)</option>
+                                            </optgroup>
                                             <option value="기타">기타 (직접 입력)</option>
                                         </select>
+                                        <input type="text" id="jnl-location-custom" placeholder="예: 프랑스 / 파리" style="display:none;" onblur="if(!this.value){this.style.display='none';document.getElementById('jnl-location').style.display='block';document.getElementById('jnl-location').value='';}">
                                     </div>
                                     <div class="jnl-field">
                                         <label>전시 기간 <span class="req">*</span></label>
@@ -2061,7 +2077,17 @@
             const mapped = jnlExpoMap[val];
             if (mapped) {
                 jnlSetSelect('jnl-client', mapped.client);
-                jnlSetSelect('jnl-location', mapped.location);
+                var locSel = document.getElementById('jnl-location');
+                var locCustom = document.getElementById('jnl-location-custom');
+                var locMatched = jnlSetSelect('jnl-location', mapped.location);
+                if (!locMatched && mapped.location) {
+                    locSel.style.display = 'none';
+                    locCustom.style.display = 'block';
+                    locCustom.value = mapped.location;
+                } else {
+                    locSel.style.display = 'block';
+                    locCustom.style.display = 'none';
+                }
                 jnlSetSelect('jnl-lang', mapped.lang);
                 document.getElementById('jnl-period-start').value = mapped.start;
                 document.getElementById('jnl-period-end').value = mapped.end;
@@ -2079,9 +2105,10 @@
             for (let i = 0; i < sel.options.length; i++) {
                 if (sel.options[i].value === value) {
                     sel.selectedIndex = i;
-                    return;
+                    return true;
                 }
             }
+            return false;
         }
 
         function jnlSelect(idx, el) {
@@ -2120,6 +2147,9 @@
             document.getElementById('jnl-date').value = '';
             document.getElementById('jnl-client').selectedIndex = 0;
             document.getElementById('jnl-location').selectedIndex = 0;
+            document.getElementById('jnl-location').style.display = 'block';
+            document.getElementById('jnl-location-custom').style.display = 'none';
+            document.getElementById('jnl-location-custom').value = '';
             document.getElementById('jnl-lang').selectedIndex = 0;
             document.getElementById('jnl-period-start').value = '';
             document.getElementById('jnl-period-end').value = '';
@@ -2148,7 +2178,9 @@
                 }
 
                 var expoName = document.getElementById('jnl-expo').selectedOptions[0].text;
-                var location = document.getElementById('jnl-location').value;
+                var locationSel = document.getElementById('jnl-location');
+                var locationCustom = document.getElementById('jnl-location-custom');
+                var location = (locationCustom && locationCustom.style.display !== 'none' && locationCustom.value) ? locationCustom.value : locationSel.value;
                 var langText = document.getElementById('jnl-lang').selectedOptions[0] ? document.getElementById('jnl-lang').selectedOptions[0].text : '';
                 var periodStart = document.getElementById('jnl-period-start').value;
                 var periodEnd = document.getElementById('jnl-period-end').value;
