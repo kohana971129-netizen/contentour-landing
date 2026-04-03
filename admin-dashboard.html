@@ -4158,11 +4158,11 @@
                                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최소</label>
-                                            <input type="number" id="set-rate-limit-booth-min" value="150000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-booth-min" value="₩150,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최대</label>
-                                            <input type="number" id="set-rate-limit-booth-max" value="500000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-booth-max" value="₩500,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                     </div>
                                 </div>
@@ -4171,11 +4171,11 @@
                                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최소</label>
-                                            <input type="number" id="set-rate-limit-meeting-min" value="200000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-meeting-min" value="₩200,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최대</label>
-                                            <input type="number" id="set-rate-limit-meeting-max" value="600000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-meeting-max" value="₩600,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                     </div>
                                 </div>
@@ -4184,11 +4184,11 @@
                                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최소</label>
-                                            <input type="number" id="set-rate-limit-conference-min" value="300000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-conference-min" value="₩300,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최대</label>
-                                            <input type="number" id="set-rate-limit-conference-max" value="800000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-conference-max" value="₩800,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                     </div>
                                 </div>
@@ -4197,11 +4197,11 @@
                                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최소</label>
-                                            <input type="number" id="set-rate-limit-operation-min" value="150000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-operation-min" value="₩150,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                         <div>
                                             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">최대</label>
-                                            <input type="number" id="set-rate-limit-operation-max" value="500000" min="0" step="10000" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;">
+                                            <input type="text" id="set-rate-limit-operation-max" value="₩500,000" onfocus="this.value=this.value.replace(/[₩,\s]/g,'')" onblur="this.value='₩'+Number(this.value||0).toLocaleString('ko-KR')" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-family:inherit;text-align:right;">
                                         </div>
                                     </div>
                                 </div>
@@ -9609,8 +9609,8 @@
                         var rl = typeof s.rate_limits === 'string' ? JSON.parse(s.rate_limits) : s.rate_limits;
                         ['booth','meeting','conference','operation'].forEach(function(type) {
                             if (rl[type]) {
-                                if (rl[type].min !== undefined) document.getElementById('set-rate-limit-' + type + '-min').value = rl[type].min;
-                                if (rl[type].max !== undefined) document.getElementById('set-rate-limit-' + type + '-max').value = rl[type].max;
+                                if (rl[type].min !== undefined) document.getElementById('set-rate-limit-' + type + '-min').value = _formatWon(rl[type].min);
+                                if (rl[type].max !== undefined) document.getElementById('set-rate-limit-' + type + '-max').value = _formatWon(rl[type].max);
                             }
                         });
                     } catch(e) { console.warn('단가 범위 설정 파싱 실패:', e); }
@@ -9637,6 +9637,15 @@
             }
         }
 
+        function _formatWon(v) { return '₩' + Number(v||0).toLocaleString('ko-KR'); }
+        function _parseWon(s) { return Number(String(s).replace(/[₩,\s]/g,'')) || 0; }
+        function _wonInput(id, val) {
+            return '<input type="text" id="' + id + '" value="' + _formatWon(val) + '" ' +
+                'onfocus="this.value=this.value.replace(/[₩,\\s]/g,\'\')" ' +
+                'onblur="this.value=\'₩\'+Number(this.value||0).toLocaleString(\'ko-KR\')" ' +
+                'style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:0.8rem;text-align:right;">';
+        }
+
         var _recTierKeys = ['junior','experienced','senior'];
         function _renderRecRateTiers(tiers) {
             var container = document.getElementById('recRateTiers');
@@ -9655,9 +9664,9 @@
                     html += '<div>' +
                         '<div style="font-size:0.72rem;color:#555;margin-bottom:4px;">' + svcLabels[svc] + '</div>' +
                         '<div style="display:flex;gap:4px;align-items:center;">' +
-                        '<input type="number" id="rec-' + key + '-' + svc + '-min" value="' + d.min + '" min="0" step="10000" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:0.8rem;">' +
+                        _wonInput('rec-' + key + '-' + svc + '-min', d.min) +
                         '<span style="font-size:0.7rem;color:#999;">~</span>' +
-                        '<input type="number" id="rec-' + key + '-' + svc + '-max" value="' + d.max + '" min="0" step="10000" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:0.8rem;">' +
+                        _wonInput('rec-' + key + '-' + svc + '-max', d.max) +
                         '</div></div>';
                 });
                 html += '</div></div>';
@@ -9679,8 +9688,8 @@
                     var minEl = document.getElementById('rec-' + key + '-' + svc + '-min');
                     var maxEl = document.getElementById('rec-' + key + '-' + svc + '-max');
                     tier[svc] = {
-                        min: minEl ? Number(minEl.value) : 0,
-                        max: maxEl ? Number(maxEl.value) : 0
+                        min: minEl ? _parseWon(minEl.value) : 0,
+                        max: maxEl ? _parseWon(maxEl.value) : 0
                     };
                 });
                 return tier;
@@ -9696,8 +9705,8 @@
             var rateLimits = {};
             ['booth','meeting','conference','operation'].forEach(function(type) {
                 rateLimits[type] = {
-                    min: Number(document.getElementById('set-rate-limit-' + type + '-min').value),
-                    max: Number(document.getElementById('set-rate-limit-' + type + '-max').value)
+                    min: _parseWon(document.getElementById('set-rate-limit-' + type + '-min').value),
+                    max: _parseWon(document.getElementById('set-rate-limit-' + type + '-max').value)
                 };
             });
 
