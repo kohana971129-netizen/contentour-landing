@@ -5493,14 +5493,20 @@
                 (async function() {
                     try {
                         var userId = InterpreterApp.currentUser.id;
-                        await window.sbClient.from('40_통역사프로필').update({
+                        var updateData = {
                             display_name: data.name,
                             phone: data.phone,
                             intro: data.intro,
                             experience_years: data.experience,
                             languages: data.langs.map(function(l) { return l.replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '').trim(); }),
                             specialties: data.fields.map(function(f) { return f.replace(/[\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}]/gu, '').trim(); })
-                        }).eq('user_id', userId);
+                        };
+                        // 현재 프로필 사진 URL 유지
+                        var pfImg = document.getElementById('pfAvatarImg');
+                        if (pfImg && pfImg.src && pfImg.style.display !== 'none') {
+                            updateData.profile_image_url = pfImg.src;
+                        }
+                        await window.sbClient.from('40_통역사프로필').update(updateData).eq('user_id', userId);
                     } catch(e) { console.warn('프로필 DB 저장 실패:', e); }
                 })();
             }
