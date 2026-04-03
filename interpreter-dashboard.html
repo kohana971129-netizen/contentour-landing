@@ -1561,6 +1561,10 @@
                 };
                 document.querySelector('.topbar__page-title').textContent = names[view] || '통역사 대시보드';
 
+                // 상담일지 뷰 진입 시 매칭된 계약 로드
+                if (view === 'journal') {
+                    loadJnlContracts();
+                }
                 // 스케줄 뷰 진입 시 캘린더 초기화 (매번 최신 데이터 반영)
                 if (view === 'schedule') {
                     schInit();
@@ -2046,18 +2050,56 @@
         }
 
         // ══════════════ 상담일지 ══════════════
-        // 전시회 선택 시 관련 필드를 추천값으로 세팅 (변경 가능)
-        const jnlExpoMap = {
-            'Smart Factory Expo 2026|KINTEX, 고양|2026.02.26~02.28|(주)LG전자|한국어↔영어': {
-                client: '(주)LG전자', location: 'KINTEX, 고양', start: '2026-02-26', end: '2026-02-28', lang: '한국어 ↔ 영어'
-            },
-            'MWC Korea 2026|COEX, 서울|2026.02.18~02.20|SK텔레콤|한국어↔영어': {
-                client: 'SK텔레콤', location: 'COEX, 서울', start: '2026-02-18', end: '2026-02-20', lang: '한국어 ↔ 영어'
-            },
-            'Korea Build 2026|KINTEX 제1전시장, 고양|2026.03.08~03.10|(주)현대건설|한국어↔영어': {
-                client: '(주)현대건설', location: 'KINTEX 제1전시장, 고양', start: '2026-03-08', end: '2026-03-10', lang: '한국어 ↔ 영어'
+        // DB에서 매칭된 계약 기반으로 전시회 목록 로드
+        let jnlExpoMap = {};
+
+        async function loadJnlContracts() {
+            var sb = window.sbClient;
+            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
+            var userId = InterpreterApp.currentUser.id;
+            try {
+                var { data: contracts } = await sb
+                    .from('42_통역계약')
+                    .select('id, exhibition_name, venue, start_date, end_date, language_pair, client_company, customer_id')
+                    .eq('interpreter_id', userId)
+                    .order('start_date', { ascending: false });
+
+                if (!contracts || contracts.length === 0) return;
+
+                var sel = document.getElementById('jnl-expo');
+                // 기존 옵션 제거 (첫번째 "선택해주세요" 유지)
+                while (sel.options.length > 1) sel.remove(1);
+                jnlExpoMap = {};
+
+                // 고객사 이름 조회
+                var custIds = [...new Set(contracts.map(c => c.customer_id).filter(Boolean))];
+                var custNames = {};
+                if (custIds.length > 0) {
+                    var { data: members } = await sb.from('01_회원').select('id, name').in('id', custIds);
+                    if (members) members.forEach(m => { custNames[m.id] = m.name; });
+                }
+
+                contracts.forEach(function(ct) {
+                    var client = ct.client_company || custNames[ct.customer_id] || '-';
+                    var val = [ct.exhibition_name, ct.venue || '', ct.start_date + '~' + ct.end_date, client, ct.language_pair || ''].join('|');
+                    var opt = document.createElement('option');
+                    opt.value = val;
+                    opt.textContent = ct.exhibition_name;
+                    sel.appendChild(opt);
+
+                    jnlExpoMap[val] = {
+                        client: client,
+                        location: ct.venue || '',
+                        start: ct.start_date || '',
+                        end: ct.end_date || '',
+                        lang: ct.language_pair || ''
+                    };
+                });
+                console.log('[상담일지] 계약 ' + contracts.length + '건 로드');
+            } catch(e) {
+                console.error('[상담일지] 계약 로드 실패:', e);
             }
-        };
+        }
 
         function jnlExpoChange() {
             const val = document.getElementById('jnl-expo').value;
@@ -2069,7 +2111,15 @@
 
             const mapped = jnlExpoMap[val];
             if (mapped) {
-                jnlSetSelect('jnl-client', mapped.client);
+                // 고객사가 select에 없으면 동적 추가
+                if (!jnlSetSelect('jnl-client', mapped.client) && mapped.client) {
+                    var clientSel = document.getElementById('jnl-client');
+                    var newOpt = document.createElement('option');
+                    newOpt.value = mapped.client;
+                    newOpt.textContent = mapped.client;
+                    clientSel.appendChild(newOpt);
+                    clientSel.value = mapped.client;
+                }
                 var locSel = document.getElementById('jnl-location');
                 var locCustom = document.getElementById('jnl-location-custom');
                 var locMatched = jnlSetSelect('jnl-location', mapped.location);
@@ -2081,7 +2131,14 @@
                     locSel.style.display = 'block';
                     locCustom.style.display = 'none';
                 }
-                jnlSetSelect('jnl-lang', mapped.lang);
+                if (!jnlSetSelect('jnl-lang', mapped.lang) && mapped.lang) {
+                    var langSel = document.getElementById('jnl-lang');
+                    var langOpt = document.createElement('option');
+                    langOpt.value = mapped.lang;
+                    langOpt.textContent = mapped.lang;
+                    langSel.appendChild(langOpt);
+                    langSel.value = mapped.lang;
+                }
                 document.getElementById('jnl-period-start').value = mapped.start;
                 document.getElementById('jnl-period-end').value = mapped.end;
             }
