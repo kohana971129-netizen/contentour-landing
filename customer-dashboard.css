@@ -124,16 +124,16 @@
     .sch-wdays span:first-child{color:var(--error);}
     .sch-wdays span:last-child{color:var(--blue);}
     .sch-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:8px;gap:2px;}
-    .sch-cell{min-height:72px;border-radius:8px;padding:4px;cursor:pointer;transition:background 0.12s;}
+    .sch-cell{height:88px;border-radius:8px;padding:4px;cursor:pointer;transition:background 0.12s;display:flex;flex-direction:column;overflow:hidden;}
     .sch-cell:hover{background:var(--gray-100);}
     .sch-cell.other{opacity:0.3;pointer-events:none;}
     .sch-cell.today{background:var(--light-bg);}
     .sch-cell.sel{background:#e8f0fe;outline:2px solid var(--blue);outline-offset:-2px;}
     .sch-cell.sun .sch-dn{color:var(--error);}
     .sch-cell.sat .sch-dn{color:var(--blue);}
-    .sch-dn{font-size:0.75rem;font-weight:700;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:2px;}
+    .sch-dn{font-size:0.75rem;font-weight:700;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin-bottom:2px;flex-shrink:0;}
     .sch-cell.today .sch-dn{background:var(--blue);color:#fff;}
-    .sch-evs{display:flex;flex-direction:column;gap:2px;}
+    .sch-evs{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:hidden;}
     .sch-ev{font-size:0.58rem;font-weight:700;padding:2px 4px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid;}
     .sch-side{display:flex;flex-direction:column;gap:14px;}
     .sch-day-card{background:var(--white);border:1.5px solid var(--gray-200);border-radius:14px;overflow:hidden;}
