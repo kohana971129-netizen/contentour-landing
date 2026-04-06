@@ -3498,6 +3498,13 @@ section {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    line-height: inherit;
 }
 .faq-item__arrow {
     font-size: 1.3rem;

@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
     initParallax();
     initInquiryForm();
 
+    initFaqAccessibility();
+    initCountryCardKeyboard();
     console.log('Contentour Landing Page initialized successfully');
 });
 
@@ -271,6 +273,30 @@ if (statsSection) {
         }
     });
 })();
+
+// FAQ accessibility: button toggle + aria-expanded
+function initFaqAccessibility() {
+    document.querySelectorAll('.faq-item__q').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var item = btn.closest('.faq-item');
+            var expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', String(!expanded));
+            item.classList.toggle('open');
+        });
+    });
+}
+
+// Country card keyboard support (Enter/Space)
+function initCountryCardKeyboard() {
+    document.querySelectorAll('.country-card[role="button"]').forEach(function (card) {
+        card.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                card.click();
+            }
+        });
+    });
+}
 
 // Inquiry Form Logic
 function initInquiryForm() {
