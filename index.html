@@ -1169,14 +1169,12 @@
             if (e.key === 'Escape') closeIpModal();
         });
 
-        // ═══ DB 등록 통역사를 국가별 패널에 병합 ═══
+        // ═══ DB 등록 통역사를 국가별 패널에 병합 (서버사이드 API 경유) ═══
         (async function loadDbInterpreters() {
-            if (!window.sbClient) return;
             try {
-                var { data: profiles } = await window.sbClient
-                    .from('40_통역사프로필')
-                    .select('user_id, display_name, languages, specialties, experience_years, intro, profile_image_url, country_code, field_tag, cases_count, rating, satisfaction, rate_by_type, is_active')
-                    .eq('is_active', true);
+                var res = await fetch('/api/interpreters');
+                if (!res.ok) throw new Error('API ' + res.status);
+                var profiles = await res.json();
 
                 if (!profiles || profiles.length === 0) return;
 
