@@ -3599,20 +3599,21 @@ section {
 
 /* 서비스 이용 흐름 타임라인 */
 .svc-flow { padding:80px 24px;background:var(--white); }
-.svc-flow__inner { max-width:700px;margin:0 auto; }
-.svc-timeline { position:relative;padding-left:40px; }
-.svc-timeline::before { content:'';position:absolute;left:16px;top:0;bottom:0;width:2px;background:var(--gray-200); }
-.svc-tl-item { position:relative;margin-bottom:32px; }
-.svc-tl-item:last-child { margin-bottom:0; }
-.svc-tl-num { position:absolute;left:-40px;top:0;width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1; }
-.svc-tl-content { background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:14px;padding:20px 24px;transition:border-color 0.2s,box-shadow 0.2s; }
+.svc-flow__inner { max-width:1100px;margin:0 auto; }
+.svc-timeline { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-left:0; }
+.svc-timeline::before { display:none; }
+.svc-tl-item { position:relative;margin-bottom:0; }
+.svc-tl-num { position:absolute;top:14px;left:14px;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:0.68rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1; }
+.svc-tl-content { background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:14px;padding:48px 20px 20px;transition:border-color 0.2s,box-shadow 0.2s;height:100%;display:flex;flex-direction:column; }
 .svc-tl-content:hover { border-color:var(--blue);box-shadow:0 4px 16px rgba(21,101,192,0.08); }
-.svc-tl-icon { font-size:1.3rem;margin-bottom:8px; }
-.svc-tl-content h3 { font-size:0.95rem;font-weight:800;color:var(--text);margin-bottom:6px; }
-.svc-tl-content p { font-size:0.82rem;color:var(--gray-600);line-height:1.65;margin-bottom:10px; }
-.svc-tl-who { display:inline-block;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:20px;background:#e3f0ff;color:var(--blue); }
+.svc-tl-icon { font-size:1.5rem;margin-bottom:10px; }
+.svc-tl-content h3 { font-size:0.9rem;font-weight:800;color:var(--text);margin-bottom:6px; }
+.svc-tl-content p { font-size:0.78rem;color:var(--gray-600);line-height:1.6;margin-bottom:10px;flex:1; }
+.svc-tl-who { display:inline-block;font-size:0.62rem;font-weight:700;padding:3px 10px;border-radius:20px;background:#e3f0ff;color:var(--blue); }
 .svc-tl-who.admin { background:#fff3e0;color:#f57c00; }
 .svc-tl-who.interp { background:#e8f5e9;color:#2e7d32; }
+@media (max-width:900px) { .svc-timeline { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:540px) { .svc-timeline { grid-template-columns:1fr; } }
 
 /* 3자 협업 다이어그램 */
 .svc-collab { padding:80px 24px;background:var(--light-bg); }
