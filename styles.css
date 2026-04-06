@@ -3169,15 +3169,29 @@ section {
     font-size: 0.72rem;
     color: var(--gray-400);
 }
+.testi-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: auto;
+}
 .testi-card__tag {
     display: inline-block;
-    align-self: flex-start;
     font-size: 0.68rem;
     font-weight: 700;
     color: var(--blue);
     background: #e3f0ff;
     padding: 4px 12px;
     border-radius: 6px;
+}
+.testi-card__interp {
+    font-size: 0.68rem;
+    color: var(--gray-500);
+}
+.testi-card__interp strong {
+    color: var(--text);
 }
 
 /* ══════════════ 파트너사 로고 섹션 ══════════════ */

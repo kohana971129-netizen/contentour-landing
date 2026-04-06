@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
         // 리뷰 조회
         const { data: reviews, error: revErr } = await supabase
             .from('49_통역사리뷰')
-            .select('customer_id, exhibition_name, rating_expertise, rating_manner, rating_communication, rating_overall, review_text, created_at')
+            .select('customer_id, interpreter_id, exhibition_name, rating_expertise, rating_manner, rating_communication, rating_overall, review_text, created_at')
             .not('review_text', 'is', null)
             .order('created_at', { ascending: false })
             .limit(8);
@@ -60,13 +60,25 @@ module.exports = async function handler(req, res) {
             if (company) companyMap[ce.id] = company.name;
         }
 
+        // 통역사 정보 매핑
+        const interpIds = reviews.map(r => r.interpreter_id).filter(Boolean);
+        let interpMap = {};
+        if (interpIds.length > 0) {
+            const { data: interps } = await supabase
+                .from('40_통역사프로필')
+                .select('user_id, display_name')
+                .in('user_id', interpIds);
+            if (interps) interps.forEach(p => { interpMap[p.user_id] = p.display_name; });
+        }
+
         // 응답 구성
         const result = reviews.map(r => {
             const cust = custMap[r.customer_id] || {};
             return {
                 ...r,
                 _customerName: cust.name || '고객',
-                _companyName: companyMap[r.customer_id] || ''
+                _companyName: companyMap[r.customer_id] || '',
+                _interpreterName: interpMap[r.interpreter_id] || ''
             };
         });
 

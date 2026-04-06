@@ -714,6 +714,8 @@
                 var name = rawName.length >= 2 ? rawName.charAt(0) + Array(rawName.length - 1).fill('○').join('').slice(0, 2) : rawName;
                 var company = r._companyName || '';
                 var initial = name.charAt(0);
+                var rawInterp = r._interpreterName || '';
+                var interpMasked = rawInterp.length >= 2 ? rawInterp.charAt(0) + '○○' : rawInterp;
 
                 return '<div class="testi-card">' +
                     '<div class="testi-card__stars">' + starsHtml + '</div>' +
@@ -725,7 +727,10 @@
                             (company ? '<div class="testi-card__company">' + company + '</div>' : '') +
                         '</div>' +
                     '</div>' +
-                    (r.exhibition_name ? '<div class="testi-card__tag">' + r.exhibition_name + '</div>' : '') +
+                    '<div class="testi-card__footer">' +
+                        (r.exhibition_name ? '<div class="testi-card__tag">' + r.exhibition_name + '</div>' : '') +
+                        (interpMasked ? '<div class="testi-card__interp">담당 통역사: <strong>' + interpMasked + '</strong></div>' : '') +
+                    '</div>' +
                 '</div>';
             }
 
@@ -739,10 +744,10 @@
                 // DB에 리뷰가 없으면 샘플 데이터 표시 (실제 리뷰가 쌓이면 자동 교체)
                 if (!reviews || reviews.length === 0) {
                     reviews = [
-                        { _customerName: '김정훈 과장', _companyName: '메디텍코리아(주) · 해외영업팀', exhibition_name: '독일 MEDICA 2025', rating_expertise: 5, rating_manner: 5, rating_communication: 5, rating_overall: 5, review_text: '독일 MEDICA 전시회에서 3일간 통역을 맡겨봤는데, 의료기기 전문 용어까지 완벽하게 소화해주셨어요. 덕분에 바이어 미팅 12건 중 8건이 샘플 요청으로 이어졌습니다.' },
-                        { _customerName: '박서연 대리', _companyName: '(주)그린테크솔루션 · 마케팅팀', exhibition_name: '일본 FOODEX 2025', rating_expertise: 5, rating_manner: 5, rating_communication: 4, rating_overall: 5, review_text: '일본 전시회 참가가 처음이라 걱정했는데, 통역사분이 부스 세팅부터 상담까지 전부 도와주셨어요. 현지 비즈니스 매너까지 코칭해주셔서 정말 큰 도움이 됐습니다.' },
-                        { _customerName: '이도현 팀장', _companyName: '스마트팩토리(주) · 기술영업팀', exhibition_name: '중국 Canton Fair 2025', rating_expertise: 5, rating_manner: 5, rating_communication: 5, rating_overall: 5, review_text: '중국 바이어와의 기술 미팅에서 전문 통역이 필수였는데, 콘텐츄어 덕분에 계약 조건 협상까지 매끄럽게 진행됐습니다. 견적 응답도 당일에 와서 일정 조율이 수월했어요.' },
-                        { _customerName: '최민재 사원', _companyName: '(주)한빛전자 · 수출입팀', exhibition_name: '베트남 VIETBUILD 2025', rating_expertise: 4, rating_manner: 5, rating_communication: 4, rating_overall: 4, review_text: '베트남 호치민 전시회에 급하게 통역사가 필요했는데, 의뢰 후 하루 만에 현지 경력 5년차 통역사를 매칭해주셨어요. 현장 대응력이 인상적이었습니다.' }
+                        { _customerName: '김정훈 과장', _companyName: '메디텍코리아(주) · 해외영업팀', _interpreterName: 'Sarah M.', exhibition_name: '독일 MEDICA 2025', rating_expertise: 5, rating_manner: 5, rating_communication: 5, rating_overall: 5, review_text: '독일 MEDICA 전시회에서 3일간 통역을 맡겨봤는데, 의료기기 전문 용어까지 완벽하게 소화해주셨어요. 덕분에 바이어 미팅 12건 중 8건이 샘플 요청으로 이어졌습니다.' },
+                        { _customerName: '박서연 대리', _companyName: '(주)그린테크솔루션 · 마케팅팀', _interpreterName: '다나카 유미', exhibition_name: '일본 FOODEX 2025', rating_expertise: 5, rating_manner: 5, rating_communication: 4, rating_overall: 5, review_text: '일본 전시회 참가가 처음이라 걱정했는데, 통역사분이 부스 세팅부터 상담까지 전부 도와주셨어요. 현지 비즈니스 매너까지 코칭해주셔서 정말 큰 도움이 됐습니다.' },
+                        { _customerName: '이도현 팀장', _companyName: '스마트팩토리(주) · 기술영업팀', _interpreterName: '왕리', exhibition_name: '중국 Canton Fair 2025', rating_expertise: 5, rating_manner: 5, rating_communication: 5, rating_overall: 5, review_text: '중국 바이어와의 기술 미팅에서 전문 통역이 필수였는데, 콘텐츄어 덕분에 계약 조건 협상까지 매끄럽게 진행됐습니다. 견적 응답도 당일에 와서 일정 조율이 수월했어요.' },
+                        { _customerName: '최민재 사원', _companyName: '(주)한빛전자 · 수출입팀', _interpreterName: '응우옌 티', exhibition_name: '베트남 VIETBUILD 2025', rating_expertise: 4, rating_manner: 5, rating_communication: 4, rating_overall: 4, review_text: '베트남 호치민 전시회에 급하게 통역사가 필요했는데, 의뢰 후 하루 만에 현지 경력 5년차 통역사를 매칭해주셨어요. 현장 대응력이 인상적이었습니다.' }
                     ];
                     var cards = reviews.map(function(r, idx) { return buildCard(r, idx); });
                     document.getElementById('testimonialsGrid').innerHTML = cards.join('');
