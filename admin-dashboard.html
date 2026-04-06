@@ -1678,7 +1678,7 @@
                 padding: 8px 10px;
             }
             .cal-cell {
-                min-height: 56px;
+                height: 72px;
             }
         }
 
@@ -1851,12 +1851,15 @@
         }
 
         .cal-cell {
-            min-height: 88px;
+            height: 88px;
             border-radius: 9px;
             padding: 5px;
             cursor: pointer;
             transition: background 0.12s;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .cal-cell:hover {
@@ -1896,6 +1899,7 @@
             justify-content: center;
             border-radius: 50%;
             margin-bottom: 3px;
+            flex-shrink: 0;
         }
 
         .cal-cell.today .cal-dn {
@@ -1907,6 +1911,9 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
         }
 
         .cal-ev {
