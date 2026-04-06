@@ -601,11 +601,6 @@ section {
     margin: 0 auto;
 }
 
-/* Process Section */
-.process-section {
-    background: var(--bg-light);
-}
-
 .process-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
