@@ -3455,7 +3455,7 @@ section {
     padding: 0 24px;
 }
 .faq-item.open .faq-item__a {
-    max-height: 300px;
+    max-height: 800px;
     padding: 0 24px 20px;
 }
 .faq-item__a strong {
