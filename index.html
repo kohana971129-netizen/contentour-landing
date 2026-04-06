@@ -191,23 +191,7 @@
             <button onclick="checkPw()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;margin-top:4px;font-family:inherit;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">확인</button>
         </div>
     </div>
-    <script>
-    (function(){
-        var _h='QzBudDNudG91ciFAMjAyNiNTZWM=';
-        if(sessionStorage.getItem('_ct_auth')==='1'){document.getElementById('pwGate').style.display='none';}
-        window.checkPw=function(){
-            if(document.getElementById('pwInput').value===atob(_h)){
-                sessionStorage.setItem('_ct_auth','1');
-                document.getElementById('pwGate').style.display='none';
-            } else {
-                document.getElementById('pwError').textContent='비밀번호가 올바르지 않습니다.';
-                document.getElementById('pwInput').style.borderColor='#c62828';
-                setTimeout(function(){document.getElementById('pwError').textContent='';document.getElementById('pwInput').style.borderColor='#e0e5ec';},4000);
-            }
-        };
-        document.getElementById('pwInput').addEventListener('keydown',function(e){if(e.key==='Enter')checkPw();});
-    })();
-    </script>
+    <script src="pw-gate.js"></script>
 
     <!-- Navigation Header -->
     <header class="nav">
