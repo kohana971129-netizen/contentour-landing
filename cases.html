@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대표 고객사례 - 콘텐츄어 | 전시회 현장 통역 성과</title>
+    <meta name="description" content="콘텐츄어와 함께한 해외 전시회 현장 통역 성과사례를 확인하세요. 일본, 미국, 독일, 태국 등 다양한 국가의 실제 고객사례.">
+    <meta property="og:title" content="대표 고객사례 - 콘텐츄어">
+    <meta property="og:description" content="해외 전시회 현장 통역 성과사례를 확인하세요.">
+    <meta property="og:url" content="https://contentour-landing.vercel.app/cases.html">
+    <meta property="og:image" content="https://contentour-landing.vercel.app/assets/logo.png">
+    <link rel="stylesheet" href="design-tokens.css">
+    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Password Protection -->
+    <div id="pwGate" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0a1628,#1a2a4a);display:flex;align-items:center;justify-content:center;font-family:'Montserrat','Noto Sans KR',sans-serif;">
+        <div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:400px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <div style="width:56px;height:56px;margin:0 auto 20px;background:linear-gradient(135deg,#1565c0,#0d47a1);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.24 7 7v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7c0-2.76-2.24-5-5-5zm0 2c1.65 0 3 1.35 3 3v3H9V7c0-1.65 1.35-3 3-3zm0 10c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z" fill="#fff"/></svg>
+            </div>
+            <h2 style="font-size:1.2rem;font-weight:800;color:#1a2a4a;margin-bottom:6px;">CONTENTOUR</h2>
+            <p style="font-size:0.82rem;color:#8a95a8;margin-bottom:24px;">접근이 제한된 페이지입니다. 비밀번호를 입력하세요.</p>
+            <input id="pwInput" type="password" placeholder="비밀번호 입력" style="width:100%;padding:14px 16px;border:2px solid #e0e5ec;border-radius:12px;font-size:0.92rem;outline:none;box-sizing:border-box;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='#1565c0'" onblur="this.style.borderColor='#e0e5ec'">
+            <div id="pwError" style="color:#c62828;font-size:0.78rem;margin-top:8px;height:20px;"></div>
+            <button onclick="checkPw()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;margin-top:4px;font-family:inherit;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">확인</button>
+        </div>
+    </div>
+    <script src="pw-gate.js"></script>
+
+    <!-- Navigation Header -->
+    <header class="nav">
+        <div class="nav__inner">
+            <a class="nav__logo" href="index.html">
+                <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
+            </a>
+            <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
+                <a href="index.html#home">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
+                    </div>
+                </a>
+                <a href="support.html">
+                    <span class="nav__menu-icon">🤝</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">통역지원</span>
+                        <span class="nav__menu-desc">서비스 이용 안내</span>
+                    </div>
+                </a>
+                <a class="is-active" href="performance.html">
+                    <span class="nav__menu-icon">📊</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">성과사례</span>
+                        <span class="nav__menu-desc">실적 및 고객사례</span>
+                    </div>
+                </a>
+                <a href="client-auth.html" class="nav-client">
+                    <span class="nav__menu-icon">🔐</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">Login</span>
+                        <span class="nav__menu-desc">Client Portal</span>
+                    </div>
+                </a>
+            </nav>
+            <div class="nav-cta">
+                <a href="index.html#contact" class="btn btn-primary btn-nav">견적 문의</a>
+            </div>
+            <button class="nav__toggle" type="button" aria-controls="navMenu" aria-expanded="false" id="mobileMenuToggle">
+                <span class="sr-only">메뉴 열기</span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="hero" style="min-height:36vh;background:linear-gradient(rgba(26,32,44,0.88),rgba(15,23,42,0.92)),url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');background-size:cover;background-position:center;">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>대표 고객사례</h1>
+                <p>콘텐츄어와 함께 해외 전시회에 참가한 기업들의 실제 현장 사례입니다.</p>
+            </div>
+        </section>
+
+        <section class="client-cases" style="padding:60px 24px;">
+            <div class="client-cases__inner" style="max-width:1100px;margin:0 auto;">
+                <div class="case-grid" id="caseGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;">
+                    <div style="padding:40px;text-align:center;color:#8a95a8;grid-column:1/-1;">사례를 불러오는 중...</div>
+                </div>
+
+                <div style="text-align:center;margin-top:48px;">
+                    <a href="performance.html" class="btn btn-outline" style="margin-right:12px;">← 성과사례로 돌아가기</a>
+                    <a href="index.html#contact" class="btn btn-primary">견적 문의하기</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer-professional">
+        <div class="footer-container-pro">
+            <div class="footer-logo-box">
+                <img src="assets/footer_logo.png" alt="CONTENTOUR Logo" class="footer-logo">
+            </div>
+            <div class="footer-info">
+                <div class="footer-info__row">
+                    <span><b>상호명</b> 콘텐츄어</span>
+                    <span class="divider">|</span>
+                    <span><b>주소</b> 서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 204호</span>
+                    <span class="divider">|</span>
+                    <span><b>대표이사</b> 이수경</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>메일</b> info@contentour.co.kr</span>
+                    <span class="divider">|</span>
+                    <span><b>전화</b> 02-868-1522</span>
+                    <span class="divider">|</span>
+                    <span><b>팩스</b> 02-869-3082</span>
+                </div>
+                <div class="footer-info__row">
+                    <span><b>사업자등록번호</b> 119-86-68157</span>
+                    <span class="divider">|</span>
+                    <span><b>통신판매업신고번호</b> 제 2017-서울 구로-0321호</span>
+                </div>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
+                <a href="terms.html#common" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;">서비스 이용약관</a>
+                <a href="terms.html#customer" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;">고객사 이용약관</a>
+                <a href="terms.html#interpreter" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;">통역사 이용약관</a>
+                <a href="terms.html#operation" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;">서비스 운영정책</a>
+                <a href="terms.html#privacy" style="color:rgba(255,255,255,0.5);text-decoration:none;font-size:0.78rem;">개인정보처리방침</a>
+            </div>
+            <div class="footer-bottom-pro" style="margin-top:20px;">
+                <p>&copy; 2026 CONTENTOUR Co., Ltd. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        (async function loadCases() {
+            var grid = document.getElementById('caseGrid');
+            if (!grid) return;
+            try {
+                var res = await fetch('/api/cases');
+                if (!res.ok) throw new Error('API ' + res.status);
+                var cases = await res.json();
+                if (!cases || cases.length === 0) {
+                    grid.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;grid-column:1/-1;">등록된 성과사례가 없습니다.</div>';
+                    return;
+                }
+                var typeTagClass = { '부스 통역':'expo', '미팅 통역':'buyer', '현장 통역':'expo', '동시통역':'buyer', '수행 통역':'expo' };
+                grid.innerHTML = cases.map(function(c) {
+                    var tagClass = typeTagClass[c.case_type] || 'expo';
+                    var imgStyle = c.image_url ? "background-image:url('" + c.image_url + "')" : "background:#e3f0ff;";
+                    var metricsHtml = '<div class="case-card__metrics">';
+                    if (c.interpreter_name) metricsHtml += '<span>통역사 <b>' + c.interpreter_name + '</b></span>';
+                    if (c.metric1_value) metricsHtml += '<span>' + (c.metric1_label||'') + ' <b>' + c.metric1_value + '</b></span>';
+                    metricsHtml += '</div>';
+                    if (c.industry || c.metric2_value) {
+                        metricsHtml += '<div class="case-card__metrics" style="margin-top:4px;">';
+                        if (c.industry) metricsHtml += '<span>분야 <b>' + c.industry + '</b></span>';
+                        if (c.metric2_value) metricsHtml += '<span>' + (c.metric2_label||'') + ' <b>' + c.metric2_value + '</b></span>';
+                        metricsHtml += '</div>';
+                    }
+                    return '<a href="case-detail.html?id=' + c.id + '" class="case-card">' +
+                        '<div class="case-card__img" style="' + imgStyle + '"></div>' +
+                        '<div class="case-card__body">' +
+                            '<span class="case-card__tag ' + tagClass + '">' + c.case_type + '</span>' +
+                            '<p class="case-card__title">[' + c.client_company + '] ' + c.country + '<br>' + c.exhibition_name + '</p>' +
+                            '<span class="case-card__country">' + c.country_flag + ' ' + c.country + ' · ' + c.exhibition_date + '</span>' +
+                            metricsHtml +
+                        '</div>' +
+                    '</a>';
+                }).join('');
+            } catch(e) {
+                console.error('성과사례 로드 실패:', e);
+                grid.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;grid-column:1/-1;">사례를 불러올 수 없습니다.</div>';
+            }
+        })();
+    </script>
+</body>
+
+</html>
