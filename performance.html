@@ -177,9 +177,8 @@
                 </div>
 
                 <div class="case-more">
-                    <a href="https://contentour.co.kr/%eb%8c%80%ed%91%9c-%ea%b3%a0%ea%b0%9d%ec%82%ac%eb%a1%80/"
-                        class="btn btn-outline btn-large" target="_blank" rel="noopener">
-                        대표 고객사례 전체 보기 →
+                    <a href="#contact" class="btn btn-outline btn-large">
+                        우리 기업도 성과사례 만들기 →
                     </a>
                 </div>
             </div>
@@ -196,19 +195,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script>
-        // ═══ DB에서 성과사례 로드 ═══
+        // ═══ 서버사이드 API에서 성과사례 로드 ═══
         (async function loadCases() {
             var grid = document.getElementById('caseGrid');
-            if (!grid || !window.sbClient) return;
+            if (!grid) return;
 
             try {
-                var { data: cases, error } = await window.sbClient
-                    .from('52_성과사례')
-                    .select('*')
-                    .eq('is_published', true)
-                    .order('sort_order', { ascending: true });
+                var res = await fetch('/api/cases');
+                if (!res.ok) throw new Error('API ' + res.status);
+                var cases = await res.json();
 
-                if (error || !cases || cases.length === 0) {
+                if (!cases || cases.length === 0) {
                     grid.innerHTML = '<div style="padding:40px;text-align:center;color:#8a95a8;grid-column:1/-1;">등록된 성과사례가 없습니다.</div>';
                     return;
                 }
