@@ -333,6 +333,8 @@
             display: flex;
             flex-direction: column;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
+            transition: width 0.3s;
+            overflow: hidden;
         }
 
         .sidebar::before {
@@ -503,6 +505,61 @@
             z-index: 1;
         }
 
+        /* ══════════════ 사이드바 접기 ══════════════ */
+        .sidebar-collapse-btn {
+            position: absolute;
+            top: 28px;
+            right: -14px;
+            width: 28px;
+            height: 28px;
+            background: var(--navy-deep);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 0.75rem;
+            cursor: pointer;
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.3s;
+        }
+        .sidebar-collapse-btn:hover {
+            background: var(--blue);
+        }
+        body.sidebar-collapsed .sidebar-collapse-btn {
+            transform: rotate(180deg);
+        }
+        body.sidebar-collapsed .sidebar {
+            width: 64px;
+        }
+        body.sidebar-collapsed .sidebar .sb-logo__name,
+        body.sidebar-collapsed .sidebar .sb-logo__role,
+        body.sidebar-collapsed .sidebar .sb-admin,
+        body.sidebar-collapsed .sidebar .sb-label,
+        body.sidebar-collapsed .sidebar .sb-item__badge,
+        body.sidebar-collapsed .sidebar .sb-item span:not(.sb-item__icon),
+        body.sidebar-collapsed .sidebar .sb-footer {
+            display: none;
+        }
+        body.sidebar-collapsed .sidebar .sb-logo {
+            padding: 24px 12px 18px;
+            justify-content: center;
+        }
+        body.sidebar-collapsed .sidebar .sb-logo__wrap {
+            justify-content: center;
+        }
+        body.sidebar-collapsed .sidebar .sb-item {
+            justify-content: center;
+            padding: 12px 0;
+        }
+        body.sidebar-collapsed .sidebar .sb-item__icon {
+            margin: 0;
+        }
+        body.sidebar-collapsed .main {
+            margin-left: 64px;
+        }
+
         /* ══════════════ 메인 ══════════════ */
         .main {
             margin-left: var(--sidebar-w);
@@ -510,6 +567,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            transition: margin-left 0.3s;
         }
 
         /* 탑바 */
@@ -3583,6 +3641,7 @@
 
     <!-- ══ 사이드바 ══ -->
     <aside class="sidebar" id="sidebar">
+        <button class="sidebar-collapse-btn" onclick="toggleCollapse()" title="사이드바 접기/펼치기">◀</button>
         <a class="sb-logo" href="/" target="_blank" style="text-decoration:none;color:inherit;">
             <div class="sb-logo__wrap">
                 <div class="sb-logo__mark">CT</div>
@@ -5067,6 +5126,15 @@
       </div>
     </div>
   `).join('');
+            }
+
+            function toggleCollapse() {
+                document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sb-collapsed', document.body.classList.contains('sidebar-collapsed') ? '1' : '');
+            }
+            // 접힌 상태 복원
+            if (localStorage.getItem('sb-collapsed') === '1') {
+                document.body.classList.add('sidebar-collapsed');
             }
 
             function toggleSidebar() {
