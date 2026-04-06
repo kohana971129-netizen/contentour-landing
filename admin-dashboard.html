@@ -5237,98 +5237,48 @@
                 currentAssignInquiry.interpreter = selectedInterpreter.name;
                 currentAssignInquiry.status = uiStatus;
 
-                // DB 업데이트
+                // 서버사이드 API로 배정 처리 (RLS 우회)
                 var dbId = currentAssignInquiry.dbId || currentAssignInquiry.id;
-                if (supabase && dbId) {
+                if (dbId) {
                     try {
-                        var updateData = { status: dbStatus };
-                        updateData.admin_note = JSON.stringify({
-                            interpreter: selectedInterpreter.name,
-                            interpreterId: selectedInterpreter.id,
-                            memo: memo || ''
-                        });
-                        var { error } = await supabase.from('46_ITQ견적문의').update(updateData).eq('id', dbId);
-                        if (error) console.error('배정 DB 저장 실패:', error);
-
-                        // 42_통역계약에 레코드 생성 (통역사 대시보드 연동)
                         var d = currentAssignInquiry;
-                        var startDate = d.start || d.start_date;
-                        var endDate = d.end || d.end_date;
-                        var days = 1;
-                        if (startDate && endDate) {
-                            var diffMs = new Date(endDate) - new Date(startDate);
-                            days = Math.max(1, Math.round(diffMs / 86400000) + 1);
+                        var accessToken = '';
+                        if (window.sbClient) {
+                            var { data: sessionData } = await window.sbClient.auth.getSession();
+                            if (sessionData && sessionData.session) accessToken = sessionData.session.access_token;
                         }
-                        var langMap = { '영어':'KO-EN', '일본어':'KO-JA', '중국어':'KO-ZH', '독일어':'KO-DE', '베트남어':'KO-VI', '아랍어':'KO-AR', '태국어':'KO-TH' };
-                        var langPair = langMap[d.lang] || d.lang || '';
-                        var serviceMap = { '부스 상주':'BOOTH', '미팅 동행':'MEETING', '현장 운영':'ONSITE_OPS' };
-                        var serviceType = serviceMap[d.type] || 'OTHER';
-                        // 통역사 등록 단가 조회 (플랫폼 중개 시 통역사 단가 사용)
-                        var dailyRate = 250000;
-                        try {
-                            var { data: interpProfile } = await supabase.from('40_통역사프로필').select('base_rate').eq('user_id', selectedInterpreter.id).single();
-                            if (interpProfile && interpProfile.base_rate) dailyRate = interpProfile.base_rate;
-                        } catch(e) { console.warn('통역사 단가 조회 실패, 기본값 사용:', e); }
-                        var totalAmount = dailyRate * days;
-
-                        // 고객사 user_id 조회
-                        var customerId = null;
-                        if (d.email) {
-                            var { data: custUser } = await supabase.from('01_회원').select('id').eq('email', d.email).single();
-                            if (custUser) customerId = custUser.id;
-                        }
-
-                        // 중복 방지: 같은 문의에 대해 이미 계약이 있는지 확인
-                        var { data: existing } = await supabase.from('42_통역계약')
-                            .select('id')
-                            .eq('interpreter_id', selectedInterpreter.id)
-                            .eq('exhibition_name', d.expo)
-                            .eq('start_date', startDate)
-                            .limit(1);
-
-                        if (!existing || existing.length === 0) {
-                            var contractData = {
-                                order_id: typeof dbId === 'string' && dbId.includes('-') ? dbId : null,
-                                customer_id: customerId,
-                                interpreter_id: selectedInterpreter.id,
-                                exhibition_name: d.expo || '',
-                                client_company: d.company || '',
-                                venue: d.venue || d.location || '',
-                                start_date: startDate,
-                                end_date: endDate,
-                                working_days: days,
-                                language_pair: langPair,
-                                service_type: serviceType,
-                                daily_rate: dailyRate,
-                                total_amount: totalAmount,
-                                tax_amount: Math.round(totalAmount * 0.1),
-                                net_amount: totalAmount,
-                                status: 'pending'
-                            };
-                            var { data: newContract, error: cErr } = await supabase.from('42_통역계약').insert(contractData).select().single();
-                            if (cErr) console.error('통역계약 생성 실패:', cErr);
-                            else {
-                                console.log('통역계약 생성 성공:', newContract.id);
-                                // 견적문의에 계약 ID 연결
-                                await supabase.from('46_ITQ견적문의').update({ contract_id: newContract.id }).eq('id', dbId);
-                            }
+                        var assignRes = await fetch('/api/assign', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + accessToken
+                            },
+                            body: JSON.stringify({
+                                inquiryId: dbId,
+                                interpreterId: selectedInterpreter.id,
+                                interpreterName: selectedInterpreter.name,
+                                status: uiStatus,
+                                memo: memo,
+                                expo: d.expo || '',
+                                company: d.company || '',
+                                venue: d.venue || '',
+                                location: d.location || '',
+                                startDate: d.start || d.start_date,
+                                endDate: d.end || d.end_date,
+                                lang: d.lang || '',
+                                type: d.type || '',
+                                email: d.email || ''
+                            })
+                        });
+                        var assignResult = await assignRes.json();
+                        if (!assignRes.ok) {
+                            console.error('배정 API 실패:', assignResult.error);
+                        } else {
+                            console.log('배정 완료, 계약 ID:', assignResult.contractId);
                         }
                     } catch (e) {
-                        console.error('배정 DB 저장 예외:', e);
+                        console.error('배정 API 호출 예외:', e);
                     }
-                }
-
-                // 고객사에게 알림 발송
-                if (supabase && customerId) {
-                    try {
-                        await supabase.from('24_알림').insert({
-                            user_id: customerId,
-                            notification_type: 'service',
-                            title: '🤝 통역사가 배정되었습니다',
-                            message: '"' + (currentAssignInquiry.expo || '') + '" 건에 ' + selectedInterpreter.name + ' 통역사가 배정되었습니다. 계약·결제 탭에서 확인해주세요.',
-                            is_read: false
-                        });
-                    } catch(e) { console.warn('고객사 알림 발송 실패:', e); }
                 }
 
                 renderTable(inquiries); updateInquiryKPI();

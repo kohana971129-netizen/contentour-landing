@@ -194,18 +194,20 @@ const InterpreterData = {
     // ══════════════ 계약 ══════════════
 
     async loadContracts() {
-        if (!supabase) return null;
         try {
-            const userId = await this.getUserId();
-            if (!userId) return null;
+            // 서버사이드 API로 계약 조회 (RLS 우회)
+            var accessToken = '';
+            if (supabase) {
+                var { data: sessionData } = await supabase.auth.getSession();
+                if (sessionData && sessionData.session) accessToken = sessionData.session.access_token;
+            }
+            if (!accessToken) return null;
 
-            const { data, error } = await supabase
-                .from('42_통역계약')
-                .select('*, customer:customer_id (name)')
-                .eq('interpreter_id', userId)
-                .order('start_date', { ascending: false });
-
-            if (error) throw error;
+            var res = await fetch('/api/my-contracts', {
+                headers: { 'Authorization': 'Bearer ' + accessToken }
+            });
+            if (!res.ok) throw new Error('API ' + res.status);
+            var data = await res.json();
             if (!data || data.length === 0) return null;
 
             const statusMap = {
@@ -217,7 +219,7 @@ const InterpreterData = {
                 id: d.id, dbId: d.id,
                 expo: d.exhibition_name,
                 client: d.client_company,
-                customerName: d.customer?.name || '',
+                customerName: d._customerName || '',
                 status: d.status,
                 statusText: statusMap[d.status] || d.status,
                 startDate: d.start_date,

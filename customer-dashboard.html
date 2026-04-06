@@ -1314,31 +1314,25 @@
         var sb = window.sbClient;
         if (!sb) return;
         try {
-            var { data: { user } } = await sb.auth.getUser();
-            if (!user) return;
+            var { data: sessionData } = await sb.auth.getSession();
+            if (!sessionData || !sessionData.session) return;
+            var accessToken = sessionData.session.access_token;
 
-            // 계약 데이터 조회
-            var { data: contractData, error } = await sb
-                .from('42_통역계약')
-                .select('*, interpreter:interpreter_id(display_name)')
-                .eq('customer_id', user.id)
-                .order('start_date', { ascending: true });
-
-            if (error) throw error;
+            // 서버사이드 API로 계약 조회
+            var res = await fetch('/api/my-contracts', {
+                headers: { 'Authorization': 'Bearer ' + accessToken }
+            });
+            if (!res.ok) throw new Error('API ' + res.status);
+            var contractData = await res.json();
             if (!contractData || contractData.length === 0) return;
 
-            // 통역사 프로필 조회 (이름 표시용)
-            var interpIds = contractData.map(function(c) { return c.interpreter_id; }).filter(Boolean);
+            // 통역사 이름 매핑 (API 응답에 포함)
             var interpMap = {};
-            if (interpIds.length > 0) {
-                var { data: interpData } = await sb
-                    .from('40_통역사프로필')
-                    .select('user_id, display_name')
-                    .in('user_id', interpIds);
-                if (interpData) {
-                    interpData.forEach(function(p) { interpMap[p.user_id] = p.display_name; });
+            contractData.forEach(function(c) {
+                if (c.interpreter_id && c._interpreterName) {
+                    interpMap[c.interpreter_id] = c._interpreterName;
                 }
-            }
+            });
 
             // schData 배열에 데이터 추가
             var statusMap = {

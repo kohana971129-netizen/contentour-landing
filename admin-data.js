@@ -5,13 +5,20 @@ const AdminData = {
 
     // ── ITQ 견적문의 로드 ──
     async loadInquiries() {
-        if (!supabase) return null;
         try {
-            const { data, error } = await supabase
-                .from('46_ITQ견적문의')
-                .select('*')
-                .order('created_at', { ascending: false });
-            if (error) throw error;
+            // 서버사이드 API로 문의 조회 (RLS 우회)
+            var accessToken = '';
+            if (supabase) {
+                var { data: sessionData } = await supabase.auth.getSession();
+                if (sessionData && sessionData.session) accessToken = sessionData.session.access_token;
+            }
+            if (!accessToken) return null;
+
+            var res = await fetch('/api/admin-inquiries', {
+                headers: { 'Authorization': 'Bearer ' + accessToken }
+            });
+            if (!res.ok) return null;
+            var data = await res.json();
             if (!data || data.length === 0) return null;
 
             // DB 데이터 → 기존 inquiries 형식으로 변환
