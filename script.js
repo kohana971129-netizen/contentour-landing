@@ -256,6 +256,22 @@ if (statsSection) {
     statsObserver.observe(statsSection);
 }
 
+// Detail fields toggle
+(function () {
+    var toggle = document.getElementById('detailToggle');
+    var fields = document.getElementById('detailFields');
+    if (!toggle || !fields) return;
+    toggle.addEventListener('click', function () {
+        var expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        if (expanded) {
+            fields.hidden = true;
+        } else {
+            fields.hidden = false;
+        }
+    });
+})();
+
 // Inquiry Form Logic
 function initInquiryForm() {
     const form = document.querySelector("#interpreterForm");
@@ -304,11 +320,11 @@ function initInquiryForm() {
                         start_date: payload.startDate,
                         end_date: payload.endDate,
                         language_pair: payload.languages,
-                        service_type: payload.type,
+                        service_type: payload.type || null,
                         headcount: parseInt(payload.headcount) || 1,
                         working_hours: payload.workingHours || null,
                         keywords: payload.keywords || null,
-                        message: payload.message,
+                        message: payload.message || null,
                         consent: payload.consent || false
                     })
                     .select()
