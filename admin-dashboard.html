@@ -508,32 +508,27 @@
         /* ══════════════ 사이드바 접기 ══════════════ */
         .sidebar-collapse-btn {
             position: absolute;
-            top: 32px;
-            right: -16px;
-            width: 32px;
-            height: 32px;
-            background: var(--blue);
-            border: 2px solid #fff;
+            top: 28px;
+            right: -14px;
+            width: 28px;
+            height: 28px;
+            background: var(--navy-deep);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 50%;
             color: #fff;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             cursor: pointer;
             z-index: 101;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.2s, transform 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .sidebar-collapse-btn:hover {
-            background: #1976d2;
-            transform: scale(1.1);
+            background: var(--blue);
         }
         body.sidebar-collapsed .sidebar-collapse-btn {
             transform: rotate(180deg);
-        }
-        body.sidebar-collapsed .sidebar-collapse-btn:hover {
-            transform: rotate(180deg) scale(1.1);
         }
         body.sidebar-collapsed .sidebar {
             width: 64px;
