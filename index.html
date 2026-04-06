@@ -1263,10 +1263,8 @@
             } catch(e) {}
         })();
 
-        // ═══ DB 리뷰를 메인 후기 섹션에 동적 표시 ═══
+        // ═══ DB 리뷰를 메인 후기 섹션에 동적 표시 (서버사이드 API 경유) ═══
         (async function loadMainTestimonials() {
-            if (!window.sbClient) { console.log('[후기] sbClient 없음'); return; }
-
             var gradients = [
                 ['#1565c0','#42a5f5'], ['#00695c','#26a69a'], ['#6a1b9a','#ab47bc'],
                 ['#e65100','#ff9800'], ['#c62828','#ef5350'], ['#0d47a1','#1e88e5'],
@@ -1301,14 +1299,11 @@
             }
 
             try {
-                var { data: reviews, error: revErr } = await window.sbClient
-                    .from('49_통역사리뷰')
-                    .select('customer_id, exhibition_name, rating_expertise, rating_manner, rating_communication, rating_overall, review_text, created_at')
-                    .not('review_text', 'is', null)
-                    .order('created_at', { ascending: false })
-                    .limit(8);
+                var res = await fetch('/api/reviews');
+                if (!res.ok) throw new Error('API ' + res.status);
+                var reviews = await res.json();
 
-                console.log('[후기] DB 조회 결과:', reviews ? reviews.length + '건' : '없음', revErr || '');
+                console.log('[후기] API 조회 결과:', reviews.length + '건');
 
                 // DB에 리뷰가 없으면 샘플 데이터 표시 (실제 리뷰가 쌓이면 자동 교체)
                 if (!reviews || reviews.length === 0) {
@@ -1323,24 +1318,6 @@
                     console.log('[후기] 샘플 리뷰 표시 (DB 리뷰 0건)');
                     return;
                 }
-
-                // 고객 정보 조회
-                var custIds = reviews.map(function(r) { return r.customer_id; }).filter(Boolean);
-                var custMap = {};
-                if (custIds.length > 0) {
-                    var { data: customers } = await window.sbClient
-                        .from('01_회원')
-                        .select('id, name, company_name')
-                        .in('id', custIds);
-                    if (customers) customers.forEach(function(c) { custMap[c.id] = c; });
-                }
-
-                // 고객 정보 매핑
-                reviews.forEach(function(r) {
-                    var cust = custMap[r.customer_id] || {};
-                    r._customerName = cust.name || '고객';
-                    r._companyName = cust.company_name || '';
-                });
 
                 var cards = reviews.map(function(r, idx) { return buildCard(r, idx); });
                 document.getElementById('testimonialsGrid').innerHTML = cards.join('');
