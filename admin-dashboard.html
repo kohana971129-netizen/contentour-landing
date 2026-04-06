@@ -506,36 +506,34 @@
         }
 
         /* ══════════════ 사이드바 접기 ══════════════ */
-        .sidebar-collapse-bar {
-            margin-top: auto;
-            padding: 14px 20px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            color: rgba(255,255,255,0.5);
+        .sidebar-collapse-btn {
+            position: absolute;
+            top: 32px;
+            right: -16px;
+            width: 32px;
+            height: 32px;
+            background: var(--blue);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: #fff;
             font-size: 0.8rem;
             cursor: pointer;
+            z-index: 101;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: background 0.2s, color 0.2s;
-            user-select: none;
+            justify-content: center;
+            transition: background 0.2s, transform 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-        .sidebar-collapse-bar:hover {
-            background: rgba(255,255,255,0.06);
-            color: #fff;
+        .sidebar-collapse-btn:hover {
+            background: #1976d2;
+            transform: scale(1.1);
         }
-        .sidebar-collapse-bar__icon {
-            font-size: 1rem;
-            transition: transform 0.3s;
-        }
-        body.sidebar-collapsed .sidebar-collapse-bar__icon {
+        body.sidebar-collapsed .sidebar-collapse-btn {
             transform: rotate(180deg);
         }
-        body.sidebar-collapsed .sidebar-collapse-bar__text {
-            display: none;
-        }
-        body.sidebar-collapsed .sidebar-collapse-bar {
-            justify-content: center;
-            padding: 14px 0;
+        body.sidebar-collapsed .sidebar-collapse-btn:hover {
+            transform: rotate(180deg) scale(1.1);
         }
         body.sidebar-collapsed .sidebar {
             width: 64px;
@@ -3648,6 +3646,7 @@
 
     <!-- ══ 사이드바 ══ -->
     <aside class="sidebar" id="sidebar">
+        <button class="sidebar-collapse-btn" onclick="toggleCollapse()" title="사이드바 접기/펼치기">◀</button>
         <a class="sb-logo" href="/" target="_blank" style="text-decoration:none;color:inherit;">
             <div class="sb-logo__wrap">
                 <div class="sb-logo__mark">CT</div>
@@ -3714,10 +3713,6 @@
         </nav>
         <div class="sb-footer" style="font-size:0.68rem; color:rgba(255,255,255,0.2);">
             © 2026 CONTENTOUR Co., Ltd.
-        </div>
-        <div class="sidebar-collapse-bar" onclick="toggleCollapse()">
-            <span class="sidebar-collapse-bar__icon">◀</span>
-            <span class="sidebar-collapse-bar__text">사이드바 접기</span>
         </div>
     </aside>
 
