@@ -2749,7 +2749,7 @@ section {
     margin-bottom: 14px;
 }
 .ip-card__tag {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 6px;
@@ -3598,17 +3598,21 @@ section {
 .svc-hero__cta:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2); }
 
 /* 서비스 이용 흐름 타임라인 */
-.svc-flow { padding:80px 24px;background:var(--white); }
-.svc-flow__inner { max-width:1100px;margin:0 auto; }
+.svc-flow { padding:80px 24px;background:linear-gradient(135deg, #0a1628 0%, #1a2a4a 100%);position:relative; }
+.svc-flow::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(21,101,192,0.12) 0%,transparent 60%);pointer-events:none; }
+.svc-flow__inner { max-width:1100px;margin:0 auto;position:relative;z-index:1; }
+.svc-flow .svc-section-eyebrow { color:#4fc3f7; }
+.svc-flow .svc-section-title { color:#fff; }
+.svc-flow .svc-section-sub { color:rgba(255,255,255,0.6); }
 .svc-timeline { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-left:0; }
 .svc-timeline::before { display:none; }
 .svc-tl-item { position:relative;margin-bottom:0; }
 .svc-tl-num { position:absolute;top:14px;left:14px;width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:0.68rem;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1; }
-.svc-tl-content { background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:14px;padding:48px 20px 20px;transition:border-color 0.2s,box-shadow 0.2s;height:100%;display:flex;flex-direction:column; }
-.svc-tl-content:hover { border-color:var(--blue);box-shadow:0 4px 16px rgba(21,101,192,0.08); }
+.svc-tl-content { background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:48px 20px 20px;transition:border-color 0.2s,box-shadow 0.2s;height:100%;display:flex;flex-direction:column; }
+.svc-tl-content:hover { border-color:#4fc3f7;box-shadow:0 4px 16px rgba(79,195,247,0.15); }
 .svc-tl-icon { font-size:1.5rem;margin-bottom:10px; }
-.svc-tl-content h3 { font-size:0.9rem;font-weight:800;color:var(--text);margin-bottom:6px; }
-.svc-tl-content p { font-size:0.78rem;color:var(--gray-600);line-height:1.6;margin-bottom:10px;flex:1; }
+.svc-tl-content h3 { font-size:0.9rem;font-weight:800;color:#fff;margin-bottom:6px; }
+.svc-tl-content p { font-size:0.78rem;color:rgba(255,255,255,0.55);line-height:1.6;margin-bottom:10px;flex:1; }
 .svc-tl-who { display:inline-block;font-size:0.62rem;font-weight:700;padding:3px 10px;border-radius:20px;background:#e3f0ff;color:var(--blue); }
 .svc-tl-who.admin { background:#fff3e0;color:#f57c00; }
 .svc-tl-who.interp { background:#e8f5e9;color:#2e7d32; }
