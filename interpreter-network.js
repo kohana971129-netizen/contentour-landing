@@ -30,7 +30,7 @@ function getInitial(name) {
 
 function avatarHtml(photo, name, size) {
     size = size || 68;
-    if (photo) return '<img src="' + photo + '" alt="' + name + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,0.15);">';
+    if (photo && photo.startsWith('http')) return '<img src="' + photo + '" alt="' + name + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,0.15);" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div style=&quot;width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:linear-gradient(145deg,#1565c0,#42a5f5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:' + Math.round(size * 0.38) + 'px;border:3px solid #fff;&quot;>' + getInitial(name) + '</div>\'">';
     var idx = 0;
     for (var i = 0; i < name.length; i++) idx += name.charCodeAt(i);
     var grad = avatarGradients[idx % avatarGradients.length];

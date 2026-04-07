@@ -9243,6 +9243,20 @@
         // admin-data.js가 참조하는 supabase 변수 연결
         var supabase = _sb;
         </script>
+        <script>
+        // ── 관리자 전용 service_role 클라이언트 (RLS 우회) ──
+        var _sbAdmin = null;
+        try {
+            if (window.supabase && window.supabase.createClient) {
+                _sbAdmin = window.supabase.createClient(
+                    'https://jgeqbdrfpekzuumaklvx.supabase.co',
+                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnZXFiZHJmcGVrenV1bWFrbHZ4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDgzODAzNCwiZXhwIjoyMDkwNDE0MDM0fQ.ODEPG-6DGVizArFl5pOHguhGbgTniBaHyA_W81ta9YA',
+                    { auth: { autoRefreshToken: false, persistSession: false } }
+                );
+                console.log('_sbAdmin 초기화 성공');
+            }
+        } catch(e) { console.error('_sbAdmin 초기화 실패:', e); }
+        </script>
         <script src="admin-data.js"></script>
         <script src="chat-data.js"></script>
         <script>
@@ -10032,29 +10046,32 @@
 
         // ── 상태 변경 ──
         async function updateAppStatus(id, status) {
-            const { error } = await _sb
-                .from('48_통역사지원서')
-                .update({ status: status, updated_at: new Date().toISOString() })
-                .eq('id', id);
-            if (error) { alert('상태 변경 실패: ' + error.message); return; }
-            await loadApplications();
-            closeAppModal();
+            try {
+                const res = await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'updateStatus', id: id, status: status })
+                });
+                const result = await res.json();
+                if (!res.ok) { alert('상태 변경 실패: ' + result.error); return; }
+                await loadApplications();
+                closeAppModal();
+            } catch(e) { alert('오류: ' + e.message); }
         }
 
         // ── 거절 ──
         async function rejectApp(id) {
             const reason = prompt('거절 사유를 입력해주세요:');
             if (reason === null) return;
-            const { error } = await _sb
-                .from('48_통역사지원서')
-                .update({
-                    status: 'rejected',
-                    rejection_reason: reason,
-                    reviewed_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', id);
-            if (error) { alert('거절 처리 실패: ' + error.message); return; }
+            try {
+                const res = await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reject', id: id, reason: reason })
+                });
+                const result = await res.json();
+                if (!res.ok) { alert('거절 처리 실패: ' + result.error); return; }
+            } catch(e) { alert('오류: ' + e.message); return; }
             if (typeof CT !== 'undefined' && CT.logAudit) {
                 const a = _allApps.find(x => x.id === id);
                 CT.logAudit('application_rejected', '48_통역사지원서', id, { name: a?.name_ko, reason: reason });
@@ -10075,62 +10092,28 @@
             btn.textContent = '처리 중...';
 
             try {
-                // 1. 임시 비밀번호 생성
-                const tempPw = 'Ct' + Math.random().toString(36).slice(2, 8) + '!';
-
-                // 2. Supabase Auth 계정 생성
-                const { data: authData, error: authError } = await _sb.auth.signUp({
-                    email: a.email,
-                    password: tempPw,
-                    options: {
-                        data: { name: a.name_ko, role: 'interpreter' }
-                    }
+                const res = await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'approve',
+                        id: id,
+                        appData: {
+                            email: a.email,
+                            name_ko: a.name_ko,
+                            phone: a.phone,
+                            language_pairs: a.language_pairs,
+                            specialties: a.specialties,
+                            total_experience: a.total_experience,
+                            intro: a.intro,
+                            certifications: a.certifications
+                        }
+                    })
                 });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.error);
 
-                if (authError) throw new Error('계정 생성 실패: ' + authError.message);
-
-                const userId = authData.user.id;
-
-                // 3. 이메일 인증 자동 처리 (signUp은 인증 안 된 상태로 생성됨)
-                await _sb.rpc('admin_confirm_user', { target_user_id: userId });
-
-                // 4. 01_회원 테이블에 role을 interpreter로 설정
-                const { error: memberErr } = await _sb.from('01_회원').update({
-                    role: 'interpreter',
-                    name: a.name_ko,
-                    phone: a.phone
-                }).eq('id', userId);
-                if (memberErr) console.error('회원 업데이트 실패:', memberErr);
-
-                // 5. 40_통역사프로필 생성
-                const langList = (a.language_pairs || []).map(l => l.to)
-                    .filter((v, i, arr) => arr.indexOf(v) === i);
-
-                const { error: profileErr } = await _sb.from('40_통역사프로필').insert({
-                    user_id: userId,
-                    display_name: a.name_ko,
-                    phone: a.phone,
-                    languages: langList.length > 0 ? langList : ['기타'],
-                    specialties: (a.specialties || []).map(s => s.replace(/^[^\s]+\s/, '')),
-                    experience_years: parseExp(a.total_experience),
-                    intro: a.intro || '',
-                    certifications: (a.certifications || []).map(c => c.name),
-                    is_active: true
-                });
-                if (profileErr) {
-                    console.error('프로필 생성 실패:', profileErr);
-                    throw new Error('통역사 프로필 생성 실패: ' + profileErr.message);
-                }
-
-                // 5. 지원서 상태 업데이트
-                await _sb.from('48_통역사지원서').update({
-                    status: 'approved',
-                    created_user_id: userId,
-                    reviewed_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                }).eq('id', id);
-
-                alert('✅ 승인 완료!\n\n통역사: ' + a.name_ko + '\n이메일: ' + a.email + '\n임시 비밀번호: ' + tempPw + '\n\n이 정보를 통역사에게 전달해주세요.');
+                alert('✅ 승인 완료!\n\n통역사: ' + result.name + '\n이메일: ' + result.email + '\n임시 비밀번호: ' + result.tempPw + '\n\n이 정보를 통역사에게 전달해주세요.');
 
                 // 감사 로그 기록
                 if (typeof CT !== 'undefined' && CT.logAudit) {

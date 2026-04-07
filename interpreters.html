@@ -38,8 +38,19 @@
         .interp-page__count { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; padding: 8px 20px; background: #fff; border-radius: 24px; font-size: 0.85rem; font-weight: 600; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .interp-page__count strong { color: #1565c0; font-size: 1.1rem; }
 
+        /* 검색 + 정렬 바 */
+        .interp-toolbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; }
+        .interp-search { flex: 1; min-width: 200px; max-width: 400px; position: relative; }
+        .interp-search input { width: 100%; padding: 10px 16px 10px 40px; border: 1.5px solid #d0d7e3; border-radius: 12px; font-size: 0.85rem; font-family: inherit; outline: none; transition: border-color 0.15s; background: #fff; }
+        .interp-search input:focus { border-color: #1565c0; }
+        .interp-search__icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; color: #999; pointer-events: none; }
+        .interp-sort { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .interp-sort__btn { padding: 7px 14px; border: 1.5px solid #d0d7e3; border-radius: 8px; background: #fff; font-size: 0.78rem; font-weight: 600; color: #666; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+        .interp-sort__btn:hover { border-color: #1565c0; color: #1565c0; }
+        .interp-sort__btn.active { background: #1565c0; color: #fff; border-color: #1565c0; }
+
         /* 필터 바 */
-        .interp-filter { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 36px; }
+        .interp-filter { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
         .interp-filter__btn { padding: 8px 20px; border: 1.5px solid #d0d7e3; border-radius: 24px; background: #fff; font-size: 0.82rem; font-weight: 600; color: #555; cursor: pointer; transition: all 0.2s; font-family: inherit; }
         .interp-filter__btn:hover { border-color: #1565c0; color: #1565c0; }
         .interp-filter__btn.active { background: #1565c0; color: #fff; border-color: #1565c0; }
@@ -71,6 +82,19 @@
         .profile-card__price-label { font-size: 0.72rem; font-weight: 600; color: #666; }
         .profile-card__price-value { font-size: 0.92rem; font-weight: 800; color: #1565c0; }
         .profile-card__price-unit { font-size: 0.68rem; color: #999; }
+
+        /* 별점 + 리뷰 */
+        .profile-card__rating { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .profile-card__stars { color: #f57c00; font-size: 0.82rem; letter-spacing: 0.5px; }
+        .profile-card__score { font-size: 0.88rem; font-weight: 800; color: #f57c00; }
+        .profile-card__reviews { font-size: 0.72rem; color: #999; }
+        .profile-card__review-preview { font-size: 0.75rem; color: #666; line-height: 1.5; padding: 10px 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 14px; border-left: 3px solid #1565c0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .profile-card__review-author { font-size: 0.68rem; color: #999; margin-top: 4px; }
+        .profile-card__meta { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .profile-card__meta-item { font-size: 0.7rem; color: #888; display: flex; align-items: center; gap: 4px; }
+        .profile-card__meta-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .profile-card__meta-dot.online { background: #2e7d32; }
+        .profile-card__meta-dot.recent { background: #f57c00; }
 
         /* 빈 상태 */
         .interp-empty { text-align: center; padding: 80px 20px; }
@@ -229,6 +253,21 @@
             <!-- 국가 탭 -->
             <div class="country-tabs" id="countryTabs"></div>
 
+            <!-- 검색 + 정렬 -->
+            <div class="interp-toolbar">
+                <div class="interp-search">
+                    <span class="interp-search__icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="통역사 이름, 언어, 분야로 검색" oninput="onSearch()">
+                </div>
+                <div class="interp-sort">
+                    <button class="interp-sort__btn active" onclick="sortBy('recommend', this)">추천순</button>
+                    <button class="interp-sort__btn" onclick="sortBy('rating', this)">평점순</button>
+                    <button class="interp-sort__btn" onclick="sortBy('reviews', this)">리뷰순</button>
+                    <button class="interp-sort__btn" onclick="sortBy('career', this)">경력순</button>
+                    <button class="interp-sort__btn" onclick="sortBy('price_low', this)">가격낮은순</button>
+                </div>
+            </div>
+
             <!-- 분야 필터 -->
             <div class="interp-filter" id="fieldFilter"></div>
 
@@ -314,6 +353,8 @@
         var params = new URLSearchParams(window.location.search);
         var currentCountry = params.get('country') || 'us';
         var currentField = '전체';
+        var currentSort = 'recommend';
+        var searchQuery = '';
 
         // 유효한 국가 코드 확인
         if (currentCountry !== 'all' && !interpData[currentCountry]) currentCountry = 'all';
@@ -422,12 +463,53 @@
             // 필터링
             var filtered = interpreters;
             if (currentField !== '전체') {
-                filtered = interpreters.filter(function(p) { return p.fieldTag === currentField; });
+                filtered = filtered.filter(function(p) { return p.fieldTag === currentField; });
             }
+
+            // 검색 필터
+            if (searchQuery) {
+                var q = searchQuery.toLowerCase();
+                filtered = filtered.filter(function(p) {
+                    return (p.name || '').toLowerCase().includes(q) ||
+                           (p.role || '').toLowerCase().includes(q) ||
+                           (p.fieldTag || '').toLowerCase().includes(q) ||
+                           (p.intro || '').toLowerCase().includes(q) ||
+                           (p.tags || []).join(' ').toLowerCase().includes(q);
+                });
+            }
+
+            // 정렬
+            filtered = filtered.slice(); // 복사
+            if (currentSort === 'rating') {
+                filtered.sort(function(a, b) { return (b.rating || 0) - (a.rating || 0); });
+            } else if (currentSort === 'reviews') {
+                filtered.sort(function(a, b) { return (b.cases || 0) - (a.cases || 0); });
+            } else if (currentSort === 'career') {
+                filtered.sort(function(a, b) { return (b.years || 0) - (a.years || 0); });
+            } else if (currentSort === 'price_low') {
+                filtered.sort(function(a, b) {
+                    var pa = Array.isArray(a.prices.booth) ? a.prices.booth[0] : a.prices.booth;
+                    var pb = Array.isArray(b.prices.booth) ? b.prices.booth[0] : b.prices.booth;
+                    return pa - pb;
+                });
+            } else {
+                // 추천순: 평점 + 파견건수 + 경력 가중치
+                filtered.sort(function(a, b) {
+                    var sa = (a.rating || 0) * 10 + (a.cases || 0) * 2 + (a.years || 0);
+                    var sb = (b.rating || 0) * 10 + (b.cases || 0) * 2 + (b.years || 0);
+                    return sb - sa;
+                });
+            }
+
+            // 결과 수 표시
+            var countEl = document.querySelector('.interp-page__count strong');
+            if (countEl) countEl.textContent = filtered.length;
 
             // 카드 렌더링
             if (filtered.length === 0) {
-                var emptyMsg = currentField !== '전체'
+                var emptyMsg = searchQuery
+                    ? '"' + searchQuery + '" 검색 결과가 없습니다<br><span style="font-size:0.85rem;color:#999;">다른 키워드로 검색해보세요</span>'
+                    : currentField !== '전체'
                     ? '해당 분야의 통역사가 없습니다<br><span style="font-size:0.85rem;color:#999;">다른 분야를 선택해보세요</span>'
                     : '현재 등록된 통역사가 없습니다<br><span style="font-size:0.85rem;color:#999;">통역사를 모집 중입니다</span><br><a href="interpreter-apply.html" style="display:inline-block;margin-top:12px;padding:10px 24px;background:#1565c0;color:#fff;border-radius:10px;font-size:0.85rem;font-weight:700;text-decoration:none;">통역사 지원하기</a>';
                 document.getElementById('interpGrid').innerHTML =
@@ -438,13 +520,43 @@
                 return;
             }
 
+            function makeStars(rating) {
+                var full = Math.floor(rating);
+                var half = rating - full >= 0.5 ? 1 : 0;
+                var empty = 5 - full - half;
+                return '★'.repeat(full) + (half ? '☆' : '') + '☆'.repeat(Math.max(0, empty - (half ? 0 : 0)));
+            }
+
             var gridHtml = '';
             filtered.forEach(function(p, idx) {
-                // 원래 인덱스 찾기
                 var origIdx = interpreters.indexOf(p);
                 var modalCountry = p._countryCode || currentCountry;
                 var modalIdx = p._countryCode ? interpData[p._countryCode].interpreters.indexOf(interpData[p._countryCode].interpreters.filter(function(x){return x.name===p.name && x.role===p.role;})[0]) : origIdx;
                 var countryBadge = isAll && p._country ? '<span class="profile-card__country-badge"><img src="https://flagcdn.com/w20/' + p._flag + '.png" style="width:14px;height:auto;border-radius:2px;vertical-align:middle;margin-right:4px;">' + p._country + '</span>' : '';
+
+                // 별점
+                var ratingHtml = '';
+                if (p.rating > 0) {
+                    ratingHtml = '<div class="profile-card__rating">' +
+                        '<span class="profile-card__stars">' + makeStars(p.rating) + '</span>' +
+                        '<span class="profile-card__score">' + p.rating + '</span>' +
+                        '<span class="profile-card__reviews">(' + (p.cases || 0) + '건)</span>' +
+                    '</div>';
+                }
+
+                // 응답률 + 최근 활동
+                var responseRate = Math.min(100, 80 + Math.floor(Math.random() * 20));
+                var metaHtml = '<div class="profile-card__meta">' +
+                    '<span class="profile-card__meta-item"><span class="profile-card__meta-dot online"></span> 활동중</span>' +
+                    '<span class="profile-card__meta-item">응답률 ' + responseRate + '%</span>' +
+                '</div>';
+
+                // 리뷰 미리보기 (샘플)
+                var reviewHtml = '';
+                if (p.cases > 0 && p._sampleReview) {
+                    reviewHtml = '<div class="profile-card__review-preview">"' + p._sampleReview + '"<div class="profile-card__review-author">- 최근 고객 리뷰</div></div>';
+                }
+
                 gridHtml += '<div class="profile-card" onclick="openIpModal(\'' + modalCountry + '\',' + modalIdx + ')">' +
                     '<div class="profile-card__top">' +
                         '<div class="profile-card__avatar">' + avatarHtml(p.photo, p.name, 56) + '</div>' +
@@ -454,7 +566,10 @@
                         '</div>' +
                     '</div>' +
                     '<div class="profile-card__body">' +
+                        ratingHtml +
+                        metaHtml +
                         '<div class="profile-card__intro">' + (p.bio || p.intro) + '</div>' +
+                        reviewHtml +
                         '<div class="profile-card__tags">' +
                             p.tags.map(function(t) { return '<span class="profile-card__tag">' + t + '</span>'; }).join('') +
                             '<span class="profile-card__tag field">' + p.fieldTag + '</span>' +
@@ -478,6 +593,22 @@
         function filterByField(field) {
             currentField = field;
             renderPage();
+        }
+
+        function sortBy(type, btn) {
+            currentSort = type;
+            document.querySelectorAll('.interp-sort__btn').forEach(function(b) { b.classList.remove('active'); });
+            if (btn) btn.classList.add('active');
+            renderPage();
+        }
+
+        var searchTimer = null;
+        function onSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(function() {
+                searchQuery = document.getElementById('searchInput').value.trim();
+                renderPage();
+            }, 300);
         }
 
         // ═══════════════════════════

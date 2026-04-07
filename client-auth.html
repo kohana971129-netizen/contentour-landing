@@ -70,7 +70,7 @@
         <div class="brand-panel">
             <div class="grid-overlay"></div>
 
-            <div class="brand-logo-custom">
+            <div class="brand-logo-custom" id="brandLogoSecret" style="cursor:default;">
                 <div class="brand-logo__mark">
                     <img src="assets/logo.png" alt="Logo">
                 </div>
@@ -79,6 +79,7 @@
                     <div class="brand-logo__sub">Client Portal</div>
                 </div>
             </div>
+            <a href="admin-dashboard.html" id="adminSecretLink" style="display:none;margin-top:8px;font-size:0.72rem;color:rgba(255,255,255,0.5);text-decoration:none;transition:opacity 0.3s;">System Admin</a>
 
             <div class="brand-body">
                 <p class="brand-eyebrow">Corporate Service</p>
@@ -191,11 +192,6 @@
 
                     <div class="auth-switch-link">
                         <p>아직 고객사가 아니신가요? <a role="button" tabindex="0" onclick="switchTab('register')">신규 가입하기</a></p>
-                        <div class="admin-link-wrapper">
-                            <a href="admin-dashboard.html">🔒 시스템 관리자 로그인</a>
-                            <span style="margin:0 8px;color:var(--gray-200);">|</span>
-                            <a role="button" tabindex="0" onclick="switchTab('interpreter')" style="cursor:pointer;">👩‍💼 통역사 로그인</a>
-                        </div>
                     </div>
                 </div>
 
@@ -432,6 +428,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     <script>
+        // ── 로고 5회 클릭 → 관리자 링크 표시 ──
+        (function() {
+            var logo = document.getElementById('brandLogoSecret');
+            var link = document.getElementById('adminSecretLink');
+            var clicks = 0;
+            var timer = null;
+            if (logo && link) {
+                logo.addEventListener('click', function() {
+                    clicks++;
+                    clearTimeout(timer);
+                    timer = setTimeout(function() { clicks = 0; }, 2000);
+                    if (clicks >= 5) {
+                        link.style.display = link.style.display === 'none' ? 'inline-block' : 'none';
+                        clicks = 0;
+                    }
+                });
+            }
+        })();
+
         // ── 이전 세션 정리 (Supabase 프로젝트 변경 대응) ──
         (function() {
             var expectedRef = 'jgeqbdrfpekzuumaklvx';
