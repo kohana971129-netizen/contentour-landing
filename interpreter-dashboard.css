@@ -2028,55 +2028,68 @@
         .ct-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
         .ct-item {
             background: var(--white);
-            border: 1.5px solid var(--gray-200);
-            border-radius: 14px;
-            padding: 20px 24px;
+            border: 1.5px solid #dde6f0;
+            border-radius: 16px;
+            padding: 22px 26px;
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 16px;
             align-items: center;
-            transition: border-color 0.15s, box-shadow 0.15s;
+            transition: all 0.2s;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .ct-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #1565c0, #42a5f5);
+            border-radius: 4px 0 0 4px;
         }
         .ct-item:hover {
-            border-color: rgba(21, 101, 192, 0.2);
-            box-shadow: 0 2px 12px rgba(21, 101, 192, 0.06);
+            border-color: #b3cde8;
+            box-shadow: 0 4px 20px rgba(21, 101, 192, 0.1);
+            transform: translateY(-1px);
         }
         .ct-item__top {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .ct-item__expo {
             font-size: 0.95rem;
             font-weight: 800;
-            color: var(--text);
+            color: #0d2b5e;
         }
         .ct-item__id {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 600;
-            color: var(--gray-400);
+            color: #8da4c2;
+            background: #eef3fb;
+            padding: 2px 8px;
+            border-radius: 6px;
         }
         .ct-item__meta {
             display: flex;
-            gap: 20px;
+            gap: 18px;
             flex-wrap: wrap;
         }
         .ct-item__meta-item {
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.78rem;
-            color: var(--gray-600);
+            font-size: 0.8rem;
+            color: #4a6a8a;
         }
         .ct-item__meta-icon {
-            font-size: 0.72rem;
-            opacity: 0.7;
+            font-size: 0.74rem;
         }
         .ct-item__right {
             text-align: right;
@@ -2086,36 +2099,37 @@
             gap: 8px;
         }
         .ct-item__amount {
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             font-weight: 900;
-            color: var(--navy);
+            color: #1565c0;
         }
         .ct-item__amount-label {
-            font-size: 0.68rem;
-            color: var(--gray-400);
-            font-weight: 500;
+            font-size: 0.7rem;
+            color: #8da4c2;
+            font-weight: 600;
         }
         .ct-item__pay-status {
             display: flex;
             gap: 10px;
-            font-size: 0.72rem;
-            font-weight: 600;
+            font-size: 0.74rem;
+            font-weight: 700;
         }
-        .ct-pay-ok { color: var(--success); }
-        .ct-pay-wait { color: var(--gray-400); }
+        .ct-pay-ok { color: #2e7d32; }
+        .ct-pay-wait { color: #b0bec5; }
 
         .ct-badge {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 700;
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 20px;
+            letter-spacing: -0.02em;
         }
         .ct-badge::before {
             content: '';
-            width: 6px; height: 6px;
+            width: 7px; height: 7px;
             border-radius: 50%;
         }
         .ct-b-signed { background: #e3f0ff; color: var(--blue); }
@@ -2132,8 +2146,11 @@
         .ct-empty {
             text-align: center;
             padding: 60px 20px;
-            color: var(--gray-400);
+            color: #8da4c2;
             font-size: 0.88rem;
+            background: #f8fafd;
+            border: 1.5px dashed #d4e2f4;
+            border-radius: 16px;
         }
         .ct-empty__icon {
             font-size: 2.5rem;
