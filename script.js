@@ -421,6 +421,12 @@ function initInquiryForm() {
             document.body.style.overflow = '';
         }
     });
+
+    // 다른 페이지에서 #contact 해시로 이동해온 경우 자동으로 열기
+    if (window.location.hash === '#contact') {
+        contactSection.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 // Portal tab navigation
