@@ -9985,7 +9985,13 @@
 
             if (certs.length > 0) {
                 html += '<div style="margin-top:16px;font-weight:800;font-size:0.9rem;margin-bottom:12px;color:var(--navy);">🏅 자격증</div>';
-                certs.forEach(c => { html += row(c.name, c.year); });
+                certs.forEach(c => {
+                    let certVal = c.year || '';
+                    if (c.file_url) {
+                        certVal += ' <button onclick="openStorageFile(\'' + c.file_url + '\', \'' + (c.file_name || '증빙파일') + '\')" style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:3px 10px;background:#e3f2fd;color:#1565c0;border:none;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;">📄 ' + (c.file_name || '증빙파일') + ' 보기</button>';
+                    }
+                    html += row(c.name, certVal);
+                });
             }
 
             html += row('학교', a.school);
@@ -9997,7 +10003,11 @@
             }
 
             if (a.portfolio_url) html += row('포트폴리오', '<a href="' + a.portfolio_url + '" target="_blank">' + a.portfolio_url + '</a>');
-            if (a.resume_file_name) html += row('이력서 파일', a.resume_file_name);
+            if (a.resume_file_url) {
+                html += row('이력서 파일', '<button onclick="openStorageFile(\'' + a.resume_file_url + '\', \'' + (a.resume_file_name || '이력서') + '\')" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;">📥 ' + (a.resume_file_name || '이력서') + ' 다운로드</button>');
+            } else if (a.resume_file_name) {
+                html += row('이력서 파일', a.resume_file_name);
+            }
 
             html += '</div>';
             document.getElementById('appModalBody').innerHTML = html;
@@ -10029,6 +10039,25 @@
         function closeAppModal() {
             document.getElementById('appModal').style.display = 'none';
             document.body.style.overflow = '';
+        }
+
+        // ── Storage 파일 열기 (서명된 URL) ──
+        async function openStorageFile(filePath, fileName) {
+            try {
+                const session = await window.sbClient?.auth.getSession();
+                const token = session?.data?.session?.access_token;
+                if (!token) { alert('로그인이 필요합니다.'); return; }
+
+                const res = await fetch('/api/file-url?path=' + encodeURIComponent(filePath) + '&bucket=resumes', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const json = await res.json();
+                if (!res.ok) { alert('파일 접근 실패: ' + (json.error || '알 수 없는 오류')); return; }
+                window.open(json.url, '_blank');
+            } catch (e) {
+                console.error('파일 열기 실패:', e);
+                alert('파일을 열 수 없습니다.');
+            }
         }
 
         // ── 상태 변경 ──

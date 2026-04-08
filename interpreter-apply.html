@@ -572,6 +572,10 @@
             align-items: center;
         }
 
+        .cert-row.has-file {
+            grid-template-columns: 1fr 120px 1fr auto;
+        }
+
         .cert-row input {
             background: var(--white);
             border: 1.5px solid var(--g200);
@@ -584,6 +588,35 @@
 
         .cert-row input:focus {
             border-color: var(--blue);
+        }
+
+        .cert-file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px;
+            background: var(--g100);
+            border: 1.5px dashed var(--g300);
+            border-radius: 8px;
+            font-size: 0.78rem;
+            color: var(--g500);
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .cert-file-label:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+        .cert-file-label.attached {
+            border-color: var(--success);
+            color: var(--success);
+            background: #e8f5e9;
+        }
+        .cert-file-label input[type="file"] {
+            display: none;
         }
 
         /* 파일 업로드 */
@@ -873,7 +906,8 @@
                 gap: 0;
             }
 
-            .cert-row {
+            .cert-row,
+            .cert-row.has-file {
                 grid-template-columns: 1fr;
             }
 
@@ -1344,16 +1378,40 @@
             const id = Date.now();
             certs.push(id);
             const div = document.createElement('div');
-            div.className = 'cert-row'; div.id = `cert-${id}`;
+            div.className = 'cert-row has-file'; div.id = `cert-${id}`;
             div.innerHTML = `
-    <input type="text"  id="cn-${id}" placeholder="자격증명 (예: JLPT N1)">
-    <input type="text"  id="cy-${id}" placeholder="취득연도">
+    <input type="text" id="cn-${id}" placeholder="자격증명 (예: JLPT N1)">
+    <input type="text" id="cy-${id}" placeholder="취득연도">
+    <label class="cert-file-label" id="cfl-${id}">
+        <input type="file" id="cf-${id}" accept=".pdf,.jpg,.jpeg,.png" onchange="handleCertFile(${id}, this)">
+        📎 증빙파일
+    </label>
     <button class="lang-del" onclick="removeCert(${id})">✕</button>`;
             document.getElementById('certList').appendChild(div);
         }
         function removeCert(id) {
             certs = certs.filter(x => x !== id);
             document.getElementById('cert-' + id).remove();
+        }
+        function handleCertFile(id, input) {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 5 * 1024 * 1024) { showToast('⚠️ 자격증 파일은 5MB 이하여야 합니다.'); input.value = ''; return; }
+            const label = document.getElementById('cfl-' + id);
+            label.classList.add('attached');
+            label.innerHTML = '<input type="file" id="cf-' + id + '" accept=".pdf,.jpg,.jpeg,.png" onchange="handleCertFile(' + id + ', this)">✅ ' + file.name;
+        }
+        async function uploadCertFile(id) {
+            const input = document.getElementById('cf-' + id);
+            if (!input || !input.files[0] || !sbClient) return null;
+            const file = input.files[0];
+            const ext = file.name.split('.').pop();
+            const path = `certifications/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+            const { data, error } = await sbClient.storage.from('resumes').upload(path, file, {
+                cacheControl: '3600', upsert: false
+            });
+            if (error) { console.error('자격증 파일 업로드 실패:', error); return null; }
+            return { url: path, name: file.name };
         }
 
         // ── 태그 토글 ──
@@ -1510,10 +1568,19 @@
                 language: document.getElementById(`cln-${id}`)?.value || ''
             })).filter(c => c.expo);
 
-            const certData = certs.map(id => ({
-                name: document.getElementById(`cn-${id}`)?.value || '',
-                year: document.getElementById(`cy-${id}`)?.value || ''
-            })).filter(c => c.name);
+            // 자격증 데이터 + 파일 업로드
+            const certData = [];
+            for (const id of certs) {
+                const name = document.getElementById(`cn-${id}`)?.value || '';
+                const year = document.getElementById(`cy-${id}`)?.value || '';
+                if (!name) continue;
+                const fileInfo = await uploadCertFile(id);
+                certData.push({
+                    name, year,
+                    file_url: fileInfo?.url || null,
+                    file_name: fileInfo?.name || null
+                });
+            }
 
             // 이력서 파일 업로드
             let resumeInfo = null;
