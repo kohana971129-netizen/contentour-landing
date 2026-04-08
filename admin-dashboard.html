@@ -9243,20 +9243,7 @@
         // admin-data.js가 참조하는 supabase 변수 연결
         var supabase = _sb;
         </script>
-        <script>
-        // ── 관리자 전용 service_role 클라이언트 (RLS 우회) ──
-        var _sbAdmin = null;
-        try {
-            if (window.supabase && window.supabase.createClient) {
-                _sbAdmin = window.supabase.createClient(
-                    'https://jgeqbdrfpekzuumaklvx.supabase.co',
-                    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnZXFiZHJmcGVrenV1bWFrbHZ4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDgzODAzNCwiZXhwIjoyMDkwNDE0MDM0fQ.ODEPG-6DGVizArFl5pOHguhGbgTniBaHyA_W81ta9YA',
-                    { auth: { autoRefreshToken: false, persistSession: false } }
-                );
-                console.log('_sbAdmin 초기화 성공');
-            }
-        } catch(e) { console.error('_sbAdmin 초기화 실패:', e); }
-        </script>
+        <!-- service_role 클라이언트 제거됨 — 모든 관리자 작업은 서버사이드 API(/api/)를 통해 처리 -->
         <script src="admin-data.js"></script>
         <script src="chat-data.js"></script>
         <script>
