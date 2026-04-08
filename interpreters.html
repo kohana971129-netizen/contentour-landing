@@ -431,14 +431,14 @@
                     '<div class="interp-page__count">등록 통역사 <strong>' + interpreters.length + '</strong>명</div>';
             }
 
-            // 국가 탭 (전체 포함)
-            var tabsHtml = '<a href="interpreters.html?country=all" class="country-tab' + (currentCountry === 'all' ? ' active' : '') + '">' +
+            // 국가 탭 (전체 포함) — 클릭 시 페이지 리로드 없이 전환
+            var tabsHtml = '<a href="#" class="country-tab' + (currentCountry === 'all' ? ' active' : '') + '" onclick="event.preventDefault();switchCountry(\'all\')">' +
                 '<span style="font-size:1.1em;">🌍</span><span>전체</span></a>';
             var codes = ['us', 'jp', 'cn', 'de', 'vn', 'ae', 'th'];
             codes.forEach(function(code) {
                 var cd = interpData[code];
                 var isActive = code === currentCountry ? ' active' : '';
-                tabsHtml += '<a href="interpreters.html?country=' + code + '" class="country-tab' + isActive + '">' +
+                tabsHtml += '<a href="#" class="country-tab' + isActive + '" onclick="event.preventDefault();switchCountry(\'' + code + '\')">' +
                     '<img src="https://flagcdn.com/w40/' + cd.flag + '.png" alt="' + cd.country + '">' +
                     '<span>' + cd.country + '</span>' +
                 '</a>';
@@ -588,6 +588,17 @@
                 '</div>';
             });
             document.getElementById('interpGrid').innerHTML = gridHtml;
+        }
+
+        function switchCountry(code) {
+            currentCountry = code;
+            currentField = '전체';
+            searchQuery = '';
+            var searchInput = document.getElementById('searchInput');
+            if (searchInput) searchInput.value = '';
+            history.replaceState(null, '', 'interpreters.html?country=' + code);
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function filterByField(field) {
@@ -795,40 +806,60 @@
             if (e.key === 'Escape') closeIpModal();
         });
 
-        // DB 통역사 로드 후 렌더링 (서버 API 사용 — sbClient 초기화와 무관하게 안정적으로 로드)
+        // DB 통역사 프로필을 interpData에 추가
+        function addProfilesToData(profiles) {
+            if (!profiles || profiles.length === 0) return;
+            profiles.forEach(function(p) {
+                if (!p.country_code || !interpData[p.country_code]) return;
+                var langs = Array.isArray(p.languages) ? p.languages : [];
+                var specs = Array.isArray(p.specialties) ? p.specialties : [];
+                var tags = langs.concat(specs).slice(0, 3);
+                var rates = p.rate_by_type || {};
+                var boothRate = rates.booth || rates['부스 상주'] || 250000;
+                interpData[p.country_code].interpreters.push({
+                    name: p.display_name || '통역사',
+                    photo: p.profile_image_url || '',
+                    role: langs.join('·') + ' 전문 통역사',
+                    intro: p.intro || '',
+                    tags: tags,
+                    fieldTag: p.field_tag || (specs[0] || ''),
+                    cases: p.cases_count || 0,
+                    rating: p.rating || 0,
+                    years: p.experience_years || 0,
+                    satisfaction: p.satisfaction || 0,
+                    prices: { booth: [boothRate, boothRate+50000], meeting: [boothRate+50000, boothRate+100000], conference: [boothRate+100000, boothRate+150000], operation: [boothRate+20000, boothRate+70000] },
+                    bio: p.intro || '',
+                    history: [],
+                    _dbId: p.user_id
+                });
+            });
+        }
+
+        // DB 통역사 로드 후 렌더링 (API 우선, 실패 시 클라이언트 Supabase 폴백)
         (async function initPage() {
+            var loaded = false;
+
+            // 1차: 서버 API
             try {
                 var res = await fetch('/api/interpreters');
                 if (res.ok) {
                     var profiles = await res.json();
-                    if (profiles && profiles.length > 0) {
-                        profiles.forEach(function(p) {
-                            if (!p.country_code || !interpData[p.country_code]) return;
-                            var langs = Array.isArray(p.languages) ? p.languages : [];
-                            var specs = Array.isArray(p.specialties) ? p.specialties : [];
-                            var tags = langs.concat(specs).slice(0, 3);
-                            var rates = p.rate_by_type || {};
-                            var boothRate = rates.booth || rates['부스 상주'] || 250000;
-                            interpData[p.country_code].interpreters.push({
-                                name: p.display_name || '통역사',
-                                photo: p.profile_image_url || '',
-                                role: langs.join('·') + ' 전문 통역사',
-                                intro: p.intro || '',
-                                tags: tags,
-                                fieldTag: p.field_tag || (specs[0] || ''),
-                                cases: p.cases_count || 0,
-                                rating: p.rating || 0,
-                                years: p.experience_years || 0,
-                                satisfaction: p.satisfaction || 0,
-                                prices: { booth: [boothRate, boothRate+50000], meeting: [boothRate+50000, boothRate+100000], conference: [boothRate+100000, boothRate+150000], operation: [boothRate+20000, boothRate+70000] },
-                                bio: p.intro || '',
-                                history: [],
-                                _dbId: p.user_id
-                            });
-                        });
-                    }
+                    addProfilesToData(profiles);
+                    loaded = true;
                 }
-            } catch(e) { console.error('[통역사 목록] 로드 실패:', e); }
+            } catch(e) {}
+
+            // 2차: 클라이언트 Supabase 폴백
+            if (!loaded && window.sbClient) {
+                try {
+                    var { data: profiles } = await window.sbClient
+                        .from('40_통역사프로필')
+                        .select('user_id, display_name, languages, specialties, experience_years, intro, profile_image_url, country_code, field_tag, cases_count, rating, satisfaction, rate_by_type, is_active')
+                        .eq('is_active', true);
+                    addProfilesToData(profiles);
+                } catch(e) {}
+            }
+
             renderPage();
         })();
 
