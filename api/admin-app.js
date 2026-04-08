@@ -1,10 +1,20 @@
 const { createClient } = require('@supabase/supabase-js');
 const { Resend } = require('resend');
 
-const supabase = createClient(
-    'https://jgeqbdrfpekzuumaklvx.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const SUPABASE_URL = 'https://jgeqbdrfpekzuumaklvx.supabase.co';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnZXFiZHJmcGVrenV1bWFrbHZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MzgwMzQsImV4cCI6MjA5MDQxNDAzNH0.C2y3UiPtHIF2s4nPvbGycN927HOG4YpO86FfgZAelUw';
+
+const supabase = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const sbAuth = createClient(SUPABASE_URL, ANON_KEY);
+
+async function verifyAdmin(token) {
+    if (!token) return null;
+    const { data: { user }, error } = await sbAuth.auth.getUser(token);
+    if (error || !user) return null;
+    const { data: profile } = await supabase.from('01_회원').select('role').eq('id', user.id).single();
+    if (!profile || profile.role !== 'admin') return null;
+    return user;
+}
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -70,6 +80,13 @@ async function sendApprovalEmail(email, name, tempPw) {
 module.exports = async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+    const admin = await verifyAdmin(token);
+    if (!admin) {
+        return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     }
 
     const { action, id, status, reason, appData } = req.body;

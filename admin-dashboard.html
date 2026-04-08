@@ -4955,9 +4955,7 @@
             // 샘플 데이터
             const inquiries = [];
 
-            const interpreters = [
-                { id: 1, name: '김하나', initials: '하', color: '#1565c0', langs: ['영어', '일본어'], field: '전시회 통역·비즈매칭', rating: 4.9, cases: 28, available: true },
-            ];
+            const interpreters = [];
 
             function filterTable(query) {
                 const q = (query || '').toLowerCase();
@@ -5281,9 +5279,7 @@
             // ═══════════════════════════════════
             // 데이터 (캘린더 / 상담일지)
             // ═══════════════════════════════════
-            const IC = {
-                '김하나': '#1565c0'
-            };
+            const IC = {};
             const TL = { booth: '부스 상주', meeting: '미팅 동행', ops: '현장 운영' };
 
             let schedules = [];
@@ -9962,12 +9958,19 @@
             }
         }
 
+        // ── 관리자 토큰 가져오기 ──
+        async function _getAdminToken() {
+            const session = await window.sbClient?.auth.getSession();
+            return session?.data?.session?.access_token || '';
+        }
+
         // ── 상태 변경 ──
         async function updateAppStatus(id, status) {
             try {
+                const token = await _getAdminToken();
                 const res = await fetch('/api/admin-app', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ action: 'updateStatus', id: id, status: status })
                 });
                 const result = await res.json();
@@ -9982,9 +9985,10 @@
             const reason = prompt('거절 사유를 입력해주세요:');
             if (reason === null) return;
             try {
+                const token = await _getAdminToken();
                 const res = await fetch('/api/admin-app', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ action: 'reject', id: id, reason: reason })
                 });
                 const result = await res.json();
@@ -10010,9 +10014,10 @@
             btn.textContent = '처리 중...';
 
             try {
+                const token = await _getAdminToken();
                 const res = await fetch('/api/admin-app', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({
                         action: 'approve',
                         id: id,
