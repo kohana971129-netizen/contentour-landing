@@ -2939,15 +2939,20 @@ section {
     background: rgba(255,255,255,0.25);
 }
 .ip-modal__photo {
-    width: 72px; height: 72px;
+    width: 80px; height: 80px;
     border-radius: 50%;
     border: 3px solid rgba(255,255,255,0.3);
     overflow: hidden;
     flex-shrink: 0;
 }
 .ip-modal__photo img {
-    width: 100%; height: 100%;
+    width: 100% !important; height: 100% !important;
+    border-radius: 50% !important;
     object-fit: cover;
+}
+.ip-modal__photo div {
+    width: 100% !important; height: 100% !important;
+    border-radius: 50% !important;
 }
 .ip-modal__header-info {}
 .ip-modal__name {
