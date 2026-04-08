@@ -3595,7 +3595,7 @@
             <div class="sb-label">운영 관리</div>
             <a class="sb-item active" id="sb-inquiries" onclick="switchTab('inquiries')">
                 <span class="sb-item__icon">📋</span> 문의 & 매칭
-                <span class="sb-item__badge">5</span>
+                <span class="sb-item__badge" id="inqSidebarBadge" style="display:none;">0</span>
             </a>
             <a class="sb-item" id="sb-contracts" onclick="switchTab('contracts')">
                 <span class="sb-item__icon">📄</span> 계약·결제
@@ -5008,6 +5008,12 @@
                 // pendingBadge도 업데이트
                 el = document.getElementById('pendingBadge');
                 if (el) el.textContent = pending;
+                // 사이드바 배지 업데이트
+                el = document.getElementById('inqSidebarBadge');
+                if (el) {
+                    el.textContent = pending;
+                    el.style.display = pending > 0 ? '' : 'none';
+                }
             }
 
             function renderTable(data) {
