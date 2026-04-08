@@ -990,20 +990,23 @@ const InterpreterApp = {
         setVal('pf-email', this.profile.email);
         setVal('pf-phone', p.phone);
         setVal('pf-intro', p.intro);
+        setVal('pf-experience', p.experience_years);
 
-        // 언어 태그 활성화
+        // 언어 태그: 먼저 모두 비활성 → DB 값으로 활성화
+        document.querySelectorAll('#pf-langs .pf-lang-tag').forEach(tag => tag.classList.remove('active'));
         if (p.languages && p.languages.length > 0) {
             document.querySelectorAll('#pf-langs .pf-lang-tag').forEach(tag => {
-                if (p.languages.includes(tag.textContent.trim())) {
+                if (p.languages.some(l => tag.textContent.trim().includes(l))) {
                     tag.classList.add('active');
                 }
             });
         }
 
-        // 전문 분야 태그 활성화
+        // 전문 분야 태그: 먼저 모두 비활성 → DB 값으로 활성화
+        document.querySelectorAll('#pf-fields .pf-lang-tag').forEach(tag => tag.classList.remove('active'));
         if (p.specialties && p.specialties.length > 0) {
             document.querySelectorAll('#pf-fields .pf-lang-tag').forEach(tag => {
-                if (p.specialties.includes(tag.textContent.trim())) {
+                if (p.specialties.some(s => tag.textContent.trim().includes(s))) {
                     tag.classList.add('active');
                 }
             });

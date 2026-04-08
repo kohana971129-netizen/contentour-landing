@@ -1040,8 +1040,8 @@
                                 <div class="pf-field">
                                     <label class="pf-label">통역 가능 언어</label>
                                     <div class="pf-tags" id="pf-langs">
-                                        <span class="pf-lang-tag active" onclick="togglePfLang(this)">🇺🇸 영어</span>
-                                        <span class="pf-lang-tag active" onclick="togglePfLang(this)">🇯🇵 일본어</span>
+                                        <span class="pf-lang-tag" onclick="togglePfLang(this)">🇺🇸 영어</span>
+                                        <span class="pf-lang-tag" onclick="togglePfLang(this)">🇯🇵 일본어</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🇨🇳 중국어</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🇩🇪 독일어</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🇻🇳 베트남어</span>
@@ -1052,8 +1052,8 @@
                                 <div class="pf-field">
                                     <label class="pf-label">전문 분야</label>
                                     <div class="pf-tags" id="pf-fields">
-                                        <span class="pf-lang-tag active" onclick="togglePfLang(this)">🏭 전시/박람회</span>
-                                        <span class="pf-lang-tag active" onclick="togglePfLang(this)">💼 비즈니스 상담</span>
+                                        <span class="pf-lang-tag" onclick="togglePfLang(this)">🏭 전시/박람회</span>
+                                        <span class="pf-lang-tag" onclick="togglePfLang(this)">💼 비즈니스 상담</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🏥 의료/바이오</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">💻 IT/기술</span>
                                         <span class="pf-lang-tag" onclick="togglePfLang(this)">🔋 에너지/배터리</span>
@@ -1064,13 +1064,13 @@
                                 <div class="pf-field">
                                     <label class="pf-label">통역 경력 (년)</label>
                                     <div style="display:flex;align-items:center;gap:10px;">
-                                        <input type="number" id="pf-experience" min="0" max="30" value="3" class="pf-input" style="max-width:100px;" onchange="suggestRateByExperience()">
+                                        <input type="number" id="pf-experience" min="0" max="30" value="0" class="pf-input" style="max-width:100px;" onchange="suggestRateByExperience()">
                                         <button onclick="suggestRateByExperience()" style="padding:6px 14px;background:#e3f0ff;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">💡 경력별 단가 추천</button>
                                     </div>
                                 </div>
                                 <div class="pf-field">
                                     <label class="pf-label">자기소개</label>
-                                    <textarea id="pf-intro" rows="4" class="pf-input pf-textarea">전시/박람회 전문 통역사입니다. KOTRA, 부산테크노파크 등 다수의 해외전시 지원사업 경험이 있으며, 바이어 상담 통역에 강점이 있습니다.</textarea>
+                                    <textarea id="pf-intro" rows="4" class="pf-input pf-textarea" placeholder="자기소개를 입력해주세요."></textarea>
                                 </div>
 
                                 <!-- 경력 인증 -->
@@ -1123,7 +1123,7 @@
                                         </div>
                                         <div class="rate-row__input">
                                             <span class="rate-row__prefix">₩</span>
-                                            <input type="number" id="rate-booth" value="350000" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
+                                            <input type="number" id="rate-booth" value="0" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
                                             <span class="rate-row__suffix">/ 일</span>
                                         </div>
                                     </div>
@@ -1137,7 +1137,7 @@
                                         </div>
                                         <div class="rate-row__input">
                                             <span class="rate-row__prefix">₩</span>
-                                            <input type="number" id="rate-meeting" value="400000" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
+                                            <input type="number" id="rate-meeting" value="0" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
                                             <span class="rate-row__suffix">/ 일</span>
                                         </div>
                                     </div>
@@ -1151,7 +1151,7 @@
                                         </div>
                                         <div class="rate-row__input">
                                             <span class="rate-row__prefix">₩</span>
-                                            <input type="number" id="rate-conference" value="500000" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
+                                            <input type="number" id="rate-conference" value="0" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
                                             <span class="rate-row__suffix">/ 일</span>
                                         </div>
                                     </div>
@@ -1165,7 +1165,7 @@
                                         </div>
                                         <div class="rate-row__input">
                                             <span class="rate-row__prefix">₩</span>
-                                            <input type="number" id="rate-operation" value="380000" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
+                                            <input type="number" id="rate-operation" value="0" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
                                             <span class="rate-row__suffix">/ 일</span>
                                         </div>
                                     </div>
@@ -1200,7 +1200,7 @@
                                             <span>🇩🇪 독일어</span>
                                             <div class="rate-row__input" style="width:160px;">
                                                 <span class="rate-row__prefix">+₩</span>
-                                                <input type="number" id="lrate-de" value="50000" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
+                                                <input type="number" id="lrate-de" value="0" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
                                             </div>
                                         </div>
                                         <div class="lang-rate-row">
@@ -1214,7 +1214,7 @@
                                             <span>🇦🇪 아랍어</span>
                                             <div class="rate-row__input" style="width:160px;">
                                                 <span class="rate-row__prefix">+₩</span>
-                                                <input type="number" id="lrate-ar" value="80000" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
+                                                <input type="number" id="lrate-ar" value="0" min="0" step="10000" onchange="updateRatePreview()" oninput="updateRatePreview()">
                                             </div>
                                         </div>
                                     </div>
