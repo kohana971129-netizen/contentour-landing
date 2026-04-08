@@ -1984,8 +1984,8 @@
         .ct-tabs {
             display: flex;
             gap: 6px;
-            background: var(--gray-100);
-            border: 1.5px solid var(--gray-200);
+            background: #eef3fb;
+            border: 1.5px solid #d4e2f4;
             border-radius: 12px;
             padding: 5px;
             margin-bottom: 20px;
@@ -1998,22 +1998,22 @@
             border-radius: 10px;
             font-size: 0.85rem;
             font-weight: 700;
-            color: var(--gray-500);
+            color: #6b87ad;
             cursor: pointer;
             font-family: inherit;
             transition: all 0.2s;
         }
         .ct-tabs__btn.active {
-            background: var(--white);
-            color: var(--navy, var(--text));
-            border-color: var(--gray-200);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: #fff;
+            color: #1565c0;
+            border-color: #b8d4f0;
+            box-shadow: 0 2px 8px rgba(21,101,192,0.12);
         }
-        .ct-tabs__btn:hover:not(.active) { color: var(--blue); background: rgba(21,101,192,0.04); }
+        .ct-tabs__btn:hover:not(.active) { color: #1565c0; background: rgba(21,101,192,0.06); }
         .ct-tabs__btn .cnt {
             display: inline-block;
-            background: var(--gray-200);
-            color: var(--gray-600);
+            background: #d4e2f4;
+            color: #3d6da3;
             font-size: 0.68rem;
             font-weight: 800;
             padding: 2px 8px;
@@ -2021,7 +2021,7 @@
             margin-left: 6px;
         }
         .ct-tabs__btn.active .cnt {
-            background: var(--blue);
+            background: #1565c0;
             color: #fff;
         }
 
