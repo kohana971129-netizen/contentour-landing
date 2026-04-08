@@ -795,15 +795,12 @@
             if (e.key === 'Escape') closeIpModal();
         });
 
-        // DB 통역사 로드 후 렌더링
+        // DB 통역사 로드 후 렌더링 (서버 API 사용 — sbClient 초기화와 무관하게 안정적으로 로드)
         (async function initPage() {
-            if (window.sbClient) {
-                try {
-                    var { data: profiles } = await window.sbClient
-                        .from('40_통역사프로필')
-                        .select('user_id, display_name, languages, specialties, experience_years, intro, profile_image_url, country_code, field_tag, cases_count, rating, satisfaction, rate_by_type, is_active')
-                        .eq('is_active', true);
-
+            try {
+                var res = await fetch('/api/interpreters');
+                if (res.ok) {
+                    var profiles = await res.json();
                     if (profiles && profiles.length > 0) {
                         profiles.forEach(function(p) {
                             if (!p.country_code || !interpData[p.country_code]) return;
@@ -829,10 +826,9 @@
                                 _dbId: p.user_id
                             });
                         });
-                        console.log('[통역사 목록] DB 프로필 ' + profiles.length + '명 로드');
                     }
-                } catch(e) { console.error('[통역사 목록] DB 로드 실패:', e); }
-            }
+                }
+            } catch(e) { console.error('[통역사 목록] 로드 실패:', e); }
             renderPage();
         })();
 
