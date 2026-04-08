@@ -38,10 +38,10 @@
       <div class="nav-section-label">메인</div>
       <a class="nav-item active" href="#home" onclick="switchView('home');if(event)event.preventDefault()"><span class="nav-item__icon">&#127968;</span> 홈</a>
       <a class="nav-item" href="#inquiry" onclick="switchView('inquiry');if(event)event.preventDefault()"><span class="nav-item__icon">&#128203;</span> 통역 문의 접수</a>
-      <a class="nav-item" href="#list" onclick="switchView('list');if(event)event.preventDefault()"><span class="nav-item__icon">&#128194;</span> 나의 문의 현황<span class="nav-item__badge">3</span></a>
-      <a class="nav-item" href="#contract" onclick="switchView('contract');if(event)event.preventDefault()"><span class="nav-item__icon">&#128196;</span> 계약·결제<span class="nav-item__badge" id="contractNavBadge">2</span></a>
+      <a class="nav-item" href="#list" onclick="switchView('list');if(event)event.preventDefault()"><span class="nav-item__icon">&#128194;</span> 나의 문의 현황<span class="nav-item__badge" id="inquiryNavBadge" style="display:none;">0</span></a>
+      <a class="nav-item" href="#contract" onclick="switchView('contract');if(event)event.preventDefault()"><span class="nav-item__icon">&#128196;</span> 계약·결제<span class="nav-item__badge" id="contractNavBadge" style="display:none;">0</span></a>
       <div class="nav-section-label">관리</div>
-      <a class="nav-item" href="#chat" onclick="switchView('chat');if(event)event.preventDefault()"><span class="nav-item__icon">&#128172;</span> 통역사 채팅<span class="nav-item__badge" id="chatNavBadge">2</span></a>
+      <a class="nav-item" href="#chat" onclick="switchView('chat');if(event)event.preventDefault()"><span class="nav-item__icon">&#128172;</span> 통역사 채팅<span class="nav-item__badge" id="chatNavBadge" style="display:none;">0</span></a>
       <a class="nav-item" href="#schedule" onclick="switchView('schedule');if(event)event.preventDefault()"><span class="nav-item__icon">&#128197;</span> 일정 확인</a>
       <a class="nav-item" href="#journal" onclick="switchView('journal');if(event)event.preventDefault()"><span class="nav-item__icon">&#128221;</span> 상담일지 작성</a>
       <div class="nav-section-label">계정</div>
@@ -94,10 +94,10 @@
 
     <div class="content">
       <div class="summary-cards" id="inquirySummaryCards">
-        <div class="summary-card"><div class="summary-card__icon blue">&#128203;</div><div><div class="summary-card__num">5</div><div class="summary-card__label">전체 문의</div></div></div>
-        <div class="summary-card"><div class="summary-card__icon orange">&#8987;</div><div><div class="summary-card__num">3</div><div class="summary-card__label">검토 중</div></div></div>
-        <div class="summary-card"><div class="summary-card__icon blue">&#129309;</div><div><div class="summary-card__num">1</div><div class="summary-card__label">통역사 매칭 완료</div></div></div>
-        <div class="summary-card"><div class="summary-card__icon green">&#9989;</div><div><div class="summary-card__num">1</div><div class="summary-card__label">파견 확정</div></div></div>
+        <div class="summary-card"><div class="summary-card__icon blue">&#128203;</div><div><div class="summary-card__num" id="sc-total">0</div><div class="summary-card__label">전체 문의</div></div></div>
+        <div class="summary-card"><div class="summary-card__icon orange">&#8987;</div><div><div class="summary-card__num" id="sc-pending">0</div><div class="summary-card__label">검토 중</div></div></div>
+        <div class="summary-card"><div class="summary-card__icon blue">&#129309;</div><div><div class="summary-card__num" id="sc-matched">0</div><div class="summary-card__label">통역사 매칭 완료</div></div></div>
+        <div class="summary-card"><div class="summary-card__icon green">&#9989;</div><div><div class="summary-card__num" id="sc-confirmed">0</div><div class="summary-card__label">파견 확정</div></div></div>
       </div>
 
       <!-- VIEW: 문의 접수 -->
@@ -1000,7 +1000,7 @@
       try {
         var { data, error } = await ContentourAuth.updatePassword(newPw);
         if (error) {
-          errEl.textContent = '비밀번호 변경 실패: ' + error.message;
+          errEl.textContent = '비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인해주세요.';
           errEl.style.display = 'block';
         } else {
           showContractToast('비밀번호가 성공적으로 변경되었습니다.');
@@ -1034,14 +1034,7 @@
 
     // ── Supabase에서 프로필 로드 후 UI 반영 ──
     (async function loadUserProfile() {
-        var isDemoMode = sessionStorage.getItem('demoMode') === 'customer';
-
-        if (isDemoMode || !window.sbClient) {
-            // 데모 모드: 기본값 표시
-            _currentUserProfile = { name: '데모 사용자', company: '데모 기업', position: '', email: 'demo@contentour.com', phone: '-' };
-            applyUserProfile(_currentUserProfile);
-            return;
-        }
+        if (!window.sbClient) return;
 
         try {
             var user = await ContentourAuth.getCurrentUser();
@@ -1518,7 +1511,7 @@
 
           if (error) {
             console.error('문의 저장 실패:', error);
-            showJToast('&#9888;&#65039; 문의 저장 중 오류가 발생했습니다: ' + error.message);
+            showJToast('&#9888;&#65039; 문의 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             return;
           }
         } catch (e) {
@@ -3282,7 +3275,7 @@
 
         if (error) {
           console.error('문의 조회 에러:', error);
-          if (listEl) listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;font-size:0.88rem;">문의 내역을 불러오지 못했습니다: ' + error.message + '</div>';
+          if (listEl) listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;font-size:0.88rem;">문의 내역을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>';
           return;
         }
         if (!data || data.length === 0) {
@@ -3291,6 +3284,23 @@
         }
 
         myInquiriesFromDB = data;
+
+        // 요약 카드 & 네비 배지 업데이트
+        var statusMap0 = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료' };
+        var cnt = { total: data.length, pending: 0, matched: 0, confirmed: 0 };
+        data.forEach(function(d) {
+          var s = statusMap0[d.status] || d.status;
+          if (s === '검토중') cnt.pending++;
+          else if (s === '매칭완료') cnt.matched++;
+          else if (s === '파견확정') cnt.confirmed++;
+        });
+        var el;
+        el = document.getElementById('sc-total'); if (el) el.textContent = cnt.total;
+        el = document.getElementById('sc-pending'); if (el) el.textContent = cnt.pending;
+        el = document.getElementById('sc-matched'); if (el) el.textContent = cnt.matched;
+        el = document.getElementById('sc-confirmed'); if (el) el.textContent = cnt.confirmed;
+        el = document.getElementById('inquiryNavBadge');
+        if (el) { el.textContent = cnt.pending; el.style.display = cnt.pending > 0 ? '' : 'none'; }
 
         // 문의 목록 카드 렌더링
         var listEl = document.getElementById('inquiryList');
