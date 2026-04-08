@@ -34,6 +34,7 @@ const AdminData = {
                 end: d.end_date,
                 type: serviceTypeToKo(d.service_type),
                 status: itqStatusToAdmin(d.status),
+                dbStatus: d.status,
                 interpreter: (function() { try { var n = JSON.parse(d.admin_note); return n.interpreter || ''; } catch(e) { return ''; } })(),
                 received: d.created_at.split('T')[0],
                 count: d.headcount || 1,

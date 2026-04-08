@@ -5008,11 +5008,12 @@
                 // pendingBadge도 업데이트
                 el = document.getElementById('pendingBadge');
                 if (el) el.textContent = pending;
-                // 사이드바 배지 업데이트
+                // 사이드바 배지: 신규 접수 건만 카운트
+                var newCount = inquiries.filter(function(d) { return d.dbStatus === '접수'; }).length;
                 el = document.getElementById('inqSidebarBadge');
                 if (el) {
-                    el.textContent = pending;
-                    el.style.display = pending > 0 ? '' : 'none';
+                    el.textContent = newCount;
+                    el.style.display = newCount > 0 ? '' : 'none';
                 }
             }
 
