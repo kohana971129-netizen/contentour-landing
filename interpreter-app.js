@@ -293,16 +293,18 @@ const InterpreterApp = {
         if (userNameEl) userNameEl.textContent = name;
 
         // 프로필 뷰 헤더
-        const profileHeader = document.querySelector('#view-profile h2');
-        if (profileHeader && profileHeader.textContent.includes('통역사')) {
+        const pfName = document.getElementById('pfHeaderName');
+        if (pfName) pfName.textContent = name;
+        const pfDesc = document.getElementById('pfHeaderDesc');
+        if (pfDesc) {
             const langs = this.interpProfile?.languages || [];
             const exp = this.interpProfile?.experience_years || 0;
-            profileHeader.textContent = name + ' 통역사';
-            const profileSub = profileHeader.nextElementSibling;
-            if (profileSub && profileSub.tagName === 'P') {
-                profileSub.textContent = (langs.length > 0 ? langs.join(' · ') : '언어 미설정') + ' | 전시 통역 전문' + (exp > 0 ? ' | 경력 ' + exp + '년' : '');
-            }
+            pfDesc.textContent = (langs.length > 0 ? langs.join(' · ') : '언어 미설정') + ' | 전시 통역 전문' + (exp > 0 ? ' | 경력 ' + exp + '년' : '');
         }
+        const pfRating = document.getElementById('pfHeaderRating');
+        if (pfRating) pfRating.textContent = '⭐ ' + (this.interpProfile?.rating || 0) + '/5.0';
+        const pfCases = document.getElementById('pfHeaderCases');
+        if (pfCases) pfCases.textContent = '📋 통역 ' + (this.interpProfile?.cases_count || 0) + '건 완료';
 
         // 프로필 이미지
         const imgUrl = this.interpProfile?.profile_image_url;
@@ -355,11 +357,11 @@ const InterpreterApp = {
             if (numEl) numEl.textContent = this.formatMoney(monthSettlement);
         }
 
-        // 사이드바 배지
-        const sidebarBadge = document.querySelector('.sb-item__badge');
-        if (sidebarBadge) {
-            sidebarBadge.textContent = assignments.length;
-            sidebarBadge.style.display = assignments.length > 0 ? '' : 'none';
+        // 사이드바 배정 배지
+        const assignBadge = document.getElementById('assignNavBadge');
+        if (assignBadge) {
+            assignBadge.textContent = assignments.length;
+            assignBadge.style.display = assignments.length > 0 ? '' : 'none';
         }
     },
 
