@@ -3431,18 +3431,6 @@
         }
         .filter-chip[data-status="reviewing"].active .chip-count { background: rgba(255,255,255,0.25); color: #fff; }
 
-        /* ── 면접 (Interview) ── */
-        .filter-chip[data-status="interview"] { border-color: #e1bee7; }
-        .filter-chip[data-status="interview"]:hover { border-color: #7b1fa2; background: #f3e5f5; color: #6a1b9a; }
-        .filter-chip[data-status="interview"] .chip-count { background: #f3e5f5; color: #7b1fa2; }
-        .filter-chip[data-status="interview"].active {
-            border-color: #7b1fa2;
-            background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(123,31,162,0.3);
-        }
-        .filter-chip[data-status="interview"].active .chip-count { background: rgba(255,255,255,0.25); color: #fff; }
-
         /* ── 승인 (Approved) ── */
         .filter-chip[data-status="approved"] { border-color: #c8e6c9; }
         .filter-chip[data-status="approved"]:hover { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }
@@ -3864,26 +3852,11 @@
 
                 <!-- ══ 지원서 관리 탭 ══ -->
                 <div class="view" id="view-applications">
-                    <!-- 승인된 통역사 목록 -->
-                    <div id="approvedInterpretersSection" style="margin-bottom:20px;display:none;">
-                        <div style="background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:14px;overflow:hidden;">
-                            <div style="padding:16px 22px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleApprovedList()">
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <span style="font-size:1.1rem;">✅</span>
-                                    <span style="color:#fff;font-weight:800;font-size:0.92rem;">승인된 통역사</span>
-                                    <span id="approvedIntpCount" style="background:rgba(255,255,255,0.25);color:#fff;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;">0명</span>
-                                </div>
-                                <span id="approvedListToggle" style="color:rgba(255,255,255,0.7);font-size:0.8rem;transition:transform 0.2s;">▼</span>
-                            </div>
-                            <div id="approvedInterpretersList" style="background:#fff;padding:0;max-height:0;overflow:hidden;transition:max-height 0.3s ease;"></div>
-                        </div>
-                    </div>
                     <!-- 필터 바 -->
                     <div class="app-filter-bar">
                         <button class="filter-chip active" data-status="all" onclick="filterApps('all',this)">전체 <span class="chip-count" id="app-cnt-all">0</span></button>
                         <button class="filter-chip" data-status="pending" onclick="filterApps('pending',this)">대기중 <span class="chip-count" id="app-cnt-pending">0</span></button>
                         <button class="filter-chip" data-status="reviewing" onclick="filterApps('reviewing',this)">검토중 <span class="chip-count" id="app-cnt-reviewing">0</span></button>
-                        <button class="filter-chip" data-status="interview" onclick="filterApps('interview',this)">면접 <span class="chip-count" id="app-cnt-interview">0</span></button>
                         <button class="filter-chip" data-status="approved" onclick="filterApps('approved',this)">승인 <span class="chip-count" id="app-cnt-approved">0</span></button>
                         <button class="filter-chip" data-status="rejected" onclick="filterApps('rejected',this)">거절 <span class="chip-count" id="app-cnt-rejected">0</span></button>
                         <div style="flex:1;"></div>
@@ -9780,7 +9753,6 @@
 
         let _allApps = [];
         let _appFilter = 'all';
-        let _approvedListOpen = false;
 
         // ── 지원서 로드 ──
         async function loadApplications() {
@@ -9794,77 +9766,10 @@
             _allApps = data || [];
             updateAppCounts();
             renderApps();
-            renderApprovedInterpreters();
-        }
-
-        // ── 승인된 통역사 목록 렌더링 ──
-        function renderApprovedInterpreters() {
-            const approved = _allApps.filter(a => a.status === 'approved');
-            const section = document.getElementById('approvedInterpretersSection');
-            const list = document.getElementById('approvedInterpretersList');
-            const countEl = document.getElementById('approvedIntpCount');
-            if (!section || !list) return;
-
-            if (approved.length === 0) {
-                section.style.display = 'none';
-                return;
-            }
-
-            section.style.display = 'block';
-            if (countEl) countEl.textContent = approved.length + '명';
-
-            list.innerHTML = '<div style="padding:16px;display:grid;gap:10px;">' + approved.map(a => {
-                const langs = (a.language_pairs || []).map(l => l.from + ' ↔ ' + l.to).join(', ');
-                const specs = (a.specialties || []).join(', ');
-                const approvedDate = a.reviewed_at ? new Date(a.reviewed_at).toLocaleDateString('ko-KR') : '';
-                return '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#f8faf8;border:1px solid #e8f5e9;border-radius:10px;" onclick="openAppModal(\'' + a.id + '\')" class="app-card-item">' +
-                    '<div style="flex:1;">' +
-                        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-                            '<span style="font-weight:800;font-size:0.88rem;">' + a.name_ko + '</span>' +
-                            (a.name_en ? '<span style="font-size:0.78rem;color:#999;">' + a.name_en + '</span>' : '') +
-                        '</div>' +
-                        '<div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:0.78rem;color:#666;">' +
-                            '<span>📧 ' + a.email + '</span>' +
-                            '<span>📱 ' + a.phone + '</span>' +
-                            (langs ? '<span>🌐 ' + langs + '</span>' : '') +
-                        '</div>' +
-                        (specs ? '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">' +
-                            '<span style="padding:2px 8px;background:#e8f5e9;color:#2e7d32;border-radius:5px;font-size:0.72rem;font-weight:600;">' + specs + '</span>' +
-                        '</div>' : '') +
-                    '</div>' +
-                    '<div style="text-align:right;flex-shrink:0;margin-left:16px;">' +
-                        '<div style="font-size:0.72rem;color:#2e7d32;font-weight:700;">승인완료</div>' +
-                        (approvedDate ? '<div style="font-size:0.7rem;color:#999;margin-top:2px;">' + approvedDate + '</div>' : '') +
-                    '</div>' +
-                '</div>';
-            }).join('') + '</div>';
-
-            // 승인된 통역사가 있으면 기본으로 펼침
-            if (!_approvedListOpen) {
-                _approvedListOpen = true;
-                var toggle = document.getElementById('approvedListToggle');
-                if (toggle) toggle.style.transform = 'rotate(180deg)';
-            }
-            list.style.maxHeight = list.scrollHeight + 'px';
-        }
-
-        function toggleApprovedList() {
-            _approvedListOpen = !_approvedListOpen;
-            const list = document.getElementById('approvedInterpretersList');
-            const toggle = document.getElementById('approvedListToggle');
-            if (!list) return;
-            if (_approvedListOpen) {
-                list.style.maxHeight = list.scrollHeight + 'px';
-                list.style.padding = '0';
-                if (toggle) toggle.style.transform = 'rotate(180deg)';
-            } else {
-                list.style.maxHeight = '0';
-                if (toggle) toggle.style.transform = 'rotate(0deg)';
-            }
         }
 
         function updateAppCounts() {
-            const counts = { all: _allApps.length, pending: 0, reviewing: 0, interview: 0, approved: 0, rejected: 0 };
+            const counts = { all: _allApps.length, pending: 0, reviewing: 0, approved: 0, rejected: 0 };
             _allApps.forEach(a => { if (counts[a.status] !== undefined) counts[a.status]++; });
             Object.keys(counts).forEach(k => {
                 const el = document.getElementById('app-cnt-' + k);
@@ -9882,13 +9787,6 @@
             document.querySelectorAll('#view-applications .filter-chip').forEach(c => c.classList.remove('active'));
             if (btn) btn.classList.add('active');
             renderApps();
-            // 승인 필터 클릭 시 승인 통역사 목록 자동 펼침
-            if (status === 'approved') {
-                const approved = _allApps.filter(a => a.status === 'approved');
-                if (approved.length > 0 && !_approvedListOpen) {
-                    toggleApprovedList();
-                }
-            }
         }
 
         function renderApps() {
@@ -9900,8 +9798,8 @@
                 return;
             }
 
-            const statusMap = { pending: '대기중', reviewing: '검토중', interview: '면접', approved: '승인', rejected: '거절' };
-            const statusColor = { pending: '#f57c00', reviewing: '#1565c0', interview: '#7b1fa2', approved: '#2e7d32', rejected: '#e53935' };
+            const statusMap = { pending: '대기중', reviewing: '검토중', approved: '승인', rejected: '거절' };
+            const statusColor = { pending: '#f57c00', reviewing: '#1565c0', approved: '#2e7d32', rejected: '#e53935' };
 
             container.innerHTML = list.map(a => {
                 const langs = (a.language_pairs || []).map(l => l.from + ' ↔ ' + l.to).join(', ');
@@ -10016,9 +9914,6 @@
             let actions = '';
             if (a.status === 'pending' || a.status === 'reviewing') {
                 actions += '<button onclick="updateAppStatus(\'' + id + '\',\'reviewing\')" style="padding:10px 20px;border:1.5px solid var(--blue);color:var(--blue);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">검토중으로 변경</button>';
-                actions += '<button onclick="rejectApp(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid var(--error);color:var(--error);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">거절</button>';
-                actions += '<button onclick="approveApp(\'' + id + '\')" style="padding:10px 20px;border:none;color:#fff;background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">✅ 승인 & 계정 생성</button>';
-            } else if (a.status === 'interview') {
                 actions += '<button onclick="rejectApp(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid var(--error);color:var(--error);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">거절</button>';
                 actions += '<button onclick="approveApp(\'' + id + '\')" style="padding:10px 20px;border:none;color:#fff;background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">✅ 승인 & 계정 생성</button>';
             } else if (a.status === 'approved') {
