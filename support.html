@@ -43,18 +43,18 @@
             </a>
 
             <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
-                <a href="index.html#home">
-                    <span class="nav__menu-icon">🏢</span>
-                    <div class="nav__menu-text">
-                        <span class="nav__menu-title">서비스</span>
-                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
-                    </div>
-                </a>
                 <a class="is-active" href="support.html">
                     <span class="nav__menu-icon">🤝</span>
                     <div class="nav__menu-text">
                         <span class="nav__menu-title">통역지원</span>
                         <span class="nav__menu-desc">서비스 이용 안내</span>
+                    </div>
+                </a>
+                <a href="service.html">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스 안내</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
                     </div>
                 </a>
                 <a href="performance.html">
@@ -99,6 +99,75 @@
             </div>
         </section>
 
+        
+                <!-- 국가별 통역사 네트워크 섹션 -->
+        <section class="interpreter-network">
+            <div class="interpreter-network__inner">
+                <div class="section-header">
+                    <p class="section-eyebrow">Global Network</p>
+                    <h2 class="section-title">국가별 현지 통역사 네트워크</h2>
+                    <p class="section-desc">
+                        콘텐츄어는 전 세계 주요 전시 거점 국가에 검증된 현지 통역사를 보유하고 있습니다.<br>
+                        언어 능력은 물론 비즈니스 매너와 전시회 운영 경험을 갖춘 전문 파트너가 함께합니다.
+                    </p>
+                </div>
+
+                <div class="country-grid" id="countryGrid">
+                    <div class="country-card" onclick="toggleInterp('jp', this)" data-country="jp" role="button" tabindex="0" aria-expanded="false">
+                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/jp.png" srcset="https://flagcdn.com/w80/jp.png 2x" alt="일본"></div>
+                        <div class="country-card__info"><span class="country-name">일본</span><span class="country-lang">일본어 (日本語)</span></div>
+                        <span class="country-card__badge hot">인기</span>
+                    </div>
+                    <div class="country-card" onclick="toggleInterp('cn', this)" data-country="cn" role="button" tabindex="0" aria-expanded="false">
+                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/cn.png" srcset="https://flagcdn.com/w80/cn.png 2x" alt="중국"></div>
+                        <div class="country-card__info"><span class="country-name">중국</span><span class="country-lang">중국어 (中文)</span></div>
+                        <span class="country-card__badge hot">인기</span>
+                    </div>
+                    <div class="country-card" onclick="toggleInterp('de', this)" data-country="de" role="button" tabindex="0" aria-expanded="false">
+                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/de.png" srcset="https://flagcdn.com/w80/de.png 2x" alt="독일"></div>
+                        <div class="country-card__info"><span class="country-name">독일</span><span class="country-lang">독일어 (Deutsch)</span></div>
+                    </div>
+                    <div class="country-card" onclick="toggleInterp('vn', this)" data-country="vn" role="button" tabindex="0" aria-expanded="false">
+                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/vn.png" srcset="https://flagcdn.com/w80/vn.png 2x" alt="베트남"></div>
+                        <div class="country-card__info"><span class="country-name">베트남</span><span class="country-lang">베트남어 (Tiếng Việt)</span></div>
+                    </div>
+                    <div class="interp-panel" id="interpPanel"></div>
+                    <div class="country-card" onclick="toggleInterp('us', this)" data-country="us" role="button" tabindex="0" aria-expanded="false">
+                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/us.png" srcset="https://flagcdn.com/w80/us.png 2x" alt="미국"></div>
+                        <div class="country-card__info"><span class="country-name">미국</span><span class="country-lang">영어 (English)</span></div>
+                    </div>
+                    <div class="country-card" onclick="toggleInterp('ae', this)" data-country="ae" role="button" tabindex="0" aria-expanded="false">
+                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/ae.png" srcset="https://flagcdn.com/w80/ae.png 2x" alt="아랍에미레이트"></div>
+                        <div class="country-card__info"><span class="country-name">아랍에미레이트</span><span class="country-lang">아랍어 (العربية)</span></div>
+                    </div>
+                    <div class="country-card" onclick="toggleInterp('th', this)" data-country="th" role="button" tabindex="0" aria-expanded="false">
+                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/th.png" srcset="https://flagcdn.com/w80/th.png 2x" alt="태국"></div>
+                        <div class="country-card__info"><span class="country-name">태국</span><span class="country-lang">태국어 (ภาษาไทย)</span></div>
+                    </div>
+                    <a href="interpreters.html" class="country-card country-card--more">
+                        <div class="country-card__flag">🌍</div>
+                        <div class="country-card__info"><span class="country-name">80개국+</span><span class="country-lang">전체 통역사 보기</span></div>
+                        <span class="arrow-icon">→</span>
+                    </a>
+                    <div class="interp-panel" id="interpPanel2"></div>
+                </div>
+
+                <div class="trust-badges">
+                    <div class="trust-badge"><span class="trust-icon">🏛️</span><span>수출바우처 공식 수행기관</span></div>
+                    <div class="trust-badge"><span class="trust-icon">🏢</span><span>중소벤처기업부 · 산업통상자원부 · KOTRA</span></div>
+                    <div class="trust-badge"><span class="trust-icon">✅</span><span>ISO 인증</span></div>
+                </div>
+            </div>
+        </section>
+        <!-- 통역사 상세 모달 -->
+        <div class="ip-modal-overlay" id="ipModalOverlay">
+            <div class="ip-modal">
+                <div class="ip-modal__header" id="ipModalHeader"></div>
+                <div class="ip-modal__body" id="ipModalBody"></div>
+            </div>
+        </div>
+
+
         <!-- 통역사 검증 시스템 -->
         <section class="svc-verify">
             <div class="svc-verify__inner">
@@ -134,75 +203,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- 국가별 통역사 네트워크 섹션 -->
-        <section class="interpreter-network">
-            <div class="interpreter-network__inner">
-                <div class="section-header">
-                    <p class="section-eyebrow">Global Network</p>
-                    <h2 class="section-title">국가별 현지 통역사 네트워크</h2>
-                    <p class="section-desc">
-                        콘텐츄어는 전 세계 주요 전시 거점 국가에 검증된 현지 통역사를 보유하고 있습니다.<br>
-                        언어 능력은 물론 비즈니스 매너와 전시회 운영 경험을 갖춘 전문 파트너가 함께합니다.
-                    </p>
-                </div>
-
-                <div class="country-grid" id="countryGrid">
-                    <div class="country-card" onclick="toggleInterp('us', this)" data-country="us" role="button" tabindex="0" aria-expanded="false">
-                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/us.png" srcset="https://flagcdn.com/w80/us.png 2x" alt="미국"></div>
-                        <div class="country-card__info"><span class="country-name">미국</span><span class="country-lang">영어 (English)</span></div>
-                    </div>
-                    <div class="country-card" onclick="toggleInterp('jp', this)" data-country="jp" role="button" tabindex="0" aria-expanded="false">
-                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/jp.png" srcset="https://flagcdn.com/w80/jp.png 2x" alt="일본"></div>
-                        <div class="country-card__info"><span class="country-name">일본</span><span class="country-lang">일본어 (日本語)</span></div>
-                        <span class="country-card__badge hot">인기</span>
-                    </div>
-                    <div class="country-card" onclick="toggleInterp('cn', this)" data-country="cn" role="button" tabindex="0" aria-expanded="false">
-                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/cn.png" srcset="https://flagcdn.com/w80/cn.png 2x" alt="중국"></div>
-                        <div class="country-card__info"><span class="country-name">중국</span><span class="country-lang">중국어 (中文)</span></div>
-                        <span class="country-card__badge hot">인기</span>
-                    </div>
-                    <div class="country-card" onclick="toggleInterp('de', this)" data-country="de" role="button" tabindex="0" aria-expanded="false">
-                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/de.png" srcset="https://flagcdn.com/w80/de.png 2x" alt="독일"></div>
-                        <div class="country-card__info"><span class="country-name">독일</span><span class="country-lang">독일어 (Deutsch)</span></div>
-                    </div>
-                    <div class="interp-panel" id="interpPanel"></div>
-                    <div class="country-card" onclick="toggleInterp('vn', this)" data-country="vn" role="button" tabindex="0" aria-expanded="false">
-                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/vn.png" srcset="https://flagcdn.com/w80/vn.png 2x" alt="베트남"></div>
-                        <div class="country-card__info"><span class="country-name">베트남</span><span class="country-lang">베트남어 (Tiếng Việt)</span></div>
-                    </div>
-                    <div class="country-card" onclick="toggleInterp('ae', this)" data-country="ae" role="button" tabindex="0" aria-expanded="false">
-                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/ae.png" srcset="https://flagcdn.com/w80/ae.png 2x" alt="아랍에미레이트"></div>
-                        <div class="country-card__info"><span class="country-name">아랍에미레이트</span><span class="country-lang">아랍어 (العربية)</span></div>
-                    </div>
-                    <div class="country-card" onclick="toggleInterp('th', this)" data-country="th" role="button" tabindex="0" aria-expanded="false">
-                        <div class="country-card__flag"><img src="https://flagcdn.com/w40/th.png" srcset="https://flagcdn.com/w80/th.png 2x" alt="태국"></div>
-                        <div class="country-card__info"><span class="country-name">태국</span><span class="country-lang">태국어 (ภาษาไทย)</span></div>
-                    </div>
-                    <a href="interpreters.html" class="country-card country-card--more">
-                        <div class="country-card__flag">🌍</div>
-                        <div class="country-card__info"><span class="country-name">80개국+</span><span class="country-lang">전체 통역사 보기</span></div>
-                        <span class="arrow-icon">→</span>
-                    </a>
-                    <div class="interp-panel" id="interpPanel2"></div>
-                </div>
-
-                <div class="trust-badges">
-                    <div class="trust-badge"><span class="trust-icon">🏛️</span><span>수출바우처 공식 수행기관</span></div>
-                    <div class="trust-badge"><span class="trust-icon">🏢</span><span>중소벤처기업부 · 산업통상자원부 · KOTRA</span></div>
-                    <div class="trust-badge"><span class="trust-icon">✅</span><span>ISO 인증</span></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 통역사 상세 모달 -->
-        <div class="ip-modal-overlay" id="ipModalOverlay">
-            <div class="ip-modal">
-                <div class="ip-modal__header" id="ipModalHeader"></div>
-                <div class="ip-modal__body" id="ipModalBody"></div>
-            </div>
-        </div>
-
 
         <!-- CTA -->
         <section class="svc-cta">
@@ -285,13 +285,34 @@
                     </div>
 
                     <div class="field">
-                        <label for="languages">필요 언어 <span class="req">*</span></label>
-                        <select id="languages" name="languages" required>
+                        <label for="sourceLang">출발 언어 <span class="req">*</span></label>
+                        <select id="sourceLang" name="sourceLang" required>
                             <option value="">선택</option>
-                            <option value="KR-EN">한국어 ↔ 영어</option>
-                            <option value="KR-JP">한국어 ↔ 일본어</option>
-                            <option value="KR-CN">한국어 ↔ 중국어</option>
-                            <option value="ETC">기타</option>
+                            <option value="한국어" selected>한국어</option>
+                            <option value="영어">영어</option>
+                            <option value="일본어">일본어</option>
+                            <option value="중국어">중국어</option>
+                            <option value="독일어">독일어</option>
+                            <option value="베트남어">베트남어</option>
+                            <option value="아랍어">아랍어</option>
+                            <option value="태국어">태국어</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="targetLang">도착 언어 <span class="req">*</span></label>
+                        <select id="targetLang" name="targetLang" required>
+                            <option value="">선택</option>
+                            <option value="영어">영어</option>
+                            <option value="일본어">일본어</option>
+                            <option value="중국어">중국어</option>
+                            <option value="독일어">독일어</option>
+                            <option value="베트남어">베트남어</option>
+                            <option value="아랍어">아랍어</option>
+                            <option value="태국어">태국어</option>
+                            <option value="한국어">한국어</option>
+                            <option value="기타">기타</option>
                         </select>
                         <p class="help">기타 선택 시 요청 내용에 언어를 적어주세요.</p>
                     </div>

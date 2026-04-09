@@ -40,6 +40,10 @@
             </a>
 
             <div class="sb-label">업무 관리</div>
+            <a class="sb-item" href="#direct-inquiries" onclick="switchView('direct-inquiries', event)">
+                <span class="sb-item__icon">📩</span> 견적 요청
+                <span class="sb-item__badge" id="diqNavBadge" style="display:none;">0</span>
+            </a>
             <a class="sb-item" href="#assignments" onclick="switchView('assignments', event)">
                 <span class="sb-item__icon">📋</span> 배정 요청
                 <span class="sb-item__badge" id="assignNavBadge" style="display:none;">0</span>
@@ -61,6 +65,9 @@
             <div class="sb-label">정산</div>
             <a class="sb-item" href="#settlement" onclick="switchView('settlement', event)">
                 <span class="sb-item__icon">💰</span> 정산 내역
+            </a>
+            <a class="sb-item" href="#reviews" onclick="switchView('reviews', event)">
+                <span class="sb-item__icon">⭐</span> 고객 후기
             </a>
 
             <div class="sb-label">계정</div>
@@ -242,6 +249,26 @@
                 </div>
 
                 </div><!-- /view-home -->
+
+                <!-- ══════════════ 견적 요청 (직접 의뢰) 뷰 ══════════════ -->
+                <div class="view" id="view-direct-inquiries">
+                    <div class="assign-view__header">
+                        <div>
+                            <h2 class="assign-view__title">견적 요청 관리</h2>
+                            <p class="assign-view__subtitle">고객이 직접 보낸 견적 의뢰를 확인하고 응답하세요.</p>
+                        </div>
+                    </div>
+
+                    <div class="assign-filter-bar">
+                        <button class="filter-chip active" onclick="filterDiq('all', this)">전체 <span class="chip-count">0</span></button>
+                        <button class="filter-chip" onclick="filterDiq('pending', this)">📩 대기중 <span class="chip-count">0</span></button>
+                        <button class="filter-chip" onclick="filterDiq('responded', this)">✅ 응답 완료 <span class="chip-count">0</span></button>
+                    </div>
+
+                    <div class="assign-card-list" id="diqCardList">
+                        <div style="padding:40px;text-align:center;color:var(--gray-400);font-size:0.88rem;">견적 요청을 불러오는 중...</div>
+                    </div>
+                </div><!-- /view-direct-inquiries -->
 
                 <!-- ══════════════ 배정 요청 뷰 ══════════════ -->
                 <div class="view" id="view-assignments">
@@ -956,6 +983,22 @@
 
                 </div><!-- /view-settlement -->
 
+                <!-- ══════════════ 고객 후기 뷰 ══════════════ -->
+                <div class="view" id="view-reviews">
+                    <div class="assign-view__header">
+                        <div>
+                            <h2 class="assign-view__title">고객 후기</h2>
+                            <p class="assign-view__subtitle">고객사가 남긴 통역 서비스 후기를 확인하세요.</p>
+                        </div>
+                    </div>
+
+                    <div id="reviewsSummary" style="display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap;"></div>
+
+                    <div id="reviewsList" style="display:flex;flex-direction:column;gap:16px;">
+                        <div style="padding:40px;text-align:center;color:var(--gray-400);font-size:0.88rem;">후기를 불러오는 중...</div>
+                    </div>
+                </div><!-- /view-reviews -->
+
                 <!-- ══════════════ 계약 관리 뷰 ══════════════ -->
                 <div class="view" id="view-contracts">
 
@@ -1551,12 +1594,14 @@
                 // 탑바 타이틀 업데이트
                 const names = {
                     home: '통역사 대시보드',
+                    'direct-inquiries': '견적 요청 관리',
                     assignments: '배정 요청 관리',
                     schedule: '내 스케줄',
                     journal: '상담일지 작성',
                     contracts: '계약 관리',
                     chat: '고객사 채팅',
                     settlement: '정산 내역',
+                    reviews: '고객 후기',
                     profile: '내 프로필'
                 };
                 document.querySelector('.topbar__page-title').textContent = names[view] || '통역사 대시보드';
@@ -5739,6 +5784,7 @@
     <script src="shared-constants.js"></script>
     <script src="chat-data.js"></script>
     <script src="interpreter-app.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>

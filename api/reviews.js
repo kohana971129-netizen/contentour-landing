@@ -11,13 +11,22 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        // 리뷰 조회
-        const { data: reviews, error: revErr } = await supabase
+        // 특정 전시회 리뷰 조회 또는 전체 공개 리뷰
+        const exhibition = req.query.exhibition;
+
+        let query = supabase
             .from('49_통역사리뷰')
-            .select('customer_id, interpreter_id, exhibition_name, rating_expertise, rating_manner, rating_communication, rating_overall, review_text, created_at')
-            .not('review_text', 'is', null)
-            .order('created_at', { ascending: false })
-            .limit(8);
+            .select('customer_id, interpreter_id, exhibition_name, rating_expertise, rating_manner, rating_communication, rating_overall, review_text, created_at, is_public')
+            .eq('is_public', true)
+            .order('created_at', { ascending: false });
+
+        if (exhibition) {
+            query = query.eq('exhibition_name', exhibition);
+        } else {
+            query = query.not('review_text', 'is', null).limit(8);
+        }
+
+        const { data: reviews, error: revErr } = await query;
 
         if (revErr) throw revErr;
         if (!reviews || reviews.length === 0) {

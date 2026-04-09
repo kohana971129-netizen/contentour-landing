@@ -117,8 +117,15 @@
                 <div class="field"><label>전시회명 <span class="req">*</span></label><input type="text" id="f-expo" placeholder="예: H2 & FC EXPO 2026" required></div>
                 <div class="field"><label>개최지 (국가/도시) <span class="req">*</span></label><input type="text" id="f-location" placeholder="예: 일본 / 도쿄" required></div>
                 <div class="field"><label>전시장 (선택)</label><input type="text" id="f-venue" placeholder="예: Tokyo Big Sight"></div>
-                <div class="field"><label>필요 언어 <span class="req">*</span></label>
-                  <select id="f-lang" required><option value="">선택</option><option>한국어 ↔ 영어</option><option>한국어 ↔ 일본어</option><option>한국어 ↔ 중국어</option><option>한국어 ↔ 독일어</option><option>한국어 ↔ 베트남어</option><option>기타</option></select>
+                <div class="field"><label>출발 언어 <span class="req">*</span></label>
+                  <select id="f-source-lang" required>
+                    <option value="">선택</option><option value="한국어" selected>한국어</option><option value="영어">영어</option><option value="일본어">일본어</option><option value="중국어">중국어</option><option value="독일어">독일어</option><option value="베트남어">베트남어</option><option value="아랍어">아랍어</option><option value="태국어">태국어</option><option value="기타">기타</option>
+                  </select>
+                </div>
+                <div class="field"><label>도착 언어 <span class="req">*</span></label>
+                  <select id="f-target-lang" required>
+                    <option value="">선택</option><option value="영어">영어</option><option value="일본어">일본어</option><option value="중국어">중국어</option><option value="독일어">독일어</option><option value="베트남어">베트남어</option><option value="아랍어">아랍어</option><option value="태국어">태국어</option><option value="한국어">한국어</option><option value="기타">기타</option>
+                  </select>
                 </div>
                 <div class="field"><label>시작일 <span class="req">*</span></label><input type="date" id="f-start" required></div>
                 <div class="field"><label>종료일 <span class="req">*</span></label><input type="date" id="f-end" required></div>
@@ -1474,7 +1481,7 @@
     })();
 
     async function submitInquiry() {
-      const fields = ['f-expo','f-location','f-lang','f-start','f-end','f-type','f-message'].map(id => document.getElementById(id));
+      const fields = ['f-expo','f-location','f-source-lang','f-target-lang','f-start','f-end','f-type','f-message'].map(id => document.getElementById(id));
       let valid = true;
       fields.forEach(f => { if (!f.value) { f.style.borderColor='var(--error)'; valid=false; } else { f.style.borderColor=''; } });
       if (!document.getElementById('f-consent').checked) { alert('개인정보 수집 및 이용에 동의해주세요.'); return; }
@@ -1497,7 +1504,7 @@
             exhibition_name: document.getElementById('f-expo').value,
             location: document.getElementById('f-location').value,
             venue: (document.getElementById('f-venue') || {}).value || '',
-            language_pair: langMap[document.getElementById('f-lang').value] || document.getElementById('f-lang').value,
+            language_pair: (document.getElementById('f-source-lang').value && document.getElementById('f-target-lang').value) ? document.getElementById('f-source-lang').value + ' ↔ ' + document.getElementById('f-target-lang').value : '',
             start_date: document.getElementById('f-start').value,
             end_date: document.getElementById('f-end').value,
             service_type: typeMap[document.getElementById('f-type').value] || 'OTHER',
@@ -3941,7 +3948,8 @@
           rating_manner: _reviewRatings.manner,
           rating_communication: _reviewRatings.communication,
           rating_overall: _reviewRatings.overall,
-          review_text: document.getElementById('reviewText').value.trim() || null
+          review_text: document.getElementById('reviewText').value.trim() || null,
+          is_public: true
         });
 
         if (error) throw error;
@@ -5405,5 +5413,6 @@
       setupDragDrop(); // #1
     });
   </script>
+  <script src="script.js"></script>
 </body>
 </html>

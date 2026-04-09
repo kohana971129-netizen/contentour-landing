@@ -109,6 +109,43 @@ const InterpreterApp = {
                     }
                 })
                 .subscribe();
+
+            // 직접 견적 의뢰 알림 구독 (24_알림 테이블)
+            window.sbClient
+                .channel('interpreter-notifications')
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: '24_알림',
+                    filter: 'user_id=eq.' + this.currentUser.id
+                }, async (payload) => {
+                    console.log('[Realtime] 새 알림 수신:', payload.new);
+                    const notif = payload.new;
+                    if (notif.title && notif.title.includes('견적')) {
+                        // 견적 요청 배지 갱신
+                        const diq = await this.loadDirectInquiries();
+                        this._directInquiries = diq;
+                        const pending = diq.filter(d => {
+                            try {
+                                const note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note;
+                                return !note.interpreter_responded;
+                            } catch (e) { return true; }
+                        });
+                        const badge = document.getElementById('diqNavBadge');
+                        if (badge) {
+                            badge.textContent = pending.length;
+                            badge.style.display = pending.length > 0 ? '' : 'none';
+                        }
+                        // 견적 요청 뷰가 열려있으면 갱신
+                        const diqView = document.getElementById('view-direct-inquiries');
+                        if (diqView && diqView.classList.contains('active')) {
+                            await this.loadDirectInquiriesView();
+                        }
+                    }
+                    this.showToast(notif.title || '새 알림이 도착했습니다.');
+                })
+                .subscribe();
+
             console.log('[InterpreterApp] Realtime 구독 시작');
         } catch (e) {
             console.warn('[InterpreterApp] Realtime 구독 실패:', e);
@@ -128,6 +165,9 @@ const InterpreterApp = {
 
     async onViewSwitch(view) {
         switch (view) {
+            case 'direct-inquiries':
+                await this.loadDirectInquiriesView();
+                break;
             case 'assignments':
                 await this.loadAssignmentsView();
                 break;
@@ -137,6 +177,9 @@ const InterpreterApp = {
                 break;
             case 'settlement':
                 await this.loadSettlementView();
+                break;
+            case 'reviews':
+                await this.loadReviewsView();
                 break;
             case 'contracts':
                 await this.loadContractsView();
@@ -267,6 +310,22 @@ const InterpreterApp = {
 
         // 환영 배너 업데이트
         this.renderWelcomeBanner(assignments, contracts);
+
+        // 직접 견적 요청 배지 업데이트
+        this.loadDirectInquiries().then(diq => {
+            this._directInquiries = diq;
+            const pending = diq.filter(d => {
+                try {
+                    const note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note;
+                    return !note.interpreter_responded;
+                } catch (e) { return true; }
+            });
+            const badge = document.getElementById('diqNavBadge');
+            if (badge) {
+                badge.textContent = pending.length;
+                badge.style.display = pending.length > 0 ? '' : 'none';
+            }
+        });
     },
 
     renderUserInfo() {
@@ -1354,8 +1413,252 @@ const InterpreterApp = {
                 setTimeout(() => toast.classList.remove('show'), 3000);
             }
         }
+    },
+
+    // ══════════════ 직접 견적 요청 (Direct Inquiry) ══════════════
+
+    _directInquiries: [],
+
+    async loadDirectInquiries() {
+        if (!window.sbClient || !this.currentUser) return [];
+        try {
+            const { data: { session } } = await window.sbClient.auth.getSession();
+            if (!session) return [];
+
+            const res = await fetch('/api/my-inquiries', {
+                headers: { 'Authorization': 'Bearer ' + session.access_token }
+            });
+            if (!res.ok) throw new Error('API ' + res.status);
+            return await res.json();
+        } catch (e) {
+            console.error('직접 견적 로드 실패:', e);
+            return [];
+        }
+    },
+
+    async loadDirectInquiriesView() {
+        const inquiries = await this.loadDirectInquiries();
+        this._directInquiries = inquiries;
+
+        // 사이드바 배지
+        const pending = inquiries.filter(d => {
+            try {
+                const note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note;
+                return !note.interpreter_responded;
+            } catch (e) { return true; }
+        });
+        const badge = document.getElementById('diqNavBadge');
+        if (badge) {
+            badge.textContent = pending.length;
+            badge.style.display = pending.length > 0 ? '' : 'none';
+        }
+
+        // 필터 카운트
+        const responded = inquiries.length - pending.length;
+        const chips = document.querySelectorAll('#view-direct-inquiries .filter-chip .chip-count');
+        if (chips[0]) chips[0].textContent = inquiries.length;
+        if (chips[1]) chips[1].textContent = pending.length;
+        if (chips[2]) chips[2].textContent = responded;
+
+        // 카드 렌더링
+        const container = document.getElementById('diqCardList');
+        if (!container) return;
+
+        if (inquiries.length === 0) {
+            container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-400);font-size:0.88rem;">아직 직접 견적 요청이 없습니다.</div>';
+            return;
+        }
+
+        container.innerHTML = inquiries.map(d => {
+            let note = {};
+            try { note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : (d.admin_note || {}); } catch (e) {}
+            const isResponded = !!note.interpreter_responded;
+            const vs = isResponded ? 'responded' : 'pending';
+            const badgeCls = isResponded ? 'asb-accepted' : 'asb-new';
+            const badgeText = isResponded ? '응답 완료' : '대기중';
+            const barCls = isResponded ? 'status-bar-accepted' : 'status-bar-new';
+
+            return `
+                <div class="assign-card" data-status="${vs}" data-id="${escHtml(d.id)}">
+                    <div class="assign-card__status-bar ${barCls}"></div>
+                    <div class="assign-card__body">
+                        <div class="assign-card__top">
+                            <div>
+                                <div class="assign-card__title">${escHtml(d.exhibition_name) || '전시회'}</div>
+                                <div class="assign-card__company">🏢 ${escHtml(d.company)} · ${escHtml(d.contact_name)} | ${this.formatDate(d.created_at)}</div>
+                            </div>
+                            <span class="assign-card__status-badge ${badgeCls}">${badgeText}</span>
+                        </div>
+                        <div class="assign-card__details">
+                            <div class="assign-card__detail"><span class="assign-card__detail-icon">📍</span> ${escHtml(d.location) || '-'}</div>
+                            <div class="assign-card__detail"><span class="assign-card__detail-icon">📅</span> ${escHtml(note.period) || '-'}</div>
+                            <div class="assign-card__detail"><span class="assign-card__detail-icon">📧</span> ${escHtml(d.email)}</div>
+                            <div class="assign-card__detail"><span class="assign-card__detail-icon">📞</span> ${escHtml(d.phone)}</div>
+                        </div>
+                        <div class="assign-card__tags">
+                            ${d.language_pair ? `<span class="assign-tag tag-lang">${escHtml(d.language_pair)}</span>` : ''}
+                            ${d.service_type ? `<span class="assign-tag tag-type">${escHtml(d.service_type)}</span>` : ''}
+                            <span class="assign-tag" style="background:#fff3e0;color:#e65100;">직접 의뢰</span>
+                        </div>
+                        <div style="margin-top:12px;padding:12px;background:var(--gray-50);border-radius:8px;font-size:0.85rem;color:var(--gray-600);line-height:1.6;">
+                            <strong>요청 내용:</strong><br>${escHtml(d.message)}
+                        </div>
+                        <div class="assign-card__footer" style="margin-top:16px;">
+                            ${isResponded
+                                ? `<span style="color:var(--green-600);font-weight:600;font-size:0.85rem;">✅ ${escHtml(note.response_message || '응답 완료')}</span>`
+                                : `<button class="btn-accept-lg" onclick="InterpreterApp.respondDirectInquiry('${escHtml(d.id)}', this)">견적 응답하기</button>`
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    async respondDirectInquiry(inquiryId, btn) {
+        const responseMsg = prompt('고객에게 전달할 응답 메시지를 입력해주세요:\n(예: 해당 일정 가능합니다. 상세 견적은 이메일로 보내드리겠습니다.)');
+        if (!responseMsg) return;
+
+        btn.disabled = true;
+        btn.textContent = '전송 중...';
+
+        try {
+            const { data: { session } } = await window.sbClient.auth.getSession();
+            if (!session) throw new Error('로그인이 필요합니다.');
+
+            const res = await fetch('/api/respond-inquiry', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + session.access_token
+                },
+                body: JSON.stringify({ inquiryId, responseMessage: responseMsg })
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || '응답 실패');
+
+            this.showToast('견적 응답이 전송되었습니다.');
+            await this.loadDirectInquiriesView();
+
+        } catch (e) {
+            console.error('견적 응답 실패:', e);
+            this.showToast('응답 전송 실패: ' + e.message);
+            btn.disabled = false;
+            btn.textContent = '견적 응답하기';
+        }
+    },
+
+    // ══════════════ 고객 후기 ══════════════
+
+    async loadReviewsView() {
+        if (!window.sbClient || !this.currentUser) return;
+
+        const listEl = document.getElementById('reviewsList');
+        const summaryEl = document.getElementById('reviewsSummary');
+        if (!listEl) return;
+
+        try {
+            const { data, error } = await window.sbClient
+                .from('49_통역사리뷰')
+                .select('*')
+                .eq('interpreter_id', this.currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            const reviews = data || [];
+
+            // 요약 카드
+            if (summaryEl) {
+                const count = reviews.length;
+                const avgOverall = count > 0 ? (reviews.reduce((s, r) => s + (r.rating_overall || 0), 0) / count).toFixed(1) : '-';
+                const avgExpertise = count > 0 ? (reviews.reduce((s, r) => s + (r.rating_expertise || 0), 0) / count).toFixed(1) : '-';
+                const avgManner = count > 0 ? (reviews.reduce((s, r) => s + (r.rating_manner || 0), 0) / count).toFixed(1) : '-';
+
+                summaryEl.innerHTML = `
+                    <div style="flex:1;min-width:140px;background:var(--gray-50);border-radius:12px;padding:20px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:var(--blue-600);">${avgOverall}</div>
+                        <div style="font-size:0.8rem;color:var(--gray-500);margin-top:4px;">종합 평점</div>
+                    </div>
+                    <div style="flex:1;min-width:140px;background:var(--gray-50);border-radius:12px;padding:20px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:var(--blue-600);">${count}</div>
+                        <div style="font-size:0.8rem;color:var(--gray-500);margin-top:4px;">총 후기 수</div>
+                    </div>
+                    <div style="flex:1;min-width:140px;background:var(--gray-50);border-radius:12px;padding:20px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:var(--blue-600);">${avgExpertise}</div>
+                        <div style="font-size:0.8rem;color:var(--gray-500);margin-top:4px;">전문성</div>
+                    </div>
+                    <div style="flex:1;min-width:140px;background:var(--gray-50);border-radius:12px;padding:20px;text-align:center;">
+                        <div style="font-size:2rem;font-weight:800;color:var(--blue-600);">${avgManner}</div>
+                        <div style="font-size:0.8rem;color:var(--gray-500);margin-top:4px;">매너</div>
+                    </div>
+                `;
+            }
+
+            // 후기 목록
+            if (reviews.length === 0) {
+                listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-400);font-size:0.88rem;">아직 고객 후기가 없습니다.</div>';
+                return;
+            }
+
+            // 고객명 조회
+            const customerIds = [...new Set(reviews.map(r => r.customer_id).filter(Boolean))];
+            let customerMap = {};
+            if (customerIds.length > 0) {
+                const { data: customers } = await window.sbClient
+                    .from('01_회원')
+                    .select('id, name')
+                    .in('id', customerIds);
+                if (customers) {
+                    customers.forEach(c => {
+                        const name = c.name || '고객';
+                        customerMap[c.id] = name.length >= 2 ? name[0] + '○'.repeat(name.length - 1) : name;
+                    });
+                }
+            }
+
+            function renderStars(rating) {
+                const full = Math.round(rating || 0);
+                return '<span style="color:#f9a825;">' + '★'.repeat(full) + '</span><span style="color:#ddd;">' + '★'.repeat(5 - full) + '</span>';
+            }
+
+            listEl.innerHTML = reviews.map(r => {
+                const custName = customerMap[r.customer_id] || '고객';
+                return `
+                    <div style="background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:20px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <div>
+                                <div style="font-weight:700;font-size:0.95rem;">${escHtml(r.exhibition_name || '')}</div>
+                                <div style="font-size:0.8rem;color:var(--gray-500);margin-top:2px;">${custName} · ${this.formatDate(r.created_at)}</div>
+                            </div>
+                            <div style="font-size:1.1rem;">${renderStars(r.rating_overall)}</div>
+                        </div>
+                        ${r.review_text ? `<div style="font-size:0.88rem;color:var(--gray-600);line-height:1.6;margin-bottom:12px;">"${escHtml(r.review_text)}"</div>` : ''}
+                        <div style="display:flex;gap:16px;font-size:0.78rem;color:var(--gray-400);">
+                            <span>전문성 ${renderStars(r.rating_expertise)}</span>
+                            <span>매너 ${renderStars(r.rating_manner)}</span>
+                            <span>소통 ${renderStars(r.rating_communication)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (e) {
+            console.error('후기 로드 실패:', e);
+            listEl.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-400);">후기를 불러오지 못했습니다.</div>';
+        }
     }
 };
+
+// ── 직접 견적 요청 필터 ──
+function filterDiq(status, btn) {
+    document.querySelectorAll('#view-direct-inquiries .filter-chip').forEach(function(c) { c.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    document.querySelectorAll('#diqCardList .assign-card').forEach(function(card) {
+        if (status === 'all') { card.style.display = ''; return; }
+        card.style.display = card.dataset.status === status ? '' : 'none';
+    });
+}
 
 // 페이지 로드 시 초기화 (DOMContentLoaded가 이미 발생한 경우도 대응)
 function _startInterpreterApp() {

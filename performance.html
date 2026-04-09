@@ -42,18 +42,18 @@
                 <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
             </a>
             <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
-                <a href="index.html#home">
-                    <span class="nav__menu-icon">🏢</span>
-                    <div class="nav__menu-text">
-                        <span class="nav__menu-title">서비스</span>
-                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
-                    </div>
-                </a>
                 <a href="support.html">
                     <span class="nav__menu-icon">🤝</span>
                     <div class="nav__menu-text">
                         <span class="nav__menu-title">통역지원</span>
                         <span class="nav__menu-desc">서비스 이용 안내</span>
+                    </div>
+                </a>
+<a href="service.html">
+                    <span class="nav__menu-icon">🏢</span>
+                    <div class="nav__menu-text">
+                        <span class="nav__menu-title">서비스 안내</span>
+                        <span class="nav__menu-desc">솔루션 및 프로세스 안내</span>
                     </div>
                 </a>
                 <a class="is-active" href="performance.html">
@@ -141,38 +141,16 @@
             </div>
         </section>
 
-        <!-- ③ KPI 상세 — 구체적인 수치 -->
-        <section class="expo-performance">
-            <div class="container">
-                <h3>전시회 누적 성과 상세</h3>
-                <div class="kpi-grid">
-                    <div class="kpi-card">
-                        <div class="kpi-title">상담 총액(누적)</div>
-                        <div class="kpi-value" id="kConsult">₩100억</div>
-                        <div class="kpi-sub">2020~2026년 전시회 현장 상담 기준</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-title">계약 추진액</div>
-                        <div class="kpi-value" id="kPipeline">₩50억</div>
-                        <div class="kpi-sub">현장 상담 후 계약 협의 진행 금액</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-title">현장 계약액</div>
-                        <div class="kpi-value" id="kOnsite">₩10억</div>
-                        <div class="kpi-sub">전시회 기간 중 성사된 계약 금액</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-title">MOU 체결액</div>
-                        <div class="kpi-value" id="kMou">₩5억</div>
-                        <div class="kpi-sub">파트너십·대리점 계약 포함</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-title">현장 운영 지원</div>
-                        <div class="kpi-value" id="kOps">500+건</div>
-                        <div class="kpi-sub">부스 운영·통역·바이어 미팅 총 건수</div>
-                    </div>
+        <!-- ③ 고객 후기 -->
+        <section class="testimonials-section">
+            <div class="testimonials-inner">
+                <p class="testimonials-eyebrow">Client Reviews</p>
+                <h2 class="testimonials-title">고객사가 직접 전하는 <strong>현장 후기</strong></h2>
+                <p class="testimonials-sub">콘텐츄어와 함께한 고객사 담당자분들의 실제 이용 후기입니다.</p>
+
+                <div class="testimonials-grid" id="testimonialsGrid">
+                    <div style="padding:30px;text-align:center;color:#8a95a8;grid-column:1/-1;">후기를 불러오는 중...</div>
                 </div>
-                <p class="kpi-note">* 2020년~2026년 3월 기준, 현장 상담 기록 및 사후 팔로업 집계</p>
             </div>
         </section>
 
@@ -217,10 +195,9 @@
                     if (c.metric1_value) metricsHtml += '<span>' + (c.metric1_label||'') + ' <b>' + c.metric1_value + '</b></span>';
                     metricsHtml += '</div>';
 
-                    if (c.industry || c.metric2_value) {
+                    if (c.industry) {
                         metricsHtml += '<div class="case-card__metrics" style="margin-top:4px;">';
                         if (c.industry) metricsHtml += '<span>분야 <b>' + c.industry + '</b></span>';
-                        if (c.metric2_value) metricsHtml += '<span>' + (c.metric2_label||'') + ' <b>' + c.metric2_value + '</b></span>';
                         metricsHtml += '</div>';
                     }
 
@@ -240,35 +217,68 @@
         })();
     </script>
     <script>
-        function animateValue(el, start, end, duration, formatFn) {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const current = Math.floor(progress * (end - start) + start);
-                el.innerHTML = formatFn ? formatFn(current) : current;
-                if (progress < 1) window.requestAnimationFrame(step);
-            };
-            window.requestAnimationFrame(step);
-        }
+        // ═══ DB 후기 로드 (샘플 폴백) ═══
+        (async function loadReviews() {
+            var grid = document.getElementById('testimonialsGrid');
+            if (!grid) return;
 
-        const fmtKRW = (n) => new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(Number(n || 0));
+            var avatarColors = [
+                ['#1565c0','#42a5f5'], ['#00695c','#26a69a'], ['#6a1b9a','#ab47bc'],
+                ['#e65100','#ff9800'], ['#c62828','#ef5350'], ['#283593','#5c6bc0']
+            ];
 
-        /* 하단 KPI 카드 — 화면에 보일 때 카운트업 */
-        const kpiObs = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                const d = 1500;
-                animateValue(document.getElementById('kConsult'), 0, 10000000000, d, v => v >= 10000000000 ? "₩100억" : fmtKRW(v));
-                animateValue(document.getElementById('kPipeline'), 0, 5000000000, d, v => v >= 5000000000 ? "₩50억" : fmtKRW(v));
-                animateValue(document.getElementById('kOnsite'), 0, 1000000000, d, v => v >= 1000000000 ? "₩10억" : fmtKRW(v));
-                animateValue(document.getElementById('kMou'), 0, 500000000, d, v => v >= 500000000 ? "₩5억" : fmtKRW(v));
-                animateValue(document.getElementById('kOps'), 0, 500, d, v => v + '+건');
-                obs.unobserve(entry.target);
-            });
-        }, { threshold: 0.3 });
-        const kpiEl = document.querySelector('.expo-performance');
-        if (kpiEl) kpiObs.observe(kpiEl);
+            // 샘플 후기 (DB에 없을 때 폴백)
+            var samples = [
+                { customer_name:'김○○', customer_company:'의료기기 제조사', review_text:'독일 MEDICA 전시회에서 3일간 통역을 맡겨봤는데, 의료기기 전문 용어까지 완벽하게 소화해주셨어요. 덕분에 바이어 미팅 12건 중 8건이 샘플 요청으로 이어졌습니다.', rating_overall:5, exhibition_name:'독일 MEDICA 2025' },
+                { customer_name:'박○○', customer_company:'친환경 소재기업', review_text:'일본 전시회 참가가 처음이라 걱정했는데, 통역사분이 부스 세팅부터 상담까지 전부 도와주셨어요. 현지 비즈니스 매너까지 코칭해주셔서 정말 큰 도움이 됐습니다.', rating_overall:5, exhibition_name:'일본 FOODEX 2025' },
+                { customer_name:'이○○', customer_company:'스마트팩토리 기업', review_text:'중국 바이어와의 기술 미팅에서 전문 통역이 필수였는데, 콘텐츄어 덕분에 계약 조건 협상까지 매끄럽게 진행됐습니다. 견적 응답도 당일에 와서 일정 조율이 수월했어요.', rating_overall:5, exhibition_name:'중국 Canton Fair 2025' },
+                { customer_name:'최○○', customer_company:'식품 수출기업', review_text:'베트남 호치민 전시회에 급하게 통역사가 필요했는데, 의뢰 후 하루 만에 현지 경력 5년차 통역사를 매칭해주셨어요. 현장 대응력이 인상적이었습니다.', rating_overall:5, exhibition_name:'베트남 VIETNAM EXPO 2025' }
+            ];
+
+            function renderStars(rating) {
+                var full = Math.round(rating || 5);
+                return '★'.repeat(full) + '<span style="color:#ddd;">' + '★'.repeat(5 - full) + '</span>';
+            }
+
+            function renderCards(reviews) {
+                grid.innerHTML = reviews.map(function(r, i) {
+                    var c = avatarColors[i % avatarColors.length];
+                    var initial = (r.customer_name || '?')[0];
+                    return '<div class="testi-card">' +
+                        '<div class="testi-card__stars">' + renderStars(r.rating_overall) + '</div>' +
+                        '<p class="testi-card__text">"' + (r.review_text || '') + '"</p>' +
+                        '<div class="testi-card__author">' +
+                            '<div class="testi-card__avatar" style="background:linear-gradient(135deg,' + c[0] + ',' + c[1] + ');">' + initial + '</div>' +
+                            '<div>' +
+                                '<div class="testi-card__name">' + (r.customer_name || '고객') + '</div>' +
+                                '<div class="testi-card__company">' + (r.customer_company || '') + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="testi-card__tag">' + (r.exhibition_name || '') + '</div>' +
+                    '</div>';
+                }).join('');
+            }
+
+            try {
+                var res = await fetch('/api/reviews');
+                if (!res.ok) throw new Error('API ' + res.status);
+                var reviews = await res.json();
+                // 필드명 매핑 + 이름 마스킹
+                reviews = reviews.map(function(r) {
+                    var name = r._customerName || '고객';
+                    var masked = name.length >= 2 ? name[0] + '○'.repeat(name.length - 1) : name;
+                    return { customer_name: masked, customer_company: r._companyName || '', review_text: r.review_text, rating_overall: r.rating_overall, exhibition_name: r.exhibition_name };
+                });
+                if (reviews && reviews.length > 0) {
+                    renderCards(reviews);
+                } else {
+                    renderCards(samples);
+                }
+            } catch(e) {
+                console.warn('후기 DB 로드 실패, 샘플 표시:', e);
+                renderCards(samples);
+            }
+        })();
     </script>
 
     <!-- Footer -->

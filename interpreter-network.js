@@ -39,11 +39,18 @@ function avatarHtml(photo, name, size) {
     return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:linear-gradient(145deg,' + grad[0] + ',' + grad[1] + ');display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:' + fs + 'px;letter-spacing:-1px;border:3px solid #fff;' + shadow + '">' + getInitial(name) + '</div>';
 }
 
-var row1 = ['us', 'jp', 'cn', 'de'];
-var row2 = ['vn', 'ae', 'th'];
+var row1 = ['jp', 'cn', 'de', 'vn'];
+var row2 = ['us', 'ae', 'th'];
 var currentOpen = null;
+var _dbLoaded = false;
+var _dbLoadPromise = null;
 
 function toggleInterp(code, cardEl) {
+    // DB 통역사 로드 완료 전이면 대기 후 재실행
+    if (!_dbLoaded && _dbLoadPromise) {
+        _dbLoadPromise.then(function() { toggleInterp(code, cardEl); });
+        return;
+    }
     var isRow1 = row1.includes(code);
     var panel = document.getElementById(isRow1 ? 'interpPanel' : 'interpPanel2');
     var otherPanel = document.getElementById(isRow1 ? 'interpPanel2' : 'interpPanel');
@@ -161,17 +168,56 @@ function openIpModal(countryCode, idx) {
     html += '<div class="ip-modal__section"><div class="ip-modal__section-title">전문 분야</div><div class="ip-modal__tags">' + p.tags.map(function (t) { return '<span class="ip-modal__tag">' + t + '</span>'; }).join('') + '<span class="ip-modal__tag field">' + p.fieldTag + '</span></div></div>';
     html += '<div class="ip-modal__section"><div class="ip-modal__section-title">통역 단가 (1일 기준)</div><div class="ip-modal__price-table"><div class="ip-modal__price-row"><span class="ip-modal__price-type">🎯 부스 상주 통역</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.booth) + '<small>/일</small></span></div><div class="ip-modal__price-row"><span class="ip-modal__price-type">🤝 미팅 동행 통역</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.meeting) + '<small>/일</small></span></div><div class="ip-modal__price-row"><span class="ip-modal__price-type">🎤 컨퍼런스 통역</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.conference) + '<small>/일</small></span></div><div class="ip-modal__price-row"><span class="ip-modal__price-type">⚡ 현장 운영 지원</span><span class="ip-modal__price-val">' + fmtPrice(p.prices.operation) + '<small>/일</small></span></div></div><div class="ip-modal__price-note">* 표시 금액은 기본 단가 범위이며, 전시 규모·기간·전문성에 따라 추가 금액이 발생할 수 있습니다.</div></div>';
     html += '<div class="ip-modal__section"><div class="ip-modal__section-title">주요 전시회 통역 경력</div><div class="ip-modal__history">' + (p.history || []).map(function (h) { return '<div class="ip-modal__history-item"><span class="ip-modal__history-year">' + h.year + '</span><div><div class="ip-modal__history-text">' + h.text + '</div><div class="ip-modal__history-sub">' + h.sub + '</div></div></div>'; }).join('') + '</div></div>';
-    html += '<div class="ip-modal__cta" id="ipCtaArea"><button class="ip-modal__cta-btn" onclick="showDirectInquiry(\'' + p.name.replace(/'/g, "\\'") + '\',\'' + d.lang.replace(/'/g, "\\'") + '\',\'' + (p.fieldTag || '').replace(/'/g, "\\'") + '\',\'' + d.country.replace(/'/g, "\\'") + '\',\'' + (p.photo || '').replace(/'/g, "\\'") + '\',\'' + (p.role || '').replace(/'/g, "\\'") + '\')">이 통역사에게 직접 견적 의뢰</button></div>';
+    html += '<div class="ip-modal__cta" id="ipCtaArea"><button class="ip-modal__cta-btn" onclick="checkLoginAndInquiry(\'' + p.name.replace(/'/g, "\\'") + '\',\'' + d.lang.replace(/'/g, "\\'") + '\',\'' + (p.fieldTag || '').replace(/'/g, "\\'") + '\',\'' + d.country.replace(/'/g, "\\'") + '\',\'' + (p.photo || '').replace(/'/g, "\\'") + '\',\'' + (p.role || '').replace(/'/g, "\\'") + '\')">이 통역사에게 직접 견적 의뢰</button></div>';
 
     document.getElementById('ipModalBody').innerHTML = html;
     document.getElementById('ipModalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 
+// 로그인 상태 캐시
+var _cachedUser = null;
+
+async function checkLoginAndInquiry(name, lang, field, country, photo, role) {
+    // 로그인 여부 확인
+    if (window.sbClient) {
+        try {
+            var sess = await window.sbClient.auth.getSession();
+            if (sess.data.session) {
+                _cachedUser = sess.data.session;
+                // 회원 정보 가져오기
+                var profile = await window.ContentourAuth.getUserProfile();
+                if (profile) {
+                    _cachedUser._profile = profile;
+                }
+                showDirectInquiry(name, lang, field, country, photo, role);
+                return;
+            }
+        } catch (e) { console.warn('세션 확인 실패:', e); }
+    }
+    // 비로그인 → 로그인 안내
+    var area = document.getElementById('ipCtaArea');
+    if (!area) return;
+    area.innerHTML = '<div style="text-align:center;padding:20px;">' +
+        '<div style="font-size:1.1rem;font-weight:700;margin-bottom:8px;color:#333;">로그인이 필요합니다</div>' +
+        '<div style="font-size:0.85rem;color:#666;margin-bottom:16px;line-height:1.6;">직접 견적 의뢰는 회원만 이용할 수 있습니다.<br>로그인 후 다시 시도해주세요.</div>' +
+        '<a href="client-auth.html" class="ip-modal__cta-btn" style="display:inline-block;text-decoration:none;margin-right:8px;">로그인 / 회원가입</a>' +
+        '<button class="ip-modal__cta-btn" style="background:#f5f5f5;color:#333;" onclick="cancelDirectInquiry(\'' + name.replace(/'/g, "\\'") + '\',\'' + lang.replace(/'/g, "\\'") + '\',\'' + (field || '').replace(/'/g, "\\'") + '\',\'' + country.replace(/'/g, "\\'") + '\',\'' + (photo || '').replace(/'/g, "\\'") + '\',\'' + (role || '').replace(/'/g, "\\'") + '\')">취소</button>' +
+        '</div>';
+}
+
 function showDirectInquiry(name, lang, field, country, photo, role) {
     var area = document.getElementById('ipCtaArea');
     if (!area) return;
-    area.innerHTML = '<div class="diq"><div class="diq__head"><div class="diq__interp">' + (photo ? '<img src="' + photo + '" class="diq__photo">' : avatarHtml('', name, 48)) + '<div><div class="diq__name">' + name + '</div><div class="diq__role">' + role + ' · ' + lang + '</div></div></div><div class="diq__title">직접 견적 의뢰</div></div><div class="diq__form"><div class="diq__row"><div class="diq__field"><label>회사명 <span class="diq__req">*</span></label><input type="text" id="diq-company" placeholder="예: (주)콘텐츄어"></div><div class="diq__field"><label>담당자명 <span class="diq__req">*</span></label><input type="text" id="diq-name" placeholder="예: 홍길동"></div></div><div class="diq__row"><div class="diq__field"><label>이메일 <span class="diq__req">*</span></label><input type="email" id="diq-email" placeholder="예: gildong@company.com"></div><div class="diq__field"><label>연락처 <span class="diq__req">*</span></label><input type="tel" id="diq-phone" placeholder="예: 010-0000-0000"></div></div><div class="diq__row"><div class="diq__field"><label>전시회명 <span class="diq__req">*</span></label><input type="text" id="diq-expo" placeholder="예: MEDICA 2026"></div><div class="diq__field"><label>개최지</label><input type="text" id="diq-location" value="' + country + '" placeholder="예: 독일 / 뒤셀도르프"></div></div><div class="diq__row"><div class="diq__field"><label>전시 기간</label><input type="text" id="diq-period" placeholder="예: 2026.11.17 ~ 11.20"></div><div class="diq__field"><label>통역 형태</label><select id="diq-type"><option value="">선택</option><option value="부스 상주">부스 상주(상담 통역)</option><option value="미팅 동행">미팅 동행</option><option value="현장 운영">현장 운영</option><option value="기타">기타</option></select></div></div><div class="diq__field diq__full"><label>요청 내용 <span class="diq__req">*</span></label><textarea id="diq-message" rows="4" placeholder="통역사에게 전달할 요청 사항을 자유롭게 작성해주세요."></textarea></div><div class="diq__actions"><button class="diq__cancel" onclick="cancelDirectInquiry(\'' + name.replace(/'/g, "\\'") + '\',\'' + lang.replace(/'/g, "\\'") + '\',\'' + (field || '').replace(/'/g, "\\'") + '\',\'' + country.replace(/'/g, "\\'") + '\',\'' + (photo || '').replace(/'/g, "\\'") + '\',\'' + (role || '').replace(/'/g, "\\'") + '\')">취소</button><button class="diq__submit" onclick="submitDirectInquiry(\'' + name.replace(/'/g, "\\'") + '\',\'' + lang.replace(/'/g, "\\'") + '\',\'' + (field || '').replace(/'/g, "\\'") + '\')">견적 의뢰 보내기</button></div></div></div>';
+
+    // 로그인된 회원 정보 자동 입력
+    var pf = (_cachedUser && _cachedUser._profile) ? _cachedUser._profile : {};
+    var prefillName = pf.name || '';
+    var prefillEmail = pf.email || (pf.auth ? pf.auth.email : '') || '';
+    var prefillPhone = pf.phone || '';
+    var prefillCompany = pf.company || '';
+
+    area.innerHTML = '<div class="diq"><div class="diq__head"><div class="diq__interp">' + (photo ? '<img src="' + photo + '" class="diq__photo">' : avatarHtml('', name, 48)) + '<div><div class="diq__name">' + name + '</div><div class="diq__role">' + role + ' · ' + lang + '</div></div></div><div class="diq__title">직접 견적 의뢰</div></div><div class="diq__form"><div class="diq__row"><div class="diq__field"><label>회사명 <span class="diq__req">*</span></label><input type="text" id="diq-company" placeholder="예: (주)콘텐츄어" value="' + prefillCompany + '"></div><div class="diq__field"><label>담당자명 <span class="diq__req">*</span></label><input type="text" id="diq-name" placeholder="예: 홍길동" value="' + prefillName + '"></div></div><div class="diq__row"><div class="diq__field"><label>이메일 <span class="diq__req">*</span></label><input type="email" id="diq-email" placeholder="예: gildong@company.com" value="' + prefillEmail + '"></div><div class="diq__field"><label>연락처 <span class="diq__req">*</span></label><input type="tel" id="diq-phone" placeholder="예: 010-0000-0000" value="' + prefillPhone + '"></div></div><div class="diq__row"><div class="diq__field"><label>전시회명 <span class="diq__req">*</span></label><input type="text" id="diq-expo" placeholder="예: MEDICA 2026"></div><div class="diq__field"><label>개최지</label><input type="text" id="diq-location" value="' + country + '" placeholder="예: 독일 / 뒤셀도르프"></div></div><div class="diq__row"><div class="diq__field"><label>전시 기간</label><input type="text" id="diq-period" placeholder="예: 2026.11.17 ~ 11.20"></div><div class="diq__field"><label>통역 형태</label><select id="diq-type"><option value="">선택</option><option value="부스 상주">부스 상주(상담 통역)</option><option value="미팅 동행">미팅 동행</option><option value="현장 운영">현장 운영</option><option value="기타">기타</option></select></div></div><div class="diq__field diq__full"><label>요청 내용 <span class="diq__req">*</span></label><textarea id="diq-message" rows="4" placeholder="통역사에게 전달할 요청 사항을 자유롭게 작성해주세요."></textarea></div><div class="diq__actions"><button class="diq__cancel" onclick="cancelDirectInquiry(\'' + name.replace(/'/g, "\\'") + '\',\'' + lang.replace(/'/g, "\\'") + '\',\'' + (field || '').replace(/'/g, "\\'") + '\',\'' + country.replace(/'/g, "\\'") + '\',\'' + (photo || '').replace(/'/g, "\\'") + '\',\'' + (role || '').replace(/'/g, "\\'") + '\')">취소</button><button class="diq__submit" onclick="submitDirectInquiry(\'' + name.replace(/'/g, "\\'") + '\',\'' + lang.replace(/'/g, "\\'") + '\',\'' + (field || '').replace(/'/g, "\\'") + '\')">견적 의뢰 보내기</button></div></div></div>';
     area.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -181,7 +227,7 @@ function cancelDirectInquiry(name, lang, field, country, photo, role) {
     area.innerHTML = '<button class="ip-modal__cta-btn" onclick="showDirectInquiry(\'' + name.replace(/'/g, "\\'") + '\',\'' + lang.replace(/'/g, "\\'") + '\',\'' + (field || '').replace(/'/g, "\\'") + '\',\'' + country.replace(/'/g, "\\'") + '\',\'' + (photo || '').replace(/'/g, "\\'") + '\',\'' + (role || '').replace(/'/g, "\\'") + '\')">이 통역사에게 직접 견적 의뢰</button>';
 }
 
-function submitDirectInquiry(interpName, lang, field) {
+async function submitDirectInquiry(interpName, lang, field) {
     var company = document.getElementById('diq-company').value.trim();
     var name = document.getElementById('diq-name').value.trim();
     var email = document.getElementById('diq-email').value.trim();
@@ -189,13 +235,68 @@ function submitDirectInquiry(interpName, lang, field) {
     var expo = document.getElementById('diq-expo').value.trim();
     var message = document.getElementById('diq-message').value.trim();
     if (!company || !name || !email || !phone || !expo || !message) { alert('필수 항목(*)을 모두 입력해주세요.'); return; }
-    var inquiry = { id: 'DIQ-' + Date.now(), interpreter: interpName, language: lang, field: field, company: company, name: name, email: email, phone: phone, expo: expo, location: document.getElementById('diq-location').value.trim(), period: document.getElementById('diq-period').value.trim(), type: document.getElementById('diq-type').value, message: message, status: 'pending', createdAt: new Date().toISOString(), createdAtKR: new Date().toLocaleString('ko-KR') };
-    var inquiries = []; try { inquiries = JSON.parse(localStorage.getItem('contentour_direct_inquiries') || '[]'); } catch (e) { }
-    inquiries.unshift(inquiry);
-    localStorage.setItem('contentour_direct_inquiries', JSON.stringify(inquiries));
-    localStorage.setItem('contentour_direct_inquiry_new', JSON.stringify(inquiry));
-    var area = document.getElementById('ipCtaArea');
-    area.innerHTML = '<div class="diq__success"><div class="diq__success-icon">✅</div><div class="diq__success-title">견적 의뢰가 전송되었습니다!</div><div class="diq__success-info"><strong>' + interpName + '</strong> 통역사에게 직접 견적 의뢰가 전달되었습니다.<br>확인 후 빠른 시일 내에 회신드리겠습니다.</div><div class="diq__success-detail"><div>문의번호: <strong>' + inquiry.id + '</strong></div><div>전시회: ' + expo + '</div><div>접수시간: ' + inquiry.createdAtKR + '</div></div><button class="ip-modal__cta-btn" onclick="closeIpModal()" style="margin-top:16px;">확인</button></div>';
+
+    var location = document.getElementById('diq-location').value.trim();
+    var period = document.getElementById('diq-period').value.trim();
+    var type = document.getElementById('diq-type').value;
+
+    // 통역사 DB ID 찾기 (DB에서 로드된 통역사인 경우)
+    var interpreterId = null;
+    Object.keys(interpData).forEach(function(code) {
+        interpData[code].interpreters.forEach(function(p) {
+            if (p.name === interpName && p._dbId) interpreterId = p._dbId;
+        });
+    });
+
+    // 전송 버튼 비활성화
+    var submitBtn = document.querySelector('.diq__submit');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '전송 중...'; }
+
+    try {
+        // 인증 토큰 가져오기
+        var authToken = '';
+        if (_cachedUser && _cachedUser.access_token) {
+            authToken = _cachedUser.access_token;
+        } else if (window.sbClient) {
+            var sess = await window.sbClient.auth.getSession();
+            if (sess.data.session) authToken = sess.data.session.access_token;
+        }
+
+        var res = await fetch('/api/direct-inquiry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken ? 'Bearer ' + authToken : ''
+            },
+            body: JSON.stringify({
+                interpreterName: interpName,
+                interpreterId: interpreterId,
+                interpreterLang: lang,
+                interpreterField: field,
+                company: company,
+                contactName: name,
+                email: email,
+                phone: phone,
+                exhibitionName: expo,
+                location: location,
+                period: period,
+                serviceType: type,
+                message: message
+            })
+        });
+
+        var result = await res.json();
+        if (!res.ok) throw new Error(result.error || '전송 실패');
+
+        var createdAtKR = new Date().toLocaleString('ko-KR');
+        var area = document.getElementById('ipCtaArea');
+        area.innerHTML = '<div class="diq__success"><div class="diq__success-icon">✅</div><div class="diq__success-title">견적 의뢰가 전송되었습니다!</div><div class="diq__success-info"><strong>' + interpName + '</strong> 통역사에게 직접 견적 의뢰가 전달되었습니다.<br>' + (result.notified ? '통역사에게 알림이 발송되었습니다.' : '확인 후 빠른 시일 내에 회신드리겠습니다.') + '</div><div class="diq__success-detail"><div>문의번호: <strong>' + (result.inquiryId || '-') + '</strong></div><div>전시회: ' + expo + '</div><div>접수시간: ' + createdAtKR + '</div></div><button class="ip-modal__cta-btn" onclick="closeIpModal()" style="margin-top:16px;">확인</button></div>';
+
+    } catch (err) {
+        console.error('직접 견적의뢰 전송 오류:', err);
+        alert('전송에 실패했습니다. 잠시 후 다시 시도해주세요.\n(' + err.message + ')');
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '견적 의뢰 보내기'; }
+    }
 }
 
 function closeIpModal() {
@@ -213,12 +314,12 @@ document.querySelectorAll('.country-card[role="button"]').forEach(function (card
 });
 
 // ═══ DB 등록 통역사를 국가별 패널에 병합 (서버사이드 API 경유) ═══
-(async function loadDbInterpreters() {
+_dbLoadPromise = (async function loadDbInterpreters() {
     try {
         var res = await fetch('/api/interpreters');
         if (!res.ok) throw new Error('API ' + res.status);
         var profiles = await res.json();
-        if (!profiles || profiles.length === 0) return;
+        if (!profiles || profiles.length === 0) { _dbLoaded = true; return; }
 
         profiles.forEach(function (p) {
             if (!p.country_code || !interpData[p.country_code]) return;
@@ -253,5 +354,7 @@ document.querySelectorAll('.country-card[role="button"]').forEach(function (card
         console.log('[통역사] DB 프로필 ' + profiles.length + '명 병합 완료');
     } catch (e) {
         console.error('[통역사] DB 로드 실패:', e);
+    } finally {
+        _dbLoaded = true;
     }
 })();
