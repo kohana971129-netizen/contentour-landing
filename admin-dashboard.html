@@ -4871,7 +4871,7 @@
                 </div><!-- /view-exhibitions -->
 
                 <!-- ══ 전시회 추가/수정 모달 ══ -->
-                <div class="overlay" id="exModalOverlay" onclick="if(event.target===this)exCloseModal()" style="display:none;">
+                <div class="overlay" id="exModalOverlay" onclick="if(event.target===this)exCloseModal()">
                     <div class="modal" style="max-width:560px;">
                         <div class="modal__head" style="background:linear-gradient(135deg,#0a2a5e,#1565c0);">
                             <div>
@@ -10458,13 +10458,19 @@
             tbody.innerHTML = '<tr><td colspan="7" style="padding:40px;text-align:center;color:#9daec8;">로딩 중...</td></tr>';
             try {
                 if (!window.sbClient) throw new Error('Supabase 클라이언트 없음');
-                var { data, error } = await window.sbClient
-                    .from('60_해외전시회DB')
-                    .select('id, name, country, city, venue, field, start_date, end_date, is_active, updated_at')
-                    .order('country', { ascending: true })
-                    .order('name', { ascending: true });
-                if (error) throw error;
-                exAllRows = data || [];
+                var { data: { session } } = await window.sbClient.auth.getSession();
+                if (!session) throw new Error('관리자 로그인이 필요합니다.');
+                var resp = await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + session.access_token
+                    },
+                    body: JSON.stringify({ action: 'exhibitionList' })
+                });
+                var result = await resp.json();
+                if (!resp.ok || !result.success) throw new Error(result.error || '로드 실패');
+                exAllRows = result.data || [];
                 // 국가 필터 옵션 갱신
                 var countries = [...new Set(exAllRows.map(r => r.country))].sort();
                 var sel = document.getElementById('exFilterCountry');
@@ -10532,7 +10538,7 @@
             document.getElementById('exfEnd').value = '';
             document.getElementById('exfActive').checked = true;
             document.getElementById('exfDeleteBtn').style.display = 'none';
-            document.getElementById('exModalOverlay').style.display = 'flex';
+            document.getElementById('exModalOverlay').classList.add('open');
         }
 
         function exOpenEditModal(id) {
@@ -10549,11 +10555,11 @@
             document.getElementById('exfEnd').value = r.end_date || '';
             document.getElementById('exfActive').checked = !!r.is_active;
             document.getElementById('exfDeleteBtn').style.display = 'inline-block';
-            document.getElementById('exModalOverlay').style.display = 'flex';
+            document.getElementById('exModalOverlay').classList.add('open');
         }
 
         function exCloseModal() {
-            document.getElementById('exModalOverlay').style.display = 'none';
+            document.getElementById('exModalOverlay').classList.remove('open');
         }
 
         async function exSave() {

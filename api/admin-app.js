@@ -177,6 +177,15 @@ module.exports = async function handler(req, res) {
                 emailSent: emailResult.success
             });
 
+        } else if (action === 'exhibitionList') {
+            const { data, error } = await supabase
+                .from('60_해외전시회DB')
+                .select('id, name, country, city, venue, field, start_date, end_date, is_active, updated_at')
+                .order('country', { ascending: true })
+                .order('name', { ascending: true });
+            if (error) throw error;
+            return res.status(200).json({ success: true, data: data || [] });
+
         } else if (action === 'exhibitionCreate') {
             const { name: exName, country, city, venue, field, start_date, end_date, is_active } = req.body;
             if (!exName || !country) return res.status(400).json({ error: 'name과 country는 필수입니다.' });
