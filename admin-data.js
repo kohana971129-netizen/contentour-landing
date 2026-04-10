@@ -22,31 +22,44 @@ const AdminData = {
             if (!data || data.length === 0) return null;
 
             // DB 데이터 → 기존 inquiries 형식으로 변환
-            return data.map((d, i) => ({
-                id: d.id,
-                dbId: d.id,
-                priority: i < 2 ? 'high' : 'medium',
-                company: d.company,
-                contact: d.contact_name,
-                expo: d.exhibition_name,
-                lang: langPairToKo(d.language_pair),
-                start: d.start_date,
-                end: d.end_date,
-                type: serviceTypeToKo(d.service_type),
-                status: itqStatusToAdmin(d.status),
-                dbStatus: d.status,
-                interpreter: (function() { try { var n = JSON.parse(d.admin_note); return n.interpreter || ''; } catch(e) { return ''; } })(),
-                received: d.created_at.split('T')[0],
-                count: d.headcount || 1,
-                location: d.location,
-                venue: d.venue,
-                keywords: d.keywords,
-                message: d.message,
-                email: d.email,
-                phone: d.phone,
-                workingHours: d.working_hours,
-                adminNote: d.admin_note
-            }));
+            return data.map((d, i) => {
+                // admin_note JSON 한 번만 파싱
+                var note = {};
+                try { note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : (d.admin_note || {}); } catch(e) {}
+                return {
+                    id: d.id,
+                    dbId: d.id,
+                    priority: i < 2 ? 'high' : 'medium',
+                    company: d.company,
+                    contact: d.contact_name,
+                    expo: d.exhibition_name,
+                    lang: langPairToKo(d.language_pair),
+                    start: d.start_date,
+                    end: d.end_date,
+                    type: serviceTypeToKo(d.service_type),
+                    status: itqStatusToAdmin(d.status),
+                    dbStatus: d.status,
+                    interpreter: note.interpreter || '',
+                    received: d.created_at.split('T')[0],
+                    count: d.headcount || 1,
+                    location: d.location,
+                    venue: d.venue,
+                    keywords: d.keywords,
+                    message: d.message,
+                    email: d.email,
+                    phone: d.phone,
+                    workingHours: d.working_hours,
+                    adminNote: d.admin_note,
+                    // ── 직접 의뢰 관련 메타 ──
+                    inquiryType: note.inquiry_type || 'general',
+                    requestedInterpreter: note.interpreter_name || '',
+                    requestedInterpreterId: note.requested_interpreter_id || null,
+                    interpreterResponded: !!note.interpreter_responded,
+                    respondedAt: note.responded_at || null,
+                    responseMessage: note.response_message || '',
+                    quoteSent: !!note.quote_sent
+                };
+            });
         } catch (e) {
             console.error('문의 로드 실패:', e);
             return null;

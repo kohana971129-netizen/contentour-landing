@@ -177,6 +177,30 @@ module.exports = async function handler(req, res) {
                 emailSent: emailResult.success
             });
 
+        } else if (action === 'directInquiryRenotify') {
+            const { inquiryId } = req.body;
+            if (!inquiryId) return res.status(400).json({ error: 'inquiryId 필수' });
+            // 견적문의 + admin_note 조회
+            const { data: inquiry, error: fetchErr } = await supabase
+                .from('46_ITQ견적문의')
+                .select('id, exhibition_name, company, admin_note')
+                .eq('id', inquiryId)
+                .single();
+            if (fetchErr || !inquiry) throw new Error('견적문의를 찾을 수 없습니다.');
+            let note = {};
+            try { note = typeof inquiry.admin_note === 'string' ? JSON.parse(inquiry.admin_note) : (inquiry.admin_note || {}); } catch (e) {}
+            const interpreterId = note.requested_interpreter_id;
+            if (!interpreterId) throw new Error('지정 통역사 ID가 없습니다.');
+            // 알림 재발송
+            await supabase.from('24_알림').insert({
+                user_id: interpreterId,
+                notification_type: 'service',
+                title: '🔔 [재알림] 견적 의뢰 응답 요청',
+                message: `${inquiry.company || '고객사'}의 "${inquiry.exhibition_name || '전시회'}" 직접 의뢰가 응답을 기다리고 있습니다. 견적 요청 탭에서 확인해주세요.`,
+                is_read: false
+            });
+            return res.status(200).json({ success: true });
+
         } else if (action === 'exhibitionList') {
             const { data, error } = await supabase
                 .from('60_해외전시회DB')

@@ -3743,54 +3743,112 @@
 
                 <!-- ══ 문의 목록 탭 ══ -->
                 <div class="view active" id="view-inquiries">
-                    <div class="toolbar">
-                        <div class="toolbar__left">
-                            <div class="search-wrap">
-                                <span class="search-icon">🔍</span>
-                                <input type="text" placeholder="전시회명, 고객사 검색..." oninput="filterTable(this.value)">
+                    <!-- 내부 탭: 매칭 대기 / 직접 의뢰 -->
+                    <div style="display:flex;gap:6px;margin-bottom:16px;border-bottom:2px solid #e5eaf2;">
+                        <button id="inq-tab-matching" onclick="inqSwitchPane('matching')" style="padding:12px 22px;background:none;border:none;border-bottom:3px solid #1565c0;color:#1565c0;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:-2px;display:flex;align-items:center;gap:8px;">
+                            📋 통역사 매칭 대기 <span id="inqTabMatchingCount" style="background:#1565c0;color:#fff;padding:2px 9px;border-radius:10px;font-size:0.7rem;font-weight:700;">0</span>
+                        </button>
+                        <button id="inq-tab-direct" onclick="inqSwitchPane('direct')" style="padding:12px 22px;background:none;border:none;border-bottom:3px solid transparent;color:#9daec8;font-size:0.9rem;font-weight:800;cursor:pointer;font-family:inherit;margin-bottom:-2px;display:flex;align-items:center;gap:8px;">
+                            📩 직접 의뢰 모니터링 <span id="inqTabDirectCount" style="background:#9daec8;color:#fff;padding:2px 9px;border-radius:10px;font-size:0.7rem;font-weight:700;">0</span>
+                        </button>
+                    </div>
+
+                    <!-- 매칭 대기 패널 (기본 활성) -->
+                    <div id="inq-pane-matching">
+                        <div class="toolbar">
+                            <div class="toolbar__left">
+                                <div class="search-wrap">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" placeholder="전시회명, 고객사 검색..." oninput="filterTable(this.value)">
+                                </div>
+                                <select class="filter-select" id="statusFilter" onchange="filterTable()">
+                                    <option value="">전체 상태</option>
+                                    <option value="검토중">⏳ 검토 중</option>
+                                    <option value="매칭완료">🤝 매칭 완료</option>
+                                    <option value="파견확정">✅ 파견 확정</option>
+                                    <option value="완료">🏁 완료</option>
+                                </select>
                             </div>
-                            <select class="filter-select" id="statusFilter" onchange="filterTable()">
-                                <option value="">전체 상태</option>
-                                <option value="검토중">⏳ 검토 중</option>
-                                <option value="매칭완료">🤝 매칭 완료</option>
-                                <option value="파견확정">✅ 파견 확정</option>
-                                <option value="완료">🏁 완료</option>
-                            </select>
+                            <div class="toolbar__right">
+                                <button class="btn-ghost">📥 CSV 내보내기</button>
+                                <button class="btn-primary">+ 일괄 배정</button>
+                            </div>
                         </div>
-                        <div class="toolbar__right">
-                            <button class="btn-ghost">📥 CSV 내보내기</button>
-                            <button class="btn-primary">+ 일괄 배정</button>
+
+                        <div class="table-card">
+                            <div class="table-wrap">
+                                <table id="inquiryTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="checkbox-cell"><input type="checkbox"></th>
+                                            <th>우선순위</th>
+                                            <th>고객사</th>
+                                            <th>전시회</th>
+                                            <th>언어</th>
+                                            <th>전시 기간</th>
+                                            <th>통역 형태</th>
+                                            <th>상태</th>
+                                            <th>배정 통역사</th>
+                                            <th>접수일</th>
+                                            <th>액션</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer">
+                                <div class="table-footer__info" id="tableInfo">전체 0건</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="table-card">
-                        <div class="table-wrap">
-                            <table id="inquiryTable">
-                                <thead>
-                                    <tr>
-                                        <th class="checkbox-cell"><input type="checkbox"></th>
-                                        <th>우선순위</th>
-                                        <th>고객사</th>
-                                        <th>전시회</th>
-                                        <th>언어</th>
-                                        <th>전시 기간</th>
-                                        <th>통역 형태</th>
-                                        <th>상태</th>
-                                        <th>배정 통역사</th>
-                                        <th>접수일</th>
-                                        <th>액션</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableBody">
-                                </tbody>
-                            </table>
+                    <!-- 직접 의뢰 패널 -->
+                    <div id="inq-pane-direct" style="display:none;">
+                        <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+                            <div style="font-size:1.4rem;">💡</div>
+                            <div style="flex:1;font-size:0.82rem;color:#5d4037;line-height:1.6;">
+                                <strong>직접 의뢰는 고객사가 특정 통역사를 지목한 건</strong>입니다. 통역사가 직접 응답하므로 관리자는 진행 상황만 모니터링하세요.
+                                응답이 지연되는 경우 "🔔 통역사에게 알림 재발송" 버튼으로 푸시할 수 있습니다.
+                            </div>
                         </div>
-                        <div class="table-footer">
-                            <div class="table-footer__info" id="tableInfo">전체 12건</div>
-                            <div class="pagination">
-                                <button class="page-btn active">1</button>
-                                <button class="page-btn">2</button>
-                                <button class="page-btn">›</button>
+                        <div class="toolbar">
+                            <div class="toolbar__left">
+                                <div class="search-wrap">
+                                    <span class="search-icon">🔍</span>
+                                    <input type="text" id="dirSearchInput" placeholder="전시회명, 고객사, 통역사 검색..." oninput="filterDirectTable()">
+                                </div>
+                                <select class="filter-select" id="dirStatusFilter" onchange="filterDirectTable()">
+                                    <option value="">전체 응답 상태</option>
+                                    <option value="pending">⏳ 응답 대기</option>
+                                    <option value="responded">💬 응답 완료</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-card">
+                            <div class="table-wrap">
+                                <table id="directInquiryTable">
+                                    <thead>
+                                        <tr>
+                                            <th>고객사</th>
+                                            <th>전시회</th>
+                                            <th>지정 통역사</th>
+                                            <th>언어</th>
+                                            <th>전시 기간</th>
+                                            <th>접수일</th>
+                                            <th>응답 상태</th>
+                                            <th>경과</th>
+                                            <th>액션</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="directTableBody">
+                                        <tr><td colspan="9" style="padding:40px;text-align:center;color:#9daec8;">직접 의뢰 내역이 없습니다.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer">
+                                <div class="table-footer__info" id="directTableInfo">전체 0건</div>
                             </div>
                         </div>
                     </div>
@@ -5032,15 +5090,19 @@
 
             const interpreters = [];
 
+            // 직접 의뢰 판별 헬퍼
+            function isDirectInquiry(d) { return d && d.inquiryType === 'direct'; }
+
             function filterTable(query) {
-                const q = (query || '').toLowerCase();
+                const q = (typeof query === 'string' ? query : (document.querySelector('#inq-pane-matching input[type=text]')?.value || '')).toLowerCase();
                 const statusVal = document.getElementById('statusFilter').value;
-                let filtered = inquiries;
+                // 직접 의뢰는 매칭 대기 패널에서 제외
+                let filtered = inquiries.filter(d => !isDirectInquiry(d));
                 if (q) {
                     filtered = filtered.filter(d =>
-                        d.expo.toLowerCase().includes(q) ||
-                        d.company.toLowerCase().includes(q) ||
-                        d.contact.toLowerCase().includes(q)
+                        (d.expo || '').toLowerCase().includes(q) ||
+                        (d.company || '').toLowerCase().includes(q) ||
+                        (d.contact || '').toLowerCase().includes(q)
                     );
                 }
                 if (statusVal) {
@@ -5050,12 +5112,122 @@
                 document.getElementById('tableInfo').textContent = '전체 ' + filtered.length + '건';
             }
 
+            // ── 직접 의뢰 필터/렌더 ──
+            function filterDirectTable() {
+                const q = (document.getElementById('dirSearchInput').value || '').toLowerCase();
+                const statusVal = document.getElementById('dirStatusFilter').value;
+                let filtered = inquiries.filter(isDirectInquiry);
+                if (q) {
+                    filtered = filtered.filter(d =>
+                        (d.expo || '').toLowerCase().includes(q) ||
+                        (d.company || '').toLowerCase().includes(q) ||
+                        (d.requestedInterpreter || '').toLowerCase().includes(q)
+                    );
+                }
+                if (statusVal === 'pending') filtered = filtered.filter(d => !d.interpreterResponded);
+                else if (statusVal === 'responded') filtered = filtered.filter(d => d.interpreterResponded);
+                renderDirectTable(filtered);
+                document.getElementById('directTableInfo').textContent = '전체 ' + filtered.length + '건';
+            }
+
+            function renderDirectTable(data) {
+                const tbody = document.getElementById('directTableBody');
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="padding:40px;text-align:center;color:#9daec8;">조건에 맞는 직접 의뢰가 없습니다.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(function(d) {
+                    var elapsed = '';
+                    if (d.received) {
+                        var diffDays = Math.floor((Date.now() - new Date(d.received).getTime()) / 86400000);
+                        if (diffDays === 0) elapsed = '<span style="color:#2e7d32;">오늘</span>';
+                        else if (diffDays <= 2) elapsed = '<span style="color:#2e7d32;">' + diffDays + '일</span>';
+                        else if (diffDays <= 5) elapsed = '<span style="color:#f57c00;">' + diffDays + '일</span>';
+                        else elapsed = '<span style="color:#c62828;font-weight:700;">' + diffDays + '일 ⚠</span>';
+                    }
+                    var statusBadge = d.interpreterResponded
+                        ? '<span style="display:inline-block;padding:4px 12px;border-radius:12px;background:#e8f5e9;color:#2e7d32;font-size:0.72rem;font-weight:700;">💬 응답 완료</span>'
+                        : '<span style="display:inline-block;padding:4px 12px;border-radius:12px;background:#fff3e0;color:#e65100;font-size:0.72rem;font-weight:700;">⏳ 응답 대기</span>';
+                    var actionBtn = d.interpreterResponded
+                        ? '<button class="action-btn" style="background:#1565c0;color:#fff;" onclick="event.stopPropagation();dirOpenDetail(\'' + d.id + '\')">상세</button>'
+                        : '<button class="action-btn" style="background:#fff;border:1.5px solid #f57c00;color:#f57c00;" onclick="event.stopPropagation();dirRenotify(\'' + d.id + '\')">🔔 알림 재발송</button>';
+                    return '<tr style="cursor:pointer;" onclick="dirOpenDetail(\'' + d.id + '\')">' +
+                        '<td><div class="company">' + (d.company || '-') + '</div><div class="sub-text">' + (d.contact || '') + '</div></td>' +
+                        '<td><div class="expo-name">' + (d.expo || '-') + '</div><div class="sub-text">' + (d.location || '') + '</div></td>' +
+                        '<td><strong style="color:#0a2a5e;">' + (d.requestedInterpreter || '-') + '</strong></td>' +
+                        '<td><span class="lang-tag">' + (d.lang || '-') + '</span></td>' +
+                        '<td>' + (d.start || '-') + (d.end ? ' ~ ' + d.end : '') + '</td>' +
+                        '<td>' + (d.received || '-') + '</td>' +
+                        '<td>' + statusBadge + '</td>' +
+                        '<td>' + elapsed + '</td>' +
+                        '<td onclick="event.stopPropagation()">' + actionBtn + '</td>' +
+                        '</tr>';
+                }).join('');
+            }
+
+            function inqSwitchPane(pane) {
+                var matchingPane = document.getElementById('inq-pane-matching');
+                var directPane = document.getElementById('inq-pane-direct');
+                var matchingTab = document.getElementById('inq-tab-matching');
+                var directTab = document.getElementById('inq-tab-direct');
+                if (pane === 'direct') {
+                    matchingPane.style.display = 'none';
+                    directPane.style.display = '';
+                    matchingTab.style.borderBottomColor = 'transparent';
+                    matchingTab.style.color = '#9daec8';
+                    directTab.style.borderBottomColor = '#1565c0';
+                    directTab.style.color = '#1565c0';
+                    filterDirectTable();
+                } else {
+                    matchingPane.style.display = '';
+                    directPane.style.display = 'none';
+                    matchingTab.style.borderBottomColor = '#1565c0';
+                    matchingTab.style.color = '#1565c0';
+                    directTab.style.borderBottomColor = 'transparent';
+                    directTab.style.color = '#9daec8';
+                }
+            }
+
+            function dirRenotify(id) {
+                var d = inquiries.find(function(x) { return String(x.id) === String(id); });
+                if (!d || !d.requestedInterpreterId) {
+                    alert('통역사 ID를 찾을 수 없어 알림을 보낼 수 없습니다.');
+                    return;
+                }
+                if (!confirm('"' + (d.requestedInterpreter || '통역사') + '" 님에게 알림을 다시 보낼까요?')) return;
+                (async function() {
+                    try {
+                        var { data: { session } } = await window.sbClient.auth.getSession();
+                        if (!session) throw new Error('관리자 로그인 필요');
+                        var resp = await fetch('/api/admin-app', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+                            body: JSON.stringify({ action: 'directInquiryRenotify', inquiryId: d.id })
+                        });
+                        var r = await resp.json();
+                        if (!resp.ok || !r.success) throw new Error(r.error || '실패');
+                        showToast('🔔 통역사에게 알림을 다시 보냈습니다.');
+                    } catch (e) {
+                        alert('알림 발송 실패: ' + e.message);
+                    }
+                })();
+            }
+
+            function dirOpenDetail(id) {
+                // 매칭 모달 재활용 (기존 openAssignModal). 직접 의뢰는 배정 X, 모달은 정보 조회용
+                if (typeof openAssignModal === 'function') openAssignModal(id);
+            }
+
             function updateInquiryKPI() {
-                var total = inquiries.length;
+                // 일반 문의(매칭 대기)와 직접 의뢰를 분리해서 카운트
+                var generalList = inquiries.filter(function(d) { return !isDirectInquiry(d); });
+                var directList = inquiries.filter(isDirectInquiry);
+
+                var total = generalList.length;
                 var pending = 0, matched = 0, confirm = 0, done = 0;
                 var thisMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
                 var monthCount = 0;
-                inquiries.forEach(function(d) {
+                generalList.forEach(function(d) {
                     if (d.status === '검토중') pending++;
                     else if (d.status === '매칭완료') matched++;
                     else if (d.status === '파견확정') confirm++;
@@ -5081,17 +5253,37 @@
                 // pendingBadge도 업데이트
                 el = document.getElementById('pendingBadge');
                 if (el) el.textContent = pending;
-                // 사이드바 배지: 신규 접수 건만 카운트
-                var newCount = inquiries.filter(function(d) { return d.dbStatus === '접수'; }).length;
+
+                // 탭 카운터 갱신
+                el = document.getElementById('inqTabMatchingCount'); if (el) el.textContent = generalList.length;
+                el = document.getElementById('inqTabDirectCount');
+                if (el) {
+                    var directPending = directList.filter(function(d) { return !d.interpreterResponded; }).length;
+                    el.textContent = directList.length;
+                    // 응답 대기가 있으면 빨간색
+                    el.style.background = directPending > 0 ? '#e65100' : '#9daec8';
+                }
+
+                // 사이드바 배지: 일반 문의 신규 + 직접 의뢰 응답 대기
+                var newGeneral = generalList.filter(function(d) { return d.dbStatus === '접수'; }).length;
+                var newDirect = directList.filter(function(d) { return !d.interpreterResponded; }).length;
+                var newCount = newGeneral + newDirect;
                 el = document.getElementById('inqSidebarBadge');
                 if (el) {
                     el.textContent = newCount;
                     el.style.display = newCount > 0 ? '' : 'none';
                 }
+
+                // 직접 의뢰 패널이 활성 상태면 같이 갱신
+                if (document.getElementById('inq-pane-direct') && document.getElementById('inq-pane-direct').style.display !== 'none') {
+                    filterDirectTable();
+                }
             }
 
             function renderTable(data) {
                 const tbody = document.getElementById('tableBody');
+                // 직접 의뢰는 매칭 대기 표에서 제외 (안전장치)
+                data = (data || []).filter(d => !isDirectInquiry(d));
                 tbody.innerHTML = data.map(d => {
                     const statusClass = { '검토중': 'pending', '매칭완료': 'matched', '파견확정': 'confirm', '완료': 'done' }[d.status] || 'pending';
                     return `
