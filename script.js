@@ -454,8 +454,8 @@ function openPortalTab(tabName) {
 
 // ══════════════ 전시회명 자동완성 ══════════════
 function initExpoAutocomplete() {
-    // 주요 해외 전시회 목록 (출처: contentour.co.kr 해외전시회 DB + 추가)
-    // v=전시장, s=시작일, e=종료일 (2026년 기준, 없으면 생략)
+    // 전시회 목록: /api/exhibitions에서 동적 로드 (60_해외전시회DB 테이블)
+    // 실패 시 fallback으로 사용할 최소한의 하드코딩 리스트
     var expoList = [
         // ── 일본 ──
         { name: 'FOODEX JAPAN', country: '일본', city: '도쿄', field: '식품', v: 'Makuhari Messe', s: '2026-03-10', e: '2026-03-13' },
@@ -646,6 +646,26 @@ function initExpoAutocomplete() {
             setTimeout(function() { dropdown.style.display = 'none'; }, 150);
         });
     }
+
+    // ── DB에서 전시회 목록 로드 (localStorage 캐시 1시간) ──
+    var CACHE_KEY = 'expoListCache_v1';
+    var CACHE_TTL = 60 * 60 * 1000; // 1시간
+    try {
+        var cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (cached && cached.ts && (Date.now() - cached.ts) < CACHE_TTL && Array.isArray(cached.data) && cached.data.length > 0) {
+            expoList = cached.data;
+        }
+    } catch (e) {}
+
+    fetch('/api/exhibitions')
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(j) {
+            if (j && Array.isArray(j.exhibitions) && j.exhibitions.length > 0) {
+                expoList = j.exhibitions;
+                try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: j.exhibitions })); } catch (e) {}
+            }
+        })
+        .catch(function() { /* fallback: 하드코딩 expoList 사용 */ });
 
     // 견적 문의 폼 (support.html, index.html)
     var expoInput = document.getElementById('expoName');
