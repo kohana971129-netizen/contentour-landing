@@ -177,6 +177,57 @@ module.exports = async function handler(req, res) {
                 emailSent: emailResult.success
             });
 
+        } else if (action === 'exhibitionCreate') {
+            const { name: exName, country, city, venue, field, start_date, end_date, is_active } = req.body;
+            if (!exName || !country) return res.status(400).json({ error: 'name과 country는 필수입니다.' });
+            const { data, error } = await supabase
+                .from('60_해외전시회DB')
+                .insert({
+                    name: exName,
+                    country,
+                    city: city || null,
+                    venue: venue || null,
+                    field: field || null,
+                    start_date: start_date || null,
+                    end_date: end_date || null,
+                    is_active: is_active !== false
+                })
+                .select()
+                .single();
+            if (error) throw error;
+            return res.status(200).json({ success: true, data });
+
+        } else if (action === 'exhibitionUpdate') {
+            const { exhibitionId, name: exName, country, city, venue, field, start_date, end_date, is_active } = req.body;
+            if (!exhibitionId) return res.status(400).json({ error: 'exhibitionId 필수' });
+            const patch = {};
+            if (exName !== undefined) patch.name = exName;
+            if (country !== undefined) patch.country = country;
+            if (city !== undefined) patch.city = city || null;
+            if (venue !== undefined) patch.venue = venue || null;
+            if (field !== undefined) patch.field = field || null;
+            if (start_date !== undefined) patch.start_date = start_date || null;
+            if (end_date !== undefined) patch.end_date = end_date || null;
+            if (is_active !== undefined) patch.is_active = is_active;
+            const { data, error } = await supabase
+                .from('60_해외전시회DB')
+                .update(patch)
+                .eq('id', exhibitionId)
+                .select()
+                .single();
+            if (error) throw error;
+            return res.status(200).json({ success: true, data });
+
+        } else if (action === 'exhibitionDelete') {
+            const { exhibitionId } = req.body;
+            if (!exhibitionId) return res.status(400).json({ error: 'exhibitionId 필수' });
+            const { error } = await supabase
+                .from('60_해외전시회DB')
+                .delete()
+                .eq('id', exhibitionId);
+            if (error) throw error;
+            return res.status(200).json({ success: true });
+
         } else {
             return res.status(400).json({ error: 'Unknown action' });
         }
