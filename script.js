@@ -647,7 +647,8 @@ function initExpoAutocomplete() {
         });
     }
 
-    // ── DB에서 전시회 목록 로드 (localStorage 캐시 1시간) ──
+    // ── 60_해외전시회DB에서 동적 로드 (localStorage 캐시 1시간) ──
+    // anon 키로 직접 조회 (RLS public read 허용)
     var CACHE_KEY = 'expoListCache_v1';
     var CACHE_TTL = 60 * 60 * 1000; // 1시간
     try {
@@ -657,15 +658,30 @@ function initExpoAutocomplete() {
         }
     } catch (e) {}
 
-    fetch('/api/exhibitions')
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(j) {
-            if (j && Array.isArray(j.exhibitions) && j.exhibitions.length > 0) {
-                expoList = j.exhibitions;
-                try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: j.exhibitions })); } catch (e) {}
-            }
-        })
-        .catch(function() { /* fallback: 하드코딩 expoList 사용 */ });
+    if (window.sbClient) {
+        window.sbClient
+            .from('60_해외전시회DB')
+            .select('id, name, country, city, venue, field, start_date, end_date')
+            .eq('is_active', true)
+            .order('country', { ascending: true })
+            .order('name', { ascending: true })
+            .then(function(res) {
+                if (res && Array.isArray(res.data) && res.data.length > 0) {
+                    expoList = res.data.map(function(d) {
+                        return {
+                            name: d.name,
+                            country: d.country,
+                            city: d.city || '',
+                            field: d.field || '',
+                            v: d.venue || undefined,
+                            s: d.start_date || undefined,
+                            e: d.end_date || undefined
+                        };
+                    });
+                    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data: expoList })); } catch (e) {}
+                }
+            });
+    }
 
     // 견적 문의 폼 (support.html, index.html)
     var expoInput = document.getElementById('expoName');
