@@ -454,9 +454,6 @@ function openPortalTab(tabName) {
 
 // ══════════════ 전시회명 자동완성 ══════════════
 function initExpoAutocomplete() {
-    var input = document.getElementById('expoName');
-    if (!input) return;
-
     // 주요 해외 전시회 목록 (출처: contentour.co.kr 해외전시회 DB + 추가)
     // v=전시장, s=시작일, e=종료일 (2026년 기준, 없으면 생략)
     var expoList = [
