@@ -5530,62 +5530,65 @@
 
                 var uiStatus = document.getElementById('statusSelect').value;
                 var memo = document.getElementById('adminMemo').value;
-
-                // UI 상태 → DB enum 매핑
-                var dbStatusMap = { '검토중': '검토중', '매칭완료': '견적발송', '파견확정': '계약진행', '완료': '완료' };
-                var dbStatus = dbStatusMap[uiStatus] || '검토중';
-
-                // 로컬 데이터 업데이트
-                currentAssignInquiry.interpreter = selectedInterpreter.name;
-                currentAssignInquiry.status = uiStatus;
+                var savedName = selectedInterpreter.name;
+                var savedExpo = currentAssignInquiry.expo;
 
                 // 서버사이드 API로 배정 처리 (RLS 우회)
                 var dbId = currentAssignInquiry.dbId || currentAssignInquiry.id;
-                if (dbId) {
-                    try {
-                        var d = currentAssignInquiry;
-                        var accessToken = '';
-                        if (window.sbClient) {
-                            var { data: sessionData } = await window.sbClient.auth.getSession();
-                            if (sessionData && sessionData.session) accessToken = sessionData.session.access_token;
-                        }
-                        var assignRes = await fetch('/api/assign', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Bearer ' + accessToken
-                            },
-                            body: JSON.stringify({
-                                inquiryId: dbId,
-                                interpreterId: selectedInterpreter.id,
-                                interpreterName: selectedInterpreter.name,
-                                status: uiStatus,
-                                memo: memo,
-                                expo: d.expo || '',
-                                company: d.company || '',
-                                venue: d.venue || '',
-                                location: d.location || '',
-                                startDate: d.start || d.start_date,
-                                endDate: d.end || d.end_date,
-                                lang: d.lang || '',
-                                type: d.type || '',
-                                email: d.email || ''
-                            })
-                        });
-                        var assignResult = await assignRes.json();
-                        if (!assignRes.ok) {
-                            console.error('배정 API 실패:', assignResult.error);
-                        } else {
-                            console.log('배정 완료, 계약 ID:', assignResult.contractId);
-                        }
-                    } catch (e) {
-                        console.error('배정 API 호출 예외:', e);
-                    }
-                }
+                if (!dbId) { showToast('⚠️ 문의 ID를 찾을 수 없습니다.'); return; }
 
-                renderTable(inquiries); updateInquiryKPI();
-                closeModal();
-                showToast('✅ ' + selectedInterpreter.name + ' 통역사가 "' + currentAssignInquiry.expo + '"에 배정되었습니다.');
+                try {
+                    var d = currentAssignInquiry;
+                    var accessToken = '';
+                    if (window.sbClient) {
+                        var { data: sessionData } = await window.sbClient.auth.getSession();
+                        if (sessionData && sessionData.session) accessToken = sessionData.session.access_token;
+                    }
+                    var assignRes = await fetch('/api/assign', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + accessToken
+                        },
+                        body: JSON.stringify({
+                            inquiryId: dbId,
+                            interpreterId: selectedInterpreter.id,
+                            interpreterName: selectedInterpreter.name,
+                            status: uiStatus,
+                            memo: memo,
+                            expo: d.expo || '',
+                            company: d.company || '',
+                            venue: d.venue || '',
+                            location: d.location || '',
+                            startDate: d.start || d.start_date,
+                            endDate: d.end || d.end_date,
+                            lang: d.lang || '',
+                            type: d.type || '',
+                            email: d.email || ''
+                        })
+                    });
+                    var assignResult = await assignRes.json();
+                    if (!assignRes.ok) {
+                        showToast('⚠️ 배정 저장 실패: ' + (assignResult.error || '서버 오류'));
+                        return;
+                    }
+
+                    // API 성공 후 로컬 데이터 업데이트
+                    currentAssignInquiry.interpreter = savedName;
+                    currentAssignInquiry.status = uiStatus;
+
+                    closeModal();
+                    showToast('✅ ' + savedName + ' 통역사가 "' + savedExpo + '"에 배정되었습니다.');
+
+                    // DB에서 최신 데이터 다시 로드
+                    if (typeof _reloadAllData === 'function') {
+                        await _reloadAllData();
+                    } else {
+                        renderTable(inquiries); updateInquiryKPI();
+                    }
+                } catch (e) {
+                    showToast('⚠️ 배정 처리 중 오류: ' + e.message);
+                }
             }
             function showToast(msg) {
                 const t = document.getElementById('toast');
