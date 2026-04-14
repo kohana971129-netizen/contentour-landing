@@ -5389,6 +5389,10 @@
             }
             function toggleSidebarCollapse() {
                 document.body.classList.toggle('sb-collapsed');
+                localStorage.setItem('sb-collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
+            }
+            if (localStorage.getItem('sb-collapsed') === '1') {
+                document.body.classList.add('sb-collapsed');
             }
 
             function switchTab(tab) {
