@@ -5003,13 +5003,7 @@
                 <div class="inquiry-summary" id="inquirySummary"></div>
                 <div class="section-head">👤 통역사 선택</div>
                 <div class="interp-grid" id="interpOptions"></div>
-                <div class="section-head">📊 상태 변경</div>
-                <select class="status-select" id="statusSelect">
-                    <option value="검토중">⏳ 검토 중</option>
-                    <option value="매칭완료">🤝 통역사 매칭 완료</option>
-                    <option value="파견확정">✅ 파견 확정</option>
-                    <option value="완료">🏁 완료</option>
-                </select>
+                <input type="hidden" id="statusSelect" value="매칭완료">
                 <div class="section-head">📝 관리자 메모</div>
                 <textarea class="memo-field" id="adminMemo" placeholder="내부 메모를 남겨주세요."></textarea>
             </div>
@@ -5502,8 +5496,8 @@
                         '</div>';
                 }).join('');
 
-                // 상태 선택 초기값
-                document.getElementById('statusSelect').value = d.status || '검토중';
+                // 통역사 배정 시 자동으로 매칭완료 상태 적용
+                document.getElementById('statusSelect').value = '매칭완료';
                 document.getElementById('adminMemo').value = '';
                 document.getElementById('overlay').classList.add('open');
             }
