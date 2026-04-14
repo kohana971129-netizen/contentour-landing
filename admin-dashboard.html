@@ -5518,9 +5518,15 @@
             function closeModal() { document.getElementById('overlay').classList.remove('open'); currentAssignInquiry = null; }
             function closeOverlay(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
 
+            var _assignInProgress = false;
             async function confirmAssign() {
+                if (_assignInProgress) return;
                 if (!currentAssignInquiry) return;
                 if (!selectedInterpreter) { showToast('통역사를 선택해주세요.'); return; }
+
+                _assignInProgress = true;
+                var confirmBtn = document.querySelector('.btn-confirm');
+                if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '⏳ 저장 중...'; }
 
                 var uiStatus = document.getElementById('statusSelect').value;
                 var memo = document.getElementById('adminMemo').value;
@@ -5582,6 +5588,10 @@
                     }
                 } catch (e) {
                     showToast('⚠️ 배정 처리 중 오류: ' + e.message);
+                } finally {
+                    _assignInProgress = false;
+                    var confirmBtn = document.querySelector('.btn-confirm');
+                    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = '✅ 배정 확정'; }
                 }
             }
             function showToast(msg) {

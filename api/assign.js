@@ -89,17 +89,33 @@ module.exports = async function handler(req, res) {
             if (custUser) customerId = custUser.id;
         }
 
-        // 4. 중복 방지 후 계약 생성
-        const { data: existing } = await sb.from('42_통역계약')
+        // 4. 중복 방지: 동일 문의(order_id) 기준으로 기존 계약 확인
+        const { data: existingByOrder } = await sb.from('42_통역계약')
             .select('id')
-            .eq('interpreter_id', interpreterId)
-            .eq('exhibition_name', expo || '')
-            .eq('start_date', startDate)
+            .eq('order_id', inquiryId)
             .limit(1);
 
-        let contractId = existing && existing.length > 0 ? existing[0].id : null;
+        let contractId = existingByOrder && existingByOrder.length > 0 ? existingByOrder[0].id : null;
 
-        if (!contractId) {
+        if (contractId) {
+            // 기존 계약이 있으면 통역사/정보만 업데이트
+            await sb.from('42_통역계약').update({
+                interpreter_id: interpreterId,
+                customer_id: customerId || undefined,
+                exhibition_name: expo || '',
+                client_company: company || '',
+                venue: venue || location || '',
+                start_date: startDate,
+                end_date: endDate,
+                working_days: days,
+                language_pair: langPair,
+                service_type: serviceType,
+                daily_rate: dailyRate,
+                total_amount: totalAmount,
+                tax_amount: Math.round(totalAmount * 0.1),
+                net_amount: totalAmount
+            }).eq('id', contractId);
+        } else {
             const { data: newContract, error: cErr } = await sb.from('42_통역계약').insert({
                 order_id: inquiryId,
                 customer_id: customerId,
