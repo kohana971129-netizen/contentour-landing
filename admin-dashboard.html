@@ -503,56 +503,55 @@
             z-index: 1;
         }
 
-        /* ══ 사이드바 토글 버튼 ══ */
+        /* ══ 사이드바 토글 버튼 (body 고정) ══ */
         .sb-toggle {
-            position: absolute;
+            position: fixed;
             top: 50%;
-            right: -14px;
-            transform: translateY(-50%);
+            left: var(--sidebar-w);
+            transform: translateY(-50%) translateX(-50%);
             width: 28px;
             height: 28px;
             background: var(--navy-deep);
             border: 2px solid rgba(255,255,255,0.15);
             border-radius: 50%;
             cursor: pointer;
-            z-index: 101;
+            z-index: 150;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            transition: left 0.3s ease, background 0.2s, transform 0.3s ease;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         .sb-toggle:hover {
             background: var(--blue);
             border-color: var(--sky);
-            transform: translateY(-50%) scale(1.1);
+            transform: translateY(-50%) translateX(-50%) scale(1.15);
         }
         .sb-toggle__arrow {
             width: 10px;
             height: 10px;
-            border-left: 2px solid #fff;
-            border-bottom: 2px solid #fff;
+            border-left: 2.5px solid #fff;
+            border-bottom: 2.5px solid #fff;
             transform: rotate(45deg) translate(2px, -2px);
             transition: transform 0.3s ease;
         }
-        .sidebar.collapsed .sb-toggle__arrow {
+        body.sb-collapsed .sb-toggle {
+            left: 0;
+            transform: translateY(-50%) translateX(8px);
+        }
+        body.sb-collapsed .sb-toggle:hover {
+            transform: translateY(-50%) translateX(8px) scale(1.15);
+        }
+        body.sb-collapsed .sb-toggle__arrow {
             transform: rotate(-135deg) translate(2px, -2px);
         }
 
         /* ══ 사이드바 접힌 상태 ══ */
-        .sidebar { transition: width 0.3s ease, transform 0.3s ease; overflow: hidden; }
-        .sidebar.collapsed { width: 0; transform: translateX(-256px); }
-        .sidebar.collapsed .sb-toggle {
-            right: -42px;
-            width: 32px;
-            height: 32px;
-            background: var(--navy-deep);
-            border: 2px solid rgba(255,255,255,0.15);
-            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-        }
+        .sidebar { transition: width 0.3s ease, opacity 0.3s ease; }
+        body.sb-collapsed .sidebar { width: 0; overflow: hidden; opacity: 0; pointer-events: none; }
 
         .main { transition: margin-left 0.3s ease; }
-        .sidebar.collapsed ~ .main { margin-left: 0; }
+        body.sb-collapsed .main { margin-left: 0; }
 
         /* ══════════════ 메인 ══════════════ */
         .main {
@@ -3639,10 +3638,10 @@
     </div>
 
     <!-- ══ 사이드바 ══ -->
+    <div class="sb-toggle" onclick="toggleSidebarCollapse()" title="사이드바 접기/펼치기">
+        <div class="sb-toggle__arrow"></div>
+    </div>
     <aside class="sidebar" id="sidebar">
-        <div class="sb-toggle" onclick="toggleSidebarCollapse()" title="사이드바 접기/펼치기">
-            <div class="sb-toggle__arrow"></div>
-        </div>
         <a class="sb-logo" href="/" target="_blank" style="text-decoration:none;color:inherit;">
             <div class="sb-logo__wrap">
                 <div class="sb-logo__mark">CT</div>
@@ -5389,7 +5388,7 @@
                 document.getElementById('sidebarOverlay').classList.remove('open');
             }
             function toggleSidebarCollapse() {
-                document.getElementById('sidebar').classList.toggle('collapsed');
+                document.body.classList.toggle('sb-collapsed');
             }
 
             function switchTab(tab) {
