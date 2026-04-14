@@ -469,6 +469,6 @@ function serviceTypeToKo(code) {
 }
 
 function itqStatusToAdmin(status) {
-    const map = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료', '취소': '취소' };
+    const map = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료', '취소': '취소' };
     return map[status] || status;
 }

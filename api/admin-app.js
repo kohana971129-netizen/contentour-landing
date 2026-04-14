@@ -201,6 +201,16 @@ module.exports = async function handler(req, res) {
             });
             return res.status(200).json({ success: true });
 
+        } else if (action === 'profileToggle') {
+            const { userId, isActive } = req.body;
+            if (!userId) return res.status(400).json({ error: 'userId 필수' });
+            const { error } = await supabase
+                .from('40_통역사프로필')
+                .update({ is_active: isActive })
+                .eq('user_id', userId);
+            if (error) throw error;
+            return res.status(200).json({ success: true });
+
         } else if (action === 'exhibitionList') {
             const { data, error } = await supabase
                 .from('60_해외전시회DB')

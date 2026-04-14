@@ -38,10 +38,11 @@ const ChatData = {
             const user = await this.getUser();
             if (!user) return null;
 
-            // 내가 참여한 계약 조회 (01_회원 조인 제거 — RLS 순환 참조 방지)
+            // 내가 참여한 계약 조회 (계약서 동의 완료된 건만 채팅 활성화)
             let query = window.sbClient
                 .from('42_통역계약')
-                .select('id, exhibition_name, client_company, language_pair, customer_id, interpreter_id')
+                .select('id, exhibition_name, client_company, language_pair, customer_id, interpreter_id, status, contract_signed')
+                .eq('contract_signed', true)
                 .order('created_at', { ascending: false });
 
             if (user.role === 'customer') {
@@ -61,6 +62,21 @@ const ChatData = {
                 .rpc('get_contract_partner_names', { p_user_id: user.id });
             if (partners) {
                 partners.forEach(p => { partnerNames[p.partner_id] = p.partner_name; });
+            }
+
+            // RPC로 이름을 못 가져온 상대방은 직접 조회
+            const missingIds = contracts
+                .map(c => user.role === 'customer' ? c.interpreter_id : c.customer_id)
+                .filter(id => id && !partnerNames[id]);
+            if (missingIds.length > 0) {
+                const uniqueIds = [...new Set(missingIds)];
+                const { data: members } = await window.sbClient
+                    .from('01_회원')
+                    .select('id, name')
+                    .in('id', uniqueIds);
+                if (members) {
+                    members.forEach(m => { if (m.name) partnerNames[m.id] = m.name; });
+                }
             }
 
             // 각 채팅방의 마지막 메시지 + 안읽은 수 조회

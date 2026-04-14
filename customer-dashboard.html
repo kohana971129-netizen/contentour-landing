@@ -244,7 +244,7 @@
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <div class="search-wrap"><span class="search-icon">&#128269;</span><input type="text" placeholder="전시회명 검색..." oninput="filterList(this.value)"></div>
             <select class="filter-select" onchange="filterStatus(this.value)">
-              <option value="">전체 상태</option><option value="검토중">검토 중</option><option value="매칭완료">통역사 매칭 완료</option><option value="파견확정">파견 확정</option><option value="완료">완료</option>
+              <option value="">전체 상태</option><option value="검토중">검토 중</option><option value="매칭완료">통역사 매칭 완료</option><option value="견적거절">견적 거절</option><option value="파견확정">파견 확정</option><option value="완료">완료</option>
             </select>
           </div>
           <button class="btn-primary" onclick="switchView('inquiry')" style="white-space:nowrap;">+ 새 문의 접수</button>
@@ -357,9 +357,8 @@
               <div class="j-section">기본 정보</div>
               <div class="j-grid">
                 <div class="j-field"><label>전시회명 *</label>
-                  <select id="j-expo" onchange="updateExpoInfo()">
-                    <option value="">선택해주세요</option>
-                  </select>
+                  <input type="text" id="j-expo" placeholder="전시회명 또는 국가를 입력하세요" autocomplete="off">
+                  <input type="hidden" id="j-expo-data">
                 </div>
                 <div class="j-field"><label>작성 날짜 *</label><input type="date" id="j-date"></div>
                 <div class="j-field"><label>개최지</label><input type="text" id="j-location" placeholder="자동 입력" readonly style="background:#f0f5ff;"></div>
@@ -759,7 +758,7 @@
             <div class="loy-use-section__body">
               <div class="loy-use-info">
                 <div class="loy-use-info__icon">&#128161;</div>
-                <div class="loy-use-info__text">적립금은 <strong>계약 결제 시 플랫폼 수수료에서 차감</strong>하여 사용할 수 있습니다.<br>결제 화면에서 사용할 적립금 금액을 직접 입력하세요. (1P = 1원)</div>
+                <div class="loy-use-info__text">적립금은 <strong>계약 결제 시 플랫폼 수수료에서 차감</strong>하여 사용할 수 있습니다.<br>결제 화면에서 사용할 적립금 금액을 직접 입력하세요. (1P = 1원)<br><strong>등급별 수수료 할인:</strong> 일반 10% → 실버 9% → 골드 8% → VIP 6%</div>
               </div>
             </div>
           </div>
@@ -1079,46 +1078,47 @@
             try {
                 var { data: myContracts } = await window.sbClient
                     .from('42_통역계약')
-                    .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, 01_회원!42_통역계약_interpreter_id_fkey(name)')
+                    .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, interpreter_accepted, 01_회원!42_통역계약_interpreter_id_fkey(name)')
                     .eq('customer_id', user.id);
 
                 // JOIN 실패 시 fallback
                 if (!myContracts) {
                     var res2 = await window.sbClient
                         .from('42_통역계약')
-                        .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id')
+                        .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, interpreter_accepted')
                         .eq('customer_id', user.id);
                     myContracts = res2.data || [];
                 }
 
                 if (myContracts && myContracts.length > 0) {
-                    var sel = document.getElementById('j-expo');
-                    if (sel) {
-                        // JOIN 안 된 경우 통역사 이름 별도 조회
-                        var interpNames = {};
-                        var needLookup = myContracts.some(function(ct) { return !ct['01_회원']; });
-                        if (needLookup) {
-                            var interpIds = myContracts.map(function(ct) { return ct.interpreter_id; }).filter(Boolean);
-                            if (interpIds.length > 0) {
-                                try {
-                                    var { data: profiles } = await window.sbClient
-                                        .from('40_통역사프로필')
-                                        .select('user_id, display_name');
-                                    if (profiles) profiles.forEach(function(p) { interpNames[p.user_id] = p.display_name; });
-                                } catch(eP) {}
-                            }
+                    // 계약 기반 전시회 목록을 전역에 저장 (자동완성에서 사용)
+                    var interpNames = {};
+                    var needLookup = myContracts.some(function(ct) { return !ct['01_회원']; });
+                    if (needLookup) {
+                        var interpIds = myContracts.map(function(ct) { return ct.interpreter_id; }).filter(Boolean);
+                        if (interpIds.length > 0) {
+                            try {
+                                var { data: profiles } = await window.sbClient
+                                    .from('40_통역사프로필')
+                                    .select('user_id, display_name');
+                                if (profiles) profiles.forEach(function(p) { interpNames[p.user_id] = p.display_name; });
+                            } catch(eP) {}
                         }
-
-                        myContracts.forEach(function(ct) {
-                            var period = (ct.start_date || '') + ' ~ ' + (ct.end_date || '');
-                            var interp = (ct['01_회원'] && ct['01_회원'].name) ? ct['01_회원'].name : (interpNames[ct.interpreter_id] || '-');
-                            var val = [ct.exhibition_name, ct.venue || '', period, interp, ct.language_pair || ''].join('|');
-                            var opt = document.createElement('option');
-                            opt.value = val;
-                            opt.textContent = ct.exhibition_name;
-                            sel.appendChild(opt);
-                        });
                     }
+                    window._journalContracts = myContracts.map(function(ct) {
+                        var period = (ct.start_date || '') + ' ~ ' + (ct.end_date || '');
+                        var interp = ct.interpreter_accepted
+                            ? ((ct['01_회원'] && ct['01_회원'].name) ? ct['01_회원'].name : (interpNames[ct.interpreter_id] || '-'))
+                            : '배정 대기중';
+                        return {
+                            name: ct.exhibition_name,
+                            venue: ct.venue || '',
+                            period: period,
+                            interp: interp,
+                            lang: ct.language_pair || '',
+                            dataVal: [ct.exhibition_name, ct.venue || '', period, interp, ct.language_pair || ''].join('|')
+                        };
+                    });
                 }
             } catch(e3) {
                 console.error('전시회 목록 로드 실패:', e3);
@@ -1187,7 +1187,7 @@
       const navItems = document.querySelectorAll('.nav-item');
       if (navMap[v] !== undefined && navItems[navMap[v]]) navItems[navMap[v]].classList.add('active');
       if (v === 'home') { loadHomeDashboard(); }
-      if (v === 'journal') { journalLoadFromDB(); renderJournalList(); }
+      if (v === 'journal') { journalLoadFromDB(); newJournal(); }
       if (v === 'schedule') { schLoadFromDB(); schInit(); }
       if (v === 'chat') { renderChatContacts(); chatLoadFromDB(); }
       if (v === 'contract') { _contractsDbLoaded = false; renderContracts(); contractsLoadFromDB(); }
@@ -1213,8 +1213,8 @@
 
             var today = new Date().toISOString().split('T')[0];
             var active = contracts.filter(function(c) { return c.status === 'in_progress' || c.status === 'deposit_paid'; }).length;
-            var upcoming = contracts.filter(function(c) { return c.start_date >= today && c.status !== 'cancelled'; }).length;
-            var unpaid = contracts.filter(function(c) { return (c.deposit_status !== 'paid' || c.balance_status !== 'paid') && c.status !== 'cancelled' && c.status !== 'settled'; }).length;
+            var upcoming = contracts.filter(function(c) { return c.start_date >= today && c.status !== 'cancelled' && c.status !== 'pending'; }).length;
+            var unpaid = contracts.filter(function(c) { return (c.deposit_status !== 'paid' || c.balance_status !== 'paid') && c.status !== 'cancelled' && c.status !== 'settled' && c.status !== 'pending'; }).length;
             var completed = contracts.filter(function(c) { return c.status === 'completed' || c.status === 'settled'; }).length;
 
             // KPI 업데이트
@@ -1226,7 +1226,7 @@
 
             // 다가오는 일정
             var upcomingList = contracts
-                .filter(function(c) { return c.end_date >= today && c.status !== 'cancelled'; })
+                .filter(function(c) { return c.end_date >= today && c.status !== 'cancelled' && c.status !== 'pending'; })
                 .sort(function(a, b) { return a.start_date.localeCompare(b.start_date); })
                 .slice(0, 5);
 
@@ -1352,7 +1352,7 @@
 
             schData.length = 0; // 기존 데이터 클리어
             contractData.forEach(function(c, i) {
-                if (c.status === 'cancelled') return;
+                if (c.status === 'cancelled' || c.status === 'pending') return;
                 var interpName = interpMap[c.interpreter_id] || '배정 대기';
                 var uiStatus = statusMap[c.status] || '검토중';
                 schData.push({
@@ -1588,7 +1588,6 @@
         });
         _journalDbLoaded = true;
         renderJournalList();
-        if (journalData.length > 0) loadJournal(journalData[0].id);
       } catch(e) { console.error('상담일지 DB 로드 실패:', e); }
     }
 
@@ -1607,8 +1606,10 @@
       document.getElementById('journalOverlay').classList.remove('open');
       document.getElementById('jeditorTitle').textContent = j.expo + ' — ' + j.date + ' 상담일지';
       document.getElementById('jeditorSub').textContent = j.location + ' · ' + j.interp;
-      const sel = document.getElementById('j-expo');
-      for (let opt of sel.options) { if (opt.value.startsWith(j.expo)) { sel.value = opt.value; break; } }
+      document.getElementById('j-expo').value = j.expo;
+      var contracts = window._journalContracts || [];
+      var match = contracts.find(function(c) { return c.name === j.expo; });
+      document.getElementById('j-expo-data').value = match ? match.dataVal : '';
       document.getElementById('j-date').value = j.date;
       document.getElementById('j-location').value = j.location;
       document.getElementById('j-period').value = j.period;
@@ -1655,22 +1656,29 @@
       document.getElementById('jeditorSavedAt').textContent = '마지막 저장: —';
     }
     function updateExpoInfo() {
-      const val = document.getElementById('j-expo').value; if (!val) return;
-      const [expo, loc, period, interp, lang] = val.split('|');
-      document.getElementById('j-location').value = loc || '';
-      document.getElementById('j-period').value = period || '';
-      document.getElementById('j-interp').value = interp || '';
-      document.getElementById('j-lang').value = lang || '';
+      var val = document.getElementById('j-expo-data').value;
+      if (!val) return;
+      var parts = val.split('|');
+      document.getElementById('j-location').value = parts[1] || '';
+      document.getElementById('j-period').value = parts[2] || '';
+      document.getElementById('j-interp').value = parts[3] || '';
+      document.getElementById('j-lang').value = parts[4] || '';
     }
     async function saveJournal(type) {
-      const expo = document.getElementById('j-expo').value;
+      const expoInput = document.getElementById('j-expo').value;
       const date = document.getElementById('j-date').value;
       const summary = document.getElementById('j-summary').value.trim();
-      if (!expo) { showJToast('&#9888;&#65039; 전시회명을 선택해주세요.'); return; }
+      if (!expoInput) { showJToast('&#9888;&#65039; 전시회명을 입력해주세요.'); return; }
       if (!date) { showJToast('&#9888;&#65039; 작성 날짜를 선택해주세요.'); return; }
       if (type === 'complete' && !summary) { showJToast('&#9888;&#65039; 상담 내용 요약을 작성해주세요.'); return; }
 
-      const [expoName, location, period, interp, lang] = expo.split('|');
+      var expoData = document.getElementById('j-expo-data').value;
+      var expoName = expoInput;
+      var location = document.getElementById('j-location').value || '';
+      var period = document.getElementById('j-period').value || '';
+      var interp = document.getElementById('j-interp').value || '';
+      var lang = document.getElementById('j-lang').value || '';
+      var expo = expoData || expoInput;
       const total = parseInt(document.getElementById('j-total').value) || 0;
       const contractCount = parseInt(document.getElementById('j-contract').value) || 0;
       const sampleCount = parseInt(document.getElementById('j-sample').value) || 0;
@@ -2202,7 +2210,7 @@
     // ===== PDF Export =====
     function exportContentourPDF() {
       var expo = document.getElementById('j-expo');
-      var expoName = expo ? (expo.options[expo.selectedIndex] ? expo.options[expo.selectedIndex].text : '') : '';
+      var expoName = expo ? expo.value : '';
       var date = document.getElementById('j-date').value || '';
       var location = document.getElementById('j-location').value || '';
       var period = document.getElementById('j-period').value || '';
@@ -3293,7 +3301,7 @@
         myInquiriesFromDB = data;
 
         // 요약 카드 & 네비 배지 업데이트
-        var statusMap0 = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료' };
+        var statusMap0 = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
         var cnt = { total: data.length, pending: 0, matched: 0, confirmed: 0 };
         data.forEach(function(d) {
           var s = statusMap0[d.status] || d.status;
@@ -3313,9 +3321,9 @@
         var listEl = document.getElementById('inquiryList');
         if (!listEl) return;
 
-        var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료' };
-        var statusClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
-        var statusBarMap = { '검토중': 'status-pending', '매칭완료': 'status-matched', '파견확정': 'status-confirmed', '완료': 'status-complete' };
+        var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
+        var statusClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '견적거절': 'sb-rejected', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
+        var statusBarMap = { '검토중': 'status-pending', '매칭완료': 'status-matched', '견적거절': 'status-rejected', '파견확정': 'status-confirmed', '완료': 'status-complete' };
 
         var cardsHtml = data.map(function(d, idx) {
           var st = statusMap[d.status] || d.status;
@@ -3343,7 +3351,7 @@
 
         // 견적발송 상태인 문의를 receivedQuotes에 추가
         data.forEach(function(d) {
-          if (d.status === '견적발송' && d.quoted_amount && d.admin_note) {
+          if ((d.status === '견적발송' || d.status === '계약진행' || d.status === '견적거절') && d.quoted_amount && d.admin_note) {
             try {
               var note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note;
               var existing = receivedQuotes.find(function(q) { return q.inquiryId === d.id; });
@@ -3356,7 +3364,7 @@
                   contact: d.contact_name,
                   lang: d.language_pair || '',
                   type: d.service_type || '',
-                  country: note.country || '',
+                  country: note.country || note.location || d.location || '',
                   interpreter: note.interpreter || '',
                   interpreterId: note.interpreterId || null,
                   startDate: d.start_date,
@@ -3370,7 +3378,7 @@
                   balance: note.balance || 0,
                   memo: note.memo || '',
                   sentAt: d.quoted_at ? d.quoted_at.split('T')[0] : '',
-                  status: 'sent'
+                  status: d.status === '계약진행' ? 'accepted' : (d.status === '견적거절' ? 'rejected' : 'sent')
                 });
               }
             } catch(e) { console.warn('견적 파싱 실패:', e); }
@@ -3388,9 +3396,9 @@
     function openDbInquiryModal(idx) {
       var d = myInquiriesFromDB[idx];
       if (!d) return;
-      var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '계약진행': '파견확정', '완료': '완료' };
+      var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
       var st = statusMap[d.status] || d.status;
-      var stClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
+      var stClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '견적거절': 'sb-rejected', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
       var serviceTypeMap = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'CONFERENCE': '컨퍼런스', 'OTHER': '기타' };
       document.getElementById('modalTitle').textContent = d.exhibition_name;
       var badgeEl = document.getElementById('modalStatusBadge');
@@ -3407,6 +3415,7 @@
         '<tr><td>통역 형태</td><td>' + (serviceTypeMap[d.service_type] || d.service_type || '-') + '</td></tr>' +
         '<tr><td>인원</td><td>' + (d.headcount || 1) + '명</td></tr>' +
         '<tr><td>요청 내용</td><td>' + (d.message || '-') + '</td></tr>' +
+        '<tr><td>담당 관리자</td><td>관리자</td></tr>' +
         '<tr><td>접수일</td><td>' + (d.created_at ? d.created_at.split('T')[0] : '-') + '</td></tr>' +
         '</table>';
 
@@ -3476,6 +3485,7 @@
         '<div class="qd-info-item"><div class="qd-info-label">언어</div><div class="qd-info-value">' + q.lang + '</div></div>' +
         '<div class="qd-info-item"><div class="qd-info-label">파견 기간</div><div class="qd-info-value">' + q.startDate + ' ~ ' + q.endDate + ' (' + q.days + '일)</div></div>' +
         '<div class="qd-info-item"><div class="qd-info-label">통역 형태</div><div class="qd-info-value">' + q.type + '</div></div>' +
+        '<div class="qd-info-item"><div class="qd-info-label">담당 관리자</div><div class="qd-info-value">관리자</div></div>' +
       '</div>';
       bodyHtml += '<div class="qd-section">견적 내역</div>' +
         '<table class="qd-quote-table">' +
@@ -3492,10 +3502,27 @@
       if (q.status === 'sent') {
         bodyHtml += '<div class="qd-actions">' +
           '<button class="qd-btn accept" onclick="acceptQuote(\'' + q.quoteId + '\')">&#9989; 견적 수락</button>' +
-          '<button class="qd-btn reject" onclick="rejectQuote(\'' + q.quoteId + '\')">견적 거절</button>' +
+          '<button class="qd-btn reject" onclick="showRejectForm(\'' + q.quoteId + '\')">견적 거절</button>' +
+        '</div>' +
+        '<div id="rejectFormArea" style="display:none;margin-top:12px;padding:16px;background:#fff5f5;border:1.5px solid #ffcdd2;border-radius:10px;">' +
+          '<div style="font-weight:700;color:#c62828;margin-bottom:10px;">거절 사유를 선택해주세요</div>' +
+          '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">' +
+            '<label style="font-size:0.85rem;cursor:pointer;"><input type="radio" name="rejectReason" value="금액이 예산을 초과합니다" style="margin-right:6px;"> 금액이 예산을 초과합니다</label>' +
+            '<label style="font-size:0.85rem;cursor:pointer;"><input type="radio" name="rejectReason" value="일정이 맞지 않습니다" style="margin-right:6px;"> 일정이 맞지 않습니다</label>' +
+            '<label style="font-size:0.85rem;cursor:pointer;"><input type="radio" name="rejectReason" value="다른 통역사를 원합니다" style="margin-right:6px;"> 다른 통역사를 원합니다</label>' +
+            '<label style="font-size:0.85rem;cursor:pointer;"><input type="radio" name="rejectReason" value="참가를 취소합니다" style="margin-right:6px;"> 전시회 참가를 취소합니다</label>' +
+            '<label style="font-size:0.85rem;cursor:pointer;"><input type="radio" name="rejectReason" value="기타" style="margin-right:6px;"> 기타</label>' +
+          '</div>' +
+          '<textarea id="rejectReasonDetail" placeholder="추가 의견이 있으시면 입력해주세요 (선택)" rows="2" style="width:100%;padding:8px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:0.82rem;resize:none;box-sizing:border-box;"></textarea>' +
+          '<div style="display:flex;gap:8px;margin-top:10px;">' +
+            '<button class="qd-btn reject" onclick="confirmRejectQuote(\'' + q.quoteId + '\')" style="flex:1;">거절 확인</button>' +
+            '<button class="qd-btn" onclick="document.getElementById(\'rejectFormArea\').style.display=\'none\'" style="flex:1;background:#e0e0e0;color:#333;">취소</button>' +
+          '</div>' +
         '</div>';
       } else if (q.status === 'accepted') {
         bodyHtml += '<div class="qd-actions"><button class="qd-btn accepted" disabled>수락 완료 - 계약이 생성되었습니다</button></div>';
+      } else if (q.status === 'rejected') {
+        bodyHtml += '<div class="qd-actions"><button class="qd-btn" disabled style="background:#ffcdd2;color:#c62828;">견적을 거절하였습니다</button></div>';
       }
       document.getElementById('qdBody').innerHTML = bodyHtml;
       document.getElementById('quoteDetailOverlay').classList.add('open');
@@ -3627,19 +3654,53 @@
       renderContracts();
     }
 
-    function rejectQuote(quoteId) {
+    function showRejectForm(quoteId) {
+      var area = document.getElementById('rejectFormArea');
+      if (area) area.style.display = 'block';
+    }
+
+    async function confirmRejectQuote(quoteId) {
       var q = receivedQuotes.find(function(x) { return x.quoteId === quoteId; });
       if (!q || q.status !== 'sent') return;
+
+      // 거절 사유 수집
+      var reasonRadio = document.querySelector('input[name="rejectReason"]:checked');
+      if (!reasonRadio) { showContractToast('거절 사유를 선택해주세요.'); return; }
+      var reason = reasonRadio.value;
+      var detail = document.getElementById('rejectReasonDetail').value.trim();
+      var fullReason = reason + (detail ? ' - ' + detail : '');
+
       q.status = 'rejected';
-      closeQuoteDetail();
-      showContractToast('견적을 거절했습니다.');
-      // Remove quote card from list view
-      var currentView = document.querySelector('.view.active');
-      if (currentView && currentView.id === 'view-list') {
-        // Re-render - need to rebuild list
-        // Just reload the view
-        switchView('list');
+
+      // DB 상태 업데이트: 견적거절
+      if (window.sbClient && q.inquiryId) {
+        try {
+          // 1. status만 먼저 업데이트 (RLS 안전)
+          var { error: statusErr } = await window.sbClient.from('46_ITQ견적문의')
+            .update({ status: '견적거절' })
+            .eq('id', q.inquiryId);
+          if (statusErr) console.error('견적거절 status 업데이트 실패:', statusErr);
+
+          // 2. admin_note에 거절 사유 추가 (실패해도 status는 이미 변경됨)
+          try {
+            var { data: inqData } = await window.sbClient.from('46_ITQ견적문의').select('admin_note').eq('id', q.inquiryId).single();
+            var existingNote = {};
+            try { existingNote = inqData && inqData.admin_note ? (typeof inqData.admin_note === 'string' ? JSON.parse(inqData.admin_note) : inqData.admin_note) : {}; } catch(e2) {}
+            existingNote.reject_reason = fullReason;
+            existingNote.rejected_at = new Date().toISOString();
+            await window.sbClient.from('46_ITQ견적문의').update({
+              admin_note: JSON.stringify(existingNote)
+            }).eq('id', q.inquiryId);
+          } catch(noteErr) { console.warn('거절 사유 저장 실패 (status는 변경됨):', noteErr); }
+
+          console.log('견적거절 DB 업데이트 완료');
+        } catch(e) { console.error('견적거절 DB 업데이트 실패:', e); }
       }
+
+      closeQuoteDetail();
+      showContractToast('견적을 거절했습니다. 사유: ' + reason);
+      loadMyInquiries();
+
       // Broadcast rejection to admin
       try {
         localStorage.removeItem('contentour_quote_response');
@@ -3648,6 +3709,7 @@
             quoteId: q.quoteId,
             inquiryId: q.inquiryId,
             action: 'reject',
+            reason: fullReason,
             ts: Date.now()
           }));
         }, 50);
@@ -4129,6 +4191,7 @@
           <div class="cm-info-item"><div class="cm-info-label">언어</div><div class="cm-info-value">${c.lang}</div></div>
           <div class="cm-info-item"><div class="cm-info-label">파견 기간</div><div class="cm-info-value">${c.dates.start} ~ ${c.dates.end} (${c.days}일)</div></div>
           <div class="cm-info-item"><div class="cm-info-label">상태</div><div class="cm-info-value"><span class="contract-status-badge ${getStatusBadgeClass(c.status)}">${c.statusText}</span></div></div>
+          <div class="cm-info-item"><div class="cm-info-label">담당 관리자</div><div class="cm-info-value">관리자</div></div>
         </div>
         <div class="cm-section">견적서</div>
         <table class="cm-quote-table">
@@ -5145,16 +5208,16 @@
     const LOY_STORAGE_KEY = 'contentour_loyalty_data';
     const LOY_TIERS = [
       { id:'normal', name:'일반', icon:'&#128100;', rate:1, feeRate:10, minCount:0, minAmount:0, color:'#1565c0', bg:'#f0f5ff' },
-      { id:'silver', name:'실버', icon:'&#129351;', rate:2, feeRate:10, minCount:3, minAmount:5000000, color:'#616161', bg:'#f5f5f5' },
-      { id:'gold',   name:'골드', icon:'&#129352;', rate:3, feeRate:10, minCount:7, minAmount:15000000, color:'#f57f17', bg:'#fff8e1' },
-      { id:'vip',    name:'VIP',  icon:'&#128081;', rate:5, feeRate:8,  minCount:12, minAmount:30000000, color:'#c62828', bg:'#fce4ec' }
+      { id:'silver', name:'실버', icon:'&#129351;', rate:2, feeRate:9, minCount:2, minAmount:2000000, color:'#616161', bg:'#f5f5f5' },
+      { id:'gold',   name:'골드', icon:'&#129352;', rate:3, feeRate:8, minCount:5, minAmount:8000000, color:'#f57f17', bg:'#fff8e1' },
+      { id:'vip',    name:'VIP',  icon:'&#128081;', rate:5, feeRate:6,  minCount:10, minAmount:20000000, color:'#c62828', bg:'#fce4ec' }
     ];
     const LOY_EVENTS = [
-      { id:'first_contract', name:'첫 계약 체결', desc:'콘텐츄어 첫 계약 시 지급', pts:10000, icon:'&#127881;' },
-      { id:'journal_submit', name:'상담일지 제출', desc:'상담일지 완료 제출 시 지급', pts:2000, icon:'&#128221;' },
-      { id:'review',         name:'통역사 리뷰 작성', desc:'서비스 완료 후 리뷰 작성 시', pts:1000, icon:'&#11088;' },
-      { id:'reuse',          name:'재이용 보너스', desc:'동일 통역사 재계약 시 지급', pts:5000, icon:'&#128260;' },
-      { id:'referral',       name:'추천인 보너스', desc:'추천으로 신규 고객사 가입 시', pts:20000, icon:'&#129309;' }
+      { id:'first_contract', name:'첫 계약 체결', desc:'콘텐츄어 첫 계약 시 지급', pts:20000, icon:'&#127881;' },
+      { id:'journal_submit', name:'상담일지 제출', desc:'상담일지 완료 제출 시 지급', pts:3000, icon:'&#128221;' },
+      { id:'review',         name:'통역사 리뷰 작성', desc:'서비스 완료 후 리뷰 작성 시', pts:5000, icon:'&#11088;' },
+      { id:'reuse',          name:'재이용 보너스', desc:'동일 통역사 재계약 시 지급', pts:10000, icon:'&#128260;' },
+      { id:'referral',       name:'추천인 보너스', desc:'추천으로 신규 고객사 가입 시', pts:30000, icon:'&#129309;' }
     ];
 
     function loyGetData() {
@@ -5376,14 +5439,14 @@
       }
       // 첫 계약 보너스 체크
       if (data.completedContracts === 0) {
-        loyEarnPoints(10000, '첫 계약 체결 보너스', 'first_contract');
+        loyEarnPoints(20000, '첫 계약 체결 보너스', 'first_contract');
       }
       // 재이용 보너스 (동일 통역사 체크)
       var sameInterp = contracts.filter(function(c) {
         return c.interpreter && contract.interpreter && c.interpreter.id === contract.interpreter.id && c.id !== contract.id && (c.status === 'complete' || c.status === 'settled');
       });
       if (sameInterp.length > 0) {
-        loyEarnPoints(5000, contract.interpreter.name + ' 통역사 재이용 보너스', 'reuse');
+        loyEarnPoints(10000, contract.interpreter.name + ' 통역사 재이용 보너스', 'reuse');
       }
       // 완료 건수/금액 업데이트
       data = loyGetData();
@@ -5399,8 +5462,7 @@
       if (type === 'complete') {
         var expoVal = document.getElementById('j-expo').value;
         if (expoVal) {
-          var expoName = expoVal.split('|')[0];
-          loyEarnPoints(2000, expoName + ' 상담일지 제출 보너스', 'journal_submit');
+          loyEarnPoints(3000, expoVal + ' 상담일지 제출 보너스', 'journal_submit');
         }
       }
     };

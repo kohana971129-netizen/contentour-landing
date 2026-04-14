@@ -575,9 +575,10 @@ function initExpoAutocomplete() {
 
         var wrapper = input.parentElement;
         wrapper.style.position = 'relative';
+        wrapper.style.overflow = 'visible';
 
         var dropdown = document.createElement('div');
-        dropdown.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid #1565c0;border-top:none;border-radius:0 0 12px 12px;max-height:240px;overflow-y:auto;z-index:100;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);';
+        dropdown.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid #1565c0;border-top:none;border-radius:0 0 12px 12px;max-height:240px;overflow-y:auto;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,0.12);';
         wrapper.appendChild(dropdown);
 
         function renderDropdown(matches) {
@@ -622,6 +623,13 @@ function initExpoAutocomplete() {
                         var el = document.getElementById(f.endDate);
                         if (el) el.value = this.dataset.end;
                     }
+                    // 전시 기간 (시작~종료 합쳐서 표시)
+                    if (f.period && this.dataset.start && this.dataset.end) {
+                        var el = document.getElementById(f.period);
+                        if (el) el.value = this.dataset.start + ' ~ ' + this.dataset.end;
+                    }
+                    // 선택 후 콜백
+                    if (f.onSelect) f.onSelect(this.dataset);
                 });
             });
         }
@@ -629,12 +637,11 @@ function initExpoAutocomplete() {
         input.addEventListener('input', function() {
             var q = this.value.trim().toLowerCase();
             if (q.length < 1) { dropdown.style.display = 'none'; return; }
+            var words = q.split(/\s+/).filter(function(w) { return w.length > 0; });
             var matches = expoList.filter(function(e) {
-                return e.name.toLowerCase().includes(q) ||
-                       e.country.toLowerCase().includes(q) ||
-                       e.city.toLowerCase().includes(q) ||
-                       e.field.toLowerCase().includes(q);
-            }).slice(0, 8);
+                var text = (e.name + ' ' + e.country + ' ' + e.city + ' ' + e.field).toLowerCase();
+                return words.every(function(w) { return text.includes(w); });
+            }).slice(0, 30);
             renderDropdown(matches);
         });
 
@@ -649,7 +656,7 @@ function initExpoAutocomplete() {
 
     // ── 60_해외전시회DB에서 동적 로드 (localStorage 캐시 1시간) ──
     // anon 키로 직접 조회 (RLS public read 허용)
-    var CACHE_KEY = 'expoListCache_v1';
+    var CACHE_KEY = 'expoListCache_v4';
     var CACHE_TTL = 60 * 60 * 1000; // 1시간
     try {
         var cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
@@ -691,6 +698,29 @@ function initExpoAutocomplete() {
     var fExpo = document.getElementById('f-expo');
     if (fExpo) attachExpoAC(fExpo, { location: 'f-location', venue: 'f-venue', startDate: 'f-start', endDate: 'f-end' });
 
+    // 고객사 대시보드 - 상담일지 (콘텐츄어 기본 양식)
+    var jExpo = document.getElementById('j-expo');
+    if (jExpo) {
+        attachExpoAC(jExpo, {
+            location: 'j-location',
+            period: 'j-period',
+            onSelect: function(data) {
+                // 전시회 DB 선택 후 계약 데이터 매칭하여 통역사/언어 자동 입력
+                var contracts = window._journalContracts || [];
+                var match = contracts.find(function(c) { return c.name.toLowerCase() === data.name.toLowerCase(); });
+                if (match) {
+                    document.getElementById('j-expo-data').value = match.dataVal;
+                    document.getElementById('j-interp').value = match.interp || '';
+                    document.getElementById('j-lang').value = match.lang || '';
+                } else {
+                    document.getElementById('j-expo-data').value = '';
+                    document.getElementById('j-interp').value = '';
+                    document.getElementById('j-lang').value = '';
+                }
+            }
+        });
+    }
+
     // 고객사 대시보드 - 상담일지 (바이어 프로파일링)
     var bpExpo = document.getElementById('bp-expo');
     if (bpExpo) attachExpoAC(bpExpo, {});
@@ -698,6 +728,35 @@ function initExpoAutocomplete() {
     // 고객사 대시보드 - 상담일지 (KOTRA 양식)
     var ktExpo = document.getElementById('kt-expo');
     if (ktExpo) attachExpoAC(ktExpo, {});
+
+    // 통역사 대시보드 - 상담일지 (콘텐츄어 기본 양식)
+    var jnlExpo = document.getElementById('jnl-expo');
+    if (jnlExpo && jnlExpo.tagName === 'INPUT') {
+        attachExpoAC(jnlExpo, {
+            location: 'jnl-location-custom',
+            startDate: 'jnl-period-start',
+            endDate: 'jnl-period-end',
+            onSelect: function(data) {
+                // 개최지 select 숨기고 custom input에 표시
+                var locSel = document.getElementById('jnl-location');
+                var locCustom = document.getElementById('jnl-location-custom');
+                if (locSel) locSel.style.display = 'none';
+                if (locCustom) {
+                    locCustom.style.display = 'block';
+                    locCustom.value = data.country + ' / ' + data.city;
+                }
+                // 계약 데이터 매칭
+                var contracts = window._jnlContracts || [];
+                var match = contracts.find(function(c) { return c.name && c.name.toLowerCase() === data.name.toLowerCase(); });
+                if (match) {
+                    document.getElementById('jnl-expo-data').value = match.dataVal || '';
+                } else {
+                    document.getElementById('jnl-expo-data').value = '';
+                }
+                if (typeof jnlExpoChange === 'function') jnlExpoChange();
+            }
+        });
+    }
 
     // 통역사 대시보드 - 상담일지 (KOTRA 양식)
     var jnlKtExpo = document.getElementById('jnl-kt-expo');

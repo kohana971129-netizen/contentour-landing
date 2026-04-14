@@ -402,9 +402,8 @@
                                 <div class="jnl-grid">
                                     <div class="jnl-field">
                                         <label>전시회명 <span class="req">*</span></label>
-                                        <select id="jnl-expo" onchange="jnlExpoChange()">
-                                            <option value="">선택해주세요</option>
-                                        </select>
+                                        <input type="text" id="jnl-expo" placeholder="전시회명 또는 국가를 입력하세요" autocomplete="off">
+                                        <input type="hidden" id="jnl-expo-data">
                                     </div>
                                     <div class="jnl-field">
                                         <label>작성 날짜 <span class="req">*</span></label>
@@ -412,13 +411,7 @@
                                     </div>
                                     <div class="jnl-field">
                                         <label>고객사 (대리 작성) <span class="req">*</span></label>
-                                        <select id="jnl-client" onchange="onJnlClientChange()">
-                                            <option value="">선택해주세요</option>
-                                            <option value="(주)현대모비스">(주)현대모비스</option>
-                                            <option value="LG에너지솔루션">LG에너지솔루션</option>
-                                            <option value="부산테크노파크">부산테크노파크</option>
-                                            <option value="한국무역협회 회원사">한국무역협회 회원사</option>
-                                        </select>
+                                        <input type="text" id="jnl-client" placeholder="전시회 선택 시 자동 입력" readonly style="background:#f0f5ff;">
                                     </div>
                                     <div class="jnl-field">
                                         <label>개최지 (국가/도시) <span class="req">*</span></label>
@@ -1491,6 +1484,10 @@
                             <span class="modal__info-label">상태</span>
                             <span class="modal__info-value" id="modalStatus"><span class="assign-card__status-badge asb-new">신규 요청</span></span>
                         </div>
+                        <div class="modal__info-item">
+                            <span class="modal__info-label">담당 관리자</span>
+                            <span class="modal__info-value">관리자</span>
+                        </div>
                     </div>
                 </div>
 
@@ -2095,9 +2092,6 @@
 
                 if (!contracts || contracts.length === 0) return;
 
-                var sel = document.getElementById('jnl-expo');
-                // 기존 옵션 제거 (첫번째 "선택해주세요" 유지)
-                while (sel.options.length > 1) sel.remove(1);
                 jnlExpoMap = {};
 
                 // 고객사 이름 조회
@@ -2108,13 +2102,10 @@
                     if (members) members.forEach(m => { custNames[m.id] = m.name; });
                 }
 
+                window._jnlContracts = [];
                 contracts.forEach(function(ct) {
                     var client = ct.client_company || custNames[ct.customer_id] || '-';
                     var val = [ct.exhibition_name, ct.venue || '', ct.start_date + '~' + ct.end_date, client, ct.language_pair || ''].join('|');
-                    var opt = document.createElement('option');
-                    opt.value = val;
-                    opt.textContent = ct.exhibition_name;
-                    sel.appendChild(opt);
 
                     jnlExpoMap[val] = {
                         client: client,
@@ -2123,6 +2114,16 @@
                         end: ct.end_date || '',
                         lang: ct.language_pair || ''
                     };
+
+                    window._jnlContracts.push({
+                        name: ct.exhibition_name,
+                        client: client,
+                        location: ct.venue || '',
+                        start: ct.start_date || '',
+                        end: ct.end_date || '',
+                        lang: ct.language_pair || '',
+                        dataVal: val
+                    });
                 });
                 console.log('[상담일지] 계약 ' + contracts.length + '건 로드');
             } catch(e) {
@@ -2131,52 +2132,40 @@
         }
 
         function jnlExpoChange() {
-            const val = document.getElementById('jnl-expo').value;
-            if (!val) {
+            var expoName = document.getElementById('jnl-expo').value;
+            if (!expoName) {
                 document.getElementById('jnlEditorTitle').textContent = '상담일지 작성';
                 document.getElementById('jnlEditorSub').textContent = '전시회를 선택하고 고객사를 대신하여 상담 내용을 기록하세요.';
+                document.getElementById('jnl-client').value = '';
                 return;
             }
 
-            const mapped = jnlExpoMap[val];
-            if (mapped) {
-                // 고객사가 select에 없으면 동적 추가
-                if (!jnlSetSelect('jnl-client', mapped.client) && mapped.client) {
-                    var clientSel = document.getElementById('jnl-client');
-                    var newOpt = document.createElement('option');
-                    newOpt.value = mapped.client;
-                    newOpt.textContent = mapped.client;
-                    clientSel.appendChild(newOpt);
-                    clientSel.value = mapped.client;
+            // 계약 데이터에서 매칭 → 고객사/언어 자동 입력
+            var contracts = window._jnlContracts || [];
+            var match = contracts.find(function(c) { return c.name && c.name.toLowerCase() === expoName.toLowerCase(); });
+            if (match) {
+                document.getElementById('jnl-client').value = match.client || '';
+                document.getElementById('jnl-expo-data').value = match.dataVal || '';
+                // 언어 매칭
+                if (match.lang) {
+                    if (!jnlSetSelect('jnl-lang', match.lang)) {
+                        var langSel = document.getElementById('jnl-lang');
+                        var langOpt = document.createElement('option');
+                        langOpt.value = match.lang;
+                        langOpt.textContent = match.lang;
+                        langSel.appendChild(langOpt);
+                        langSel.value = match.lang;
+                    }
                 }
-                var locSel = document.getElementById('jnl-location');
-                var locCustom = document.getElementById('jnl-location-custom');
-                var locMatched = jnlSetSelect('jnl-location', mapped.location);
-                if (!locMatched && mapped.location) {
-                    locSel.style.display = 'none';
-                    locCustom.style.display = 'block';
-                    locCustom.value = mapped.location;
-                } else {
-                    locSel.style.display = 'block';
-                    locCustom.style.display = 'none';
-                }
-                if (!jnlSetSelect('jnl-lang', mapped.lang) && mapped.lang) {
-                    var langSel = document.getElementById('jnl-lang');
-                    var langOpt = document.createElement('option');
-                    langOpt.value = mapped.lang;
-                    langOpt.textContent = mapped.lang;
-                    langSel.appendChild(langOpt);
-                    langSel.value = mapped.lang;
-                }
-                document.getElementById('jnl-period-start').value = mapped.start;
-                document.getElementById('jnl-period-end').value = mapped.end;
+            } else {
+                document.getElementById('jnl-client').value = '';
             }
 
-            const name = document.getElementById('jnl-expo').selectedOptions[0].text;
-            const clientVal = document.getElementById('jnl-client').value;
-            const langVal = document.getElementById('jnl-lang').value;
-            document.getElementById('jnlEditorTitle').textContent = name + ' 상담일지';
+            var clientVal = document.getElementById('jnl-client').value;
+            var langVal = document.getElementById('jnl-lang').value;
+            document.getElementById('jnlEditorTitle').textContent = expoName + ' 상담일지';
             document.getElementById('jnlEditorSub').textContent = (clientVal || '고객사') + ' 대리 작성 | ' + (langVal || '언어');
+            if (typeof onJnlClientChange === 'function') onJnlClientChange();
         }
 
         function jnlSetSelect(id, value) {
@@ -2203,10 +2192,9 @@
 
             const j = journals[idx];
             if (j && j.expo) {
-                const sel = document.getElementById('jnl-expo');
-                for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value === j.expo) { sel.selectedIndex = i; break; }
-                }
+                var expoName = j.expo ? j.expo.split('|')[0] : '';
+                document.getElementById('jnl-expo').value = expoName;
+                document.getElementById('jnl-expo-data').value = j.expo || '';
                 jnlExpoChange();
                 document.getElementById('jnl-date').value = j.date;
             } else {
@@ -2222,9 +2210,10 @@
         }
 
         function jnlReset() {
-            document.getElementById('jnl-expo').selectedIndex = 0;
+            document.getElementById('jnl-expo').value = '';
+            document.getElementById('jnl-expo-data').value = '';
             document.getElementById('jnl-date').value = '';
-            document.getElementById('jnl-client').selectedIndex = 0;
+            document.getElementById('jnl-client').value = '';
             document.getElementById('jnl-location').selectedIndex = 0;
             document.getElementById('jnl-location').style.display = 'block';
             document.getElementById('jnl-location-custom').style.display = 'none';
@@ -3627,6 +3616,7 @@
                     '<div class="ct-detail-item"><span class="ct-detail-label">기간</span><span class="ct-detail-value">' + c.dates.start + ' ~ ' + c.dates.end + ' (' + c.days + '일)</span></div>' +
                     '<div class="ct-detail-item"><span class="ct-detail-label">통역 언어</span><span class="ct-detail-value">' + c.lang + '</span></div>' +
                     '<div class="ct-detail-item"><span class="ct-detail-label">상태</span><span class="ct-badge ' + badgeClass + '">' + c.statusText + '</span></div>' +
+                    '<div class="ct-detail-item"><span class="ct-detail-label">담당 관리자</span><span class="ct-detail-value">관리자</span></div>' +
                 '</div>';
 
             // 정산 예상 내역

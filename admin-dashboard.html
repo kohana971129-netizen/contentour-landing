@@ -1015,6 +1015,15 @@
             background: var(--blue);
         }
 
+        .badge-rejected {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-rejected::before {
+            background: #c62828;
+        }
+
         .badge-confirm {
             background: #e8f5e9;
             color: var(--success);
@@ -1238,34 +1247,35 @@
 
         /* 문의 요약 카드 */
         .inquiry-summary {
-            background: var(--gray-50);
-            border: 1.5px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 18px 20px;
+            background: linear-gradient(135deg, #f8faff, #f0f4ff);
+            border: 1.5px solid #d6e3f8;
+            border-radius: 14px;
+            padding: 20px 22px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 14px 20px;
             margin-bottom: 24px;
         }
 
         .summary-item {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
+            padding: 6px 0;
         }
 
         .summary-item__label {
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            color: var(--gray-400);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: #8a95a8;
+            letter-spacing: 0.3px;
         }
 
         .summary-item__value {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: 700;
             color: var(--text);
+            word-break: keep-all;
         }
 
         /* 통역사 선택 섹션 */
@@ -5285,7 +5295,7 @@
                 // 직접 의뢰는 매칭 대기 표에서 제외 (안전장치)
                 data = (data || []).filter(d => !isDirectInquiry(d));
                 tbody.innerHTML = data.map(d => {
-                    const statusClass = { '검토중': 'pending', '매칭완료': 'matched', '파견확정': 'confirm', '완료': 'done' }[d.status] || 'pending';
+                    const statusClass = { '검토중': 'pending', '매칭완료': 'matched', '견적거절': 'rejected', '파견확정': 'confirm', '완료': 'done' }[d.status] || 'pending';
                     return `
     <tr onclick="openAssignModal('${d.id}')">
       <td class="checkbox-cell" onclick="event.stopPropagation()"><input type="checkbox"></td>
@@ -5298,7 +5308,7 @@
       <td><span class="badge badge-${statusClass}">${d.status}</span></td>
       <td>${d.interpreter || '미배정'}</td>
       <td>${d.received}</td>
-      <td><button class="action-btn assign" onclick="event.stopPropagation();openAssignModal('${d.id}')">배정</button>${(d.status === '검토중' || d.status === '매칭완료') && !d.quoteSent ? '<button class="action-btn" style="background:#388e3c;color:#fff;margin-left:4px;" onclick="event.stopPropagation();openQuoteModal(\''+d.id+'\')">견적</button>' : ''}${d.quoteSent ? '<span class="badge-quote-sent">견적발송</span>' : ''}</td>
+      <td><button class="action-btn assign" onclick="event.stopPropagation();openAssignModal('${d.id}')">배정</button>${d.status === '견적거절' ? '<span style="margin-left:4px;padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:700;background:#ffebee;color:#c62828;cursor:pointer;" onclick="event.stopPropagation();showRejectReason(\''+d.id+'\')" title="거절 사유 확인">거절됨 ⓘ</span>' : (d.status === '검토중' || d.status === '매칭완료') && !d.quoteSent ? '<button class="action-btn" style="background:#388e3c;color:#fff;margin-left:4px;" onclick="event.stopPropagation();openQuoteModal(\''+d.id+'\')">견적</button>' : ''}${d.quoteSent && d.status !== '견적거절' ? '<span class="badge-quote-sent">견적발송</span>' : ''}</td>
     </tr>`;
                 }).join('');
             }
@@ -5416,6 +5426,46 @@
                 }
             }
 
+            function showRejectReason(id) {
+                var d = inquiries.find(x => String(x.id) === String(id));
+                if (!d) return;
+                var reason = '사유 정보 없음';
+                var rejectedAt = '';
+                try {
+                    var note = typeof d.adminNote === 'string' ? JSON.parse(d.adminNote) : d.adminNote;
+                    if (note && note.reject_reason) reason = note.reject_reason;
+                    if (note && note.rejected_at) rejectedAt = note.rejected_at.split('T')[0];
+                } catch(e) {}
+
+                var html = '<div style="text-align:left;line-height:1.8;">' +
+                    '<div style="font-size:1rem;font-weight:800;color:#c62828;margin-bottom:12px;">📋 견적 거절 정보</div>' +
+                    '<div style="background:#ffebee;padding:12px 14px;border-radius:10px;margin-bottom:14px;">' +
+                        '<div style="font-size:0.82rem;color:#888;margin-bottom:4px;">거절 사유</div>' +
+                        '<div style="font-weight:700;color:#c62828;">' + reason + '</div>' +
+                        (rejectedAt ? '<div style="font-size:0.75rem;color:#999;margin-top:4px;">거절일: ' + rejectedAt + '</div>' : '') +
+                    '</div>' +
+                    '<div style="background:#f5f7fa;padding:12px 14px;border-radius:10px;margin-bottom:14px;">' +
+                        '<div style="font-size:0.82rem;color:#888;margin-bottom:8px;">고객 연락처</div>' +
+                        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+                            '<div>👤 <strong>' + (d.contact || '-') + '</strong>' + (d.company ? ' (' + d.company + ')' : '') + '</div>' +
+                            '<div>📧 <a href="mailto:' + (d.email || '') + '" style="color:#1565c0;">' + (d.email || '-') + '</a></div>' +
+                            '<div>📞 <a href="tel:' + (d.phone || '') + '" style="color:#1565c0;">' + (d.phone || '-') + '</a></div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="font-size:0.78rem;color:#888;text-align:center;">고객에게 직접 연락하여 재조율해주세요.</div>' +
+                '</div>';
+
+                showToast && showToast(''); // clear
+                var modal = document.createElement('div');
+                modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+                modal.onclick = function(e) { if (e.target === modal) document.body.removeChild(modal); };
+                modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;max-width:400px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,0.2);">' +
+                    html +
+                    '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:12px;padding:10px;background:#1565c0;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.85rem;">확인</button>' +
+                '</div>';
+                document.body.appendChild(modal);
+            }
+
             async function openAssignModal(id) {
                 const d = inquiries.find(x => String(x.id) === String(id));
                 if (!d) return;
@@ -5423,15 +5473,14 @@
                 selectedInterpreter = null;
 
                 // 문의 요약 정보 표시
+                var adminName = '관리자';
                 document.getElementById('inquirySummary').innerHTML =
-                    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">' +
-                    '<div><strong>고객사:</strong> ' + d.company + '</div>' +
-                    '<div><strong>담당자:</strong> ' + (d.contact || '-') + '</div>' +
-                    '<div><strong>전시회:</strong> ' + d.expo + '</div>' +
-                    '<div><strong>언어:</strong> ' + d.lang + '</div>' +
-                    '<div><strong>기간:</strong> ' + d.start + ' ~ ' + (d.end || '') + '</div>' +
-                    '<div><strong>형태:</strong> ' + d.type + '</div>' +
-                    '</div>';
+                    '<div class="summary-item"><div class="summary-item__label">고객사</div><div class="summary-item__value">' + d.company + '</div></div>' +
+                    '<div class="summary-item"><div class="summary-item__label">고객 담당자</div><div class="summary-item__value">' + (d.contact || '-') + '</div></div>' +
+                    '<div class="summary-item"><div class="summary-item__label">담당 관리자</div><div class="summary-item__value">' + adminName + '</div></div>' +
+                    '<div class="summary-item"><div class="summary-item__label">전시회</div><div class="summary-item__value">' + d.expo + '</div></div>' +
+                    '<div class="summary-item"><div class="summary-item__label">기간</div><div class="summary-item__value">' + d.start + ' ~ ' + (d.end || '') + '</div></div>' +
+                    '<div class="summary-item"><div class="summary-item__label">언어 / 형태</div><div class="summary-item__value">' + d.lang + ' · ' + d.type + '</div></div>';
 
                 // DB에서 전체 통역사 로드
                 if (allInterpretersFromDB.length === 0) await loadAllInterpreters();
@@ -7632,9 +7681,21 @@
                 var e = new Date(inq.end);
                 var days = Math.max(1, Math.round((e - s) / 86400000) + 1);
                 document.getElementById('qm-days').value = days;
-                // Reset fields
-                document.getElementById('qm-country').value = '';
+                // 개최국가 자동 매칭 (location에서 국가명 추출)
+                var qmCountry = document.getElementById('qm-country');
+                qmCountry.value = '';
+                if (inq.location) {
+                    var locPart = inq.location.split(/[\/,]/)[0].trim();
+                    var countryKeys = Object.keys(countryRates);
+                    for (var ci = 0; ci < countryKeys.length; ci++) {
+                        if (locPart.indexOf(countryKeys[ci]) !== -1 || countryKeys[ci].indexOf(locPart) !== -1) {
+                            qmCountry.value = countryKeys[ci];
+                            break;
+                        }
+                    }
+                }
                 document.getElementById('qm-rate').value = '';
+                if (qmCountry.value) { onQuoteCountryChange(); }
                 // DB 통역사 목록으로 select 옵션 갱신
                 var interpSelect = document.getElementById('qm-interpreter');
                 if (allInterpretersFromDB.length > 0) {
@@ -7907,6 +7968,7 @@
                                 interpreter: interpreter,
                                 interpreterId: selectedInterpreter ? selectedInterpreter.id : null,
                                 country: country,
+                                location: currentQuoteInquiry.location || '',
                                 days: days,
                                 dailyRate: rate,
                                 subtotal: subtotal,
@@ -10069,8 +10131,8 @@
                 return;
             }
 
-            const statusMap = { pending: '대기중', reviewing: '검토중', approved: '승인', rejected: '거절' };
-            const statusColor = { pending: '#f57c00', reviewing: '#1565c0', approved: '#2e7d32', rejected: '#e53935' };
+            const statusMap = { pending: '대기중', reviewing: '검토중', approved: '승인', rejected: '거절', deactivated: '비활성화' };
+            const statusColor = { pending: '#f57c00', reviewing: '#1565c0', approved: '#2e7d32', rejected: '#e53935', deactivated: '#9e9e9e' };
 
             container.innerHTML = list.map(a => {
                 const langs = (a.language_pairs || []).map(l => l.from + ' ↔ ' + l.to).join(', ');
@@ -10191,6 +10253,9 @@
                 actions += '<button onclick="resetPassword(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid var(--blue);color:var(--blue);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">🔑 비밀번호 초기화</button>';
                 actions += '<button onclick="toggleAccount(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid var(--warn);color:var(--warn);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">🚫 계정 비활성화</button>';
                 actions += '<span style="padding:10px 20px;color:#2e7d32;font-weight:700;font-size:0.85rem;">✅ 승인 완료</span>';
+            } else if (a.status === 'deactivated') {
+                actions += '<button onclick="reactivateAccount(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid #2e7d32;color:#2e7d32;background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">✅ 계정 재활성화</button>';
+                actions += '<span style="padding:10px 20px;color:var(--warn);font-weight:700;font-size:0.85rem;">🚫 비활성화됨</span>';
             } else if (a.status === 'rejected') {
                 actions += '<span style="padding:10px 20px;color:var(--error);font-weight:700;font-size:0.85rem;">❌ 거절됨</span>';
                 if (a.rejection_reason) actions += '<span style="font-size:0.82rem;color:var(--g600);">사유: ' + a.rejection_reason + '</span>';
@@ -10345,16 +10410,60 @@
             const a = _allApps.find(x => x.id === appId);
             if (!a || !a.created_user_id) { alert('계정 정보를 찾을 수 없습니다.'); return; }
 
-            const action = confirm(a.name_ko + '님의 계정을 비활성화하시겠습니까?\n\n비활성화하면 로그인할 수 없게 됩니다.\n\n[확인] = 비활성화\n[취소] = 취소');
-            if (!action) return;
+            if (!confirm(a.name_ko + '님의 계정을 비활성화하시겠습니까?\n\n비활성화하면 통역사 네트워크에서 표시되지 않고,\n새로운 배정을 받을 수 없게 됩니다.')) return;
 
-            const { data, error } = await _sb.rpc('admin_toggle_user', {
-                target_user_id: a.created_user_id,
-                is_banned: true
-            });
+            try {
+                var token = await _getAdminToken();
+                // 1. 지원서 상태 변경 (API 경유 - service key)
+                var res = await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ action: 'updateStatus', id: appId, status: 'deactivated' })
+                });
+                if (!res.ok) { var err = await res.json(); throw new Error(err.error); }
 
-            if (error) { alert('계정 비활성화 실패: ' + error.message); return; }
-            alert('🚫 ' + a.name_ko + '님의 계정이 비활성화되었습니다.');
+                // 2. 통역사 프로필 비활성화
+                await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ action: 'profileToggle', userId: a.created_user_id, isActive: false })
+                });
+
+                alert('🚫 ' + a.name_ko + '님의 계정이 비활성화되었습니다.\n\n- 통역사 네트워크에서 비표시\n- 새로운 배정 불가');
+                closeAppModal();
+                await loadApplications();
+            } catch(e) {
+                alert('계정 비활성화 실패: ' + e.message);
+            }
+        }
+
+        async function reactivateAccount(appId) {
+            const a = _allApps.find(x => x.id === appId);
+            if (!a || !a.created_user_id) { alert('계정 정보를 찾을 수 없습니다.'); return; }
+
+            if (!confirm(a.name_ko + '님의 계정을 재활성화하시겠습니까?')) return;
+
+            try {
+                var token = await _getAdminToken();
+                var res = await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ action: 'updateStatus', id: appId, status: 'approved' })
+                });
+                if (!res.ok) { var err = await res.json(); throw new Error(err.error); }
+
+                await fetch('/api/admin-app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ action: 'profileToggle', userId: a.created_user_id, isActive: true })
+                });
+
+                alert('✅ ' + a.name_ko + '님의 계정이 재활성화되었습니다.');
+                closeAppModal();
+                await loadApplications();
+            } catch(e) {
+                alert('계정 재활성화 실패: ' + e.message);
+            }
         }
 
         function parseExp(str) {
