@@ -17,6 +17,9 @@
 <body>
 
     <!-- ══════════════ 사이드바 ══════════════ -->
+    <div class="sb-toggle" onclick="toggleSidebarCollapse()" title="사이드바 접기/펼치기">
+        <div class="sb-toggle__arrow"></div>
+    </div>
     <aside class="sidebar" id="sidebar">
         <a class="sb-logo" href="/" target="_blank" style="text-decoration:none;color:inherit;">
             <div class="sb-logo__wrap">
@@ -1569,6 +1572,13 @@
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+        function toggleSidebarCollapse() {
+            document.body.classList.toggle('sb-collapsed');
+            localStorage.setItem('interp-sb-collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
+        }
+        if (localStorage.getItem('interp-sb-collapsed') === '1') {
+            document.body.classList.add('sb-collapsed');
         }
 
         // ══════════════ 뷰 전환 ══════════════

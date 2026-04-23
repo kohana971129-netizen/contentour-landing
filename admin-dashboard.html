@@ -5756,7 +5756,7 @@
             // ═══════════════════════════════════
             // 캘린더 기능
             // ═══════════════════════════════════
-            let curY = 2026, curM = 2, selDate = null, curInterp = 'all';
+            let _now = new Date(), curY = _now.getFullYear(), curM = _now.getMonth(), selDate = null, curInterp = 'all';
 
             function renderCal() {
                 document.getElementById('calMonth').textContent = `${curY}년 ${curM + 1}월`;
@@ -8065,7 +8065,7 @@
                     try {
                         await supabase.from('24_알림').insert({
                             user_id: currentQuoteInquiry.user_id,
-                            notification_type: 'service',
+                            notification_type: 'quote',
                             title: '📨 견적서가 도착했습니다',
                             message: '"' + expoName + '" 건의 견적서가 발송되었습니다. 총 금액: ₩' + total.toLocaleString() + '. 나의 문의 현황에서 확인해주세요.',
                             is_read: false
@@ -8078,7 +8078,7 @@
                         if (custUser) {
                             await supabase.from('24_알림').insert({
                                 user_id: custUser.id,
-                                notification_type: 'service',
+                                notification_type: 'quote',
                                 title: '📨 견적서가 도착했습니다',
                                 message: '"' + expoName + '" 건의 견적서가 발송되었습니다. 총 금액: ₩' + total.toLocaleString() + '. 나의 문의 현황에서 확인해주세요.',
                                 is_read: false

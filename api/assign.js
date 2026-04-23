@@ -149,7 +149,7 @@ module.exports = async function handler(req, res) {
         if (customerId) {
             await sb.from('24_알림').insert({
                 user_id: customerId,
-                notification_type: 'service',
+                notification_type: 'assignment',
                 title: '🤝 통역사가 배정되었습니다',
                 message: '"' + (expo || '') + '" 건에 ' + interpreterName + ' 통역사가 배정되었습니다. 계약·결제 탭에서 확인해주세요.',
                 is_read: false

@@ -70,7 +70,7 @@ module.exports = async function handler(req, res) {
 
             await sb.from('24_알림').insert({
                 user_id: customerUserId,
-                notification_type: 'service',
+                notification_type: 'quote',
                 title: '💬 통역사가 견적 의뢰에 응답했습니다',
                 message: `"${expoName}" 건에 대해 ${interpName} 통역사가 응답했습니다: "${responseMessage}"`,
                 is_read: false

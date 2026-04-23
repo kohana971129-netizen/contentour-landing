@@ -887,13 +887,26 @@
                 var { data: members } = await window.sbClient.from('01_회원').select('id, name').in('id', interpIds);
                 if (!members) return;
 
-                // 이름으로 매칭해서 카드에 별점 배지 추가
+                // 이름으로 매칭해서 카드에 별점 배지 추가 + interpData에도 반영
                 members.forEach(function(m) {
                     var r = ratingMap[m.id];
                     if (!r) return;
                     var avgScore = (r.total / r.count).toFixed(1);
                     var starsHtml = '';
                     for (var i = 0; i < 5; i++) starsHtml += i < Math.round(parseFloat(avgScore)) ? '★' : '☆';
+
+                    // interpData의 rating도 리뷰 기반으로 업데이트 (팝업 모달에 반영)
+                    Object.keys(interpData).forEach(function(cc) {
+                        var d = interpData[cc];
+                        if (!d.interpreters) return;
+                        d.interpreters.forEach(function(ip) {
+                            if (ip._dbId === m.id) {
+                                ip.rating = parseFloat(avgScore);
+                                ip._reviewCount = r.count;
+                                ip._reviewTexts = r.texts;
+                            }
+                        });
+                    });
 
                     // 이름으로 카드 찾기
                     document.querySelectorAll('.profile-card__name').forEach(function(el) {
@@ -911,6 +924,23 @@
                             if (body) body.insertBefore(badge, body.firstChild);
                         }
                     });
+                });
+
+                // 카드의 기존 고정 별점도 리뷰 기반으로 갱신
+                document.querySelectorAll('.profile-card').forEach(function(card) {
+                    var nameEl = card.querySelector('.profile-card__name');
+                    if (!nameEl) return;
+                    var scoreEl = card.querySelector('.profile-card__score');
+                    var starsEl = card.querySelector('.profile-card__stars');
+                    if (!scoreEl || !starsEl) return;
+                    var member = members.find(function(m2) { return m2.name === nameEl.textContent.trim(); });
+                    if (!member || !ratingMap[member.id]) return;
+                    var r2 = ratingMap[member.id];
+                    var avg2 = (r2.total / r2.count).toFixed(1);
+                    scoreEl.textContent = avg2;
+                    var s2 = '';
+                    for (var j = 0; j < 5; j++) s2 += j < Math.round(parseFloat(avg2)) ? '★' : '☆';
+                    starsEl.textContent = s2;
                 });
             } catch(e) { console.warn('DB 리뷰 로드 실패:', e); }
         })();

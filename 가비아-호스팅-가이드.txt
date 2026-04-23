@@ -1,0 +1,201 @@
+========================================
+ 콘텐츄어 가비아 웹호스팅 이전 가이드
+========================================
+
+■ 현재 시스템 구조
+
+- 프론트엔드: 순수 HTML/CSS/JS (정적 사이트)
+- 데이터베이스/인증: Supabase 클라우드 (외부 API)
+- 결제: PortOne (외부 API)
+- 서버 함수: Supabase Edge Functions (외부)
+
+→ HTML 파일만 호스팅 서버에 업로드하면 됩니다.
+→ DB, 인증, 결제는 외부 클라우드이므로 호스팅과 무관하게 작동합니다.
+
+
+========================================
+ 1단계: 가비아 웹호스팅 신청
+========================================
+
+1. 가비아 홈페이지 (gabia.com) 접속 → 로그인
+2. 호스팅 → 웹호스팅 선택
+3. 추천: 리눅스 웹호스팅 Basic (가장 저렴, 정적 사이트에 충분)
+4. 도메인 연결 (예: contentour.co.kr)
+   - 도메인이 있으면 기존 도메인 연결
+   - 없으면 가비아에서 신규 도메인 등록
+
+
+========================================
+ 2단계: FTP 접속 정보 확인
+========================================
+
+호스팅 신청 완료 후:
+1. 가비아 마이페이지 → 호스팅 관리
+2. FTP 접속 정보 확인:
+   - FTP 주소: (예: ftp.contentour.co.kr)
+   - FTP 아이디: (호스팅 신청 시 설정)
+   - FTP 비밀번호: (호스팅 신청 시 설정)
+   - 포트: 21
+
+
+========================================
+ 3단계: FTP 업로드 (FileZilla 사용)
+========================================
+
+■ FileZilla 설치
+- 다운로드: https://filezilla-project.org
+- 무료 프로그램
+
+■ 접속 방법
+1. FileZilla 실행
+2. 상단 바에 FTP 정보 입력 → [빠른 연결] 클릭
+3. 서버 측에서 www 또는 html 폴더로 이동
+
+■ 업로드 대상 파일 목록
+
+[HTML 페이지]
+  index.html                    — 홈페이지
+  admin-dashboard.html          — 관리자 대시보드
+  customer-dashboard.html       — 고객사 대시보드
+  interpreter-dashboard.html    — 통역사 대시보드
+  client-auth.html              — 고객사/통역사 로그인·가입
+  client-auth-mobile.html       — 모바일 로그인
+  login.html                    — 관리자 로그인
+  interpreter-apply.html        — 통역사 지원서
+  interpreters.html             — 통역사 소개
+  admin-interpreters.html       — 통역사 관리
+  portal.html                   — 통역운영 포털 소개
+  support.html                  — 전시회 지원 소개
+  performance.html              — 성과 페이지
+  video.html                    — 현장리뷰 영상
+  terms.html                    — 이용약관
+  signup.html                   — 파트너 회원가입
+  404.html                      — 404 에러 페이지
+
+[JavaScript]
+  supabase-config.js            — Supabase DB 연결 설정
+  shared-constants.js           — 공유 상수
+  interpreter-app.js            — 통역사 대시보드 로직
+  admin-data.js                 — 관리자 데이터 레이어
+  payment-data.js               — 결제 연동
+  chat-data.js                  — 채팅 데이터
+  interpreter-data.js           — 통역사 데이터
+  script.js                     — 공통 스크립트
+
+[CSS]
+  styles.css                    — 공통 스타일
+  design-tokens.css             — 디자인 토큰 (색상, 폰트)
+  admin-dashboard.css           — 관리자 스타일
+  customer-dashboard.css        — 고객사 스타일
+  interpreter-dashboard.css     — 통역사 스타일
+  client-auth.css               — 로그인 스타일
+
+[폴더]
+  assets/                       — 로고 이미지 (logo.png, footer_logo.png)
+
+[서버 설정]
+  .htaccess                     — Apache 서버 설정 (아래 4단계 참조)
+
+
+■ 업로드 제외 대상 (올리지 않는 파일)
+
+  .git/                         — Git 버전관리 폴더
+  .vercel/                      — Vercel 배포 설정
+  vercel.json                   — Vercel 전용 설정
+  node_modules/                 — (있을 경우) npm 패키지
+  UPDATE-LOG-*.txt              — 내부 작업 로그
+  TODO-향후작업.txt              — 내부 메모
+  프로젝트-작업요약.txt           — 내부 문서
+  가비아-호스팅-가이드.txt        — 이 파일 (가이드)
+  WORK_LOG.txt                  — 내부 작업 로그
+
+
+========================================
+ 4단계: .htaccess 파일 생성 및 업로드
+========================================
+
+가비아는 Apache 서버이므로 .htaccess 파일이 필요합니다.
+아래 내용으로 .htaccess 파일을 만들어 www 폴더 최상위에 업로드하세요.
+
+--- .htaccess 파일 내용 시작 ---
+
+# Clean URLs (.html 확장자 없이 접속 가능)
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [L]
+
+# 캐시 무효화 (항상 최신 버전 로드)
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|js|css)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# 커스텀 404 페이지
+ErrorDocument 404 /404.html
+
+# HTTPS 강제 리다이렉트
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+--- .htaccess 파일 내용 끝 ---
+
+
+========================================
+ 5단계: SSL 인증서 설정 (필수)
+========================================
+
+Supabase, PortOne API는 HTTPS에서만 정상 작동합니다.
+
+1. 가비아 마이페이지 → 호스팅 관리 → 보안 인증서(SSL)
+2. 무료 SSL (Let's Encrypt) 또는 유료 SSL 설치
+3. 설치 후 https://도메인 으로 접속 확인
+
+※ SSL 미설치 시 로그인, 결제 등 모든 API 기능이 작동하지 않습니다.
+
+
+========================================
+ 6단계: 업로드 후 확인 체크리스트
+========================================
+
+[ ] https://도메인/ — 홈페이지 정상 로드
+[ ] https://도메인/client-auth — 고객사/통역사 로그인 페이지
+[ ] https://도메인/admin-dashboard — 관리자 로그인 화면
+[ ] 관리자 로그인 테스트 (cosmos@contentour.co.kr / 7460ko979@@)
+[ ] 고객사 로그인 테스트 (hana@contentour.co.kr / 7460Ko979@@)
+[ ] CSS 정상 로드 (디자인 깨짐 없는지)
+[ ] 이미지 로드 (로고 등)
+[ ] Supabase DB 연동 (문의 목록 등 데이터 표시)
+[ ] 404 페이지 (존재하지 않는 URL 접속 시)
+
+
+========================================
+ 참고: 도메인 변경 시 추가 작업
+========================================
+
+Vercel(contentour-landing.vercel.app)에서 자체 도메인으로 변경할 경우:
+
+1. Supabase 대시보드 → Authentication → URL Configuration
+   - Site URL을 새 도메인으로 변경
+   - Redirect URLs에 새 도메인 추가
+
+2. PortOne 관리자 → 결제 채널 설정
+   - 허용 도메인에 새 도메인 추가
+
+3. Google OAuth 사용 시
+   - Google Cloud Console → 승인된 리다이렉트 URI 변경
+
+
+========================================
+ 현재 계정 정보
+========================================
+
+- 관리자: cosmos@contentour.co.kr / 7460ko979@@
+- 고객사: hana@contentour.co.kr / 7460Ko979@@
+- 통역사: hana.kim@contentour.co.kr / 7460KO979@@
+
+- 배포 URL: https://contentour-landing.vercel.app
+- Supabase: https://yvtgfieoeoqhfbofzunk.supabase.co
