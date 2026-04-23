@@ -23,6 +23,9 @@
   <script src="payment-data.js"></script>
 </head>
 <body>
+  <div class="sb-toggle" onclick="toggleSidebarCollapse()" title="사이드바 접기/펼치기">
+      <div class="sb-toggle__arrow"></div>
+  </div>
   <aside class="sidebar" id="sidebar">
     <a class="sidebar__logo" href="/" target="_blank" style="text-decoration:none;color:inherit;">
       <div class="sidebar__logo-mark">
@@ -244,7 +247,7 @@
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <div class="search-wrap"><span class="search-icon">&#128269;</span><input type="text" placeholder="전시회명 검색..." oninput="filterList(this.value)"></div>
             <select class="filter-select" onchange="filterStatus(this.value)">
-              <option value="">전체 상태</option><option value="검토중">검토 중</option><option value="매칭완료">통역사 매칭 완료</option><option value="견적거절">견적 거절</option><option value="파견확정">파견 확정</option><option value="완료">완료</option>
+              <option value="">전체 상태</option><option value="검토중">검토 중</option><option value="견적도착">견적 도착</option><option value="견적거절">견적 거절</option><option value="파견확정">파견 확정</option><option value="완료">완료</option>
             </select>
           </div>
           <button class="btn-primary" onclick="switchView('inquiry')" style="white-space:nowrap;">+ 새 문의 접수</button>
@@ -359,6 +362,8 @@
                 <div class="j-field"><label>전시회명 *</label>
                   <input type="text" id="j-expo" placeholder="전시회명 또는 국가를 입력하세요" autocomplete="off">
                   <input type="hidden" id="j-expo-data">
+                  <input type="hidden" id="j-contract-id">
+                  <input type="hidden" id="j-interpreter-id">
                 </div>
                 <div class="j-field"><label>작성 날짜 *</label><input type="date" id="j-date"></div>
                 <div class="j-field"><label>개최지</label><input type="text" id="j-location" placeholder="자동 입력" readonly style="background:#f0f5ff;"></div>
@@ -1078,14 +1083,14 @@
             try {
                 var { data: myContracts } = await window.sbClient
                     .from('42_통역계약')
-                    .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, interpreter_accepted, 01_회원!42_통역계약_interpreter_id_fkey(name)')
+                    .select('id, exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, interpreter_accepted, 01_회원!42_통역계약_interpreter_id_fkey(name)')
                     .eq('customer_id', user.id);
 
                 // JOIN 실패 시 fallback
                 if (!myContracts) {
                     var res2 = await window.sbClient
                         .from('42_통역계약')
-                        .select('exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, interpreter_accepted')
+                        .select('id, exhibition_name, venue, start_date, end_date, language_pair, interpreter_id, interpreter_accepted')
                         .eq('customer_id', user.id);
                     myContracts = res2.data || [];
                 }
@@ -1116,7 +1121,9 @@
                             period: period,
                             interp: interp,
                             lang: ct.language_pair || '',
-                            dataVal: [ct.exhibition_name, ct.venue || '', period, interp, ct.language_pair || ''].join('|')
+                            contractId: ct.id || '',
+                            interpreterId: ct.interpreter_id || '',
+                            dataVal: [ct.exhibition_name, ct.venue || '', period, interp, ct.language_pair || '', ct.id || '', ct.interpreter_id || ''].join('|')
                         };
                     });
                 }
@@ -1259,10 +1266,10 @@
                         .limit(5);
 
                     if (!notifs || notifs.length === 0) {
-                        notiEl.innerHTML = '<div style="color:#9daec8;padding:10px 0;">새로운 알림이 없습니다.</div>';
+                        notiEl.innerHTML = '<div style="color:#9daec8;padding:10px 0;">새로운 알림이 없습��다.</div>';
                     } else {
                         notiEl.innerHTML = notifs.map(function(n) {
-                            var iconMap = { system: '&#128276;', service: '&#128203;', payment: '&#128179;', contract: '&#128196;', chat: '&#128172;', assignment: '&#128203;', settlement: '&#128176;' };
+                            var iconMap = { system: '&#128276;', service: '&#128203;', payment: '&#128179;', contract: '&#128196;', chat: '&#128172;', assignment: '&#129309;', quote: '&#128232;', inquiry: '&#128233;', settlement: '&#128176;' };
                             var icon = iconMap[n.notification_type] || '&#128276;';
                             var timeAgo = getTimeAgo(n.created_at);
                             return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f4f6fb;' + (n.is_read ? 'opacity:0.6;' : '') + '">' +
@@ -1291,7 +1298,7 @@
 
     // 캘린더 데이터
     const schData = [];
-    const schStatusColor = { '파견확정':'#1565c0', '매칭완료':'#f57c00', '검토중':'#9daec8' };
+    const schStatusColor = { '파견확정':'#1565c0', '견적도착':'#f57c00', '검토중':'#9daec8' };
     // ══════════════ Google Calendar 연동 ══════════════
     function addToGoogleCal(title, location, start, end, time, lang, client) {
       var s = start.replace(/-/g, '') + 'T' + (time ? time.split('~')[0].trim().replace(':', '') + '00' : '090000');
@@ -1337,7 +1344,7 @@
             // schData 배열에 데이터 추가
             var statusMap = {
                 pending: '검토중',
-                deposit_paid: '매칭완료',
+                deposit_paid: '견적도착',
                 in_progress: '파견확정',
                 completed: '파견확정',
                 settled: '파견확정',
@@ -1345,7 +1352,7 @@
             };
             var statusClsMap = {
                 '파견확정': 'st-confirmed',
-                '매칭완료': 'st-matched',
+                '견적도착': 'st-matched',
                 '검토중': 'st-review'
             };
             var colors = ['#1565c0','#0277bd','#00695c','#6a1b9a','#c62828','#2e7d32','#e65100','#4527a0'];
@@ -1468,6 +1475,13 @@
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('open'); }
     function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+    function toggleSidebarCollapse() {
+        document.body.classList.toggle('sb-collapsed');
+        localStorage.setItem('cust-sb-collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
+    }
+    if (localStorage.getItem('cust-sb-collapsed') === '1') {
+        document.body.classList.add('sb-collapsed');
+    }
 
     // 해시 라우팅 초기화
     (function() {
@@ -1520,6 +1534,18 @@
             console.error('문의 저장 실패:', error);
             showJToast('&#9888;&#65039; 문의 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             return;
+          }
+
+          // 고객 본인에게 문의 접수 완료 알림
+          if (user) {
+            var expoName = document.getElementById('f-expo').value;
+            await window.sbClient.from('24_알림').insert({
+              user_id: user.id,
+              notification_type: 'inquiry',
+              title: '📩 문의가 접수되었습니다',
+              message: '"' + expoName + '" 건의 통역 문의가 정상 접수되었습니다. 관리자 검토 후 견적서를 보내드립니다.',
+              is_read: false
+            }).then(function() {}).catch(function() {});
           }
         } catch (e) {
           console.error('문의 저장 예외:', e);
@@ -1648,7 +1674,7 @@
     function clearJournal() {
       document.getElementById('j-expo').value = '';
       document.getElementById('j-date').value = new Date().toISOString().split('T')[0];
-      ['j-location','j-period','j-interp','j-lang'].forEach(id => document.getElementById(id).value = '');
+      ['j-location','j-period','j-interp','j-lang','j-contract-id','j-interpreter-id'].forEach(id => document.getElementById(id).value = '');
       ['j-total','j-contract','j-sample','j-follow'].forEach(id => document.getElementById(id).value = '0');
       ['j-summary','j-result','j-issue','j-action','j-eval'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
       document.querySelectorAll('.j-tag').forEach(t => t.classList.remove('selected'));
@@ -1663,6 +1689,8 @@
       document.getElementById('j-period').value = parts[2] || '';
       document.getElementById('j-interp').value = parts[3] || '';
       document.getElementById('j-lang').value = parts[4] || '';
+      document.getElementById('j-contract-id').value = parts[5] || '';
+      document.getElementById('j-interpreter-id').value = parts[6] || '';
     }
     async function saveJournal(type) {
       const expoInput = document.getElementById('j-expo').value;
@@ -1696,8 +1724,9 @@
         try {
           var user = await ContentourAuth.getCurrentUser();
           if (user) {
+            var jInterpId = document.getElementById('j-interpreter-id').value || null;
             var journalRecord = {
-              interpreter_id: user.id,
+              interpreter_id: jInterpId || user.id,
               customer_id: user.id,
               exhibition_name: expoName || '',
               consultation_date: date,
@@ -1725,6 +1754,39 @@
               var { data: newJ, error: insErr } = await window.sbClient.from('44_상담일지').insert(journalRecord).select('id').single();
               if (insErr) { console.error('상담일지 INSERT 실패:', insErr); showJToast('&#9888;&#65039; DB 저장 실패: ' + insErr.message); }
               else if (newJ) activeJournalId = newJ.id;
+            }
+
+            // 제출 시 통역사 현장 평가 → 49_통역사리뷰에 저장
+            if (type === 'complete' && starValues.overall > 0) {
+              var jContractId = document.getElementById('j-contract-id').value;
+              var jInterpreterId = document.getElementById('j-interpreter-id').value;
+              if (jContractId && jInterpreterId) {
+                try {
+                  var evalText = (document.getElementById('j-eval') || {}).value || '';
+                  var { error: revErr } = await window.sbClient.from('49_통역사리뷰').upsert({
+                    contract_id: jContractId,
+                    customer_id: user.id,
+                    interpreter_id: jInterpreterId,
+                    exhibition_name: expoName || '',
+                    rating_expertise: starValues.term || 0,
+                    rating_manner: starValues.manner || 0,
+                    rating_communication: starValues.comm || 0,
+                    rating_overall: starValues.overall || 0,
+                    review_text: evalText || null,
+                    is_public: true
+                  }, { onConflict: 'contract_id,customer_id' });
+                  if (revErr) console.warn('통역사 평가 저장 실패:', revErr);
+
+                  // 통역사에게 평가 알림 발송
+                  await window.sbClient.from('24_알림').insert({
+                    user_id: jInterpreterId,
+                    notification_type: 'service',
+                    title: '⭐ 고객사로부터 현장 평가를 받았습니다',
+                    message: '"' + (expoName || '') + '" 건에 대한 현장 평가가 등록되었습니다. 전반적 만족도: ' + starValues.overall + '/5점',
+                    is_read: false
+                  }).then(function(){}).catch(function(){});
+                } catch(revE) { console.warn('통역사 평가 저장 예외:', revE); }
+              }
             }
           }
         } catch(e) { console.error('상담일지 DB 저장 실패:', e); showJToast('&#9888;&#65039; DB 저장 중 오류 발생'); }
@@ -3301,12 +3363,12 @@
         myInquiriesFromDB = data;
 
         // 요약 카드 & 네비 배지 업데이트
-        var statusMap0 = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
+        var statusMap0 = { '접수': '검토중', '검토중': '검토중', '견적발송': '견적도착', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
         var cnt = { total: data.length, pending: 0, matched: 0, confirmed: 0 };
         data.forEach(function(d) {
           var s = statusMap0[d.status] || d.status;
           if (s === '검토중') cnt.pending++;
-          else if (s === '매칭완료') cnt.matched++;
+          else if (s === '견적도착') cnt.matched++;
           else if (s === '파견확정') cnt.confirmed++;
         });
         var el;
@@ -3321,9 +3383,9 @@
         var listEl = document.getElementById('inquiryList');
         if (!listEl) return;
 
-        var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
-        var statusClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '견적거절': 'sb-rejected', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
-        var statusBarMap = { '검토중': 'status-pending', '매칭완료': 'status-matched', '견적거절': 'status-rejected', '파견확정': 'status-confirmed', '완료': 'status-complete' };
+        var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '견적도착', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
+        var statusClassMap = { '검토중': 'sb-pending', '견적도착': 'sb-matched', '견적거절': 'sb-rejected', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
+        var statusBarMap = { '검토중': 'status-pending', '견적도착': 'status-matched', '견적거절': 'status-rejected', '파견확정': 'status-confirmed', '완료': 'status-complete' };
 
         var cardsHtml = data.map(function(d, idx) {
           var st = statusMap[d.status] || d.status;
@@ -3396,9 +3458,9 @@
     function openDbInquiryModal(idx) {
       var d = myInquiriesFromDB[idx];
       if (!d) return;
-      var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '매칭완료', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
+      var statusMap = { '접수': '검토중', '검토중': '검토중', '견적발송': '견적도착', '견적거절': '견적거절', '계약진행': '파견확정', '완료': '완료' };
       var st = statusMap[d.status] || d.status;
-      var stClassMap = { '검토중': 'sb-pending', '매칭완료': 'sb-matched', '견적거절': 'sb-rejected', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
+      var stClassMap = { '검토중': 'sb-pending', '견적도착': 'sb-matched', '견적거절': 'sb-rejected', '파견확정': 'sb-confirmed', '완료': 'sb-complete' };
       var serviceTypeMap = { 'BOOTH': '부스 상주', 'MEETING': '미팅 동행', 'CONFERENCE': '컨퍼런스', 'OTHER': '기타' };
       document.getElementById('modalTitle').textContent = d.exhibition_name;
       var badgeEl = document.getElementById('modalStatusBadge');
@@ -3532,9 +3594,12 @@
       document.getElementById('quoteDetailOverlay').classList.remove('open');
     }
 
+    var _acceptingQuote = false;
     async function acceptQuote(quoteId) {
+      if (_acceptingQuote) return; // 중복 클릭 방지
+      _acceptingQuote = true;
       var q = receivedQuotes.find(function(x) { return x.quoteId === quoteId; });
-      if (!q || q.status !== 'sent') return;
+      if (!q || q.status !== 'sent') { _acceptingQuote = false; return; }
       q.status = 'accepted';
       var todayStr = new Date().toISOString().split('T')[0];
 
@@ -3543,6 +3608,16 @@
       if (window.sbClient) {
         try {
           var user = await ContentourAuth.getCurrentUser();
+          // DB 중복 체크: 같은 고객+전시회명으로 이미 계약이 있는지 확인
+          var { data: existing } = await window.sbClient.from('42_통역계약')
+            .select('id')
+            .eq('customer_id', user ? user.id : '')
+            .eq('exhibition_name', q.expo)
+            .limit(1);
+          if (existing && existing.length > 0) {
+            dbContractId = existing[0].id;
+            _acceptingQuote = false;
+          } else {
           var fee = q.platformFee || Math.round(q.subtotal * 0.1);
           var { data: insertData, error: insertErr } = await window.sbClient.from('42_통역계약').insert({
             customer_id: user ? user.id : null,
@@ -3568,10 +3643,12 @@
 
           if (insertErr) console.error('계약 DB 생성 실패:', insertErr);
           else if (insertData) dbContractId = insertData.id;
+          } // else 블록 닫기 (중복 체크)
         } catch (e) {
           console.error('계약 DB 생성 예외:', e);
         }
       }
+      _acceptingQuote = false;
 
       // Create a new contract from the quote — starts at contract_sign
       var newContract = {
@@ -3598,7 +3675,13 @@
           { step: '정산 완료', date: '', done: false }
         ]
       };
-      contracts.push(newContract);
+      // 중복 방지: 같은 ID의 계약이 이미 있으면 추가하지 않음
+      var existingIdx = contracts.findIndex(function(x) { return x.id === newContract.id || (x.dbId && x.dbId === newContract.dbId); });
+      if (existingIdx >= 0) {
+        contracts[existingIdx] = newContract;
+      } else {
+        contracts.push(newContract);
+      }
 
       // 문의 상태를 '계약진행'으로 업데이트 → 문의 현황에서 자동 반영
       if (window.sbClient && q.inquiryId) {
@@ -3801,6 +3884,7 @@
                 settled: '정산 완료'
             };
 
+            contracts.length = 0;
             contracts = data.map(function(d) {
                 var uiStatus = uiStatusMap[d.status] || d.status;
                 // 세부 상태 결정
