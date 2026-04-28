@@ -142,15 +142,13 @@
         </section>
 
         <!-- ③ 고객 후기 -->
-        <section class="testimonials-section">
+        <section class="testimonials-section" id="testimonialsSection" style="display:none;">
             <div class="testimonials-inner">
                 <p class="testimonials-eyebrow">Client Reviews</p>
                 <h2 class="testimonials-title">고객사가 직접 전하는 <strong>현장 후기</strong></h2>
                 <p class="testimonials-sub">콘텐츄어와 함께한 고객사 담당자분들의 실제 이용 후기입니다.</p>
 
-                <div class="testimonials-grid" id="testimonialsGrid">
-                    <div style="padding:30px;text-align:center;color:#8a95a8;grid-column:1/-1;">후기를 불러오는 중...</div>
-                </div>
+                <div class="testimonials-grid" id="testimonialsGrid"></div>
             </div>
         </section>
 
@@ -217,22 +215,15 @@
         })();
     </script>
     <script>
-        // ═══ DB 후기 로드 (샘플 폴백) ═══
+        // ═══ DB 후기 로드 (실제 리뷰 없으면 섹션 숨김) ═══
         (async function loadReviews() {
             var grid = document.getElementById('testimonialsGrid');
+            var section = document.getElementById('testimonialsSection');
             if (!grid) return;
 
             var avatarColors = [
                 ['#1565c0','#42a5f5'], ['#00695c','#26a69a'], ['#6a1b9a','#ab47bc'],
                 ['#e65100','#ff9800'], ['#c62828','#ef5350'], ['#283593','#5c6bc0']
-            ];
-
-            // 샘플 후기 (DB에 없을 때 폴백)
-            var samples = [
-                { customer_name:'김○○', customer_company:'의료기기 제조사', review_text:'독일 MEDICA 전시회에서 3일간 통역을 맡겨봤는데, 의료기기 전문 용어까지 완벽하게 소화해주셨어요. 덕분에 바이어 미팅 12건 중 8건이 샘플 요청으로 이어졌습니다.', rating_overall:5, exhibition_name:'독일 MEDICA 2025' },
-                { customer_name:'박○○', customer_company:'친환경 소재기업', review_text:'일본 전시회 참가가 처음이라 걱정했는데, 통역사분이 부스 세팅부터 상담까지 전부 도와주셨어요. 현지 비즈니스 매너까지 코칭해주셔서 정말 큰 도움이 됐습니다.', rating_overall:5, exhibition_name:'일본 FOODEX 2025' },
-                { customer_name:'이○○', customer_company:'스마트팩토리 기업', review_text:'중국 바이어와의 기술 미팅에서 전문 통역이 필수였는데, 콘텐츄어 덕분에 계약 조건 협상까지 매끄럽게 진행됐습니다. 견적 응답도 당일에 와서 일정 조율이 수월했어요.', rating_overall:5, exhibition_name:'중국 Canton Fair 2025' },
-                { customer_name:'최○○', customer_company:'식품 수출기업', review_text:'베트남 호치민 전시회에 급하게 통역사가 필요했는데, 의뢰 후 하루 만에 현지 경력 5년차 통역사를 매칭해주셨어요. 현장 대응력이 인상적이었습니다.', rating_overall:5, exhibition_name:'베트남 VIETNAM EXPO 2025' }
             ];
 
             function renderStars(rating) {
@@ -263,7 +254,6 @@
                 var res = await fetch('/api/reviews');
                 if (!res.ok) throw new Error('API ' + res.status);
                 var reviews = await res.json();
-                // 필드명 매핑 + 이름 마스킹
                 reviews = reviews.map(function(r) {
                     var name = r._customerName || '고객';
                     var masked = name.length >= 2 ? name[0] + '○'.repeat(name.length - 1) : name;
@@ -271,12 +261,13 @@
                 });
                 if (reviews && reviews.length > 0) {
                     renderCards(reviews);
+                    if (section) section.style.display = '';
                 } else {
-                    renderCards(samples);
+                    if (section) section.style.display = 'none';
                 }
             } catch(e) {
-                console.warn('후기 DB 로드 실패, 샘플 표시:', e);
-                renderCards(samples);
+                console.warn('후기 DB 로드 실패:', e);
+                if (section) section.style.display = 'none';
             }
         })();
     </script>
