@@ -3727,7 +3727,7 @@ section {
 .svc-hero__cta:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2); }
 
 /* 서비스 이용 흐름 타임라인 */
-.svc-flow { padding:80px 24px;background:#eef3fa;position:relative; }
+.svc-flow { padding:80px 24px;background:#fff;position:relative; }
 .svc-flow::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(21,101,192,0.06) 0%,transparent 60%);pointer-events:none; }
 .svc-flow__inner { max-width:1100px;margin:0 auto;position:relative;z-index:1; }
 .svc-flow .svc-section-eyebrow { color:var(--blue); }
