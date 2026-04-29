@@ -107,7 +107,9 @@
             .photo-gallery { grid-template-columns: 1fr 1fr; }
             .hero-image { height: 220px; }
         }
+        img.emoji{height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-0.1em;display:inline-block;}
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <div id="detailContent">
@@ -311,6 +313,7 @@
                 html += '</div>'; // detail-main
 
                 container.innerHTML = html;
+                if (window.twemoji) twemoji.parse(container);
 
                 // ═══ 리뷰 로드 & 작성 폼 ═══
                 loadCaseReviews(c.exhibition_name, c.interpreter_id);

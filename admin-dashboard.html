@@ -3547,7 +3547,10 @@
     .app-refresh-btn:hover{border-color:#1565c0;color:#1565c0;background:#f0f5ff;}
     .app-card-item{background:#fff;border:1.5px solid #e5eaf2;border-radius:14px;padding:20px 24px;cursor:pointer;transition:all 0.15s;}
     .app-card-item:hover{border-color:#1565c0;box-shadow:0 4px 16px rgba(21,101,192,0.1);}
+    img.emoji{height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-0.1em;display:inline-block;}
+    .flag-preview img.emoji{height:1.2em;width:1.2em;vertical-align:middle;margin:0;}
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -4016,7 +4019,10 @@
                             <h2>🏆 성과사례 관리</h2>
                             <p style="color:#666;font-size:0.85rem;">성과사례 페이지에 표시될 고객사례를 관리합니다.</p>
                         </div>
-                        <button onclick="openCaseForm()" style="padding:10px 20px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;">+ 새 사례 등록</button>
+                        <div style="display:flex;gap:8px;">
+                            <button onclick="deleteAllCases()" style="padding:10px 16px;background:#fff;color:#c62828;border:1.5px solid #ffcdd2;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;">🗑️ 전체 삭제</button>
+                            <button onclick="openCaseForm()" style="padding:10px 20px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;cursor:pointer;">+ 새 사례 등록</button>
+                        </div>
                     </div>
                     <div id="caseAdminList" style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">
                         <div style="padding:40px;text-align:center;color:#8a95a8;">사례를 불러오는 중...</div>
@@ -4059,8 +4065,13 @@
                                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                                     <div class="cf-field"><label>고객사명 <span style="color:#c62828;">*</span></label><input type="text" id="cfCompany" placeholder="예: 태림산업"></div>
                                     <div class="cf-field"><label>전시회명 <span style="color:#c62828;">*</span></label><input type="text" id="cfExpo" placeholder="예: Nano Tech 2026"></div>
-                                    <div class="cf-field"><label>국가 <span style="color:#c62828;">*</span></label><input type="text" id="cfCountry" placeholder="예: 일본"></div>
-                                    <div class="cf-field"><label>국기 이모지</label><input type="text" id="cfFlag" placeholder="예: 🇯🇵" value="🌐"></div>
+                                    <div class="cf-field"><label>국가 <span style="color:#c62828;">*</span></label><input type="text" id="cfCountry" placeholder="예: 일본" oninput="autoFillCountryFlag()" onchange="autoFillCountryFlag()" onblur="autoFillCountryFlag()" oncompositionend="autoFillCountryFlag()"></div>
+                                    <div class="cf-field"><label>국기 <span style="font-size:0.7rem;color:#999;font-weight:500;">(국가 입력 시 자동)</span></label>
+                                        <div style="display:flex;gap:8px;align-items:stretch;">
+                                            <input type="text" id="cfFlag" placeholder="🌐" value="🌐" oninput="updateFlagPreview()" style="flex:1;font-size:1rem;text-align:center;">
+                                            <div id="cfFlagPreview" class="flag-preview" style="width:48px;border:1.5px solid #dde3ed;border-radius:10px;background:#f8fafc;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🌐</div>
+                                        </div>
+                                    </div>
                                     <div class="cf-field"><label>전시 시기 <span style="color:#c62828;">*</span></label><input type="text" id="cfDate" placeholder="예: 2026.02"></div>
                                     <div class="cf-field"><label>통역 유형 <span style="color:#c62828;">*</span></label>
                                         <select id="cfType"><option value="부스 통역">부스 통역</option><option value="미팅 통역">미팅 통역</option><option value="현장 통역">현장 통역</option><option value="동시통역">동시통역</option><option value="수행 통역">수행 통역</option></select>
@@ -4071,9 +4082,25 @@
                             <!-- 통역사 정보 -->
                             <div style="background:#f0f7f0;border-radius:12px;padding:18px;margin-bottom:20px;border:1px solid #c8e6c9;">
                                 <div style="font-size:0.82rem;font-weight:700;color:#2e7d32;margin-bottom:14px;">통역사 정보</div>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                                    <div class="cf-field"><label>통역사명</label><input type="text" id="cfInterpreter" placeholder="예: 고하나"></div>
-                                    <div class="cf-field"><label>산업 분야</label><input type="text" id="cfIndustry" placeholder="예: 의료기기"></div>
+                                <div style="display:flex;gap:14px;align-items:flex-start;">
+                                    <div style="flex-shrink:0;">
+                                        <label style="font-size:0.78rem;font-weight:700;color:#555;margin-bottom:5px;display:block;">통역사 사진</label>
+                                        <div id="cfInterpPhotoPreview" onclick="document.getElementById('cfInterpPhotoFile').click()" style="width:90px;height:90px;border:2px dashed #c8e6c9;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#fff;transition:all 0.2s;">
+                                            <div id="cfInterpPhotoPlaceholder" style="text-align:center;">
+                                                <div style="font-size:1.5rem;">👤</div>
+                                                <div style="font-size:0.62rem;color:#999;margin-top:2px;">업로드</div>
+                                            </div>
+                                        </div>
+                                        <input type="file" id="cfInterpPhotoFile" accept="image/*" onchange="previewInterpPhoto(this)" style="display:none;">
+                                        <input type="hidden" id="cfInterpPhoto">
+                                        <div id="cfInterpPhotoActions" style="display:none;margin-top:6px;text-align:center;">
+                                            <button onclick="removeInterpPhoto()" style="padding:4px 8px;background:#ffebee;color:#c62828;border:none;border-radius:6px;font-size:0.68rem;font-weight:600;cursor:pointer;">제거</button>
+                                        </div>
+                                    </div>
+                                    <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start;">
+                                        <div class="cf-field"><label>통역사명</label><input type="text" id="cfInterpreter" placeholder="예: 고하나"></div>
+                                        <div class="cf-field"><label>산업 분야</label><input type="text" id="cfIndustry" placeholder="예: 의료기기"></div>
+                                    </div>
                                 </div>
                                 <div class="cf-field" style="margin-top:14px;"><label>통역사 현장 코멘트</label><textarea id="cfInterpComment" rows="2" placeholder="예: 의료기기 전문 용어를 정확하게 통역하여 바이어 상담이 원활하게 진행되었습니다." style="width:100%;padding:10px 12px;border:1.5px solid #dde3ed;border-radius:10px;font-size:0.85rem;font-family:inherit;box-sizing:border-box;resize:none;outline:none;"></textarea></div>
                             </div>
@@ -7398,6 +7425,94 @@
             // ═══ 성과사례 관리 ═══
             var caseAdminData = [];
 
+            // 국가명 → 국기 이모지 매핑 (한국어 + 주요 영문 별칭)
+            var COUNTRY_FLAG_MAP = {
+                // 동아시아
+                '한국':'🇰🇷','대한민국':'🇰🇷','korea':'🇰🇷','south korea':'🇰🇷',
+                '일본':'🇯🇵','japan':'🇯🇵',
+                '중국':'🇨🇳','china':'🇨🇳',
+                '대만':'🇹🇼','타이완':'🇹🇼','taiwan':'🇹🇼',
+                '홍콩':'🇭🇰','hong kong':'🇭🇰',
+                // 동남아시아
+                '베트남':'🇻🇳','vietnam':'🇻🇳',
+                '태국':'🇹🇭','thailand':'🇹🇭',
+                '싱가포르':'🇸🇬','singapore':'🇸🇬',
+                '말레이시아':'🇲🇾','malaysia':'🇲🇾',
+                '인도네시아':'🇮🇩','indonesia':'🇮🇩',
+                '필리핀':'🇵🇭','philippines':'🇵🇭',
+                '미얀마':'🇲🇲','myanmar':'🇲🇲',
+                '캄보디아':'🇰🇭','cambodia':'🇰🇭',
+                // 남아시아·중동
+                '인도':'🇮🇳','india':'🇮🇳',
+                '아랍에미리트':'🇦🇪','uae':'🇦🇪','두바이':'🇦🇪',
+                '사우디아라비아':'🇸🇦','사우디':'🇸🇦','saudi arabia':'🇸🇦',
+                '카타르':'🇶🇦','qatar':'🇶🇦',
+                '이스라엘':'🇮🇱','israel':'🇮🇱',
+                '터키':'🇹🇷','튀르키예':'🇹🇷','turkey':'🇹🇷',
+                '이란':'🇮🇷','iran':'🇮🇷',
+                // 유럽
+                '독일':'🇩🇪','germany':'🇩🇪',
+                '프랑스':'🇫🇷','france':'🇫🇷',
+                '영국':'🇬🇧','uk':'🇬🇧','united kingdom':'🇬🇧','잉글랜드':'🇬🇧',
+                '이탈리아':'🇮🇹','italy':'🇮🇹',
+                '스페인':'🇪🇸','spain':'🇪🇸',
+                '네덜란드':'🇳🇱','netherlands':'🇳🇱',
+                '벨기에':'🇧🇪','belgium':'🇧🇪',
+                '스위스':'🇨🇭','switzerland':'🇨🇭',
+                '오스트리아':'🇦🇹','austria':'🇦🇹',
+                '스웨덴':'🇸🇪','sweden':'🇸🇪',
+                '노르웨이':'🇳🇴','norway':'🇳🇴',
+                '덴마크':'🇩🇰','denmark':'🇩🇰',
+                '핀란드':'🇫🇮','finland':'🇫🇮',
+                '폴란드':'🇵🇱','poland':'🇵🇱',
+                '체코':'🇨🇿','czech':'🇨🇿',
+                '헝가리':'🇭🇺','hungary':'🇭🇺',
+                '러시아':'🇷🇺','russia':'🇷🇺',
+                '그리스':'🇬🇷','greece':'🇬🇷',
+                '포르투갈':'🇵🇹','portugal':'🇵🇹',
+                '아일랜드':'🇮🇪','ireland':'🇮🇪',
+                // 북·남미
+                '미국':'🇺🇸','usa':'🇺🇸','us':'🇺🇸','united states':'🇺🇸','america':'🇺🇸',
+                '캐나다':'🇨🇦','canada':'🇨🇦',
+                '멕시코':'🇲🇽','mexico':'🇲🇽',
+                '브라질':'🇧🇷','brazil':'🇧🇷',
+                '아르헨티나':'🇦🇷','argentina':'🇦🇷',
+                '칠레':'🇨🇱','chile':'🇨🇱',
+                '콜롬비아':'🇨🇴','colombia':'🇨🇴',
+                '페루':'🇵🇪','peru':'🇵🇪',
+                // 오세아니아·아프리카
+                '호주':'🇦🇺','오스트레일리아':'🇦🇺','australia':'🇦🇺',
+                '뉴질랜드':'🇳🇿','new zealand':'🇳🇿',
+                '남아프리카공화국':'🇿🇦','남아공':'🇿🇦','south africa':'🇿🇦',
+                '이집트':'🇪🇬','egypt':'🇪🇬',
+                '모로코':'🇲🇦','morocco':'🇲🇦',
+                '나이지리아':'🇳🇬','nigeria':'🇳🇬',
+                '케냐':'🇰🇪','kenya':'🇰🇪'
+            };
+
+            function autoFillCountryFlag() {
+                var countryEl = document.getElementById('cfCountry');
+                var flagEl = document.getElementById('cfFlag');
+                if (!countryEl || !flagEl) return;
+                var raw = (countryEl.value || '').trim();
+                var key = raw.toLowerCase();
+                if (!key) { flagEl.value = '🌐'; updateFlagPreview(); return; }
+                var flag = COUNTRY_FLAG_MAP[key];
+                if (flag) flagEl.value = flag;
+                updateFlagPreview();
+            }
+
+            function updateFlagPreview() {
+                var preview = document.getElementById('cfFlagPreview');
+                var flagEl = document.getElementById('cfFlag');
+                if (!preview || !flagEl) return;
+                preview.textContent = flagEl.value || '🌐';
+                if (window.twemoji) twemoji.parse(preview);
+            }
+
+            window.autoFillCountryFlag = autoFillCountryFlag;
+            window.updateFlagPreview = updateFlagPreview;
+
             async function loadAdminCases() {
                 var listEl = document.getElementById('caseAdminList');
                 if (!listEl || !supabase) return;
@@ -7427,11 +7542,12 @@
                             '<div style="font-size:0.75rem;color:#999;margin-top:2px;">' + (c.metric1_label||'') + ' ' + (c.metric1_value||'') + ' | ' + (c.metric2_label||'') + ' ' + (c.metric2_value||'') + '</div>' +
                         '</div>' +
                         '<div style="display:flex;gap:6px;flex-shrink:0;">' +
-                            '<span style="padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;' + (c.is_published ? 'background:#e8f5e9;color:#2e7d32;' : 'background:#f5f5f5;color:#999;') + '">' + (c.is_published ? '공개' : '비공개') + '</span>' +
+                            '<button onclick="event.stopPropagation();togglePublished(\'' + c.id + '\')" title="클릭하여 공개/비공개 전환" style="padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:700;border:none;cursor:pointer;' + (c.is_published ? 'background:#e8f5e9;color:#2e7d32;' : 'background:#f5f5f5;color:#999;') + '">' + (c.is_published ? '공개' : '비공개') + '</button>' +
                             '<button onclick="event.stopPropagation();deleteCase(\'' + c.id + '\')" style="padding:4px 10px;background:#ffebee;color:#c62828;border:none;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">삭제</button>' +
                         '</div>' +
                     '</div>';
                 }).join('');
+                if (window.twemoji) twemoji.parse(listEl);
             }
 
             // 이미지 미리보기
@@ -7457,6 +7573,29 @@
                         '<div style="font-size:0.72rem;color:#999;margin-top:4px;">JPG, PNG (최대 5MB)</div>' +
                     '</div>';
                 document.getElementById('cfImageActions').style.display = 'none';
+            }
+
+            function previewInterpPhoto(input) {
+                if (!input.files || !input.files[0]) return;
+                var file = input.files[0];
+                if (file.size > 5 * 1024 * 1024) { showToast('이미지 크기는 5MB 이하여야 합니다.'); input.value = ''; return; }
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('cfInterpPhotoPreview').innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">';
+                    document.getElementById('cfInterpPhotoActions').style.display = '';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function removeInterpPhoto() {
+                document.getElementById('cfInterpPhotoFile').value = '';
+                document.getElementById('cfInterpPhoto').value = '';
+                document.getElementById('cfInterpPhotoPreview').innerHTML =
+                    '<div id="cfInterpPhotoPlaceholder" style="text-align:center;">' +
+                        '<div style="font-size:1.5rem;">👤</div>' +
+                        '<div style="font-size:0.62rem;color:#999;margin-top:2px;">업로드</div>' +
+                    '</div>';
+                document.getElementById('cfInterpPhotoActions').style.display = 'none';
             }
 
             async function uploadCaseImage(file) {
@@ -7520,6 +7659,8 @@
                 document.getElementById('cfSort').value = caseAdminData.length + 1;
                 document.getElementById('cfPublished').checked = true;
                 removeCaseImage();
+                removeInterpPhoto();
+                updateFlagPreview();
                 pendingPhotos = [];
                 existingPhotos = [];
                 renderPhotoPreviews();
@@ -7539,6 +7680,7 @@
                 document.getElementById('cfExpo').value = c.exhibition_name || '';
                 document.getElementById('cfCountry').value = c.country || '';
                 document.getElementById('cfFlag').value = c.country_flag || '🌐';
+                updateFlagPreview();
                 document.getElementById('cfDate').value = c.exhibition_date || '';
                 document.getElementById('cfType').value = c.case_type || '부스 통역';
                 document.getElementById('cfInterpreter').value = c.interpreter_name || '';
@@ -7568,6 +7710,16 @@
                 } else {
                     removeCaseImage();
                 }
+
+                // 통역사 사진 미리보기
+                document.getElementById('cfInterpPhotoFile').value = '';
+                document.getElementById('cfInterpPhoto').value = c.interpreter_photo || '';
+                if (c.interpreter_photo) {
+                    document.getElementById('cfInterpPhotoPreview').innerHTML = '<img src="' + c.interpreter_photo + '" style="width:100%;height:100%;object-fit:cover;">';
+                    document.getElementById('cfInterpPhotoActions').style.display = '';
+                } else {
+                    removeInterpPhoto();
+                }
                 document.getElementById('caseFormOverlay').style.display = 'flex';
             }
 
@@ -7592,6 +7744,16 @@
                     else { showToast('이미지 업로드에 실패했습니다.'); return; }
                 }
 
+                // 통역사 사진 업로드 처리
+                var interpPhotoUrl = document.getElementById('cfInterpPhoto').value;
+                var interpFileInput = document.getElementById('cfInterpPhotoFile');
+                if (interpFileInput.files && interpFileInput.files[0]) {
+                    showToast('통역사 사진 업로드 중...');
+                    var uploadedInterp = await uploadCaseImage(interpFileInput.files[0]);
+                    if (uploadedInterp) interpPhotoUrl = uploadedInterp;
+                    else { showToast('통역사 사진 업로드에 실패했습니다.'); return; }
+                }
+
                 var payload = {
                     title: country + ' ' + expo,
                     client_company: company,
@@ -7601,6 +7763,7 @@
                     exhibition_date: document.getElementById('cfDate').value.trim(),
                     case_type: document.getElementById('cfType').value,
                     interpreter_name: document.getElementById('cfInterpreter').value.trim() || null,
+                    interpreter_photo: interpPhotoUrl || null,
                     industry: document.getElementById('cfIndustry').value.trim() || null,
                     image_url: imageUrl || null,
                     link_url: document.getElementById('cfLink').value.trim() || null,
@@ -7652,6 +7815,41 @@
                     loadAdminCases();
                 } catch(e) {
                     showToast('삭제 실패: ' + e.message);
+                }
+            }
+
+            async function togglePublished(id) {
+                var c = caseAdminData.find(function(x) { return x.id === id; });
+                if (!c) return;
+                var next = !c.is_published;
+                try {
+                    var { error } = await supabase.from('52_성과사례').update({ is_published: next, updated_at: new Date().toISOString() }).eq('id', id);
+                    if (error) throw error;
+                    showToast(next ? '공개로 전환되었습니다.' : '비공개로 전환되었습니다.');
+                    loadAdminCases();
+                } catch(e) {
+                    showToast('전환 실패: ' + e.message);
+                }
+            }
+
+            async function deleteAllCases() {
+                try {
+                    var { data: rows, error: selErr } = await supabase.from('52_성과사례').select('id');
+                    if (selErr) throw selErr;
+                    if (!rows || rows.length === 0) {
+                        showToast('삭제할 사례가 없습니다.');
+                        return;
+                    }
+                    var n = rows.length;
+                    if (!confirm('등록된 성과사례 ' + n + '건을 모두 삭제하시겠습니까?\n\n이 작업은 복구할 수 없습니다.')) return;
+                    if (!confirm('정말 삭제하시겠습니까? (마지막 확인)')) return;
+                    var ids = rows.map(function(r){ return r.id; });
+                    var { error: delErr } = await supabase.from('52_성과사례').delete().in('id', ids);
+                    if (delErr) throw delErr;
+                    showToast(n + '건의 성과사례가 모두 삭제되었습니다.');
+                    loadAdminCases();
+                } catch(e) {
+                    showToast('일괄 삭제 실패: ' + e.message);
                 }
             }
 
@@ -10996,6 +11194,13 @@
                 alert('삭제 실패: ' + e.message);
             }
         }
+        </script>
+        <script>
+            // 전역 Twemoji 적용 (Windows에서 국기 이모지를 이미지로 렌더링)
+            if (window.twemoji) twemoji.parse(document.body);
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.twemoji) twemoji.parse(document.body);
+            });
         </script>
 </body>
 

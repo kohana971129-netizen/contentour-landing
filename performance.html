@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="styles.css?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>img.emoji{height:1em;width:1em;margin:0 .05em 0 .1em;vertical-align:-0.1em;display:inline-block;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -171,7 +173,7 @@
             if (!grid) return;
 
             try {
-                var res = await fetch('/api/cases');
+                var res = await fetch('/api/cases?t=' + Date.now(), { cache: 'no-store' });
                 if (!res.ok) throw new Error('API ' + res.status);
                 var cases = await res.json();
 
@@ -209,6 +211,7 @@
                         '</div>' +
                     '</a>';
                 }).join('');
+                if (window.twemoji) twemoji.parse(grid);
             } catch(e) {
                 console.error('성과사례 로드 실패:', e);
             }
