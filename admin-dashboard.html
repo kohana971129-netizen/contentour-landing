@@ -8371,14 +8371,61 @@
                 w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>통역 서비스 계약서 미리보기</title>');
                 w.document.write('<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}body{font-family:"Montserrat","Noto Sans KR",sans-serif;color:#1a1a1a;background:#f5f5f5;padding:30px;line-height:1.7;}.contract-doc{max-width:800px;margin:0 auto;background:#fff;padding:60px 55px;box-shadow:0 2px 20px rgba(0,0,0,0.08);border-radius:4px;}.doc-header{text-align:center;margin-bottom:40px;border-bottom:3px double #1565c0;padding-bottom:30px;}.doc-header h1{font-size:1.6rem;letter-spacing:6px;color:#1565c0;margin-bottom:8px;}.doc-header p{color:#666;font-size:0.9rem;}table{width:100%;border-collapse:collapse;margin:20px 0;}td,th{padding:12px 16px;border:1px solid #ddd;font-size:0.88rem;}th{background:#f8f9fa;font-weight:700;width:140px;text-align:left;color:#333;}.section-title{font-size:1.05rem;font-weight:800;color:#1565c0;margin:30px 0 12px;padding-left:12px;border-left:4px solid #1565c0;}.amount-highlight{font-size:1.1rem;font-weight:800;color:#1565c0;}.stamp-area{margin-top:50px;display:flex;justify-content:space-around;}.stamp-box{text-align:center;width:200px;}.stamp-box .label{font-weight:700;margin-bottom:15px;font-size:0.95rem;}.stamp-box .line{border-top:2px solid #333;padding-top:8px;font-size:0.85rem;color:#666;}.preview-banner{background:#fff3e0;border:2px solid #ff9800;color:#e65100;text-align:center;padding:12px;font-weight:700;border-radius:8px;margin-bottom:20px;font-size:0.9rem;}</style>');
                 w.document.write('</head><body><div class="contract-doc">');
-                w.document.write('<div class="preview-banner">📋 미리보기 — 아직 생성되지 않은 계약서입니다</div>');
-                w.document.write('<div class="doc-header"><h1>통역 서비스 계약서</h1><p>INTERPRETATION SERVICE CONTRACT</p><p style="margin-top:8px;font-size:0.85rem;">계약일: ' + today + '</p></div>');
+                w.document.write('<div class="preview-banner">📋 미리보기 — 아직 생성되지 않은 계약서입니다 (템플릿 v1.1)</div>');
+                w.document.write('<div class="doc-header"><h1>통역 서비스 계약서</h1><p>INTERPRETATION SERVICE CONTRACT</p><p style="margin-top:8px;font-size:0.85rem;">계약일: ' + today + ' | 템플릿 v1.1</p></div>');
                 var se = { company: _escHtml(company), contact: _escHtml(contact), interpreter: _escHtml(interpreter), expo: _escHtml(expo), location: _escHtml(location || '-'), lang: _escHtml(lang), type: _escHtml(type) };
-                w.document.write('<div class="section-title">제1조 (계약 당사자)</div><table><tr><th>갑 (고객사)</th><td>' + se.company + ' / ' + se.contact + '</td></tr><tr><th>을 (통역사)</th><td>' + se.interpreter + '</td></tr><tr><th>플랫폼</th><td>콘텐츄어 (CONTENTOUR)</td></tr></table>');
-                w.document.write('<div class="section-title">제2조 (서비스 내용)</div><table><tr><th>전시회명</th><td>' + se.expo + '</td></tr><tr><th>개최지</th><td>' + se.location + '</td></tr><tr><th>기간</th><td>' + startDate + ' ~ ' + endDate + ' (' + days + '일)</td></tr><tr><th>통역 언어</th><td>' + se.lang + '</td></tr><tr><th>통역 형태</th><td>' + se.type + '</td></tr></table>');
-                w.document.write('<div class="section-title">제3조 (계약 금액)</div><table><tr><th>일당 단가</th><td>₩' + fmt(rate) + '</td></tr><tr><th>파견 일수</th><td>' + days + '일</td></tr><tr><th>통역 서비스</th><td>₩' + fmt(subtotal) + '</td></tr><tr><th>플랫폼 수수료</th><td>₩' + fmt(fee) + ' (10%)</td></tr><tr><th>총 계약 금액</th><td class="amount-highlight">₩' + fmt(total) + '</td></tr><tr><th>계약금 (10%)</th><td>₩' + fmt(deposit) + '</td></tr><tr><th>잔금 (90%)</th><td>₩' + fmt(balance) + '</td></tr></table>');
-                w.document.write('<div class="section-title">제4조 (결제 조건)</div><p style="font-size:0.88rem;line-height:1.8;padding:0 8px;">1. 계약금은 계약 체결 후 3영업일 이내 납부한다.<br>2. 잔금은 전시회 종료 후 5영업일 이내 납부한다.<br>3. 통역사 정산은 잔금 확인 후 진행한다.</p>');
-                w.document.write('<div class="stamp-area"><div class="stamp-box"><div class="label">갑 (고객사)</div><div style="height:80px;"></div><div class="line">' + se.company + '</div></div><div class="stamp-box"><div class="label">을 (통역사)</div><div style="height:80px;"></div><div class="line">' + se.interpreter + '</div></div></div>');
+
+                // 갑/을/병 3자 정보
+                w.document.write('<div class="section-title">계약 당사자</div>' +
+                    '<table><tr><th>갑 (의뢰인 / 고객사)</th><td>' + se.company + ' / ' + se.contact + '</td></tr></table>' +
+                    '<table><tr><th>을 (서비스 제공자 / 통역사)</th><td>' + se.interpreter + ' (' + se.lang + ')</td></tr></table>' +
+                    '<table><tr><th>병 (중개 플랫폼)</th><td>주식회사 콘텐츄어 (CONTENTOUR Inc.) / 대표 고하나 / service@contentour.com</td></tr></table>');
+
+                // 중개 플랫폼 고지
+                w.document.write('<div style="margin:18px 0;padding:14px 16px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:8px;font-size:0.85rem;color:#5d4037;line-height:1.7;">' +
+                    '<b>📢 중개 플랫폼 고지</b>: 콘텐츄어(병)는 갑과 을 간의 통역 서비스 거래를 중개하는 통신판매중개업자로서, 본 계약의 직접 당사자가 아닙니다. 서비스 이행에 대한 최종 책임은 갑·을 당사자에게 있습니다.' +
+                    '</div>');
+
+                w.document.write('<div class="section-title">제1조 (서비스 내용)</div><table><tr><th>전시회/행사명</th><td>' + se.expo + '</td></tr><tr><th>개최지</th><td>' + se.location + '</td></tr><tr><th>서비스 기간</th><td>' + startDate + ' ~ ' + endDate + ' (' + days + '일)</td></tr><tr><th>통역 언어</th><td>한국어 ↔ ' + se.lang + '</td></tr><tr><th>통역사</th><td>' + se.interpreter + '</td></tr><tr><th>서비스 유형</th><td>' + se.type + '</td></tr></table>');
+
+                w.document.write('<div class="section-title">제2조 (계약 금액)</div><table><tr><th>통역 서비스</th><td>' + days + '일 × ₩' + fmt(rate) + ' = ₩' + fmt(subtotal) + '</td></tr><tr><th>플랫폼 운영 수수료 (10%)</th><td>₩' + fmt(fee) + '</td></tr><tr><th>총 계약 금액</th><td class="amount-highlight">₩' + fmt(total) + '</td></tr></table>');
+
+                w.document.write('<div class="section-title">제3조 (결제 조건)</div><table><tr><th>계약금 (10%)</th><td>₩' + fmt(deposit) + ' — 계약 체결 후 <b>3영업일 이내</b></td></tr><tr><th>잔금 (90%)</th><td>₩' + fmt(balance) + ' — 서비스 종료 후 <b>5영업일 이내</b></td></tr><tr><th>결제 방법</th><td>신용카드, 계좌이체, 가상계좌</td></tr></table>' +
+                    '<p style="font-size:0.82rem;color:#666;margin-top:8px;">※ 모든 결제는 플랫폼을 통해서만 진행되며, 플랫폼 외 직접 결제는 금지됩니다.</p>');
+
+                w.document.write('<div class="section-title">제4조 (서비스 범위 및 의무)</div><p style="font-size:0.85rem;line-height:1.9;padding:0 8px;">' +
+                    '1. "을"은 계약서에 명시된 전시회/행사 기간 동안 전문 통역 서비스를 성실히 제공한다.<br>' +
+                    '2. "을"은 사전에 관련 산업 용어 및 자료를 숙지하여 정확한 통역을 제공한다.<br>' +
+                    '3. "갑"은 원활한 통역을 위해 행사 관련 자료(카탈로그, 용어집 등)를 <b>서비스 시작 3일 전까지</b> "을"에게 제공한다.<br>' +
+                    '4. 통역 서비스 시간은 <b>1일 8시간 기준</b>이며, 초과 근무 발생 시 <b>시간당 통상 단가의 150%</b>를 적용하고, 사전 서면 합의 후 추가 청구한다.<br>' +
+                    '5. "을"은 매일 서비스 종료 후 <b>24시간 이내</b> 상담일지를 플랫폼에 제출하여야 한다.<br>' +
+                    '6. "갑"은 현장에서 "을"이 원활히 업무를 수행할 수 있도록 출입증, 좌석, 장비 등을 제공하여야 한다.</p>');
+
+                w.document.write('<div class="section-title">제5조 (취소 및 환불 규정)</div>' +
+                    '<table style="font-size:0.82rem;">' +
+                    '<tr><th style="width:35%;">취소 시점</th><th style="width:35%;">환불 조건</th><th>비고</th></tr>' +
+                    '<tr><td>서비스 시작 30일 전 이전</td><td>계약금(총액 10%) 전액 환불</td><td>전액 환불</td></tr>' +
+                    '<tr><td>서비스 시작 14일 전 이전</td><td>계약금의 50% 환불</td><td>통역사 준비 비용 고려</td></tr>' +
+                    '<tr><td>서비스 시작 7일 전 이전</td><td>계약금 환불 불가</td><td>통역사 일정 확보 배상</td></tr>' +
+                    '<tr><td>서비스 시작 7일 이내 또는 당일</td><td>총 계약금액의 50% 위약금 부과</td><td>통역사 손해배상 포함</td></tr>' +
+                    '<tr><td>"을"의 귀책사유로 인한 취소</td><td>전액 환불 + 대체 통역사 배정</td><td>-</td></tr>' +
+                    '</table>' +
+                    '<p style="font-size:0.78rem;color:#666;margin-top:8px;">📌 천재지변, 전시회 주최 측 취소 등 불가항력 사유의 경우 양측 패널티 없이 별도 협의 처리합니다.</p>');
+
+                w.document.write('<div class="section-title">제6조 (비밀유지)</div><p style="font-size:0.85rem;line-height:1.9;padding:0 8px;">' +
+                    '1. 양 당사자는 본 계약의 이행 과정에서 알게 된 상대방의 영업비밀 및 개인정보를 제3자에게 누설하지 아니한다.<br>' +
+                    '2. 본 조의 의무는 계약 종료 후 <b>2년간</b> 유효하다.<br>' +
+                    '3. 비밀유지 의무를 위반한 경우 이용 제한, 정산 보류, 손해배상 청구 등의 조치를 받을 수 있다.</p>');
+
+                w.document.write('<div class="section-title">제7조 (기타)</div><p style="font-size:0.85rem;line-height:1.9;padding:0 8px;">' +
+                    '1. 본 계약에 명시되지 않은 사항은 서비스 이용약관, 운영정책 및 관련 법령에 따른다.<br>' +
+                    '2. 분쟁 발생 시 플랫폼(support@contentour.com)에 조정을 먼저 신청할 수 있으며, 조정 불성립 시 <b>서울중앙지방법원</b>을 전속 관할 법원으로 한다.<br>' +
+                    '3. 본 약관의 준거법은 <b>대한민국 법령</b>으로 한다.<br>' +
+                    '4. 본 계약은 2부를 작성하여 각 1부씩 보관한다.</p>');
+
+                w.document.write('<div style="text-align:center;margin:35px 0 10px;font-size:0.95rem;color:#444;">위 내용을 확인하고 본 계약의 체결에 동의합니다.</div>');
+                w.document.write('<div style="text-align:center;margin-bottom:20px;font-size:0.85rem;color:#888;">' + today + '</div>');
+                w.document.write('<div class="stamp-area"><div class="stamp-box"><div class="label">갑 (의뢰인)</div><div style="height:60px;"></div><div class="line">' + se.company + '</div></div><div class="stamp-box"><div class="label">을 (서비스 제공자)</div><div style="height:60px;"></div><div class="line">' + se.interpreter + '</div></div></div>');
                 w.document.write('</div></body></html>');
                 w.document.close();
             }

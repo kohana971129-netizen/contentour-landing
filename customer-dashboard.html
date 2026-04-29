@@ -4406,30 +4406,39 @@
       // Header
       w.document.write('<div class="doc-header">' +
         '<h1>통역 서비스 계약서</h1>' +
-        '<div class="doc-id">계약번호: ' + safe.id + ' | 계약일: ' + contractDate + '</div>' +
+        '<div class="doc-id">계약번호: ' + safe.id + ' | 계약일: ' + contractDate + ' | 템플릿 v1.1</div>' +
       '</div>');
 
       // Intro
       w.document.write('<div class="doc-intro">' +
-        '본 계약은 아래 "갑"(의뢰인)과 "을"(서비스 제공자) 간에 통역 서비스 제공에 관하여 다음과 같이 체결합니다.' +
+        '본 계약은 "갑"(의뢰인 / 고객사), "을"(서비스 제공자 / 통역사), "병"(중개 플랫폼) 사이에 통역 서비스 제공에 관하여 아래와 같이 체결합니다.' +
       '</div>');
 
-      // Parties
-      w.document.write('<div class="party-box">' +
+      // Parties — 갑/을/병 3자
+      w.document.write('<div class="party-box" style="flex-direction:column;gap:14px;">' +
         '<div class="party">' +
-          '<div class="party-title">갑 (의뢰인)</div>' +
+          '<div class="party-title">갑 (의뢰인 / 고객사)</div>' +
           '<div class="party-row"><span class="label">회사명</span><span class="value">' + (_currentUserProfile.company || '-') + '</span></div>' +
           '<div class="party-row"><span class="label">담당자</span><span class="value">' + (_currentUserProfile.name || '-') + (_currentUserProfile.position ? ' ' + _currentUserProfile.position : '') + '</span></div>' +
           '<div class="party-row"><span class="label">연락처</span><span class="value">' + (_currentUserProfile.phone || '-') + '</span></div>' +
           '<div class="party-row"><span class="label">이메일</span><span class="value">' + (_currentUserProfile.email || '-') + '</span></div>' +
         '</div>' +
         '<div class="party">' +
-          '<div class="party-title">을 (서비스 제공 / 플랫폼)</div>' +
-          '<div class="party-row"><span class="label">상호</span><span class="value">콘텐츄어</span></div>' +
-          '<div class="party-row"><span class="label">통역사</span><span class="value">' + safe.interpName + '</span></div>' +
-          '<div class="party-row"><span class="label">언어</span><span class="value">' + safe.lang + '</span></div>' +
+          '<div class="party-title">을 (서비스 제공자 / 통역사)</div>' +
+          '<div class="party-row"><span class="label">성명</span><span class="value">' + safe.interpName + '</span></div>' +
+          '<div class="party-row"><span class="label">통역 언어</span><span class="value">' + safe.lang + '</span></div>' +
+        '</div>' +
+        '<div class="party">' +
+          '<div class="party-title">병 (중개 플랫폼)</div>' +
+          '<div class="party-row"><span class="label">상호</span><span class="value">주식회사 콘텐츄어 (CONTENTOUR Inc.)</span></div>' +
+          '<div class="party-row"><span class="label">대표자</span><span class="value">고하나</span></div>' +
           '<div class="party-row"><span class="label">이메일</span><span class="value">service@contentour.com</span></div>' +
         '</div>' +
+      '</div>');
+
+      // 중개 플랫폼 고지
+      w.document.write('<div style="margin:20px 0;padding:14px 16px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:8px;font-size:12px;color:#5d4037;line-height:1.7;">' +
+        '<b>📢 중개 플랫폼 고지</b>: 콘텐츄어(병)는 갑과 을 간의 통역 서비스 거래를 중개하는 통신판매중개업자로서, 본 계약의 직접 당사자가 아닙니다. 서비스 이행에 대한 최종 책임은 갑·을 당사자에게 있습니다.' +
       '</div>');
 
       // Service Info
@@ -4468,31 +4477,41 @@
       // Clauses
       w.document.write('<div class="section">' +
         '<div class="section-title">제4조 서비스 범위 및 의무</div>' +
-        '<div class="clause">① "을"은 지정된 전시회/행사 기간 동안 전문 통역 서비스를 성실히 제공한다.</div>' +
+        '<div class="clause">① "을"은 계약서에 명시된 전시회/행사 기간 동안 전문 통역 서비스를 성실히 제공한다.</div>' +
         '<div class="clause">② "을"은 사전에 관련 산업 용어 및 자료를 숙지하여 정확한 통역을 제공한다.</div>' +
-        '<div class="clause">③ "갑"은 원활한 통역을 위해 행사 관련 자료를 사전에 "을"에게 제공한다.</div>' +
-        '<div class="clause">④ 통역 서비스 시간은 1일 8시간 기준이며, 초과 근무 시 별도 협의한다.</div>' +
+        '<div class="clause">③ "갑"은 원활한 통역을 위해 행사 관련 자료(카탈로그, 용어집 등)를 <b>서비스 시작 3일 전까지</b> "을"에게 제공한다.</div>' +
+        '<div class="clause">④ 통역 서비스 시간은 <b>1일 8시간 기준</b>이며, 초과 근무 발생 시 <b>시간당 통상 단가의 150%</b>를 적용하고, 사전 서면 합의 후 추가 청구한다.</div>' +
+        '<div class="clause">⑤ "을"은 매일 서비스 종료 후 <b>24시간 이내</b> 상담일지를 플랫폼에 제출하여야 한다.</div>' +
+        '<div class="clause">⑥ "갑"은 현장에서 "을"이 원활히 업무를 수행할 수 있도록 출입증, 좌석, 장비 등을 제공하여야 한다.</div>' +
       '</div>');
 
+      // 제5조 — 4구간 표
       w.document.write('<div class="section">' +
         '<div class="section-title">제5조 취소 및 환불 규정</div>' +
-        '<div class="clause">① 서비스 시작 <b>14일 전</b> 취소 시: 계약금 전액 환불</div>' +
-        '<div class="clause">② 서비스 시작 <b>7~13일 전</b> 취소 시: 계약금의 50% 환불</div>' +
-        '<div class="clause">③ 서비스 시작 <b>7일 이내</b> 취소 시: 환불 불가</div>' +
-        '<div class="clause">④ "을"의 귀책사유로 인한 취소 시: 전액 환불 및 대체 통역사 배정</div>' +
+        '<table class="info-table" style="font-size:12px;">' +
+          '<tr><th style="width:36%;">취소 시점</th><th style="width:34%;">환불 조건</th><th>비고</th></tr>' +
+          '<tr><td>서비스 시작 30일 전 이전</td><td><b>계약금(총액 10%) 전액 환불</b></td><td>전액 환불</td></tr>' +
+          '<tr><td>서비스 시작 14일 전 이전</td><td>계약금(총액 10%)의 <b>50% 환불</b></td><td>통역사 준비 비용 고려</td></tr>' +
+          '<tr><td>서비스 시작 7일 전 이전</td><td>계약금 <b>환불 불가</b></td><td>통역사 일정 확보 배상</td></tr>' +
+          '<tr><td>서비스 시작 7일 이내 또는 당일</td><td>총 계약금액의 <b>50% 위약금</b> 부과</td><td>통역사 손해배상 포함</td></tr>' +
+          '<tr><td>"을"의 귀책사유로 인한 취소</td><td><b>전액 환불 + 대체 통역사 배정</b></td><td>-</td></tr>' +
+        '</table>' +
+        '<div class="clause" style="margin-top:10px;font-size:12px;color:#666;">📌 천재지변, 전시회 주최 측 취소 등 불가항력 사유의 경우 양측 패널티 없이 별도 협의 처리합니다.</div>' +
       '</div>');
 
       w.document.write('<div class="section">' +
         '<div class="section-title">제6조 비밀유지</div>' +
         '<div class="clause">① 양 당사자는 본 계약의 이행 과정에서 알게 된 상대방의 영업비밀 및 개인정보를 제3자에게 누설하지 아니한다.</div>' +
-        '<div class="clause">② 본 조의 의무는 계약 종료 후 2년간 유효하다.</div>' +
+        '<div class="clause">② 본 조의 의무는 계약 종료 후 <b>2년간</b> 유효하다.</div>' +
+        '<div class="clause">③ 비밀유지 의무를 위반한 경우 이용 제한, 정산 보류, 손해배상 청구 등의 조치를 받을 수 있다.</div>' +
       '</div>');
 
       w.document.write('<div class="section">' +
         '<div class="section-title">제7조 기타</div>' +
-        '<div class="clause">① 본 계약에 명시되지 않은 사항은 관련 법령 및 상관례에 따른다.</div>' +
-        '<div class="clause">② 본 계약과 관련한 분쟁 발생 시 양 당사자는 성실히 협의하며, 협의가 불성립될 경우 "갑"의 소재지 관할 법원을 전속 관할 법원으로 한다.</div>' +
-        '<div class="clause">③ 본 계약은 2부를 작성하여 각 1부씩 보관한다.</div>' +
+        '<div class="clause">① 본 계약에 명시되지 않은 사항은 서비스 이용약관, 운영정책 및 관련 법령에 따른다.</div>' +
+        '<div class="clause">② 분쟁 발생 시 플랫폼(support@contentour.com)에 조정을 먼저 신청할 수 있으며, 조정 불성립 시 <b>서울중앙지방법원</b>을 전속 관할 법원으로 한다.</div>' +
+        '<div class="clause">③ 본 약관의 준거법은 <b>대한민국 법령</b>으로 한다.</div>' +
+        '<div class="clause">④ 본 계약은 2부를 작성하여 각 1부씩 보관한다.</div>' +
       '</div>');
 
       // Sign Area
@@ -4507,14 +4526,14 @@
           '<div class="sign-sub">' + (_currentUserProfile.name || '-') + (_currentUserProfile.position ? ' ' + _currentUserProfile.position : '') + '</div>' +
         '</div>' +
         '<div class="sign-block">' +
-          '<div class="sign-label">을 (서비스 제공)</div>' +
-          '<div class="sign-name">콘텐츄어</div>' +
-          '<div class="sign-sub">대표 홍길동</div>' +
+          '<div class="sign-label">을 (서비스 제공자)</div>' +
+          '<div class="sign-name">' + safe.interpName + '</div>' +
+          '<div class="sign-sub">통역사</div>' +
         '</div>' +
       '</div>');
 
       // Footer
-      w.document.write('<div class="doc-footer">본 계약서는 콘텐츄어 통역 운영 시스템에서 자동 생성되었습니다.<br>문의: service@contentour.com | 고객센터: 02-1234-5678</div>');
+      w.document.write('<div class="doc-footer">본 계약서는 콘텐츄어 통역 운영 시스템에서 자동 생성되었습니다.<br>문의: service@contentour.com</div>');
 
       w.document.write('</div>'); // .contract-doc
 
