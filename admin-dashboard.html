@@ -8375,11 +8375,14 @@
                 w.document.write('<div class="doc-header"><h1>통역 서비스 계약서</h1><p>INTERPRETATION SERVICE CONTRACT</p><p style="margin-top:8px;font-size:0.85rem;">계약일: ' + today + ' | 템플릿 v1.1</p></div>');
                 var se = { company: _escHtml(company), contact: _escHtml(contact), interpreter: _escHtml(interpreter), expo: _escHtml(expo), location: _escHtml(location || '-'), lang: _escHtml(lang), type: _escHtml(type) };
 
-                // 갑/을/병 3자 정보
+                // 갑/을 가로 2바 + 병은 아래 가로 한 줄
                 w.document.write('<div class="section-title">계약 당사자</div>' +
-                    '<table><tr><th>갑 (의뢰인 / 고객사)</th><td>' + se.company + '</td></tr></table>' +
-                    '<table><tr><th>을 (서비스 제공자 / 통역사)</th><td>' + se.interpreter + ' (' + se.lang + ') <span style="color:#888;font-size:0.78rem;">— 실제 계약 시 매칭된 통역사가 자동 입력됩니다.</span></td></tr></table>' +
-                    '<table><tr><th>병 (중개 플랫폼)</th><td>콘텐츄어 / 대표 고하나 / service@contentour.com</td></tr></table>');
+                    '<div style="display:flex;gap:16px;margin-bottom:14px;">' +
+                        '<table style="flex:1;margin:0;"><tr><th>갑 (의뢰인 / 고객사)</th><td>' + se.company + '</td></tr></table>' +
+                        '<table style="flex:1;margin:0;"><tr><th>을 (서비스 제공자 / 통역사)</th><td>' + se.interpreter + ' (' + se.lang + ')</td></tr></table>' +
+                    '</div>' +
+                    '<table style="margin-top:0;"><tr><th>병 (중개 플랫폼)</th><td>콘텐츄어 / 대표 고하나 / service@contentour.com</td></tr></table>' +
+                    '<p style="font-size:0.78rem;color:#888;margin-top:6px;">※ 미리보기 — 실제 계약 시 매칭된 통역사가 자동 입력됩니다.</p>');
 
                 // 중개 플랫폼 고지
                 w.document.write('<div style="margin:18px 0;padding:14px 16px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:8px;font-size:0.85rem;color:#5d4037;line-height:1.7;">' +

@@ -4424,8 +4424,8 @@
         '본 계약은 "갑"(의뢰인 / 고객사), "을"(서비스 제공자 / 통역사), "병"(중개 플랫폼) 사이에 통역 서비스 제공에 관하여 아래와 같이 체결합니다.' +
       '</div>');
 
-      // Parties — 갑/을/병 3자
-      w.document.write('<div class="party-box" style="flex-direction:column;gap:14px;">' +
+      // Parties — 갑/을 가로 2바 + 병은 아래 가로 한 줄
+      w.document.write('<div class="party-box">' +
         '<div class="party">' +
           '<div class="party-title">갑 (의뢰인 / 고객사)</div>' +
           '<div class="party-row"><span class="label">회사명</span><span class="value">' + (_currentUserProfile.company || '-') + '</span></div>' +
@@ -4438,11 +4438,11 @@
           '<div class="party-row"><span class="label">성명</span><span class="value">' + safe.interpName + '</span></div>' +
           '<div class="party-row"><span class="label">통역 언어</span><span class="value">' + safe.lang + '</span></div>' +
         '</div>' +
-        '<div class="party">' +
-          '<div class="party-title">병 (중개 플랫폼) — 콘텐츄어</div>' +
-          '<div class="party-row"><span class="label">대표자</span><span class="value">고하나</span></div>' +
-          '<div class="party-row"><span class="label">이메일</span><span class="value">service@contentour.com</span></div>' +
-        '</div>' +
+      '</div>');
+      w.document.write('<div class="party" style="margin-bottom:20px;">' +
+        '<div class="party-title">병 (중개 플랫폼) — 콘텐츄어</div>' +
+        '<div class="party-row"><span class="label">대표자</span><span class="value">고하나</span></div>' +
+        '<div class="party-row"><span class="label">이메일</span><span class="value">service@contentour.com</span></div>' +
       '</div>');
 
       // 중개 플랫폼 고지
