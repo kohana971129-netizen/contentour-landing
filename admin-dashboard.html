@@ -8263,7 +8263,7 @@
                     try {
                         await supabase.from('24_알림').insert({
                             user_id: currentQuoteInquiry.user_id,
-                            notification_type: 'quote',
+                            notification_type: 'service',
                             title: '📨 견적서가 도착했습니다',
                             message: '"' + expoName + '" 건의 견적서가 발송되었습니다. 총 금액: ₩' + total.toLocaleString() + '. 나의 문의 현황에서 확인해주세요.',
                             is_read: false
@@ -8276,7 +8276,7 @@
                         if (custUser) {
                             await supabase.from('24_알림').insert({
                                 user_id: custUser.id,
-                                notification_type: 'quote',
+                                notification_type: 'service',
                                 title: '📨 견적서가 도착했습니다',
                                 message: '"' + expoName + '" 건의 견적서가 발송되었습니다. 총 금액: ₩' + total.toLocaleString() + '. 나의 문의 현황에서 확인해주세요.',
                                 is_read: false
@@ -8974,7 +8974,7 @@
                     try {
                         await supabase.from('24_알림').insert({
                             user_id: userId,
-                            notification_type: 'rate_approved',
+                            notification_type: 'service',
                             title: '✅ 단가 변경이 승인되었습니다',
                             message: '신청하신 단가 변경이 관리자에 의해 승인되었습니다. 변경된 단가가 즉시 적용됩니다.',
                             is_read: false
@@ -9035,7 +9035,7 @@
                     try {
                         await supabase.from('24_알림').insert({
                             user_id: userId,
-                            notification_type: 'rate_rejected',
+                            notification_type: 'service',
                             title: '❌ 단가 변경이 반려되었습니다',
                             message: '신청하신 단가 변경이 반려되었습니다.\n사유: ' + reason + '\n\n단가를 수정 후 다시 신청할 수 있습니다.',
                             is_read: false
@@ -9121,7 +9121,7 @@
                     try {
                         await supabase.from('24_알림').insert({
                             user_id: userId,
-                            notification_type: 'rate_admin_edit',
+                            notification_type: 'service',
                             title: '✏️ 관리자에 의해 단가가 조정되었습니다',
                             message: '관리자가 회원님의 단가를 직접 조정하였습니다.\n사유: ' + reason + '\n\n대시보드에서 변경된 단가를 확인해주세요.',
                             is_read: false
