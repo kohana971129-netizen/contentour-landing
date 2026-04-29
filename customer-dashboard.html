@@ -953,22 +953,6 @@
           .eq('id', user.id);
         if (memberErr) throw memberErr;
 
-        // 02_국내기업 테이블 업데이트 (테이블 존재 시에만)
-        try {
-          var { data: existingCompany } = await window.sbClient
-            .from('02_국내기업')
-            .select('id')
-            .eq('contact_email', user.email)
-            .single();
-
-          if (existingCompany) {
-            await window.sbClient
-              .from('02_국내기업')
-              .update({ name: newCompany, contact_name: newName, contact_phone: newPhone })
-              .eq('contact_email', user.email);
-          }
-        } catch(e2) { /* 02_국내기업 테이블 미사용 시 무시 */ }
-
         // 전역 프로필 갱신
         _currentUserProfile.name = newName;
         _currentUserProfile.position = newPosition;
@@ -1058,23 +1042,12 @@
                 .eq('id', user.id)
                 .single();
 
-            // 02_국내기업 테이블에서 회사 정보 (테이블 존재 시에만)
-            var company = null;
-            try {
-                var { data: companyData } = await window.sbClient
-                    .from('02_국내기업')
-                    .select('*')
-                    .eq('contact_email', user.email)
-                    .single();
-                company = companyData;
-            } catch(e2) { /* 테이블 미사용 시 무시 */ }
-
             _currentUserProfile = {
                 name: (member && member.name) || user.user_metadata?.name || user.email.split('@')[0],
-                company: (member && member.company_name) || (company && company.name) || '',
+                company: (member && member.company_name) || '',
                 position: (member && member.position) || '',
                 email: user.email,
-                phone: (member && member.phone) || (company && company.contact_phone) || ''
+                phone: (member && member.phone) || ''
             };
 
             applyUserProfile(_currentUserProfile);

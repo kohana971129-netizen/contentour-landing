@@ -5693,7 +5693,8 @@
                             .from('01_회원')
                             .select('id')
                             .eq('role', 'admin')
-                            .single();
+                            .limit(1)
+                            .maybeSingle();
                         if (adminUser) {
                             var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
                             var changes = [];
