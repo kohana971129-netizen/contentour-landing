@@ -3845,6 +3845,16 @@
             if (error) throw error;
             if (!data || data.length === 0) return;
 
+            // 통역사 이름 일괄 조회 (interpreter_id → name 매핑)
+            var interpNameMap = {};
+            try {
+                var interpIds = Array.from(new Set(data.map(function(d){ return d.interpreter_id; }).filter(Boolean)));
+                if (interpIds.length > 0) {
+                    var { data: members } = await sb.from('01_회원').select('id, name').in('id', interpIds);
+                    (members || []).forEach(function(m) { interpNameMap[m.id] = m.name; });
+                }
+            } catch(_e) { /* 이름 매핑 실패해도 fallback */ }
+
             // DB status → 고객사 UI status 매핑
             var uiStatusMap = {
                 pending: 'contract_sign',
@@ -3887,7 +3897,7 @@
                 return {
                     id: d.id, dbId: d.id,
                     expo: d.exhibition_name || '',
-                    interpreter: { name: '통역사', id: d.interpreter_id },
+                    interpreter: { name: (d.interpreter_id && interpNameMap[d.interpreter_id]) || '미배정', id: d.interpreter_id },
                     client: { name: '', company: d.client_company },
                     status: uiStatus,
                     statusText: statusTextMap[uiStatus] || uiStatus,
@@ -4429,8 +4439,7 @@
           '<div class="party-row"><span class="label">통역 언어</span><span class="value">' + safe.lang + '</span></div>' +
         '</div>' +
         '<div class="party">' +
-          '<div class="party-title">병 (중개 플랫폼)</div>' +
-          '<div class="party-row"><span class="label">상호</span><span class="value">주식회사 콘텐츄어 (CONTENTOUR Inc.)</span></div>' +
+          '<div class="party-title">병 (중개 플랫폼) — 콘텐츄어</div>' +
           '<div class="party-row"><span class="label">대표자</span><span class="value">고하나</span></div>' +
           '<div class="party-row"><span class="label">이메일</span><span class="value">service@contentour.com</span></div>' +
         '</div>' +
