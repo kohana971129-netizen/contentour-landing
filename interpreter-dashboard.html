@@ -3829,7 +3829,7 @@
                 var action = modal.dataset.action || '';
                 if (action.indexOf('패널티') >= 0 || action.indexOf('정지') >= 0 || action.indexOf('제한') >= 0) {
                     try {
-                        var { data: profile } = await window.sbClient.from('40_통역사프로필').select('penalty_count').eq('user_id', user.id).single();
+                        var { data: profile } = await window.sbClient.from('40_통역사프로필').select('penalty_count').eq('user_id', user.id).maybeSingle();
                         var newCount = (profile ? profile.penalty_count : 0) + 1;
                         var isSuspended = newCount >= 3;
                         await window.sbClient.from('40_통역사프로필').update({
@@ -5079,7 +5079,7 @@
                 try {
                     var user = await ContentourAuth.getCurrentUser();
                     if (user) {
-                        var { data: prof } = await sb.from('40_통역사프로필').select('experience_years').eq('user_id', user.id).single();
+                        var { data: prof } = await sb.from('40_통역사프로필').select('experience_years').eq('user_id', user.id).maybeSingle();
                         if (prof) _interpExpYears = prof.experience_years || 0;
                     }
                 } catch(e) {}
@@ -5364,7 +5364,7 @@
                 if (error) throw error;
 
                 // DB에 서류 정보 추가
-                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs').eq('user_id', userId).single();
+                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs').eq('user_id', userId).maybeSingle();
                 var docs = (profile && profile.verification_docs) || [];
                 docs.push({ name: file.name, path: filePath, uploadedAt: new Date().toISOString() });
 
@@ -5390,7 +5390,7 @@
             else { try { var u = await ContentourAuth.getCurrentUser(); if (u) userId = u.id; } catch(e) {} }
             if (!userId) return;
             try {
-                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs, is_verified, verified_at, verification_note').eq('user_id', userId).single();
+                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs, is_verified, verified_at, verification_note').eq('user_id', userId).maybeSingle();
                 if (!profile) return;
 
                 // 인증 상태 표시
@@ -5430,7 +5430,7 @@
             if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
             try {
                 var userId = InterpreterApp.currentUser.id;
-                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs').eq('user_id', userId).single();
+                var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs').eq('user_id', userId).maybeSingle();
                 var docs = (profile && profile.verification_docs) || [];
                 if (!docs[idx]) return;
 
@@ -5451,7 +5451,7 @@
             var sb = window.sbClient;
             if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
             try {
-                var { data } = await sb.from('40_통역사프로필').select('profile_image_url').eq('user_id', InterpreterApp.currentUser.id).single();
+                var { data } = await sb.from('40_통역사프로필').select('profile_image_url').eq('user_id', InterpreterApp.currentUser.id).maybeSingle();
                 if (data && data.profile_image_url) {
                     var img = document.getElementById('pfAvatarImg');
                     img.src = data.profile_image_url;
