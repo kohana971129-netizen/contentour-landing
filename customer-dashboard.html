@@ -1172,7 +1172,14 @@
       if (v === 'chat') { renderChatContacts(); chatLoadFromDB(); }
       if (v === 'contract') { _contractsDbLoaded = false; renderContracts(); contractsLoadFromDB(); }
       if (v === 'list') { loadMyInquiries(); }
-      if (v === 'mypage') { loyRenderAll(); mypRenderStats(); }
+      if (v === 'mypage') {
+        (async function() {
+          await loyMigrateFromLocalStorage();
+          await loyLoadFromDB();
+          loyRenderAll();
+          mypRenderStats();
+        })();
+      }
     }
 
     // ══════════════ 홈 대시보드 ══════════════
@@ -5261,8 +5268,10 @@
     }
 
 
-    // ===== 적립금·등급 시스템 =====
-    const LOY_STORAGE_KEY = 'contentour_loyalty_data';
+    // ===== 적립금·등급 시스템 (DB 기반 v2) =====
+    // 저장소: Supabase 30_적립금 / 31_적립금이력 (RPC 함수로 atomic 처리)
+    // localStorage는 1회 마이그레이션 후 폐기
+    const LOY_STORAGE_KEY = 'contentour_loyalty_data'; // 마이그레이션 전용
     const LOY_TIERS = [
       { id:'normal', name:'일반', icon:'&#128100;', rate:1, feeRate:10, minCount:0, minAmount:0, color:'#1565c0', bg:'#f0f5ff' },
       { id:'silver', name:'실버', icon:'&#129351;', rate:2, feeRate:9, minCount:2, minAmount:2000000, color:'#616161', bg:'#f5f5f5' },
@@ -5277,16 +5286,94 @@
       { id:'referral',       name:'추천인 보너스', desc:'추천으로 신규 고객사 가입 시', pts:30000, icon:'&#129309;' }
     ];
 
-    function loyGetData() {
-      try {
-        var saved = localStorage.getItem(LOY_STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch(e) {}
+    // 캐시 (DB에서 로드한 잔액·이력) — render 함수가 동기적으로 읽음
+    var _loyDataCache = null;
+    function _loyEmptyData() {
       return { balance:0, totalEarned:0, totalUsed:0, completedContracts:0, totalSpent:0, history:[] };
     }
-    function loySaveData(data) {
-      try { localStorage.setItem(LOY_STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+
+    // DB에서 적립금 데이터 로드 (대시보드 진입 시 호출)
+    async function loyLoadFromDB() {
+      if (!window.sbClient) { _loyDataCache = _loyEmptyData(); return _loyDataCache; }
+      try {
+        var { data: { user } } = await window.sbClient.auth.getUser();
+        if (!user) { _loyDataCache = _loyEmptyData(); return _loyDataCache; }
+        var [{ data: row }, { data: ledger }] = await Promise.all([
+          window.sbClient.from('30_적립금')
+            .select('balance, total_earned, total_used, completed_contracts, total_spent, current_tier')
+            .eq('user_id', user.id).maybeSingle(),
+          window.sbClient.from('31_적립금이력')
+            .select('id, type, points, source_type, reason, created_at')
+            .eq('user_id', user.id).order('created_at', { ascending: false }).limit(100)
+        ]);
+        var hist = (ledger || []).map(function(l) {
+          return {
+            id: l.id,
+            date: (l.created_at || '').split('T')[0],
+            type: (l.type === 'use' || l.type === 'expire') ? 'use' : 'earn',
+            pts: Math.abs(l.points),
+            desc: l.reason || l.source_type || '',
+            event: l.source_type
+          };
+        });
+        _loyDataCache = {
+          balance: row ? row.balance : 0,
+          totalEarned: row ? row.total_earned : 0,
+          totalUsed: row ? row.total_used : 0,
+          completedContracts: row ? row.completed_contracts : 0,
+          totalSpent: row ? row.total_spent : 0,
+          history: hist
+        };
+        return _loyDataCache;
+      } catch(e) {
+        console.error('[적립금] DB 로드 실패:', e);
+        _loyDataCache = _loyEmptyData();
+        return _loyDataCache;
+      }
     }
+
+    // localStorage → DB 1회 마이그레이션 (잔액·누적값만 이전, 이력은 DB 신규 생성)
+    async function loyMigrateFromLocalStorage() {
+      if (!window.sbClient) return;
+      try {
+        var saved = localStorage.getItem(LOY_STORAGE_KEY);
+        if (!saved) return;
+        var local = JSON.parse(saved);
+        var { data: { user } } = await window.sbClient.auth.getUser();
+        if (!user) return;
+        var { data: existing } = await window.sbClient
+          .from('30_적립금').select('user_id').eq('user_id', user.id).maybeSingle();
+        if (existing) { localStorage.removeItem(LOY_STORAGE_KEY); return; }
+        if (local.balance && local.balance > 0) {
+          await window.sbClient.rpc('earn_loyalty_points', {
+            p_user_id: user.id,
+            p_points: local.balance,
+            p_source_type: 'migration',
+            p_source_id: null,
+            p_reason: 'localStorage 잔액 이전 (' + new Date().toISOString().split('T')[0] + ')',
+            p_expires_at: null
+          });
+        }
+        if ((local.completedContracts && local.completedContracts > 0) ||
+            (local.totalSpent && local.totalSpent > 0) ||
+            (local.totalUsed && local.totalUsed > 0)) {
+          await window.sbClient.from('30_적립금').update({
+            completed_contracts: local.completedContracts || 0,
+            total_spent: local.totalSpent || 0,
+            total_used: local.totalUsed || 0
+          }).eq('user_id', user.id);
+        }
+        localStorage.removeItem(LOY_STORAGE_KEY);
+        console.log('[적립금] localStorage → DB 마이그레이션 완료');
+      } catch(e) { console.warn('[적립금] 마이그레이션 실패(폴백 유지):', e); }
+    }
+
+    // 동기 getter — 캐시 반환 (render 함수가 사용)
+    function loyGetData() {
+      return _loyDataCache || _loyEmptyData();
+    }
+    // 호환용 stub (구코드 호출 잔존 시 noop)
+    function loySaveData() {}
 
     function loyGetTier(data) {
       var tier = LOY_TIERS[0];
@@ -5464,55 +5551,96 @@
       }
     }
 
-    // 적립금 적립 함수
-    function loyEarnPoints(pts, desc, eventType) {
-      var data = loyGetData();
-      data.balance += pts;
-      data.totalEarned += pts;
-      var maxId = data.history.reduce(function(m,h){ return Math.max(m, h.id); }, 0);
-      data.history.push({ id: maxId+1, date: new Date().toISOString().split('T')[0], type:'earn', pts:pts, desc:desc, event:eventType });
-      loySaveData(data);
+    // 적립금 적립 (RPC: earn_loyalty_points) — 잔액·이력 atomic 처리
+    async function loyEarnPoints(pts, desc, eventType, sourceId, expiresAt) {
+      if (!window.sbClient || !pts || pts <= 0) return;
+      try {
+        var { data: { user } } = await window.sbClient.auth.getUser();
+        if (!user) return;
+        var { data: newBalance, error } = await window.sbClient.rpc('earn_loyalty_points', {
+          p_user_id: user.id,
+          p_points: pts,
+          p_source_type: eventType || 'manual',
+          p_source_id: sourceId || null,
+          p_reason: desc || null,
+          p_expires_at: expiresAt || null
+        });
+        if (error) { console.error('[적립금] 적립 RPC 실패:', error); return; }
+        if (_loyDataCache) {
+          _loyDataCache.balance = (typeof newBalance === 'number') ? newBalance : (_loyDataCache.balance + pts);
+          _loyDataCache.totalEarned += pts;
+          _loyDataCache.history.unshift({
+            id: Date.now(), date: new Date().toISOString().split('T')[0],
+            type:'earn', pts:pts, desc:desc || '', event:eventType
+          });
+        }
+      } catch(e) { console.error('[적립금] 적립 예외:', e); }
     }
 
-    // 적립금 사용 함수
-    function loyUsePoints(pts, desc) {
-      var data = loyGetData();
-      if (pts > data.balance) return false;
-      data.balance -= pts;
-      data.totalUsed += pts;
-      var maxId = data.history.reduce(function(m,h){ return Math.max(m, h.id); }, 0);
-      data.history.push({ id: maxId+1, date: new Date().toISOString().split('T')[0], type:'use', pts:pts, desc:desc, event:'fee_deduct' });
-      loySaveData(data);
-      return true;
+    // 적립금 사용 (RPC: use_loyalty_points) — 잔액 부족 시 false
+    async function loyUsePoints(pts, desc, sourceId) {
+      if (!window.sbClient || !pts || pts <= 0) return false;
+      try {
+        var { data: { user } } = await window.sbClient.auth.getUser();
+        if (!user) return false;
+        var { data: newBalance, error } = await window.sbClient.rpc('use_loyalty_points', {
+          p_user_id: user.id,
+          p_points: pts,
+          p_source_type: 'fee_deduct',
+          p_source_id: sourceId || null,
+          p_reason: desc || null
+        });
+        if (error) { console.warn('[적립금] 사용 RPC 실패:', error.message); return false; }
+        if (_loyDataCache) {
+          _loyDataCache.balance = (typeof newBalance === 'number') ? newBalance : Math.max(0, _loyDataCache.balance - pts);
+          _loyDataCache.totalUsed += pts;
+          _loyDataCache.history.unshift({
+            id: Date.now(), date: new Date().toISOString().split('T')[0],
+            type:'use', pts:pts, desc:desc || '', event:'fee_deduct'
+          });
+        }
+        return true;
+      } catch(e) { console.error('[적립금] 사용 예외:', e); return false; }
     }
 
-    // 계약 완료 시 적립 (processPayment 후 호출)
-    function loyOnContractPayment(contract) {
-      var data = loyGetData();
-      var tier = loyGetTier(data);
-      var earnPts = Math.round(contract.subtotal * tier.rate / 100);
-      if (earnPts > 0) {
-        loyEarnPoints(earnPts, contract.expo + ' 계약 적립 (' + tier.rate + '%)', 'contract_earn');
-      }
-      // 첫 계약 보너스 체크
-      if (data.completedContracts === 0) {
-        loyEarnPoints(20000, '첫 계약 체결 보너스', 'first_contract');
-      }
-      // 재이용 보너스 (동일 통역사 체크)
-      var sameInterp = contracts.filter(function(c) {
-        return c.interpreter && contract.interpreter && c.interpreter.id === contract.interpreter.id && c.id !== contract.id && (c.status === 'complete' || c.status === 'settled');
-      });
-      if (sameInterp.length > 0) {
-        loyEarnPoints(10000, contract.interpreter.name + ' 통역사 재이용 보너스', 'reuse');
-      }
-      // 완료 건수/금액 업데이트
-      data = loyGetData();
-      data.completedContracts += 1;
-      data.totalSpent += contract.subtotal;
-      loySaveData(data);
+    // 계약 완료 시 적립 (processPayment 후 호출) — 적립률·첫계약·재이용 보너스 + 등급 갱신
+    async function loyOnContractPayment(contract) {
+      if (!window.sbClient || !contract) return;
+      try {
+        var { data: { user } } = await window.sbClient.auth.getUser();
+        if (!user) return;
+        // 캐시 미초기화 시 DB에서 먼저 로드 (첫계약 보너스 오발동 방지)
+        if (!_loyDataCache) await loyLoadFromDB();
+        var data = _loyDataCache || _loyEmptyData();
+        var prevContractCount = data.completedContracts;
+        var tier = loyGetTier(data);
+        var earnPts = Math.round((contract.subtotal || 0) * tier.rate / 100);
+        if (earnPts > 0) {
+          await loyEarnPoints(earnPts, contract.expo + ' 계약 적립 (' + tier.rate + '%)', 'contract_earn', String(contract.id || ''));
+        }
+        if (prevContractCount === 0) {
+          await loyEarnPoints(20000, '첫 계약 체결 보너스', 'first_contract', String(contract.id || ''));
+        }
+        var sameInterp = (typeof contracts !== 'undefined' && Array.isArray(contracts)) ? contracts.filter(function(c) {
+          return c.interpreter && contract.interpreter && c.interpreter.id === contract.interpreter.id && c.id !== contract.id && (c.status === 'complete' || c.status === 'settled');
+        }) : [];
+        if (sameInterp.length > 0 && contract.interpreter && contract.interpreter.name) {
+          await loyEarnPoints(10000, contract.interpreter.name + ' 통역사 재이용 보너스', 'reuse', String(contract.id || ''));
+        }
+        // 등급 재계산 (RPC가 카운트/금액 누적 + 등급 결정)
+        var { data: newTier, error: tierErr } = await window.sbClient.rpc('update_loyalty_tier_on_contract', {
+          p_user_id: user.id,
+          p_contract_amount: contract.subtotal || 0
+        });
+        if (tierErr) console.warn('[적립금] 등급 갱신 실패:', tierErr.message);
+        if (_loyDataCache) {
+          _loyDataCache.completedContracts += 1;
+          _loyDataCache.totalSpent += (contract.subtotal || 0);
+        }
+      } catch(e) { console.error('[적립금] 계약 적립 처리 실패:', e); }
     }
 
-    // 상담일지 제출 시 보너스
+    // 상담일지 제출 시 보너스 (saveJournal 래핑)
     var _origSaveJournal = saveJournal;
     saveJournal = function(type) {
       _origSaveJournal(type);
@@ -5530,6 +5658,11 @@
       loadHomeDashboard();
       updateChatBadges();
       setupDragDrop(); // #1
+      // 적립금 캐시 hydrate (결제 모달의 동기 loyGetData() 대비)
+      (async function() {
+        await loyMigrateFromLocalStorage();
+        await loyLoadFromDB();
+      })();
     });
   </script>
   <script src="script.js"></script>
