@@ -3698,6 +3698,9 @@
             <a class="sb-item" id="sb-customers" onclick="switchTab('customers')">
                 <span class="sb-item__icon">🏢</span> 고객사 관리
             </a>
+            <a class="sb-item" id="sb-loyalty" onclick="switchTab('loyalty')">
+                <span class="sb-item__icon">⭐</span> 적립금 관리
+            </a>
             <a class="sb-item" id="sb-cases" onclick="switchTab('cases')">
                 <span class="sb-item__icon">🏆</span> 성과사례 관리
             </a>
@@ -4402,6 +4405,61 @@
                             </thead>
                             <tbody id="custTableBody"></tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- ══ 적립금 관리 뷰 ══ -->
+                <div class="view" id="view-loyalty">
+                    <!-- KPI -->
+                    <div class="cust-kpi-row" id="loyKpiRow" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;"></div>
+
+                    <!-- 필터 -->
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                        <input type="text" id="loyAdminSearch" placeholder="고객사명, 담당자, 이메일 검색..." oninput="loyAdminApplyFilters()"
+                            style="flex:1;min-width:220px;padding:10px 14px 10px 38px;border:1.5px solid var(--g200);border-radius:10px;font-size:0.82rem;background:var(--white) url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239daec8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E&quot;) 12px center no-repeat;font-family:inherit;outline:none;">
+                        <select id="loyAdminTier" onchange="loyAdminApplyFilters()" style="padding:10px 14px;border:1.5px solid var(--g200);border-radius:10px;font-size:0.82rem;background:#fff;font-family:inherit;cursor:pointer;">
+                            <option value="">전체 등급</option>
+                            <option value="vip">VIP</option>
+                            <option value="gold">골드</option>
+                            <option value="silver">실버</option>
+                            <option value="normal">일반</option>
+                        </select>
+                        <span id="loyAdminCount" style="font-size:0.75rem;color:var(--g600);font-weight:600;"></span>
+                    </div>
+
+                    <!-- 테이블 -->
+                    <div style="background:#fff;border:1.5px solid var(--g200);border-radius:14px;overflow:hidden;">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+                            <thead>
+                                <tr style="background:#f6f9fd;">
+                                    <th style="padding:12px 14px;text-align:left;font-weight:700;color:#445;">고객사</th>
+                                    <th style="padding:12px 14px;text-align:left;font-weight:700;color:#445;">담당자</th>
+                                    <th style="padding:12px 14px;text-align:center;font-weight:700;color:#445;">등급</th>
+                                    <th style="padding:12px 14px;text-align:right;font-weight:700;color:#445;">보유 적립금</th>
+                                    <th style="padding:12px 14px;text-align:right;font-weight:700;color:#445;">총 적립</th>
+                                    <th style="padding:12px 14px;text-align:right;font-weight:700;color:#445;">총 사용</th>
+                                    <th style="padding:12px 14px;text-align:center;font-weight:700;color:#445;">완료/누적</th>
+                                    <th style="padding:12px 14px;text-align:center;font-weight:700;color:#445;">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="loyAdminTableBody">
+                                <tr><td colspan="8" style="padding:40px;text-align:center;color:#999;">불러오는 중...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ══ 적립금 상세/조정 모달 ══ -->
+                <div id="loyAdminModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,30,60,0.55);z-index:9000;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
+                    <div style="background:#fff;border-radius:18px;max-width:780px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.25);">
+                        <div style="padding:24px 28px;border-bottom:1.5px solid #e5eaf2;display:flex;align-items:center;justify-content:space-between;">
+                            <div>
+                                <h3 style="font-size:1.1rem;font-weight:800;color:#0d2647;margin:0;">⭐ 고객사 적립금 상세</h3>
+                                <p style="font-size:0.72rem;color:#8a95a8;margin:4px 0 0 0;font-weight:600;">담당 관리자: 관리자</p>
+                            </div>
+                            <button onclick="closeLoyAdminModal()" style="width:36px;height:36px;border:none;background:#f5f7fa;border-radius:50%;font-size:1.2rem;cursor:pointer;color:#445;">×</button>
+                        </div>
+                        <div id="loyAdminModalBody" style="padding:24px 28px;"></div>
                     </div>
                 </div>
 
@@ -5439,6 +5497,7 @@
                 if (tab === 'format-perm') title = '양식 권한 관리';
                 if (tab === 'applications') { title = '통역사 지원서 관리'; loadApplications(); }
                 if (tab === 'customers') { title = '고객사 관리'; custInit(); }
+                if (tab === 'loyalty') { title = '적립금 관리'; loadLoyaltyAdmin(); }
                 if (tab === 'cancellations') { title = '취소 관리'; loadCancellations(); }
                 if (tab === 'cases') { title = '성과사례 관리'; loadAdminCases(); }
                 if (tab === 'system-settings') { title = '시스템 설정'; loadSystemSettings(); }
@@ -5448,7 +5507,7 @@
                 if (tab === 'interpreters') { title = '통역사 관리'; loadInterpVerifyList(); }
 
                 // Sidebar highlighting
-                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-cases', 'sb-exhibitions', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
+                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-loyalty', 'sb-cases', 'sb-exhibitions', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
@@ -7376,11 +7435,45 @@
                 });
             }
 
+            // 계약 취소 승인 시 해당 계약으로 적립된 포인트 일괄 회수
+            async function reverseLoyaltyForContract(contractId, userId) {
+                if (!supabase || !contractId || !userId) return 0;
+                try {
+                    var { data: ledger, error } = await supabase
+                        .from('31_적립금이력')
+                        .select('points')
+                        .eq('user_id', userId)
+                        .eq('source_id', String(contractId))
+                        .eq('type', 'earn');
+                    if (error) throw error;
+                    if (!ledger || ledger.length === 0) return 0;
+                    var totalEarned = ledger.reduce(function(s, l) { return s + (l.points || 0); }, 0);
+                    if (totalEarned <= 0) return 0;
+                    var { error: rpcErr } = await supabase.rpc('admin_adjust_loyalty', {
+                        p_user_id: userId,
+                        p_delta: -totalEarned,
+                        p_reason: '계약 취소 승인 — 적립 ' + totalEarned + 'P 회수 (contract: ' + contractId + ')'
+                    });
+                    if (rpcErr) throw rpcErr;
+                    return totalEarned;
+                } catch(e) {
+                    console.warn('[적립금] 회수 실패:', e);
+                    return 0;
+                }
+            }
+
             async function approveCancellation(cancelId) {
                 if (!supabase) return;
                 try {
+                    var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
                     await supabase.from('51_취소내역').update({ status: 'approved', admin_note: '관리자 승인', updated_at: new Date().toISOString() }).eq('id', cancelId);
-                    showToast('✅ 취소가 승인되었습니다.');
+                    var reversed = 0;
+                    if (cancel && cancel.contract_id && cancel.cancelled_user_id) {
+                        reversed = await reverseLoyaltyForContract(cancel.contract_id, cancel.cancelled_user_id);
+                    }
+                    showToast(reversed > 0
+                        ? '✅ 취소 승인 완료 (적립금 ' + reversed.toLocaleString() + 'P 회수)'
+                        : '✅ 취소가 승인되었습니다.');
                     loadCancellations();
                 } catch(e) {
                     showToast('승인 실패: ' + e.message);
@@ -7419,6 +7512,206 @@
                 if (badge) {
                     badge.textContent = pending;
                     badge.style.display = pending > 0 ? '' : 'none';
+                }
+            }
+
+            // ═══ 적립금 관리 (관리자) ═══════════════════════════════════
+            var loyAdminAllData = [];
+            var LOY_TIER_LABELS = {
+                normal: { name:'일반', icon:'👤', color:'#1565c0' },
+                silver: { name:'실버', icon:'🥈', color:'#616161' },
+                gold:   { name:'골드', icon:'🥇', color:'#f57f17' },
+                vip:    { name:'VIP',  icon:'👑', color:'#c62828' }
+            };
+
+            async function loadLoyaltyAdmin() {
+                var body = document.getElementById('loyAdminTableBody');
+                if (!supabase) { body.innerHTML = '<tr><td colspan="8" style="padding:40px;text-align:center;color:#999;">DB 연결 필요</td></tr>'; return; }
+                body.innerHTML = '<tr><td colspan="8" style="padding:40px;text-align:center;color:#999;">불러오는 중...</td></tr>';
+                try {
+                    // 적립금 row가 있는 사용자만 표시 (없는 사용자는 잔액 0이라 의미 없음)
+                    var { data: rows, error } = await supabase
+                        .from('30_적립금')
+                        .select('user_id, balance, total_earned, total_used, completed_contracts, total_spent, current_tier, updated_at')
+                        .order('balance', { ascending: false });
+                    if (error) throw error;
+                    var userIds = (rows || []).map(function(r) { return r.user_id; });
+                    var memberMap = {};
+                    if (userIds.length > 0) {
+                        var { data: members } = await supabase
+                            .from('01_회원')
+                            .select('id, name, email, phone, company_name')
+                            .in('id', userIds);
+                        (members || []).forEach(function(m) { memberMap[m.id] = m; });
+                    }
+                    loyAdminAllData = (rows || []).map(function(r) {
+                        var m = memberMap[r.user_id] || {};
+                        return Object.assign({}, r, {
+                            _name: m.name || '-',
+                            _email: m.email || '',
+                            _phone: m.phone || '',
+                            _company: m.company_name || '-'
+                        });
+                    });
+                    renderLoyaltyAdminKpi();
+                    loyAdminApplyFilters();
+                } catch(e) {
+                    body.innerHTML = '<tr><td colspan="8" style="padding:40px;text-align:center;color:#c62828;">로드 실패: ' + e.message + '</td></tr>';
+                }
+            }
+
+            function renderLoyaltyAdminKpi() {
+                var el = document.getElementById('loyKpiRow');
+                if (!el) return;
+                var totalUsers = loyAdminAllData.length;
+                var totalBalance = loyAdminAllData.reduce(function(s, r) { return s + (r.balance || 0); }, 0);
+                var totalEarned = loyAdminAllData.reduce(function(s, r) { return s + (r.total_earned || 0); }, 0);
+                var vipCount = loyAdminAllData.filter(function(r){ return r.current_tier === 'vip' || r.current_tier === 'gold'; }).length;
+                var card = function(label, value, icon, color) {
+                    return '<div style="background:#fff;border:1.5px solid #e5eaf2;border-radius:14px;padding:18px 20px;">'+
+                        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
+                            '<div style="width:36px;height:36px;border-radius:10px;background:'+color+'20;display:flex;align-items:center;justify-content:center;font-size:1rem;">'+icon+'</div>'+
+                            '<div style="font-size:0.74rem;font-weight:700;color:#8a95a8;">'+label+'</div>'+
+                        '</div>'+
+                        '<div style="font-size:1.4rem;font-weight:800;color:#0d2647;">'+value+'</div>'+
+                        '</div>';
+                };
+                el.innerHTML =
+                    card('적립금 보유 회원', totalUsers.toLocaleString() + '명', '👥', '#1565c0') +
+                    card('미사용 잔액 합계', totalBalance.toLocaleString() + 'P', '💰', '#2e7d32') +
+                    card('누적 발행 적립금', totalEarned.toLocaleString() + 'P', '📥', '#f57c00') +
+                    card('Gold·VIP 등급', vipCount.toLocaleString() + '명', '👑', '#c62828');
+            }
+
+            function loyAdminApplyFilters() {
+                var q = (document.getElementById('loyAdminSearch').value || '').trim().toLowerCase();
+                var tier = document.getElementById('loyAdminTier').value || '';
+                var filtered = loyAdminAllData.filter(function(r) {
+                    if (tier && r.current_tier !== tier) return false;
+                    if (q) {
+                        var hay = ((r._name || '') + ' ' + (r._email || '') + ' ' + (r._company || '')).toLowerCase();
+                        if (hay.indexOf(q) === -1) return false;
+                    }
+                    return true;
+                });
+                document.getElementById('loyAdminCount').textContent = filtered.length + ' / ' + loyAdminAllData.length + '명';
+                var body = document.getElementById('loyAdminTableBody');
+                if (filtered.length === 0) {
+                    body.innerHTML = '<tr><td colspan="8" style="padding:40px;text-align:center;color:#999;">조건에 맞는 결과가 없습니다.</td></tr>';
+                    return;
+                }
+                body.innerHTML = filtered.map(function(r) {
+                    var t = LOY_TIER_LABELS[r.current_tier] || LOY_TIER_LABELS.normal;
+                    return '<tr style="border-top:1px solid #eef2f7;">'+
+                        '<td style="padding:12px 14px;font-weight:700;color:#0d2647;">'+r._company+'</td>'+
+                        '<td style="padding:12px 14px;color:#445;">'+r._name+'<div style="font-size:0.72rem;color:#8a95a8;">'+r._email+'</div></td>'+
+                        '<td style="padding:12px 14px;text-align:center;">'+
+                            '<span style="display:inline-block;padding:4px 10px;border-radius:8px;background:'+t.color+'15;color:'+t.color+';font-size:0.74rem;font-weight:700;">'+t.icon+' '+t.name+'</span>'+
+                        '</td>'+
+                        '<td style="padding:12px 14px;text-align:right;font-weight:800;color:#1565c0;">'+(r.balance||0).toLocaleString()+'P</td>'+
+                        '<td style="padding:12px 14px;text-align:right;color:#2e7d32;font-weight:600;">+'+(r.total_earned||0).toLocaleString()+'</td>'+
+                        '<td style="padding:12px 14px;text-align:right;color:#f57c00;font-weight:600;">-'+(r.total_used||0).toLocaleString()+'</td>'+
+                        '<td style="padding:12px 14px;text-align:center;font-size:0.78rem;color:#5a6a7a;">'+(r.completed_contracts||0)+'건 / '+((r.total_spent||0)/10000).toLocaleString()+'만원</td>'+
+                        '<td style="padding:12px 14px;text-align:center;">'+
+                            '<button onclick="openLoyAdminModal(\''+r.user_id+'\')" style="padding:6px 14px;background:#1565c0;color:#fff;border:none;border-radius:8px;font-size:0.74rem;font-weight:700;cursor:pointer;">상세 / 조정</button>'+
+                        '</td>'+
+                        '</tr>';
+                }).join('');
+            }
+
+            async function openLoyAdminModal(userId) {
+                var r = loyAdminAllData.find(function(x) { return x.user_id === userId; });
+                if (!r || !supabase) return;
+                var t = LOY_TIER_LABELS[r.current_tier] || LOY_TIER_LABELS.normal;
+                var body = document.getElementById('loyAdminModalBody');
+                body.innerHTML = '<div style="padding:30px;text-align:center;color:#999;">이력 불러오는 중...</div>';
+                document.getElementById('loyAdminModalOverlay').style.display = 'flex';
+                try {
+                    var { data: history, error } = await supabase
+                        .from('31_적립금이력')
+                        .select('id, type, points, source_type, reason, balance_after, created_at, actor_role')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false })
+                        .limit(200);
+                    if (error) throw error;
+                    var historyHtml = '';
+                    if (!history || history.length === 0) {
+                        historyHtml = '<div style="padding:30px;text-align:center;color:#999;">이력 없음</div>';
+                    } else {
+                        historyHtml = '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">'+
+                            '<thead><tr style="background:#f6f9fd;">'+
+                                '<th style="padding:8px 10px;text-align:left;">날짜</th>'+
+                                '<th style="padding:8px 10px;text-align:left;">유형</th>'+
+                                '<th style="padding:8px 10px;text-align:left;">사유</th>'+
+                                '<th style="padding:8px 10px;text-align:right;">포인트</th>'+
+                                '<th style="padding:8px 10px;text-align:right;">잔액</th>'+
+                            '</tr></thead><tbody>'+
+                            history.map(function(h) {
+                                var date = (h.created_at || '').replace('T', ' ').slice(0, 16);
+                                var typeBadge = {
+                                    earn: '<span style="color:#2e7d32;font-weight:700;">적립</span>',
+                                    use: '<span style="color:#f57c00;font-weight:700;">사용</span>',
+                                    expire: '<span style="color:#999;font-weight:700;">만료</span>',
+                                    refund: '<span style="color:#1565c0;font-weight:700;">환불</span>',
+                                    admin_adjust: '<span style="color:#c62828;font-weight:700;">관리자조정</span>'
+                                }[h.type] || h.type;
+                                var ptsColor = h.points >= 0 ? '#2e7d32' : '#c62828';
+                                var ptsSign = h.points >= 0 ? '+' : '';
+                                return '<tr style="border-top:1px solid #eef2f7;">'+
+                                    '<td style="padding:8px 10px;color:#5a6a7a;">'+date+'</td>'+
+                                    '<td style="padding:8px 10px;">'+typeBadge+'</td>'+
+                                    '<td style="padding:8px 10px;color:#445;">'+(h.reason || h.source_type || '-')+'</td>'+
+                                    '<td style="padding:8px 10px;text-align:right;font-weight:700;color:'+ptsColor+';">'+ptsSign+(h.points||0).toLocaleString()+'P</td>'+
+                                    '<td style="padding:8px 10px;text-align:right;color:#5a6a7a;">'+(h.balance_after||0).toLocaleString()+'P</td>'+
+                                    '</tr>';
+                            }).join('') + '</tbody></table>';
+                    }
+                    body.innerHTML =
+                        '<div style="background:#f8fafc;border-radius:12px;padding:18px 20px;margin-bottom:20px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">'+
+                            '<div><div style="font-size:0.7rem;color:#8a95a8;font-weight:600;">고객사</div><div style="font-size:0.92rem;font-weight:800;color:#0d2647;margin-top:4px;">'+r._company+'</div></div>'+
+                            '<div><div style="font-size:0.7rem;color:#8a95a8;font-weight:600;">담당자</div><div style="font-size:0.92rem;font-weight:700;color:#0d2647;margin-top:4px;">'+r._name+'</div></div>'+
+                            '<div><div style="font-size:0.7rem;color:#8a95a8;font-weight:600;">현재 등급</div><div style="font-size:0.92rem;font-weight:800;margin-top:4px;color:'+t.color+';">'+t.icon+' '+t.name+'</div></div>'+
+                            '<div><div style="font-size:0.7rem;color:#8a95a8;font-weight:600;">보유 적립금</div><div style="font-size:0.92rem;font-weight:800;color:#1565c0;margin-top:4px;">'+(r.balance||0).toLocaleString()+'P</div></div>'+
+                        '</div>'+
+                        '<div style="border:1.5px solid #ffe0b2;background:#fff8e1;border-radius:12px;padding:16px 18px;margin-bottom:20px;">'+
+                            '<div style="font-size:0.82rem;font-weight:700;color:#e65100;margin-bottom:10px;">⚙️ 수기 조정</div>'+
+                            '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+
+                                '<input id="loyAdjPoints" type="number" placeholder="포인트 (양수=적립, 음수=차감)" style="flex:1;min-width:200px;padding:10px 14px;border:1.5px solid #dde3ed;border-radius:8px;font-size:0.85rem;font-family:inherit;">'+
+                                '<input id="loyAdjReason" type="text" placeholder="조정 사유 (필수)" style="flex:2;min-width:240px;padding:10px 14px;border:1.5px solid #dde3ed;border-radius:8px;font-size:0.85rem;font-family:inherit;">'+
+                                '<button onclick="submitLoyAdjust(\''+userId+'\')" style="padding:10px 20px;background:#e65100;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;">조정 적용</button>'+
+                            '</div>'+
+                            '<div style="font-size:0.72rem;color:#999;margin-top:8px;">조정 시 31_적립금이력에 type=admin_adjust로 기록됩니다.</div>'+
+                        '</div>'+
+                        '<div style="font-size:0.82rem;font-weight:700;color:#0d2647;margin-bottom:10px;">📜 이력 (최근 200건)</div>'+
+                        '<div style="max-height:380px;overflow-y:auto;border:1.5px solid #e5eaf2;border-radius:10px;">' + historyHtml + '</div>';
+                } catch(e) {
+                    body.innerHTML = '<div style="padding:30px;text-align:center;color:#c62828;">이력 로드 실패: ' + e.message + '</div>';
+                }
+            }
+
+            function closeLoyAdminModal() {
+                document.getElementById('loyAdminModalOverlay').style.display = 'none';
+            }
+
+            async function submitLoyAdjust(userId) {
+                var ptsRaw = document.getElementById('loyAdjPoints').value;
+                var reason = document.getElementById('loyAdjReason').value.trim();
+                var pts = parseInt(ptsRaw, 10);
+                if (!pts || isNaN(pts)) { showToast('조정 포인트(양수/음수 정수)를 입력해주세요.'); return; }
+                if (!reason) { showToast('조정 사유를 입력해주세요.'); return; }
+                if (!confirm(pts + 'P를 ' + (pts >= 0 ? '적립' : '차감') + '합니다.\n사유: ' + reason + '\n\n진행할까요?')) return;
+                try {
+                    var { data: newBalance, error } = await supabase.rpc('admin_adjust_loyalty', {
+                        p_user_id: userId,
+                        p_delta: pts,
+                        p_reason: reason
+                    });
+                    if (error) throw error;
+                    showToast('✅ 조정 완료. 잔액: ' + (newBalance || 0).toLocaleString() + 'P');
+                    closeLoyAdminModal();
+                    loadLoyaltyAdmin();
+                } catch(e) {
+                    showToast('조정 실패: ' + (e.message || ''));
                 }
             }
 

@@ -5618,16 +5618,16 @@
         var tier = loyGetTier(data);
         var earnPts = Math.round((contract.subtotal || 0) * tier.rate / 100);
         if (earnPts > 0) {
-          await loyEarnPoints(earnPts, contract.expo + ' 계약 적립 (' + tier.rate + '%)', 'contract_earn', String(contract.id || ''));
+          await loyEarnPoints(earnPts, contract.expo + ' 계약 적립 (' + tier.rate + '%)', 'contract_earn', String(contract.dbId || contract.id || ''));
         }
         if (prevContractCount === 0) {
-          await loyEarnPoints(20000, '첫 계약 체결 보너스', 'first_contract', String(contract.id || ''));
+          await loyEarnPoints(20000, '첫 계약 체결 보너스', 'first_contract', String(contract.dbId || contract.id || ''));
         }
         var sameInterp = (typeof contracts !== 'undefined' && Array.isArray(contracts)) ? contracts.filter(function(c) {
           return c.interpreter && contract.interpreter && c.interpreter.id === contract.interpreter.id && c.id !== contract.id && (c.status === 'complete' || c.status === 'settled');
         }) : [];
         if (sameInterp.length > 0 && contract.interpreter && contract.interpreter.name) {
-          await loyEarnPoints(10000, contract.interpreter.name + ' 통역사 재이용 보너스', 'reuse', String(contract.id || ''));
+          await loyEarnPoints(10000, contract.interpreter.name + ' 통역사 재이용 보너스', 'reuse', String(contract.dbId || contract.id || ''));
         }
         // 등급 재계산 (RPC가 카운트/금액 누적 + 등급 결정)
         var { data: newTier, error: tierErr } = await window.sbClient.rpc('update_loyalty_tier_on_contract', {
