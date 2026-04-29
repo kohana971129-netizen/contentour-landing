@@ -1541,7 +1541,7 @@
             var expoName = document.getElementById('f-expo').value;
             await window.sbClient.from('24_알림').insert({
               user_id: user.id,
-              notification_type: 'inquiry',
+              notification_type: 'service',
               title: '📩 문의가 접수되었습니다',
               message: '"' + expoName + '" 건의 통역 문의가 정상 접수되었습니다. 관리자 검토 후 견적서를 보내드립니다.',
               is_read: false
