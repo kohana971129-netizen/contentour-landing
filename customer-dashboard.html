@@ -5091,9 +5091,9 @@
         // 적립금 적립 (잔금 결제 완료 시)
         try { loyOnContractPayment(c); } catch(e) {}
       }
-      // 적립금 사용 처리
+      // 적립금 사용 처리 — source_id에 contract dbId 전달 (취소 시 회수 매칭용)
       if (currentPayment.pointsUsed && currentPayment.pointsUsed > 0) {
-        try { loyUsePoints(currentPayment.pointsUsed, c.expo + ' 수수료 차감 사용'); } catch(e) {}
+        try { loyUsePoints(currentPayment.pointsUsed, c.expo + ' 수수료 차감 사용', String(c.dbId || c.id || '')); } catch(e) {}
       }
       // DB 업데이트
       var dbId = c.dbId || c.id;
