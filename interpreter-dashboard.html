@@ -5391,17 +5391,25 @@
                 var docs = (profile && profile.verification_docs) || [];
                 docs.push({ name: file.name, path: filePath, uploadedAt: new Date().toISOString() });
 
-                await sb.from('40_통역사프로필').update({
+                var { error: updError } = await sb.from('40_통역사프로필').update({
                     verification_docs: docs,
                     is_verified: false
                 }).eq('user_id', userId);
+                if (updError) throw updError;
 
                 loadVerifyDocs();
                 showToast('✅ 서류가 업로드되었습니다. 관리자 검토 후 인증됩니다.');
                 input.value = '';
             } catch(e) {
                 console.error('서류 업로드 실패:', e);
-                showToast('⚠️ 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.');
+                var msg = (e && e.message) ? e.message : '';
+                if (msg.indexOf('Bucket not found') !== -1 || msg.indexOf('bucket') !== -1) {
+                    showToast('⚠️ Storage 버킷(interpreter-docs)이 없거나 권한이 없습니다. 관리자에게 문의해주세요.');
+                } else if (msg) {
+                    showToast('⚠️ 업로드 실패: ' + msg);
+                } else {
+                    showToast('⚠️ 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.');
+                }
             }
         }
 
@@ -5450,23 +5458,47 @@
 
         async function deleteVerifyDoc(idx) {
             var sb = window.sbClient;
-            if (!sb || !window.InterpreterApp || !InterpreterApp.currentUser) return;
+            if (!sb) { showToast('⚠️ 서비스 연결 오류'); return; }
+
+            var userId = null;
+            if (window.InterpreterApp && InterpreterApp.currentUser) {
+                userId = InterpreterApp.currentUser.id;
+            } else {
+                try {
+                    var user = await ContentourAuth.getCurrentUser();
+                    if (user) userId = user.id;
+                } catch(e) {}
+            }
+            if (!userId) { showToast('⚠️ 로그인이 필요합니다. 페이지를 새로고침해주세요.'); return; }
+
+            if (!confirm('이 서류를 삭제하시겠습니까?')) return;
+
             try {
-                var userId = InterpreterApp.currentUser.id;
                 var { data: profile } = await sb.from('40_통역사프로필').select('verification_docs').eq('user_id', userId).maybeSingle();
                 var docs = (profile && profile.verification_docs) || [];
-                if (!docs[idx]) return;
+                if (!docs[idx]) { showToast('⚠️ 해당 서류를 찾을 수 없습니다.'); return; }
 
-                // Storage에서 삭제
-                await sb.storage.from('interpreter-docs').remove([docs[idx].path]);
+                var target = docs[idx];
+
+                // Storage에서 삭제 (실패해도 DB에서는 제거)
+                try {
+                    if (target.path) await sb.storage.from('interpreter-docs').remove([target.path]);
+                } catch(stErr) {
+                    console.warn('Storage 삭제 실패 (DB에서는 제거):', stErr);
+                }
 
                 // DB에서 제거
                 docs.splice(idx, 1);
-                await sb.from('40_통역사프로필').update({ verification_docs: docs }).eq('user_id', userId);
+                var { error: updError } = await sb.from('40_통역사프로필').update({ verification_docs: docs }).eq('user_id', userId);
+                if (updError) throw updError;
 
                 loadVerifyDocs();
-                showToast('서류가 삭제되었습니다.');
-            } catch(e) { showToast('⚠️ 삭제 실패'); }
+                showToast('🗑️ 서류가 삭제되었습니다.');
+            } catch(e) {
+                console.error('서류 삭제 실패:', e);
+                var msg = (e && e.message) ? e.message : '';
+                showToast(msg ? ('⚠️ 삭제 실패: ' + msg) : '⚠️ 삭제 실패');
+            }
         }
 
         // 프로필 사진 로드
