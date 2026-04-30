@@ -8378,7 +8378,7 @@
                 // 갑/을 가로 2바 + 병은 아래 가로 한 줄
                 w.document.write('<div class="section-title">계약 당사자</div>' +
                     '<div style="display:flex;gap:16px;margin-bottom:14px;">' +
-                        '<table style="flex:1;margin:0;"><tr><th>갑 (의뢰인 / 고객사)</th><td>' + se.company + '</td></tr></table>' +
+                        '<table style="flex:1;margin:0;"><tr><th>갑 (의뢰인 / 고객사)</th><td>' + se.company + ' / ' + se.contact + '</td></tr></table>' +
                         '<table style="flex:1;margin:0;"><tr><th>을 (서비스 제공자 / 통역사)</th><td>' + se.interpreter + ' (' + se.lang + ')</td></tr></table>' +
                     '</div>' +
                     '<table style="margin-top:0;"><tr><th>병 (중개 플랫폼)</th><td>콘텐츄어 / 대표 고하나 / service@contentour.com</td></tr></table>' +
@@ -8428,7 +8428,7 @@
 
                 w.document.write('<div style="text-align:center;margin:35px 0 10px;font-size:0.95rem;color:#444;">위 내용을 확인하고 본 계약의 체결에 동의합니다.</div>');
                 w.document.write('<div style="text-align:center;margin-bottom:20px;font-size:0.85rem;color:#888;">' + today + '</div>');
-                w.document.write('<div class="stamp-area"><div class="stamp-box"><div class="label">갑 (의뢰인)</div><div style="height:60px;"></div><div class="line">' + se.company + '</div></div><div class="stamp-box"><div class="label">을 (서비스 제공자)</div><div style="height:60px;"></div><div class="line">' + se.interpreter + '</div></div></div>');
+                w.document.write('<div class="stamp-area"><div class="stamp-box"><div class="label">갑 (의뢰인)</div><div style="height:60px;"></div><div class="line">' + se.company + '</div><div style="font-size:0.78rem;color:#888;margin-top:4px;">' + se.contact + '</div></div><div class="stamp-box"><div class="label">을 (서비스 제공자)</div><div style="height:60px;"></div><div class="line">' + se.interpreter + '</div></div></div>');
                 w.document.write('</div></body></html>');
                 w.document.close();
             }
