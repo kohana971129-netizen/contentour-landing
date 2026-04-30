@@ -21,3 +21,10 @@ desktop.ini
 node_modules/
 package-lock.json
 .env*.local
+
+# 작업 로그 (시크릿/비밀번호 포함 가능 — git에 절대 올리지 말 것)
+UPDATE-LOG-*.txt
+*작업내역*.txt
+2026-*.txt
+2026.*.txt
+26.*.txt
