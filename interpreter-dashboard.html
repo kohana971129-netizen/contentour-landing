@@ -3923,7 +3923,8 @@
                 endDate: _esc(c.dates ? c.dates.end : ''),
                 days: _esc(String(c.days || 0)),
                 interpName: _esc(
-                    (window.InterpreterApp && InterpreterApp.interpProfile && InterpreterApp.interpProfile.display_name)
+                    (c.interpreterName)
+                    || (window.InterpreterApp && InterpreterApp.interpProfile && InterpreterApp.interpProfile.display_name)
                     || (window.InterpreterApp && InterpreterApp.profile && InterpreterApp.profile.name)
                     || '통역사'
                 )

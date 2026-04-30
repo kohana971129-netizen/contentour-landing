@@ -923,6 +923,10 @@ const InterpreterApp = {
         const contracts = await this.loadContracts();
         this._contracts = contracts;
 
+        const myName = (this.interpProfile && this.interpProfile.display_name)
+                    || (this.profile && this.profile.name)
+                    || '통역사';
+
         // 전역 interpreterContracts 교체
         window.interpreterContracts = contracts.map(c => {
             const serviceFee = (c.daily_rate || 0) * (c.working_days || 0);
@@ -934,6 +938,7 @@ const InterpreterApp = {
                 id: c.id,
                 expo: c.exhibition_name || '',
                 client: { name: c.client_company || '', company: c.client_company || '' },
+                interpreterName: myName,
                 status: c.status,
                 statusText: this.contractStatusText(c.status),
                 dates: { start: c.start_date || '', end: c.end_date || '' },
