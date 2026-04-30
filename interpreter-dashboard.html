@@ -3922,7 +3922,11 @@
                 startDate: _esc(c.dates ? c.dates.start : ''),
                 endDate: _esc(c.dates ? c.dates.end : ''),
                 days: _esc(String(c.days || 0)),
-                interpName: _esc(window.InterpreterApp && InterpreterApp.interpProfile ? InterpreterApp.interpProfile.display_name : '통역사')
+                interpName: _esc(
+                    (window.InterpreterApp && InterpreterApp.interpProfile && InterpreterApp.interpProfile.display_name)
+                    || (window.InterpreterApp && InterpreterApp.profile && InterpreterApp.profile.name)
+                    || '통역사'
+                )
             };
 
             var today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
