@@ -2744,6 +2744,66 @@
             margin-bottom: 6px;
         }
 
+        /* 상담 시간 */
+        .jnl-time-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .jnl-time-box {
+            background: var(--gray-100);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 11px;
+            padding: 14px 12px;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+
+        .jnl-time-box:focus-within {
+            border-color: var(--blue);
+            background: #fff;
+        }
+
+        .jnl-time-box label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--gray-400);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .jnl-time-box input[type="time"] {
+            width: 100%;
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 800;
+            border: none;
+            background: transparent;
+            color: var(--blue);
+            font-family: inherit;
+            outline: none;
+            padding: 0;
+        }
+
+        .jnl-time-box--total {
+            background: #e3f2fd;
+            border-color: #90caf9;
+        }
+
+        .jnl-time-total {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--blue);
+            line-height: 1.4;
+            min-height: 1.4em;
+        }
+
+        @media (max-width: 600px) {
+            .jnl-time-grid { grid-template-columns: 1fr; }
+        }
+
         .jnl-count-box input {
             width: 100%;
             text-align: center;

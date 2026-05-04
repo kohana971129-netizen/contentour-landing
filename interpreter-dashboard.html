@@ -482,6 +482,22 @@
                                     </div>
                                 </div>
 
+                                <!-- 상담 시간 -->
+                                <div class="jnl-time-grid">
+                                    <div class="jnl-time-box">
+                                        <label>상담 시작</label>
+                                        <input type="time" id="jnl-time-start" onchange="jnlCalcDuration()">
+                                    </div>
+                                    <div class="jnl-time-box">
+                                        <label>상담 종료</label>
+                                        <input type="time" id="jnl-time-end" onchange="jnlCalcDuration()">
+                                    </div>
+                                    <div class="jnl-time-box jnl-time-box--total">
+                                        <label>총 상담 시간</label>
+                                        <div id="jnl-time-total" class="jnl-time-total">—</div>
+                                    </div>
+                                </div>
+
                                 <!-- 방문 바이어 국가 -->
                                 <div class="jnl-section">방문 바이어 주요 국가</div>
                                 <div class="jnl-tags" id="jnlCountryTags">
@@ -2370,6 +2386,8 @@
             document.getElementById('jnl-period-start').value = '';
             document.getElementById('jnl-period-end').value = '';
             ['jnl-c-total', 'jnl-c-contract', 'jnl-c-sample', 'jnl-c-follow'].forEach(id => document.getElementById(id).value = '0');
+            ['jnl-time-start', 'jnl-time-end'].forEach(id => { var el = document.getElementById(id); if (el) el.value = ''; });
+            var ttot = document.getElementById('jnl-time-total'); if (ttot) ttot.textContent = '—';
             ['jnl-summary', 'jnl-result', 'jnl-action', 'jnl-atmo-memo', 'jnl-diff-memo', 'jnl-note-memo'].forEach(id => { var el = document.getElementById(id); if (el) el.value = ''; });
             document.querySelectorAll('.jnl-tag').forEach(t => t.classList.remove('selected'));
             document.querySelectorAll('.jnl-scale__opt').forEach(t => t.classList.remove('selected'));
@@ -2407,6 +2425,16 @@
                 var sample = parseInt(document.getElementById('jnl-c-sample').value) || 0;
                 var follow = parseInt(document.getElementById('jnl-c-follow').value) || 0;
 
+                var startTime = document.getElementById('jnl-time-start').value;
+                var endTime = document.getElementById('jnl-time-end').value;
+                var durationMinutes = 0;
+                if (startTime && endTime) {
+                    var sP = startTime.split(':'), eP = endTime.split(':');
+                    var d = (parseInt(eP[0],10)*60 + parseInt(eP[1],10)) - (parseInt(sP[0],10)*60 + parseInt(sP[1],10));
+                    if (d < 0) d += 24*60;
+                    durationMinutes = d > 0 ? d : 0;
+                }
+
                 var result = document.getElementById('jnl-result').value.trim();
                 var action = document.getElementById('jnl-action').value.trim();
                 var survey = jnlReadSurvey();
@@ -2443,6 +2471,9 @@
                     contract: contract,
                     sample: sample,
                     follow: follow,
+                    startTime: startTime,
+                    endTime: endTime,
+                    durationMinutes: durationMinutes,
                     countries: countries,
                     summary: summary,
                     result: result,
@@ -2484,6 +2515,30 @@
 
         function toggleTag(el) {
             el.classList.toggle('selected');
+        }
+
+        // ══════════════ 상담 시간 자동 계산 ══════════════
+        function jnlCalcDuration() {
+            var startEl = document.getElementById('jnl-time-start');
+            var endEl = document.getElementById('jnl-time-end');
+            var totalEl = document.getElementById('jnl-time-total');
+            if (!startEl || !endEl || !totalEl) return;
+            var start = startEl.value;
+            var end = endEl.value;
+            if (!start || !end) { totalEl.textContent = '—'; return; }
+            var sParts = start.split(':');
+            var eParts = end.split(':');
+            var sMin = parseInt(sParts[0],10)*60 + parseInt(sParts[1],10);
+            var eMin = parseInt(eParts[0],10)*60 + parseInt(eParts[1],10);
+            var diff = eMin - sMin;
+            if (diff < 0) diff += 24*60; // 자정 넘는 경우(드물지만 안전)
+            if (diff <= 0) { totalEl.textContent = '시간 확인 필요'; return; }
+            var h = Math.floor(diff/60);
+            var m = diff % 60;
+            var label = '';
+            if (h) label += h + '시간';
+            if (m) label += (h ? ' ' : '') + m + '분';
+            totalEl.textContent = label || '0분';
         }
 
         // ══════════════ 통역사 현장 소견 — 클릭 설문 ══════════════

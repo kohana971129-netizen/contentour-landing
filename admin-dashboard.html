@@ -6256,6 +6256,12 @@
                     '<div class="jv-stat"><div class="jv-stat__n">' + j.sample + '</div><div class="jv-stat__l">샘플 요청</div></div>' +
                     '<div class="jv-stat"><div class="jv-stat__n">' + j.follow + '</div><div class="jv-stat__l">팔로업 예정</div></div>' +
                   '</div>' +
+                  ((j.startTime || j.endTime || j.durationMinutes) ? (
+                    '<div class="jv-text" style="margin-top:8px;">' +
+                      '🕐 상담 시간: ' + (j.startTime || '—') + ' ~ ' + (j.endTime || '—') +
+                      (j.durationMinutes ? ' <strong>(' + Math.floor(j.durationMinutes/60) + '시간 ' + (j.durationMinutes%60) + '분)</strong>' : '') +
+                    '</div>'
+                  ) : '') +
 
                   '<div class="jv-sec">방문 바이어 주요 국가</div>' +
                   '<div class="jv-tags">' + countriesHtml + '</div>' +
@@ -6488,6 +6494,11 @@
                     '<div class="stat-box"><div class="num">' + j.sample + '</div><div class="lbl">샘플 요청</div></div>' +
                     '<div class="stat-box"><div class="num">' + j.follow + '</div><div class="lbl">팔로업 예정</div></div>' +
                     '</div>';
+
+                if (j.startTime || j.endTime || j.durationMinutes) {
+                    html += '<p class="text-block" style="margin-top:8px;">🕐 상담 시간: ' + (j.startTime || '—') + ' ~ ' + (j.endTime || '—') +
+                        (j.durationMinutes ? ' <strong>(' + Math.floor(j.durationMinutes/60) + '시간 ' + (j.durationMinutes%60) + '분)</strong>' : '') + '</p>';
+                }
 
                 if (countriesHtml) {
                     html += '<div class="section-title">방문 바이어 주요 국가</div><div style="margin-bottom:16px;">' + countriesHtml + '</div>';
