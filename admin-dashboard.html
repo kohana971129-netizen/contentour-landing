@@ -6900,27 +6900,34 @@
                 if (s === 'completed') return { status:'settled', statusText:'완료' };
                 if (s === 'deposit_paid') {
                     if (c.balance_status === 'paid') return { status:'settled', statusText:'정산 완료' };
+                    // A안: 잔금 개념 없음 — balance가 0이거나 미설정이면 자동 통과
+                    var hasBalance = (c.balance_amount && c.balance_amount > 0);
+                    if (!hasBalance) return { status:'in_progress', statusText:'서비스 진행중' };
                     var now = new Date();
                     var end = new Date(c.end_date + 'T23:59:59');
                     if (now > end) return { status:'balance_pay', statusText:'잔금 결제 대기' };
                     return { status:'in_progress', statusText:'서비스 진행중' };
                 }
-                if (c.contract_signed && c.deposit_status === 'pending') return { status:'deposit_pay', statusText:'계약금 결제 대기' };
+                if (c.contract_signed && c.deposit_status === 'pending') return { status:'deposit_pay', statusText:'선결제 대기' };
                 if (c.interpreter_accepted === true && !c.contract_signed) return { status:'contract_sign', statusText:'계약 체결 대기' };
                 if (c.interpreter_accepted === null && s === 'pending') return { status:'quote_review', statusText:'배정 확인 대기' };
                 return { status:'quote_review', statusText:'검토중' };
             }
 
             function buildTimeline(c, uiStatus) {
+                // A안: balance가 0이면 잔금 결제 단계 자체를 빼고 표시
+                var hasBalance = (c.balance_amount && c.balance_amount > 0);
                 var steps = [
                     { step:'배정 요청', date: c.created_at ? c.created_at.split('T')[0] : '', done: true },
                     { step:'통역사 수락', date: c.accepted_at ? c.accepted_at.split('T')[0] : '', done: c.interpreter_accepted === true },
                     { step:'계약 체결', date: c.contract_signed_at ? c.contract_signed_at.split('T')[0] : '', done: !!c.contract_signed },
-                    { step:'계약금 결제', date: c.deposit_paid_at ? c.deposit_paid_at.split('T')[0] : '', done: c.deposit_status === 'paid' },
+                    { step: hasBalance ? '계약금 결제' : '선결제', date: c.deposit_paid_at ? c.deposit_paid_at.split('T')[0] : '', done: c.deposit_status === 'paid' },
                     { step:'서비스 진행', date: c.start_date || '', done: uiStatus === 'in_progress' || uiStatus === 'balance_pay' || uiStatus === 'settled' },
-                    { step:'잔금 결제', date: c.balance_paid_at ? c.balance_paid_at.split('T')[0] : '', done: c.balance_status === 'paid' },
-                    { step:'완료', date: c.status === 'completed' ? (c.updated_at || '').split('T')[0] : '', done: c.status === 'completed' }
                 ];
+                if (hasBalance) {
+                    steps.push({ step:'잔금 결제', date: c.balance_paid_at ? c.balance_paid_at.split('T')[0] : '', done: c.balance_status === 'paid' });
+                }
+                steps.push({ step:'완료', date: c.status === 'completed' ? (c.updated_at || '').split('T')[0] : '', done: c.status === 'completed' });
                 // active 표시: 첫 번째 미완료 단계
                 var activeSet = false;
                 steps.forEach(function(st) { if (!st.done && !activeSet) { st.active = true; activeSet = true; } });
@@ -7067,7 +7074,8 @@
                     var actionHtml = '';
                     if (c.status === 'deposit_review') {
                         actionHtml = '<div class="contract-card__actions"><button class="contract-card__action approve" onclick="event.stopPropagation();ctAdminApprove(\''+c.id+'\')">\uC2B9\uC778</button><button class="contract-card__action reject" onclick="event.stopPropagation();ctAdminReject(\''+c.id+'\')">\uBC18\uB824</button></div>';
-                    } else if (c.status === 'balance_review') {
+                    } else if (c.status === 'balance_review' && c.balance > 0) {
+                        // A안: balance가 0이면 액션 버튼 숨김 (옛 계약 호환)
                         actionHtml = '<div class="contract-card__actions"><button class="contract-card__action approve" onclick="event.stopPropagation();ctAdminApproveBalance(\''+c.id+'\')">잔금 확인</button><button class="contract-card__action reject" onclick="event.stopPropagation();ctAdminRejectBalance(\''+c.id+'\')">반려</button></div>';
                     } else if (c.status === 'deposit_pay') {
                         actionHtml = '<span class="contract-card__action label">\uACB0\uC81C \uB300\uAE30</span>';
@@ -7149,7 +7157,7 @@
                             '<button class="cm-review-box__btn reject" onclick="ctAdminReject(\''+c.id+'\');closeCtModal();">\uBC18\uB824</button>' +
                         '</div></div>';
                 }
-                if (c.status === 'balance_review') {
+                if (c.status === 'balance_review' && c.balance > 0) {
                     bodyHtml += '<div class="cm-review-box">' +
                         '<div class="cm-review-box__icon">\uD83D\uDCB0</div>' +
                         '<div class="cm-review-box__title">잔금 결제 확인 필요</div>' +
@@ -8204,7 +8212,7 @@
                                 if (t.step === '계약금 결제') { t.done = true; t.active = false; t.date = new Date().toISOString().split('T')[0]; }
                                 if (t.step === '관리자 승인') { t.active = true; }
                             });
-                            showToast('🔔 ' + c.expo + ' 계약금 결제가 접수되었습니다. 승인이 필요합니다.');
+                            showToast('🔔 ' + c.expo + ' 선결제 결제가 접수되었습니다. 승인이 필요합니다.');
                         } else if (data.type === 'balance') {
                             c.balancePaid = true;
                             c.status = 'balance_review';
@@ -8502,10 +8510,9 @@
                         { step:'계약서 작성', date: todayStr, done: true },
                         { step:'계약서 확인', date: isSign ? '' : todayStr, done: !isSign, active: isSign },
                         { step:'계약 체결', date: isSign ? '' : todayStr, done: !isSign },
-                        { step:'계약금 결제', date: '', done: false, active: !isSign },
+                        { step:'선결제', date: '', done: false, active: !isSign },
                         { step:'관리자 승인', date: '', done: false },
                         { step:'서비스 진행', date: '', done: false },
-                        { step:'잔금 결제', date: '', done: false },
                         { step:'완료 확인', date: '', done: false },
                         { step:'정산 완료', date: '', done: false }
                     ]
@@ -8719,10 +8726,9 @@
                                                 { step:'견적 확인', date: todayStr, done: true },
                                                 { step:'계약서 확인', date: '', done: false, active: true },
                                                 { step:'계약 체결', date: '', done: false },
-                                                { step:'계약금 결제', date: '', done: false },
+                                                { step:'선결제', date: '', done: false },
                                                 { step:'관리자 승인', date: '', done: false },
                                                 { step:'서비스 진행', date: '', done: false },
-                                                { step:'잔금 결제', date: '', done: false },
                                                 { step:'완료 확인', date: '', done: false },
                                                 { step:'정산 완료', date: '', done: false }
                                             ]
@@ -8829,10 +8835,11 @@
 
             function renderFabPanel() {
                 var depositReview = ctAdminContracts.filter(function(c){return c.status==='deposit_review';});
-                var balanceReview = ctAdminContracts.filter(function(c){return c.status==='balance_review';});
+                // A안: balance가 0인 계약은 잔금 확인 카드 자체를 만들지 않음
+                var balanceReview = ctAdminContracts.filter(function(c){return c.status==='balance_review' && c.balance > 0;});
                 var stlRequest = stlAdminData.filter(function(d){return d.status==='request';});
                 var all = [];
-                depositReview.forEach(function(c){ all.push({type:'deposit', id:c.id, title:c.expo, sub:'계약금 '+ctFmt(c.deposit)+' 결제 확인', client:c.client.name}); });
+                depositReview.forEach(function(c){ all.push({type:'deposit', id:c.id, title:c.expo, sub:'선결제 '+ctFmt(c.deposit)+' 결제 확인', client:c.client.name}); });
                 balanceReview.forEach(function(c){ all.push({type:'balance', id:c.id, title:c.expo, sub:'잔금 '+ctFmt(c.balance)+' 결제 확인', client:c.client.name}); });
                 stlRequest.forEach(function(d){ all.push({type:'settlement', id:d.id, title:d.expo, sub:'정산 '+d.amount.toLocaleString()+'원 승인 대기', client:d.interpreter||'통역사'}); });
 

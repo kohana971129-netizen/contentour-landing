@@ -1329,7 +1329,8 @@
             var today = new Date().toISOString().split('T')[0];
             var active = contracts.filter(function(c) { return c.status === 'in_progress' || c.status === 'deposit_paid'; }).length;
             var upcoming = contracts.filter(function(c) { return c.start_date >= today && c.status !== 'cancelled' && c.status !== 'pending'; }).length;
-            var unpaid = contracts.filter(function(c) { return (c.deposit_status !== 'paid' || c.balance_status !== 'paid') && c.status !== 'cancelled' && c.status !== 'settled' && c.status !== 'pending'; }).length;
+            // A안: 선결제(deposit) 미납만 카운트. 잔금(balance)은 0이거나 자동 paid 처리되므로 무시.
+            var unpaid = contracts.filter(function(c) { return c.deposit_status !== 'paid' && c.status !== 'cancelled' && c.status !== 'settled' && c.status !== 'pending'; }).length;
             var completed = contracts.filter(function(c) { return c.status === 'completed' || c.status === 'settled'; }).length;
 
             // KPI 업데이트
@@ -4016,10 +4017,9 @@
           { step: '견적 확인', date: todayStr, done: true },
           { step: '계약서 확인', date: '', done: false, active: true },
           { step: '계약 체결', date: '', done: false },
-          { step: '계약금 결제', date: '', done: false },
+          { step: '선결제', date: '', done: false },
           { step: '관리자 승인', date: '', done: false },
           { step: '서비스 진행', date: '', done: false },
-          { step: '잔금 결제', date: '', done: false },
           { step: '완료 확인', date: '', done: false },
           { step: '정산 완료', date: '', done: false }
         ]
@@ -4076,13 +4076,13 @@
     function finalizeContractSign(c) {
       var todayStr = new Date().toISOString().split('T')[0];
       c.status = 'deposit_pay';
-      c.statusText = '계약금 결제 대기';
+      c.statusText = '선결제 대기';
       c.timeline.forEach(function(t) {
         if (t.step === '계약서 확인') { t.done = true; t.active = false; t.date = todayStr; }
         if (t.step === '계약 체결') { t.done = true; t.date = todayStr; }
-        if (t.step === '계약금 결제') { t.active = true; }
+        if (t.step === '계약금 결제' || t.step === '선결제') { t.active = true; }
       });
-      showContractToast('양측 계약서 동의 완료! 계약이 체결되었습니다. 계약금을 결제해주세요.');
+      showContractToast('양측 계약서 동의 완료! 계약이 체결되었습니다. 선결제를 진행해주세요.');
       renderContracts();
     }
 
@@ -4235,7 +4235,7 @@
             };
             var statusTextMap = {
                 contract_sign: '계약서 확인 대기',
-                deposit_pay: '계약금 결제 대기',
+                deposit_pay: '선결제 대기',
                 deposit_review: '관리자 승인 대기',
                 in_progress: '서비스 진행중',
                 balance_pay: '잔금 결제 대기',
@@ -4283,18 +4283,23 @@
                     balancePaid: d.balance_status === 'paid',
                     customerAgreed: d.contract_signed || false,
                     interpreterAgreed: d.interpreter_accepted || false,
-                    timeline: [
-                        { step: '견적 발송', date: d.created_at ? d.created_at.split('T')[0] : '', done: true },
-                        { step: '견적 확인', date: d.created_at ? d.created_at.split('T')[0] : '', done: true },
-                        { step: '계약서 확인', date: d.contract_signed_at ? d.contract_signed_at.split('T')[0] : '', done: !!d.contract_signed, active: !d.contract_signed },
-                        { step: '계약 체결', date: (d.contract_signed && d.interpreter_accepted) ? (d.accepted_at ? d.accepted_at.split('T')[0] : todayStr) : '', done: !!(d.contract_signed && d.interpreter_accepted) },
-                        { step: '계약금 결제', date: d.deposit_paid_at ? d.deposit_paid_at.split('T')[0] : '', done: d.deposit_status === 'paid', active: d.contract_signed && d.interpreter_accepted && d.deposit_status !== 'paid' },
-                        { step: '관리자 승인', date: d.deposit_status === 'paid' ? todayStr : '', done: d.status === 'in_progress' || d.status === 'completed' || d.status === 'settled' },
-                        { step: '서비스 진행', date: d.status === 'in_progress' || d.status === 'completed' || d.status === 'settled' ? d.start_date : '', done: d.status === 'completed' || d.status === 'settled' || d.status === 'in_progress' },
-                        { step: '잔금 결제', date: d.balance_paid_at ? d.balance_paid_at.split('T')[0] : '', done: d.balance_status === 'paid' },
-                        { step: '완료 확인', date: d.status === 'completed' || d.status === 'settled' ? todayStr : '', done: d.status === 'settled' },
-                        { step: '정산 완료', date: d.status === 'settled' ? todayStr : '', done: d.status === 'settled' }
-                    ]
+                    timeline: (function() {
+                        // A안: balance가 0이면 잔금 결제 단계 자체를 빼고, 결제 단계 라벨을 "선결제"로
+                        var hasBalance = (d.balance_amount && d.balance_amount > 0);
+                        var steps = [
+                            { step: '견적 발송', date: d.created_at ? d.created_at.split('T')[0] : '', done: true },
+                            { step: '견적 확인', date: d.created_at ? d.created_at.split('T')[0] : '', done: true },
+                            { step: '계약서 확인', date: d.contract_signed_at ? d.contract_signed_at.split('T')[0] : '', done: !!d.contract_signed, active: !d.contract_signed },
+                            { step: '계약 체결', date: (d.contract_signed && d.interpreter_accepted) ? (d.accepted_at ? d.accepted_at.split('T')[0] : todayStr) : '', done: !!(d.contract_signed && d.interpreter_accepted) },
+                            { step: hasBalance ? '계약금 결제' : '선결제', date: d.deposit_paid_at ? d.deposit_paid_at.split('T')[0] : '', done: d.deposit_status === 'paid', active: d.contract_signed && d.interpreter_accepted && d.deposit_status !== 'paid' },
+                            { step: '관리자 승인', date: d.deposit_status === 'paid' ? todayStr : '', done: d.status === 'in_progress' || d.status === 'completed' || d.status === 'settled' },
+                            { step: '서비스 진행', date: d.status === 'in_progress' || d.status === 'completed' || d.status === 'settled' ? d.start_date : '', done: d.status === 'completed' || d.status === 'settled' || d.status === 'in_progress' }
+                        ];
+                        if (hasBalance) steps.push({ step: '잔금 결제', date: d.balance_paid_at ? d.balance_paid_at.split('T')[0] : '', done: d.balance_status === 'paid' });
+                        steps.push({ step: '완료 확인', date: d.status === 'completed' || d.status === 'settled' ? todayStr : '', done: d.status === 'settled' });
+                        steps.push({ step: '정산 완료', date: d.status === 'settled' ? todayStr : '', done: d.status === 'settled' });
+                        return steps;
+                    })()
                 };
             });
             _contractsDbLoaded = true;
@@ -4346,10 +4351,10 @@
             actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();openContractDocument('${c.id}',true)" style="background:linear-gradient(135deg,#1565c0,#0d47a1);">📄 계약서 확인 및 동의</button>`;
           }
         }
-        else if (c.status === 'deposit_pay') actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();openPaymentModal('${c.id}','deposit')">계약금 결제</button>`;
-        else if (c.status === 'deposit_review') actionHtml = `<span class="contract-card__action label" style="background:#f3e5f5;color:#7b1fa2;">계약금 승인 대기중</span>`;
-        else if (c.status === 'balance_pay') actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();openPaymentModal('${c.id}','balance')">잔금 결제</button>`;
-        else if (c.status === 'balance_review') actionHtml = `<span class="contract-card__action label" style="background:#f3e5f5;color:#7b1fa2;">잔금 확인 대기중</span>`;
+        else if (c.status === 'deposit_pay') actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();openPaymentModal('${c.id}','deposit')">선결제</button>`;
+        else if (c.status === 'deposit_review') actionHtml = `<span class="contract-card__action label" style="background:#f3e5f5;color:#7b1fa2;">선결제 승인 대기중</span>`;
+        else if (c.status === 'balance_pay' && c.balance > 0) actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();openPaymentModal('${c.id}','balance')">잔금 결제</button>`;
+        else if (c.status === 'balance_review' && c.balance > 0) actionHtml = `<span class="contract-card__action label" style="background:#f3e5f5;color:#7b1fa2;">잔금 확인 대기중</span>`;
         else if (c.status === 'in_progress') actionHtml = `<span class="contract-card__action label">진행중</span>`;
         else if (c.status === 'complete') {
           actionHtml = `<button class="contract-card__action pay" onclick="event.stopPropagation();confirmServiceComplete('${c.id}')">완료 확인</button>`;
