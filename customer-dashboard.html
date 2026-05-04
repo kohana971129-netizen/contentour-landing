@@ -2592,7 +2592,47 @@
         '<div class="section">통역사 현장 평가</div>' +
         '<table><tr><th>전문 용어 대응력</th><td class="stars">' + starStr(stars.term) + '</td><th>비즈니스 매너</th><td class="stars">' + starStr(stars.manner) + '</td></tr>' +
         '<tr><th>의사소통 정확도</th><td class="stars">' + starStr(stars.comm) + '</td><th>전반적 만족도</th><td class="stars">' + starStr(stars.overall) + '</td></tr></table>' +
-        (evalText ? '<p class="cust-form-label">통역사 종합 의견</p><div class="text-box">' + evalText + '</div>' : '') +
+        (evalText ? '<p class="cust-form-label">통역사 종합 의견</p><div class="text-box">' + evalText + '</div>' : '');
+
+      // 고객사 클릭 설문 (현장 소견)
+      try {
+        var csSurvey = (typeof customerSurveyRead === 'function') ? customerSurveyRead() : null;
+        var csSurveyText = (typeof customerSurveyBuildText === 'function') ? customerSurveyBuildText(csSurvey) : '';
+        if (csSurveyText) {
+          html += '<div class="section">고객사 현장 소견 (클릭 설문)</div><div class="text-box">' + esc(csSurveyText) + '</div>';
+        }
+      } catch(e) {}
+
+      // 통역사 작성 내용 (현재 로드된 일지가 통역사 작성 일지인 경우)
+      try {
+        var loadedJ = (activeJournalId && Array.isArray(journalData))
+          ? journalData.find(function(x) { return x.id === activeJournalId; })
+          : null;
+        if (loadedJ) {
+          var hasTime = loadedJ.startTime || loadedJ.endTime || loadedJ.durationMinutes;
+          var hasOpinion = loadedJ.atmosphere || loadedJ.difficulty || loadedJ.clientNote;
+          var hasIssues = loadedJ.issues && loadedJ.issues.length;
+          if (hasTime || hasOpinion || hasIssues) {
+            html += '<div class="section">📝 통역사 작성 내용</div>';
+            if (hasTime) {
+              var dur = loadedJ.durationMinutes ? ' (' + Math.floor(loadedJ.durationMinutes/60) + '시간 ' + (loadedJ.durationMinutes%60) + '분)' : '';
+              html += '<table><tr><th>상담 시간</th><td>' + esc(loadedJ.startTime || '-') + ' ~ ' + esc(loadedJ.endTime || '-') + esc(dur) + '</td></tr></table>';
+            }
+            if (loadedJ.atmosphere) html += '<p class="cust-form-label">현장 분위기 / 바이어 반응</p><div class="text-box">' + esc(loadedJ.atmosphere) + '</div>';
+            if (loadedJ.difficulty) html += '<p class="cust-form-label">통역 시 어려웠던 점 / 개선 사항</p><div class="text-box">' + esc(loadedJ.difficulty) + '</div>';
+            if (loadedJ.clientNote) html += '<p class="cust-form-label">고객사 전달 사항</p><div class="text-box">' + esc(loadedJ.clientNote) + '</div>';
+            if (hasIssues) {
+              html += '<p class="cust-form-label">현장 이슈 리포트</p>';
+              loadedJ.issues.forEach(function(it) {
+                var typeLabel = ({facility:'시설/장비',operation:'운영/진행',interpret:'통역',client:'고객사 요청',buyer:'바이어',safety:'안전',other:'기타'})[it.type] || (it.type || '기타');
+                html += '<div class="text-box" style="background:#fff8f0;border-color:#ffd699;margin-bottom:8px;"><strong>' + esc(typeLabel) + (it.time ? ' · ' + esc(it.time) : '') + (it.resolved ? ' ✅ 해결' : '') + '</strong><br>' + esc(it.text || '') + '</div>';
+              });
+            }
+          }
+        }
+      } catch(e) {}
+
+      html +=
         '<div class="footer">© ' + new Date().getFullYear() + ' CONTENTOUR · 본 문서는 전시회 상담일지로 자동 생성되었습니다.</div>' +
         '<button class="print-btn" onclick="window.print()">🖨 PDF 저장 / 인쇄</button>' +
         '</body></html>';
@@ -2600,6 +2640,9 @@
       w.document.write(html);
       w.document.close();
     }
+
+    // PDF 출력용 HTML escape
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
     function exportBusanPDF() {
       var v = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
