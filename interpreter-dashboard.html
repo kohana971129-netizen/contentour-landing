@@ -4181,8 +4181,10 @@
 
             container.innerHTML = filtered.map(function(c) {
                 var badgeClass = ctGetBadgeClass(c.status);
-                var depositIcon = c.depositStatus === 'paid' ? '<span class="ct-pay-ok">계약금 ✓</span>' : '<span class="ct-pay-wait">계약금 ✗</span>';
-                var balanceIcon = c.balanceStatus === 'paid' ? '<span class="ct-pay-ok">잔금 ✓</span>' : '<span class="ct-pay-wait">잔금 ✗</span>';
+                // A안: 선결제 단일 뱃지 (deposit/balance 중 하나라도 paid면 결제완료로 표시)
+                var paidByCustomerCard = (c.depositStatus === 'paid') || (c.balanceStatus === 'paid');
+                var depositIcon = paidByCustomerCard ? '<span class="ct-pay-ok">선결제 ✓</span>' : '<span class="ct-pay-wait">선결제 ✗</span>';
+                var balanceIcon = '';
                 return '<div class="ct-item" onclick="openIntContractDetail(\'' + c.id + '\')">' +
                     '<div>' +
                         '<div class="ct-item__top">' +
@@ -4218,8 +4220,9 @@
             document.getElementById('ctModalSub').textContent = c.id + ' | ' + c.client.name + ' (' + c.client.company + ')';
 
             var badgeClass = ctGetBadgeClass(c.status);
-            var depositAmount = Math.round(c.serviceFee * 0.1);
-            var balanceAmount = c.serviceFee - depositAmount;
+            // A안: 100% 선결제
+            var depositAmount = c.serviceFee;
+            var balanceAmount = 0;
 
             // 계약 기본 정보
             var html =
@@ -4248,18 +4251,13 @@
             var depositDate = c.timeline.find(function(t) { return t.step === '고객 계약금 결제' && t.done; });
             var balanceDate = c.timeline.find(function(t) { return t.step === '고객 잔금 결제' && t.done; });
 
+            // A안: 선결제 100% 단일 행
+            var paidByCustomer = (c.depositStatus === 'paid') || (c.balanceStatus === 'paid');
+            var paidAt = c.depositPaidAt || c.balancePaidAt || '';
             html += '<div class="ct-pay-row">' +
-                '<span class="ct-pay-label">계약금 (10%) - ₩' + depositAmount.toLocaleString() + '</span>' +
-                '<span>' + (c.depositStatus === 'paid'
-                    ? '<span class="ct-pay-badge-ok">결제완료</span>' + (c.depositPaidAt ? '<span class="ct-pay-date">' + c.depositPaidAt.split('T')[0] + '</span>' : '')
-                    : '<span class="ct-pay-badge-wait">결제대기</span>') +
-                '</span>' +
-            '</div>';
-
-            html += '<div class="ct-pay-row">' +
-                '<span class="ct-pay-label">잔금 (90%) - 전시 종료 후 - ₩' + balanceAmount.toLocaleString() + '</span>' +
-                '<span>' + (c.balanceStatus === 'paid'
-                    ? '<span class="ct-pay-badge-ok">결제완료</span>' + (c.balancePaidAt ? '<span class="ct-pay-date">' + c.balancePaidAt.split('T')[0] + '</span>' : '')
+                '<span class="ct-pay-label">선결제 (100%) - ₩' + (c.serviceFee || 0).toLocaleString() + '</span>' +
+                '<span>' + (paidByCustomer
+                    ? '<span class="ct-pay-badge-ok">결제완료</span>' + (paidAt ? '<span class="ct-pay-date">' + paidAt.split('T')[0] + '</span>' : '')
                     : '<span class="ct-pay-badge-wait">결제대기</span>') +
                 '</span>' +
             '</div>';
@@ -4542,8 +4540,9 @@
                 contractDate = today;
             }
 
-            var depositAmount = Math.round(c.serviceFee * 0.1);
-            var balanceAmount = c.serviceFee - depositAmount;
+            // A안: 100% 선결제
+            var depositAmount = c.serviceFee;
+            var balanceAmount = 0;
             var totalCustomerPay = c.serviceFee + c.platformFee;
 
             var w = window.open('', '_blank', 'width=900,height=1200');
@@ -4656,8 +4655,7 @@
             w.document.write('<div class="section">' +
                 '<div class="section-title">제3조 결제 및 정산 조건</div>' +
                 '<table class="info-table">' +
-                    '<tr><th>고객 계약금 (10%)</th><td>₩' + depositAmount.toLocaleString() + ' — 계약 체결 후 3영업일 이내' + (c.depositStatus === 'paid' ? ' ✅ 결제완료' : '') + '</td></tr>' +
-                    '<tr><th>고객 잔금 (90%)</th><td>₩' + balanceAmount.toLocaleString() + ' — 서비스 종료 후 5영업일 이내' + (c.balanceStatus === 'paid' ? ' ✅ 결제완료' : '') + '</td></tr>' +
+                    '<tr><th>고객 선결제 (100%)</th><td>₩' + (c.serviceFee || 0).toLocaleString() + ' — 계약 체결 후 3영업일 이내 전액 입금' + ((c.depositStatus === 'paid' || c.balanceStatus === 'paid') ? ' ✅ 결제완료' : '') + '</td></tr>' +
                     '<tr><th>통역사 정산</th><td>서비스 완료 및 상담일지 제출 후, 관리자 승인 완료 시 5영업일 이내 지급' + (c.settlementStatus === 'paid' ? ' ✅ 정산완료' : '') + '</td></tr>' +
                 '</table>' +
             '</div>');
@@ -4678,10 +4676,10 @@
                 '<div class="section-title">제5조 취소 및 환불 규정</div>' +
                 '<table class="info-table" style="font-size:12px;">' +
                     '<tr><th style="width:36%;">취소 시점</th><th style="width:34%;">환불 조건</th><th>비고</th></tr>' +
-                    '<tr><td>서비스 시작 30일 전 이전</td><td><b>계약금(총액 10%) 전액 환불</b></td><td>전액 환불</td></tr>' +
-                    '<tr><td>서비스 시작 14일 전 이전</td><td>계약금(총액 10%)의 <b>50% 환불</b></td><td>통역사 준비 비용 고려</td></tr>' +
-                    '<tr><td>서비스 시작 7일 전 이전</td><td>계약금 <b>환불 불가</b></td><td>통역사 일정 확보 배상</td></tr>' +
-                    '<tr><td>서비스 시작 7일 이내 또는 당일</td><td>총 계약금액의 <b>50% 위약금</b> 부과</td><td>통역사 손해배상 포함</td></tr>' +
+                    '<tr><td>서비스 시작 30일 전 이전</td><td>선결제 금액 <b>전액 환불</b></td><td>위약금 없음</td></tr>' +
+                    '<tr><td>서비스 시작 14일 전 이전</td><td>선결제 금액의 <b>50% 환불</b></td><td>통역사 준비 비용 차감</td></tr>' +
+                    '<tr><td>서비스 시작 7일 전 이전</td><td>선결제 금액의 <b>30% 환불</b></td><td>통역사 일정 확보 배상</td></tr>' +
+                    '<tr><td>서비스 시작 7일 이내 또는 당일</td><td>환불 불가 (위약금 100%)</td><td>통역사 손해배상 포함</td></tr>' +
                     '<tr><td>"을"의 귀책사유로 인한 취소</td><td><b>전액 환불 + 대체 통역사 배정</b></td><td>-</td></tr>' +
                 '</table>' +
                 '<div class="clause" style="margin-top:10px;font-size:12px;color:#666;">📌 천재지변, 전시회 주최 측 취소 등 불가항력 사유의 경우 양측 패널티 없이 별도 협의 처리합니다.</div>' +
