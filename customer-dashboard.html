@@ -1587,6 +1587,15 @@
             result: j.buyer_interest || '',
             issue: extra.issue || '',
             action: j.follow_up_notes || '',
+            atmosphere: extra.atmosphere || '',
+            difficulty: extra.difficulty || '',
+            clientNote: extra.clientNote || '',
+            survey: extra.survey || null,
+            startTime: extra.startTime || '',
+            endTime: extra.endTime || '',
+            durationMinutes: extra.durationMinutes || 0,
+            issues: extra.issues || [],
+            source: (j.interpreter_id && j.interpreter_id !== user.id) ? 'interpreter' : 'customer',
             status: j.status === 'submitted' ? 'complete' : (j.status === 'reviewed' ? 'complete' : 'draft'),
             reviewComment: j.review_comment || '',
             reviewedAt: j.reviewed_at || ''
@@ -1603,7 +1612,7 @@
     }
     function renderJournalList() {
       const body = document.getElementById('journalListBody'); if (!body) return;
-      body.innerHTML = journalData.map(j => '<div class="journal-list-item ' + (j.id === activeJournalId ? 'active' : '') + '" onclick="loadJournal(\'' + j.id + '\')"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;"><div class="jli-expo">' + j.expo + '</div><span class="jli-status ' + (j.status === 'complete' ? 'jli-complete' : 'jli-draft') + '">' + (j.status === 'complete' ? '제출완료' : '작성중') + '</span></div><div class="jli-meta"><span>&#128197; ' + j.date + '</span><span>&#128100; ' + j.interp + '</span></div>' + (j.reviewComment ? '<div style="margin-top:4px;font-size:0.7rem;color:#43a047;">&#128172; 관리자 피드백 있음</div>' : '') + '</div>').join('');
+      body.innerHTML = journalData.map(j => '<div class="journal-list-item ' + (j.id === activeJournalId ? 'active' : '') + '" onclick="loadJournal(\'' + j.id + '\')"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;"><div class="jli-expo">' + j.expo + '</div><span class="jli-status ' + (j.status === 'complete' ? 'jli-complete' : 'jli-draft') + '">' + (j.status === 'complete' ? '제출완료' : '작성중') + '</span></div><div class="jli-meta"><span>&#128197; ' + j.date + '</span><span>&#128100; ' + j.interp + '</span></div>' + (j.source === 'interpreter' ? '<div style="margin-top:4px;font-size:0.7rem;color:#1565c0;font-weight:700;">&#128221; 통역사 작성</div>' : '') + (j.reviewComment ? '<div style="margin-top:4px;font-size:0.7rem;color:#43a047;">&#128172; 관리자 피드백 있음</div>' : '') + '</div>').join('');
     }
     function loadJournal(id) {
       const j = journalData.find(x => x.id === id); if (!j) return;
@@ -1634,6 +1643,43 @@
         el.classList.toggle('selected', j.countries && j.countries.indexOf(tagText) !== -1);
       });
 
+      // 통역사 작성 내용 표시 (interpreter-submitted journal)
+      var interpBox = document.getElementById('interpDetailBox');
+      if (interpBox) interpBox.remove();
+      if (j.source === 'interpreter') {
+        var ib = document.createElement('div');
+        ib.id = 'interpDetailBox';
+        ib.style.cssText = 'margin:16px 0;padding:18px 22px;background:#f6f9ff;border:1px solid #c5d4ec;border-left:4px solid #1565c0;border-radius:10px;';
+        var html = '<div style="font-weight:800;color:#0d47a1;margin-bottom:10px;font-size:0.92rem;">📝 통역사 작성 내용</div>';
+        if (j.startTime || j.endTime || j.durationMinutes) {
+          html += '<div style="font-size:0.82rem;color:#1565c0;margin-bottom:8px;">🕐 상담 시간: ' + (j.startTime || '—') + ' ~ ' + (j.endTime || '—') +
+            (j.durationMinutes ? ' <strong>(' + Math.floor(j.durationMinutes/60) + '시간 ' + (j.durationMinutes%60) + '분)</strong>' : '') + '</div>';
+        }
+        function block(title, body) {
+          if (!body) return '';
+          return '<div style="margin-top:10px;"><div style="font-size:0.78rem;font-weight:700;color:#37474f;margin-bottom:4px;">' + title + '</div>' +
+                 '<div style="font-size:0.82rem;color:#212121;line-height:1.6;white-space:pre-line;background:#fff;border:1px solid #e0e7f3;border-radius:8px;padding:10px 12px;">' +
+                 body.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div></div>';
+        }
+        html += block('현장 분위기 / 바이어 반응', j.atmosphere);
+        html += block('통역 시 어려웠던 점 / 개선 사항', j.difficulty);
+        html += block('고객사 전달 사항', j.clientNote);
+        if (j.issues && j.issues.length) {
+          var issueHtml = j.issues.map(function(it) {
+            var typeLabel = ({facility:'🏗️ 시설/장비',operation:'⚙️ 운영/진행',interpret:'🗣️ 통역',client:'🏢 고객사 요청',buyer:'🤝 바이어',safety:'🛡️ 안전',other:'📌 기타'})[it.type] || (it.type || '기타');
+            return '<div style="padding:8px 10px;background:#fff8f0;border:1px solid #ffd699;border-radius:8px;margin-bottom:6px;font-size:0.8rem;">' +
+                   '<div style="font-weight:700;color:#bf360c;margin-bottom:3px;">' + typeLabel + (it.time ? ' · ' + it.time : '') + (it.resolved ? ' ✅' : '') + '</div>' +
+                   '<div style="color:#5d4037;line-height:1.5;white-space:pre-line;">' + (it.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div></div>';
+          }).join('');
+          html += '<div style="margin-top:10px;"><div style="font-size:0.78rem;font-weight:700;color:#bf360c;margin-bottom:4px;">⚠️ 현장 이슈 리포트</div>' + issueHtml + '</div>';
+        }
+        ib.innerHTML = html;
+        var editorElI = document.querySelector('.journal-editor');
+        var saveBarI = editorElI ? editorElI.querySelector('.jeditor-footer') : null;
+        if (saveBarI) saveBarI.parentNode.insertBefore(ib, saveBarI);
+        else if (editorElI) editorElI.appendChild(ib);
+      }
+
       // 관리자 코멘트 표시
       var commentBox = document.getElementById('adminCommentBox');
       if (commentBox) commentBox.remove();
@@ -1650,7 +1696,7 @@
         else if (editorEl) editorEl.appendChild(box);
       }
     }
-    function newJournal() { activeJournalId = null; clearJournal(); renderJournalList(); document.getElementById('jeditorTitle').textContent = '새 상담일지 작성'; document.getElementById('jeditorSub').textContent = '전시회를 선택하고 상담 내용을 입력하세요.'; var cb = document.getElementById('adminCommentBox'); if (cb) cb.remove(); }
+    function newJournal() { activeJournalId = null; clearJournal(); renderJournalList(); document.getElementById('jeditorTitle').textContent = '새 상담일지 작성'; document.getElementById('jeditorSub').textContent = '전시회를 선택하고 상담 내용을 입력하세요.'; var cb = document.getElementById('adminCommentBox'); if (cb) cb.remove(); var ib = document.getElementById('interpDetailBox'); if (ib) ib.remove(); }
     function clearJournal() {
       document.getElementById('j-expo').value = '';
       document.getElementById('j-date').value = new Date().toISOString().split('T')[0];

@@ -2286,6 +2286,8 @@
                         start: ct.start_date || '',
                         end: ct.end_date || '',
                         lang: ct.language_pair || '',
+                        contractId: ct.id,
+                        customerId: ct.customer_id || null,
                         dataVal: val
                     });
                 });
@@ -2400,7 +2402,7 @@
             jnlAddIssue();
         }
 
-        function jnlSave(type) {
+        async function jnlSave(type) {
             if (type === 'submit') {
                 var expoVal = document.getElementById('jnl-expo').value;
                 var date = document.getElementById('jnl-date').value;
@@ -2497,11 +2499,18 @@
                 savedJournals.push(journalData);
                 localStorage.setItem('contentour_interpreter_journals', JSON.stringify(savedJournals));
 
-                // Broadcast real-time event to admin
+                // Broadcast real-time event to admin (same-browser)
                 localStorage.removeItem('contentour_journal_submit');
                 setTimeout(function() {
                     localStorage.setItem('contentour_journal_submit', JSON.stringify(journalData));
                 }, 50);
+
+                // Cross-device persistence: save to Supabase so customer & admin see it from any device
+                try {
+                    await jnlInsertToSupabase(journalData);
+                } catch(e) {
+                    console.error('[상담일지] Supabase 저장 예외:', e);
+                }
 
                 showToast('✅ 상담일지가 제출되었습니다.');
             } else {
@@ -2515,6 +2524,72 @@
 
         function toggleTag(el) {
             el.classList.toggle('selected');
+        }
+
+        // ══════════════ Supabase 저장 (44_상담일지) ══════════════
+        async function jnlInsertToSupabase(jd) {
+            var sb = window.sbClient;
+            if (!sb) return;
+            var user = null;
+            if (window.InterpreterApp && InterpreterApp.currentUser) {
+                user = InterpreterApp.currentUser;
+            } else {
+                try { user = await ContentourAuth.getCurrentUser(); } catch(e) {}
+            }
+            if (!user || !user.id) {
+                console.warn('[상담일지] 인증 정보 없음 — Supabase 저장 스킵');
+                return;
+            }
+
+            var contracts = window._jnlContracts || [];
+            var match = contracts.find(function(c) {
+                return c.name && jd.expo && c.name.toLowerCase() === jd.expo.toLowerCase();
+            });
+            var customerId = match ? match.customerId : null;
+            var contractId = match ? match.contractId : null;
+
+            var record = {
+                interpreter_id: user.id,
+                customer_id: customerId,
+                contract_id: contractId,
+                exhibition_name: jd.expo || '',
+                consultation_date: jd.date || new Date().toISOString().split('T')[0],
+                buyer_company: jd.company || '',
+                buyer_contact: jd.interp || '',
+                buyer_country: jd.location || '',
+                discussion_summary: jd.summary || '',
+                buyer_interest: jd.result || '',
+                follow_up_needed: (jd.follow || 0) > 0,
+                follow_up_notes: jd.action || '',
+                status: 'submitted',
+                submitted_at: new Date().toISOString(),
+                attachments: JSON.stringify({
+                    total: jd.total || 0,
+                    contract: jd.contract || 0,
+                    sample: jd.sample || 0,
+                    follow: jd.follow || 0,
+                    countries: jd.countries || [],
+                    lang: jd.lang || '',
+                    atmosphere: jd.atmosphere || '',
+                    difficulty: jd.difficulty || '',
+                    clientNote: jd.clientNote || '',
+                    survey: jd.survey || null,
+                    startTime: jd.startTime || '',
+                    endTime: jd.endTime || '',
+                    durationMinutes: jd.durationMinutes || 0,
+                    issues: jd.issues || [],
+                    periodStart: jd.periodStart || '',
+                    periodEnd: jd.periodEnd || ''
+                })
+            };
+
+            var resp = await sb.from('44_상담일지').insert(record).select('id').single();
+            if (resp.error) {
+                console.error('[상담일지] Supabase 저장 실패:', resp.error.message);
+                showToast('⚠️ 클라우드 저장 실패: ' + resp.error.message);
+            } else {
+                console.log('[상담일지] Supabase 저장 완료:', resp.data && resp.data.id, '(customer_id=' + customerId + ')');
+            }
         }
 
         // ══════════════ 상담 시간 자동 계산 ══════════════
