@@ -546,20 +546,158 @@
                                 </div>
                                 <button class="jnl-add-btn" onclick="jnlAddIssue()" style="margin-top:12px;">+ 이슈 추가</button>
 
-                                <!-- 통역사 현장 소견 -->
+                                <!-- 통역사 현장 소견 (클릭 설문) -->
                                 <div class="jnl-section">통역사 현장 소견</div>
-                                <div class="jnl-grid">
-                                    <div class="jnl-field span-2">
-                                        <label>현장 분위기 / 바이어 반응</label>
-                                        <textarea id="jnl-atmosphere" rows="3" placeholder="예: 전반적으로 바이어 관심도 높음. 특히 신제품 A에 대한 문의가 집중됨. 오후 시간대에 방문객 급증."></textarea>
+                                <div class="jnl-notice" style="border-color:#90caf9;background:#e3f2fd;color:#0d47a1;">
+                                    💡 해당하는 항목을 클릭해주세요. 선택지에 없는 내용은 각 섹션 하단 "기타 메모"에 자유롭게 적어주세요.
+                                </div>
+
+                                <!-- ① 현장 분위기 / 바이어 반응 -->
+                                <div class="jnl-survey-block">
+                                    <div class="jnl-survey-block__title">① 현장 분위기 / 바이어 반응</div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">부스 방문량</div>
+                                        <div class="jnl-scale" data-survey="atmoTraffic">
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">매우 한산</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">한산</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">보통</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">활발</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">매우 활발</span>
+                                        </div>
                                     </div>
-                                    <div class="jnl-field span-2">
-                                        <label>통역 시 어려웠던 점 / 개선 사항</label>
-                                        <textarea id="jnl-difficulty" rows="3" placeholder="예: 반도체 공정 관련 전문 용어 일부 사전 자료에 없었음. 다음 전시 시 고객사에 용어 리스트 추가 요청 필요."></textarea>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">바이어 관심도</div>
+                                        <div class="jnl-scale" data-survey="atmoInterest">
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">매우 낮음</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">낮음</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">보통</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">높음</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">매우 높음</span>
+                                        </div>
                                     </div>
-                                    <div class="jnl-field span-2">
-                                        <label>고객사 전달 사항</label>
-                                        <textarea id="jnl-client-note" rows="3" placeholder="예: 고객사 담당자(김과장)가 내일 오전 미팅 통역 시 계약서 관련 용어 확인 요청. A사 바이어 연락처 전달 완료."></textarea>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">주요 관심 포인트 <span class="jnl-survey-q__hint">(복수 선택)</span></div>
+                                        <div class="jnl-tags jnl-survey-chips" data-survey="atmoPoints">
+                                            <span class="jnl-tag" onclick="toggleTag(this)">가격</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">기술력</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">품질</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">납기</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">인증·규격</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">디자인</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">브랜드</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">신제품</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">A/S</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">바이어 유형 <span class="jnl-survey-q__hint">(복수 선택)</span></div>
+                                        <div class="jnl-tags jnl-survey-chips" data-survey="atmoBuyer">
+                                            <span class="jnl-tag" onclick="toggleTag(this)">실수요 바이어</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">에이전트·딜러</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">동종업계</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">학술·연구</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">단순 관람객</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">후속 가능성 <span class="jnl-survey-q__hint">(복수 선택)</span></div>
+                                        <div class="jnl-tags jnl-survey-chips" data-survey="atmoFollow">
+                                            <span class="jnl-tag" onclick="toggleTag(this)">현장 계약</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">견적 요청</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">샘플 요청</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">후속 미팅 약속</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">명함만 교환</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">기타 메모 <span class="jnl-survey-q__hint">(선택)</span></div>
+                                        <textarea id="jnl-atmo-memo" class="jnl-survey-memo" rows="2" placeholder="선택지에 없는 분위기·반응을 자유롭게 적어주세요."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- ② 통역 시 어려웠던 점 / 개선 사항 -->
+                                <div class="jnl-survey-block">
+                                    <div class="jnl-survey-block__title">② 통역 시 어려웠던 점 / 개선 사항</div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">어려움 유형 <span class="jnl-survey-q__hint">(복수 선택)</span></div>
+                                        <div class="jnl-tags jnl-survey-chips" data-survey="diffType">
+                                            <span class="jnl-tag" onclick="toggleTag(this)">전문용어 부족</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">사전자료 미흡</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">제품 스펙 숙지 부족</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">화자 발음·억양</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">부스 소음</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">장시간 피로</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">다국적 바이어 응대</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">고객사와의 호흡</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">특별히 없음</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">사전 준비 충분도</div>
+                                        <div class="jnl-scale" data-survey="diffPrep">
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">매우 부족</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">부족</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">보통</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">충분</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">매우 충분</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">다음 회차 개선 요청 <span class="jnl-survey-q__hint">(복수 선택)</span></div>
+                                        <div class="jnl-tags jnl-survey-chips" data-survey="diffImprove">
+                                            <span class="jnl-tag" onclick="toggleTag(this)">용어집 추가</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">제품 매뉴얼 사전 공유</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">통역 휴식 시간</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">보조 통역</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">음향 장비</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">좌석 환경</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">기타 메모 <span class="jnl-survey-q__hint">(선택)</span></div>
+                                        <textarea id="jnl-diff-memo" class="jnl-survey-memo" rows="2" placeholder="선택지에 없는 어려움·개선사항을 자유롭게 적어주세요."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- ③ 고객사 전달 사항 -->
+                                <div class="jnl-survey-block">
+                                    <div class="jnl-survey-block__title">③ 고객사 전달 사항</div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">요청 유형 <span class="jnl-survey-q__hint">(복수 선택)</span></div>
+                                        <div class="jnl-tags jnl-survey-chips" data-survey="noteType">
+                                            <span class="jnl-tag" onclick="toggleTag(this)">카탈로그·가격표</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">샘플</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">인증서</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">후속 연락처 인계</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">다음날 미팅 일정</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">현장 의사결정 필요</span>
+                                            <span class="jnl-tag" onclick="toggleTag(this)">환율·결제조건 확인</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">긴급도</div>
+                                        <div class="jnl-scale jnl-scale--3" data-survey="noteUrgency">
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">일반</span>
+                                            <span class="jnl-scale__opt" onclick="jnlScalePick(this)">우선</span>
+                                            <span class="jnl-scale__opt jnl-scale__opt--alert" onclick="jnlScalePick(this)">긴급</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="jnl-survey-group">
+                                        <div class="jnl-survey-q">자유 메모 <span class="jnl-survey-q__hint">(선택)</span></div>
+                                        <textarea id="jnl-note-memo" class="jnl-survey-memo" rows="2" placeholder="고객사에 전달할 추가 메모를 자유롭게 적어주세요."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -2232,8 +2370,9 @@
             document.getElementById('jnl-period-start').value = '';
             document.getElementById('jnl-period-end').value = '';
             ['jnl-c-total', 'jnl-c-contract', 'jnl-c-sample', 'jnl-c-follow'].forEach(id => document.getElementById(id).value = '0');
-            ['jnl-summary', 'jnl-result', 'jnl-action', 'jnl-atmosphere', 'jnl-difficulty', 'jnl-client-note'].forEach(id => document.getElementById(id).value = '');
+            ['jnl-summary', 'jnl-result', 'jnl-action', 'jnl-atmo-memo', 'jnl-diff-memo', 'jnl-note-memo'].forEach(id => { var el = document.getElementById(id); if (el) el.value = ''; });
             document.querySelectorAll('.jnl-tag').forEach(t => t.classList.remove('selected'));
+            document.querySelectorAll('.jnl-scale__opt').forEach(t => t.classList.remove('selected'));
             document.getElementById('jnlEditorTitle').textContent = '상담일지 작성';
             document.getElementById('jnlEditorSub').textContent = '전시회를 선택하고 고객사를 대신하여 상담 내용을 기록하세요.';
             document.getElementById('jnlSavedAt').textContent = '마지막 저장: —';
@@ -2270,9 +2409,10 @@
 
                 var result = document.getElementById('jnl-result').value.trim();
                 var action = document.getElementById('jnl-action').value.trim();
-                var atmosphere = document.getElementById('jnl-atmosphere').value.trim();
-                var difficulty = document.getElementById('jnl-difficulty').value.trim();
-                var clientNote = document.getElementById('jnl-client-note').value.trim();
+                var survey = jnlReadSurvey();
+                var atmosphere = jnlBuildAtmosphereText(survey);
+                var difficulty = jnlBuildDifficultyText(survey);
+                var clientNote = jnlBuildNoteText(survey);
 
                 var countries = [];
                 document.querySelectorAll('#jnlCountryTags .jnl-tag.selected').forEach(function(t) {
@@ -2310,6 +2450,7 @@
                     atmosphere: atmosphere,
                     difficulty: difficulty,
                     clientNote: clientNote,
+                    survey: survey,
                     issues: issues,
                     location: location,
                     periodStart: periodStart,
@@ -2343,6 +2484,80 @@
 
         function toggleTag(el) {
             el.classList.toggle('selected');
+        }
+
+        // ══════════════ 통역사 현장 소견 — 클릭 설문 ══════════════
+        function jnlScalePick(el) {
+            var parent = el.parentElement;
+            parent.querySelectorAll('.jnl-scale__opt').forEach(function(o) { o.classList.remove('selected'); });
+            el.classList.add('selected');
+        }
+
+        function jnlReadSurvey() {
+            function chips(key) {
+                var arr = [];
+                document.querySelectorAll('[data-survey="' + key + '"] .jnl-tag.selected').forEach(function(t) {
+                    arr.push(t.textContent.trim());
+                });
+                return arr;
+            }
+            function scale(key) {
+                var sel = document.querySelector('[data-survey="' + key + '"] .jnl-scale__opt.selected');
+                return sel ? sel.textContent.trim() : '';
+            }
+            function memo(id) {
+                var el = document.getElementById(id);
+                return el ? el.value.trim() : '';
+            }
+            return {
+                atmosphere: {
+                    traffic: scale('atmoTraffic'),
+                    interest: scale('atmoInterest'),
+                    points: chips('atmoPoints'),
+                    buyerTypes: chips('atmoBuyer'),
+                    followup: chips('atmoFollow'),
+                    memo: memo('jnl-atmo-memo')
+                },
+                difficulty: {
+                    types: chips('diffType'),
+                    prep: scale('diffPrep'),
+                    improvements: chips('diffImprove'),
+                    memo: memo('jnl-diff-memo')
+                },
+                clientNote: {
+                    requests: chips('noteType'),
+                    urgency: scale('noteUrgency'),
+                    memo: memo('jnl-note-memo')
+                }
+            };
+        }
+
+        function jnlBuildAtmosphereText(s) {
+            var a = s.atmosphere, parts = [];
+            if (a.traffic) parts.push('• 부스 방문량: ' + a.traffic);
+            if (a.interest) parts.push('• 바이어 관심도: ' + a.interest);
+            if (a.points.length) parts.push('• 주요 관심 포인트: ' + a.points.join(', '));
+            if (a.buyerTypes.length) parts.push('• 바이어 유형: ' + a.buyerTypes.join(', '));
+            if (a.followup.length) parts.push('• 후속 가능성: ' + a.followup.join(', '));
+            if (a.memo) parts.push('• 메모: ' + a.memo);
+            return parts.join('\n');
+        }
+
+        function jnlBuildDifficultyText(s) {
+            var d = s.difficulty, parts = [];
+            if (d.types.length) parts.push('• 어려움 유형: ' + d.types.join(', '));
+            if (d.prep) parts.push('• 사전 준비 충분도: ' + d.prep);
+            if (d.improvements.length) parts.push('• 개선 요청: ' + d.improvements.join(', '));
+            if (d.memo) parts.push('• 메모: ' + d.memo);
+            return parts.join('\n');
+        }
+
+        function jnlBuildNoteText(s) {
+            var n = s.clientNote, parts = [];
+            if (n.requests.length) parts.push('• 요청 유형: ' + n.requests.join(', '));
+            if (n.urgency) parts.push('• 긴급도: ' + n.urgency);
+            if (n.memo) parts.push('• 메모: ' + n.memo);
+            return parts.join('\n');
         }
 
         // 이슈 추가/삭제

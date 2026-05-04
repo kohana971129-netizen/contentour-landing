@@ -2899,6 +2899,116 @@
             color: #fff;
         }
 
+        /* 통역사 현장 소견 — 클릭 설문 */
+        .jnl-survey-block {
+            margin-bottom: 16px;
+            padding: 16px 18px;
+            background: #fafbfd;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+        }
+
+        .jnl-survey-block__title {
+            font-size: 0.86rem;
+            font-weight: 800;
+            color: var(--blue);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--gray-200);
+        }
+
+        .jnl-survey-group {
+            margin-bottom: 14px;
+        }
+
+        .jnl-survey-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .jnl-survey-q {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--gray-700);
+            margin-bottom: 7px;
+        }
+
+        .jnl-survey-q__hint {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--gray-400);
+            margin-left: 4px;
+        }
+
+        .jnl-survey-chips {
+            margin-bottom: 0;
+        }
+
+        .jnl-survey-memo {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-family: inherit;
+            color: var(--gray-700);
+            background: var(--white);
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.15s;
+        }
+
+        .jnl-survey-memo:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .jnl-scale {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .jnl-scale.jnl-scale--3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .jnl-scale__opt {
+            padding: 9px 6px;
+            text-align: center;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            background: var(--white);
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .jnl-scale__opt:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .jnl-scale__opt.selected {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+        }
+
+        .jnl-scale__opt--alert.selected {
+            background: var(--error);
+            border-color: var(--error);
+        }
+
+        @media (max-width: 600px) {
+            .jnl-scale__opt {
+                font-size: 0.68rem;
+                padding: 8px 3px;
+            }
+        }
+
         /* 에디터 푸터 */
         .jnl-editor__foot {
             padding: 16px 28px;
