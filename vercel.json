@@ -1,11 +1,5 @@
 {
   "cleanUrls": true,
-  "crons": [
-    {
-      "path": "/api/cron-loyalty-expire",
-      "schedule": "0 15 * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)\\.html",
