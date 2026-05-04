@@ -2611,18 +2611,54 @@
         if (loadedJ) {
           var hasTime = loadedJ.startTime || loadedJ.endTime || loadedJ.durationMinutes;
           var hasOpinion = loadedJ.atmosphere || loadedJ.difficulty || loadedJ.clientNote;
+          var hasSurvey = loadedJ.survey && (loadedJ.survey.atmosphere || loadedJ.survey.difficulty || loadedJ.survey.clientNote);
           var hasIssues = loadedJ.issues && loadedJ.issues.length;
-          if (hasTime || hasOpinion || hasIssues) {
+
+          if (hasTime || hasOpinion || hasSurvey || hasIssues) {
             html += '<div class="section">📝 통역사 작성 내용</div>';
+
+            // 상담 시간
             if (hasTime) {
               var dur = loadedJ.durationMinutes ? ' (' + Math.floor(loadedJ.durationMinutes/60) + '시간 ' + (loadedJ.durationMinutes%60) + '분)' : '';
-              html += '<table><tr><th>상담 시간</th><td>' + esc(loadedJ.startTime || '-') + ' ~ ' + esc(loadedJ.endTime || '-') + esc(dur) + '</td></tr></table>';
+              html += '<table><tr><th>🕐 상담 시간</th><td>' + esc(loadedJ.startTime || '-') + ' ~ ' + esc(loadedJ.endTime || '-') + esc(dur) + '</td></tr></table>';
             }
-            if (loadedJ.atmosphere) html += '<p class="cust-form-label">현장 분위기 / 바이어 반응</p><div class="text-box">' + esc(loadedJ.atmosphere) + '</div>';
-            if (loadedJ.difficulty) html += '<p class="cust-form-label">통역 시 어려웠던 점 / 개선 사항</p><div class="text-box">' + esc(loadedJ.difficulty) + '</div>';
-            if (loadedJ.clientNote) html += '<p class="cust-form-label">고객사 전달 사항</p><div class="text-box">' + esc(loadedJ.clientNote) + '</div>';
+
+            // 클릭 설문 응답 — 표 형태로 또렷하게
+            if (hasSurvey) {
+              var s = loadedJ.survey;
+              function svRow(label, val) {
+                if (!val || (Array.isArray(val) && !val.length)) return '';
+                var disp = Array.isArray(val) ? val.join(', ') : val;
+                return '<tr><th>' + esc(label) + '</th><td>' + esc(disp) + '</td></tr>';
+              }
+              if (s.atmosphere) {
+                var a = s.atmosphere;
+                var rows = svRow('부스 방문량', a.traffic) + svRow('바이어 관심도', a.interest) +
+                           svRow('주요 관심 포인트', a.points) + svRow('바이어 유형', a.buyerTypes) +
+                           svRow('후속 가능성', a.followup) + svRow('메모', a.memo);
+                if (rows) html += '<p class="cust-form-label">① 현장 분위기 / 바이어 반응</p><table>' + rows + '</table>';
+              }
+              if (s.difficulty) {
+                var d = s.difficulty;
+                var rows2 = svRow('어려움 유형', d.types) + svRow('사전 준비 충분도', d.prep) +
+                            svRow('개선 요청', d.improvements) + svRow('메모', d.memo);
+                if (rows2) html += '<p class="cust-form-label">② 통역 시 어려웠던 점 / 개선 사항</p><table>' + rows2 + '</table>';
+              }
+              if (s.clientNote) {
+                var n = s.clientNote;
+                var rows3 = svRow('요청 유형', n.requests) + svRow('긴급도', n.urgency) + svRow('메모', n.memo);
+                if (rows3) html += '<p class="cust-form-label">③ 고객사 전달 사항</p><table>' + rows3 + '</table>';
+              }
+            } else if (hasOpinion) {
+              // survey 객체가 없는 옛 데이터 호환 — 합성 텍스트로 표시
+              if (loadedJ.atmosphere) html += '<p class="cust-form-label">현장 분위기 / 바이어 반응</p><div class="text-box">' + esc(loadedJ.atmosphere) + '</div>';
+              if (loadedJ.difficulty) html += '<p class="cust-form-label">통역 시 어려웠던 점 / 개선 사항</p><div class="text-box">' + esc(loadedJ.difficulty) + '</div>';
+              if (loadedJ.clientNote) html += '<p class="cust-form-label">고객사 전달 사항</p><div class="text-box">' + esc(loadedJ.clientNote) + '</div>';
+            }
+
+            // 현장 이슈 리포트
             if (hasIssues) {
-              html += '<p class="cust-form-label">현장 이슈 리포트</p>';
+              html += '<p class="cust-form-label">⚠️ 현장 이슈 리포트</p>';
               loadedJ.issues.forEach(function(it) {
                 var typeLabel = ({facility:'시설/장비',operation:'운영/진행',interpret:'통역',client:'고객사 요청',buyer:'바이어',safety:'안전',other:'기타'})[it.type] || (it.type || '기타');
                 html += '<div class="text-box" style="background:#fff8f0;border-color:#ffd699;margin-bottom:8px;"><strong>' + esc(typeLabel) + (it.time ? ' · ' + esc(it.time) : '') + (it.resolved ? ' ✅ 해결' : '') + '</strong><br>' + esc(it.text || '') + '</div>';
@@ -2630,7 +2666,7 @@
             }
           }
         }
-      } catch(e) {}
+      } catch(e) { console.warn('[PDF] 통역사 데이터 렌더 실패:', e); }
 
       html +=
         '<div class="footer">© ' + new Date().getFullYear() + ' CONTENTOUR · 본 문서는 전시회 상담일지로 자동 생성되었습니다.</div>' +
