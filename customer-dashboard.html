@@ -3903,8 +3903,8 @@
           '<tr><td>일당 ' + formatMoney(q.dailyRate) + ' x ' + q.days + '일</td><td>' + formatMoney(q.subtotal) + '</td></tr>' +
           '<tr><td>플랫폼 수수료 (10%)</td><td>' + formatMoney(q.platformFee) + '</td></tr>' +
           '<tr class="total"><td>총 견적 금액</td><td>' + formatMoney(q.total) + '</td></tr>' +
-          '<tr class="sub"><td>계약금 (10%)</td><td>' + formatMoney(q.deposit) + '</td></tr>' +
-          '<tr class="sub"><td>잔금 (90%) - 전시 종료 후</td><td>' + formatMoney(q.balance) + '</td></tr>' +
+          '<tr class="sub"><td>선결제 (100%) — 계약 체결 시</td><td>' + formatMoney(q.deposit) + '</td></tr>' +
+          (q.balance > 0 ? '<tr class="sub"><td>잔금</td><td>' + formatMoney(q.balance) + '</td></tr>' : '') +
         '</table>';
       if (q.memo) {
         bodyHtml += '<div class="qd-section">관리자 메모</div><div class="qd-memo">' + q.memo + '</div>';
@@ -3984,6 +3984,8 @@
             net_amount: q.subtotal || 0,
             deposit_amount: q.deposit || 0,
             balance_amount: q.balance || 0,
+            // A안 (100% 선결제): 잔금이 0이면 미리 paid로 표시해서 'balance_pay' 단계 자동 통과
+            balance_status: (q.balance && q.balance > 0) ? 'pending' : 'paid',
             status: 'pending',
             interpreter_accepted: null,
             contract_signed: false
@@ -4643,8 +4645,8 @@
           <tr><td>일당 ${formatMoney(c.dailyRate)} x ${c.days}일</td><td>${formatMoney(c.subtotal)}</td></tr>
           <tr><td>플랫폼 수수료 (10%)</td><td>${formatMoney(c.platformFee)}</td></tr>
           <tr class="total"><td>총 금액</td><td>${formatMoney(c.total)}</td></tr>
-          <tr class="sub"><td>계약금 (10%) ${c.depositPaid ? '&#9989; 결제완료' : ''}</td><td>${formatMoney(c.deposit)}</td></tr>
-          <tr class="sub"><td>잔금 (90%) - 전시 종료 후 ${c.balancePaid ? '&#9989; 결제완료' : ''}</td><td>${formatMoney(c.balance)}</td></tr>
+          <tr class="sub"><td>선결제 (100%) — 계약 체결 시 ${c.depositPaid ? '&#9989; 결제완료' : ''}</td><td>${formatMoney(c.deposit)}</td></tr>
+          ${c.balance > 0 ? `<tr class="sub"><td>잔금 ${c.balancePaid ? '&#9989; 결제완료' : ''}</td><td>${formatMoney(c.balance)}</td></tr>` : ''}
         </table>
         <div class="cm-section">진행 현황</div>
         <div class="cm-timeline">
@@ -4669,15 +4671,15 @@
         '</div>';
       } else if (c.status === 'deposit_pay') {
         bodyHtml += `<div class="cm-pay-section">
-          <div class="cm-pay-section__label">계약금 결제 (10%)</div>
+          <div class="cm-pay-section__label">선결제 (100%) — 계약 체결 시</div>
           <div class="cm-pay-section__amount">${formatMoney(c.deposit)}</div>
-          <button class="cm-pay-btn" onclick="closeContractModal();openPaymentModal('${c.id}','deposit')">계약금 결제하기</button>
+          <button class="cm-pay-btn" onclick="closeContractModal();openPaymentModal('${c.id}','deposit')">선결제하기</button>
         </div>`;
       } else if (c.status === 'deposit_review') {
         bodyHtml += `<div class="cm-review-box">
           <div class="cm-review-box__icon">&#9203;</div>
           <div class="cm-review-box__title">관리자 승인 대기중</div>
-          <div class="cm-review-box__desc">계약금 결제가 완료되었습니다.<br>관리자 승인 후 서비스가 진행됩니다.<br>승인까지 평균 1~2 영업일이 소요됩니다.</div>
+          <div class="cm-review-box__desc">선결제가 완료되었습니다.<br>관리자 승인 후 통역사 배정이 확정되고 서비스가 진행됩니다.<br>승인까지 평균 1~2 영업일이 소요됩니다.</div>
         </div>`;
       } else if (c.status === 'balance_review') {
         bodyHtml += `<div class="cm-review-box">
@@ -4685,9 +4687,9 @@
           <div class="cm-review-box__title">잔금 확인 대기중</div>
           <div class="cm-review-box__desc">잔금 결제가 완료되었습니다.<br>관리자 확인 후 서비스가 완료 처리됩니다.<br>확인까지 평균 1~2 영업일이 소요됩니다.</div>
         </div>`;
-      } else if (c.status === 'balance_pay') {
+      } else if (c.status === 'balance_pay' && c.balance > 0) {
         bodyHtml += `<div class="cm-pay-section">
-          <div class="cm-pay-section__label">잔금 결제 (90%) - 전시 종료 후</div>
+          <div class="cm-pay-section__label">잔금 결제</div>
           <div class="cm-pay-section__amount">${formatMoney(c.balance)}</div>
           <button class="cm-pay-btn" onclick="closeContractModal();openPaymentModal('${c.id}','balance')">잔금 결제하기</button>
         </div>`;
@@ -4845,8 +4847,8 @@
       w.document.write('<div class="section">' +
         '<div class="section-title">제3조 결제 조건</div>' +
         '<table class="info-table">' +
-          '<tr><th>계약금 (10%)</th><td>₩' + c.deposit.toLocaleString() + ' — 계약 체결 후 3영업일 이내 결제' + (c.depositPaid ? ' ✅ 결제완료' : '') + '</td></tr>' +
-          '<tr><th>잔금 (90%)</th><td>₩' + c.balance.toLocaleString() + ' — 서비스 종료 후 5영업일 이내 결제' + (c.balancePaid ? ' ✅ 결제완료' : '') + '</td></tr>' +
+          '<tr><th>선결제 (100%)</th><td>₩' + c.deposit.toLocaleString() + ' — 계약 체결 후 <b>3영업일 이내</b> 전액 입금' + (c.depositPaid ? ' ✅ 결제완료' : '') + '</td></tr>' +
+          (c.balance > 0 ? '<tr><th>잔금</th><td>₩' + c.balance.toLocaleString() + (c.balancePaid ? ' ✅ 결제완료' : '') + '</td></tr>' : '') +
           '<tr><th>결제 방법</th><td>신용카드, 계좌이체, 가상계좌</td></tr>' +
         '</table>' +
       '</div>');
@@ -4867,8 +4869,8 @@
         '<div class="section-title">제5조 취소 및 환불 규정</div>' +
         '<table class="info-table" style="font-size:12px;">' +
           '<tr><th style="width:36%;">취소 시점</th><th style="width:34%;">환불 조건</th><th>비고</th></tr>' +
-          '<tr><td>서비스 시작 30일 전 이전</td><td><b>계약금(총액 10%) 전액 환불</b></td><td>전액 환불</td></tr>' +
-          '<tr><td>서비스 시작 14일 전 이전</td><td>계약금(총액 10%)의 <b>50% 환불</b></td><td>통역사 준비 비용 고려</td></tr>' +
+          '<tr><td>서비스 시작 30일 전 이전</td><td>선결제 금액 <b>전액 환불</b></td><td>위약금 없음</td></tr>' +
+          '<tr><td>서비스 시작 14일 전 이전</td><td>선결제 금액의 <b>50% 환불</b></td><td>통역사 준비 비용 차감</td></tr>' +
           '<tr><td>서비스 시작 7일 전 이전</td><td>계약금 <b>환불 불가</b></td><td>통역사 일정 확보 배상</td></tr>' +
           '<tr><td>서비스 시작 7일 이내 또는 당일</td><td>총 계약금액의 <b>50% 위약금</b> 부과</td><td>통역사 손해배상 포함</td></tr>' +
           '<tr><td>"을"의 귀책사유로 인한 취소</td><td><b>전액 환불 + 대체 통역사 배정</b></td><td>-</td></tr>' +
@@ -4952,7 +4954,7 @@
       if (!c) c = contracts.find(x => x.id === currentPayment.contractId);
       if (!type) type = currentPayment.type;
       const amount = type === 'deposit' ? c.deposit : c.balance;
-      const label = type === 'deposit' ? '계약금 (10%)' : '잔금 (90%)';
+      const label = type === 'deposit' ? '선결제 (100%)' : '잔금';
       currentPayment.step = 1;
       document.getElementById('pmTitle').textContent = label + ' 결제';
       document.getElementById('pmBody').innerHTML = `

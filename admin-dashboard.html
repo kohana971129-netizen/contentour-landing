@@ -4706,8 +4706,8 @@
                                 <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="qmSubtotal">0원</span></div>
                                 <div class="qm-calc-row"><span class="label">플랫폼 수수료 (10%)</span><span class="value" id="qmFee">0원</span></div>
                                 <div class="qm-calc-row total"><span class="label">총 견적 금액</span><span class="value" id="qmTotal">0원</span></div>
-                                <div class="qm-calc-row sub"><span class="label">계약금 (10%)</span><span class="value" id="qmDeposit">0원</span></div>
-                                <div class="qm-calc-row sub"><span class="label">잔금 (90%) - 전시 종료 후</span><span class="value" id="qmBalance">0원</span></div>
+                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="qmDeposit">0원</span></div>
+                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="qmBalance">0원</span></div>
                             </div>
 
                             <div class="qm-field full" style="margin-top:12px;">
@@ -4792,8 +4792,8 @@
                                 <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="ncSubtotal">₩0</span></div>
                                 <div class="qm-calc-row"><span class="label">플랫폼 수수료 (10%)</span><span class="value" id="ncFee">₩0</span></div>
                                 <div class="qm-calc-row total"><span class="label">총 계약 금액</span><span class="value" id="ncTotal">₩0</span></div>
-                                <div class="qm-calc-row sub"><span class="label">계약금 (10%)</span><span class="value" id="ncDeposit">₩0</span></div>
-                                <div class="qm-calc-row sub"><span class="label">잔금 (90%)</span><span class="value" id="ncBalance">₩0</span></div>
+                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="ncDeposit">₩0</span></div>
+                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="ncBalance">₩0</span></div>
                             </div>
 
                             <div class="qm-section">계약 조건</div>
@@ -6959,7 +6959,7 @@
                         var subtotal = c.daily_rate * days;
                         var fee = c.tax_amount || Math.round(subtotal * 0.1);
                         var total = c.total_amount || (subtotal + fee);
-                        var deposit = c.deposit_amount || Math.round(total * 0.1);
+                        var deposit = c.deposit_amount != null ? c.deposit_amount : total; // A안: 100% 선결제 (deposit_amount이 명시된 옛 계약은 그 값 유지)
                         var balance = c.balance_amount || (total - deposit);
 
                         return {
@@ -7127,8 +7127,8 @@
                         '<tr><td>\uC77C\uB2F9 '+ctFmt(c.dailyRate)+' x '+c.days+'\uC77C</td><td>'+ctFmt(c.subtotal)+'</td></tr>' +
                         '<tr><td>\uD50C\uB7AB\uD3FC \uC218\uC218\uB8CC (10%)</td><td>'+ctFmt(c.platformFee)+'</td></tr>' +
                         '<tr class="total"><td>\uCD1D \uAE08\uC561</td><td>'+ctFmt(c.total)+'</td></tr>' +
-                        '<tr class="sub"><td>\uACC4\uC57D\uAE08 (10%) '+(c.depositPaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.deposit)+'</td></tr>' +
-                        '<tr class="sub"><td>\uC794\uAE08 (90%) - \uC804\uC2DC \uC885\uB8CC \uD6C4 '+(c.balancePaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.balance)+'</td></tr>' +
+                        '<tr class="sub"><td>\uC120\uACB0\uC81C (100%) \u2014 \uACC4\uC57D \uCCB4\uACB0 \uC2DC '+(c.depositPaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.deposit)+'</td></tr>' +
+                        (c.balance > 0 ? '<tr class="sub"><td>\uC794\uAE08 '+(c.balancePaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.balance)+'</td></tr>' : '') +
                     '</table>' +
                     '<div class="cm-section">\uC9C4\uD589 \uD604\uD669</div>' +
                     '<div class="cm-timeline">' +
@@ -8356,8 +8356,8 @@
                 var subtotal = days * rate;
                 var fee = Math.round(subtotal * 0.1);
                 var total = subtotal + fee;
-                var deposit = Math.round(total * 0.1);
-                var balance = total - deposit;
+                var deposit = total; // A안: 100% 선결제
+                var balance = 0;
                 var fmt = function(n) { return '₩' + n.toLocaleString(); };
                 document.getElementById('ncSubtotal').textContent = fmt(subtotal);
                 document.getElementById('ncFee').textContent = fmt(fee);
@@ -8383,8 +8383,8 @@
                 var subtotal = days * rate;
                 var fee = Math.round(subtotal * 0.1);
                 var total = subtotal + fee;
-                var deposit = Math.round(total * 0.1);
-                var balance = total - deposit;
+                var deposit = total; // A안: 100% 선결제
+                var balance = 0;
                 var location = document.getElementById('nc-location').value.trim() || '';
                 var type = document.getElementById('nc-type').value;
                 var today = new Date().toISOString().split('T')[0].replace(/-/g, '.');
@@ -8417,7 +8417,7 @@
 
                 w.document.write('<div class="section-title">제2조 (계약 금액)</div><table><tr><th>통역 서비스</th><td>' + days + '일 × ₩' + fmt(rate) + ' = ₩' + fmt(subtotal) + '</td></tr><tr><th>플랫폼 운영 수수료 (10%)</th><td>₩' + fmt(fee) + '</td></tr><tr><th>총 계약 금액</th><td class="amount-highlight">₩' + fmt(total) + '</td></tr></table>');
 
-                w.document.write('<div class="section-title">제3조 (결제 조건)</div><table><tr><th>계약금 (10%)</th><td>₩' + fmt(deposit) + ' — 계약 체결 후 <b>3영업일 이내</b></td></tr><tr><th>잔금 (90%)</th><td>₩' + fmt(balance) + ' — 서비스 종료 후 <b>5영업일 이내</b></td></tr><tr><th>결제 방법</th><td>신용카드, 계좌이체, 가상계좌</td></tr></table>' +
+                w.document.write('<div class="section-title">제3조 (결제 조건)</div><table><tr><th>선결제 (100%)</th><td>₩' + fmt(total) + ' — 계약 체결 후 <b>3영업일 이내</b> 전액 입금</td></tr><tr><th>결제 방법</th><td>신용카드, 계좌이체, 가상계좌</td></tr><tr><th>서비스 개시</th><td>입금 확인 후 통역사 배정 확정 및 서비스 개시</td></tr></table>' +
                     '<p style="font-size:0.82rem;color:#666;margin-top:8px;">※ 모든 결제는 플랫폼을 통해서만 진행되며, 플랫폼 외 직접 결제는 금지됩니다.</p>');
 
                 w.document.write('<div class="section-title">제4조 (서비스 범위 및 의무)</div><p style="font-size:0.85rem;line-height:1.9;padding:0 8px;">' +
@@ -8431,10 +8431,10 @@
                 w.document.write('<div class="section-title">제5조 (취소 및 환불 규정)</div>' +
                     '<table style="font-size:0.82rem;">' +
                     '<tr><th style="width:35%;">취소 시점</th><th style="width:35%;">환불 조건</th><th>비고</th></tr>' +
-                    '<tr><td>서비스 시작 30일 전 이전</td><td>계약금(총액 10%) 전액 환불</td><td>전액 환불</td></tr>' +
-                    '<tr><td>서비스 시작 14일 전 이전</td><td>계약금의 50% 환불</td><td>통역사 준비 비용 고려</td></tr>' +
-                    '<tr><td>서비스 시작 7일 전 이전</td><td>계약금 환불 불가</td><td>통역사 일정 확보 배상</td></tr>' +
-                    '<tr><td>서비스 시작 7일 이내 또는 당일</td><td>총 계약금액의 50% 위약금 부과</td><td>통역사 손해배상 포함</td></tr>' +
+                    '<tr><td>서비스 시작 30일 전 이전</td><td>선결제 금액 <b>전액 환불</b></td><td>위약금 없음</td></tr>' +
+                    '<tr><td>서비스 시작 14일 전 이전</td><td>선결제 금액의 <b>50% 환불</b></td><td>통역사 준비 비용 차감</td></tr>' +
+                    '<tr><td>서비스 시작 7일 전 이전</td><td>선결제 금액의 <b>30% 환불</b></td><td>통역사 일정 확보 배상</td></tr>' +
+                    '<tr><td>서비스 시작 7일 이내 또는 당일</td><td>환불 불가 (위약금 100%)</td><td>통역사 손해배상 포함</td></tr>' +
                     '<tr><td>"을"의 귀책사유로 인한 취소</td><td>전액 환불 + 대체 통역사 배정</td><td>-</td></tr>' +
                     '</table>' +
                     '<p style="font-size:0.78rem;color:#666;margin-top:8px;">📌 천재지변, 전시회 주최 측 취소 등 불가항력 사유의 경우 양측 패널티 없이 별도 협의 처리합니다.</p>');
@@ -8478,8 +8478,8 @@
                 var subtotal = days * rate;
                 var fee = Math.round(subtotal * 0.1);
                 var total = subtotal + fee;
-                var deposit = Math.round(total * 0.1);
-                var balance = total - deposit;
+                var deposit = total; // A안: 100% 선결제
+                var balance = 0;
                 var todayStr = new Date().toISOString().split('T')[0];
                 var contractId = 'CT-' + Date.now().toString().slice(-7);
                 var interpColors = ['#ef6c00','#1565c0','#2e7d32','#6a1b9a','#c62828'];
@@ -8491,7 +8491,7 @@
                     client: { name: contact, company: company, color: interpColors[ctAdminContracts.length % interpColors.length] },
                     interpreter: { name: interpreter, color: interpColors[(ctAdminContracts.length + 1) % interpColors.length] },
                     status: status,
-                    statusText: isSign ? '계약서 확인 대기' : '계약금 결제 대기',
+                    statusText: isSign ? '계약서 확인 대기' : '선결제 대기',
                     dates: { start: startDate, end: endDate },
                     lang: lang,
                     dailyRate: rate, days: days,
@@ -8560,8 +8560,8 @@
                 var subtotal = days * rate;
                 var fee = Math.round(subtotal * 0.1);
                 var total = subtotal + fee;
-                var deposit = Math.round(total * 0.1);
-                var balance = total - deposit;
+                var deposit = total; // A안: 100% 선결제
+                var balance = 0;
                 document.getElementById('qmSubtotal').textContent = ctFmt(subtotal);
                 document.getElementById('qmFee').textContent = ctFmt(fee);
                 document.getElementById('qmTotal').textContent = ctFmt(total);
@@ -8581,8 +8581,8 @@
                 var subtotal = days * rate;
                 var fee = Math.round(subtotal * 0.1);
                 var total = subtotal + fee;
-                var deposit = Math.round(total * 0.1);
-                var balance = total - deposit;
+                var deposit = total; // A안: 100% 선결제
+                var balance = 0;
                 var memo = document.getElementById('qm-memo').value;
                 var quoteData = {
                     quoteId: 'QT-' + Date.now(),
