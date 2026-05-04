@@ -333,6 +333,25 @@
     .j-tag{padding:5px 12px;border:1.5px solid var(--gray-200);border-radius:20px;font-size:0.75rem;font-weight:600;color:var(--gray-600);background:var(--white);cursor:pointer;transition:all 0.15s;}
     .j-tag:hover{border-color:var(--blue);color:var(--blue);}
     .j-tag.selected{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+    /* ══════════════ 클릭 설문 (현장 소견 — A안) ══════════════ */
+    .cs-survey-block{margin-bottom:14px;padding:14px 16px;background:#fafbfd;border:1px solid var(--gray-200);border-radius:12px;}
+    .cs-survey-block__title{font-size:0.84rem;font-weight:800;color:var(--blue);margin-bottom:12px;padding-bottom:7px;border-bottom:1px dashed var(--gray-200);}
+    .cs-survey-group{margin-bottom:12px;}
+    .cs-survey-group:last-child{margin-bottom:0;}
+    .cs-survey-q{font-size:0.75rem;font-weight:700;color:var(--gray-600);margin-bottom:6px;}
+    .cs-survey-q__hint{font-size:0.68rem;font-weight:500;color:var(--gray-400);margin-left:4px;}
+    .cs-survey-chips{margin-bottom:0;}
+    .cs-survey-memo{width:100%;padding:9px 11px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:0.82rem;font-family:inherit;color:var(--text);background:var(--white);resize:vertical;box-sizing:border-box;transition:border-color 0.15s;}
+    .cs-survey-memo:focus{outline:none;border-color:var(--blue);}
+    .cs-scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+    .cs-scale.cs-scale--3{grid-template-columns:repeat(3,1fr);}
+    .cs-scale__opt{padding:8px 5px;text-align:center;border:1.5px solid var(--gray-200);border-radius:8px;font-size:0.73rem;font-weight:600;color:var(--gray-600);background:var(--white);cursor:pointer;transition:all 0.15s;user-select:none;}
+    .cs-scale__opt:hover{border-color:var(--blue);color:var(--blue);}
+    .cs-scale__opt.selected{background:var(--blue);border-color:var(--blue);color:#fff;}
+    .cs-scale__opt--alert.selected{background:var(--error,#ef4444);border-color:var(--error,#ef4444);}
+    @media (max-width:600px){.cs-scale__opt{font-size:0.66rem;padding:7px 3px;}}
+
     .star-group{display:flex;gap:6px;margin-top:4px;}
     .star-btn{font-size:1.3rem;background:none;border:none;cursor:pointer;color:var(--gray-200);transition:color 0.15s;padding:0;line-height:1;}
     .star-btn.active{color:#f9a825;}

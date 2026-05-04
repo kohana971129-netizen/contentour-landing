@@ -410,6 +410,134 @@
                 <div class="j-field"><label>전반적 만족도</label><div class="star-group" id="stars-overall"><button class="star-btn" onclick="setStars('overall',1)">★</button><button class="star-btn" onclick="setStars('overall',2)">★</button><button class="star-btn" onclick="setStars('overall',3)">★</button><button class="star-btn" onclick="setStars('overall',4)">★</button><button class="star-btn" onclick="setStars('overall',5)">★</button></div></div>
                 <div class="j-field span2"><label>통역사 종합 의견 (선택)</label><textarea id="j-eval" rows="2" placeholder="예: 의료기기 전문 용어 처리 매우 우수."></textarea></div>
               </div>
+
+              <!-- ══════════════ 클릭 설문 (A안) ══════════════ -->
+              <div class="j-section">현장 소견 (클릭 선택)</div>
+              <div class="j-notice" style="border-color:#90caf9;background:#e3f2fd;color:#0d47a1;">💡 해당하는 항목을 클릭해주세요. 위 자유 서술란과 병행 활용 가능합니다.</div>
+
+              <!-- ① 바이어 반응 -->
+              <div class="cs-survey-block">
+                <div class="cs-survey-block__title">① 바이어 반응</div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">부스 방문량</div>
+                  <div class="cs-scale" data-cs-survey="csTraffic">
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">매우 한산</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">한산</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">보통</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">활발</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">매우 활발</span>
+                  </div>
+                </div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">바이어 관심도</div>
+                  <div class="cs-scale" data-cs-survey="csInterest">
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">매우 낮음</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">낮음</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">보통</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">높음</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">매우 높음</span>
+                  </div>
+                </div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">주요 관심 포인트 <span class="cs-survey-q__hint">(복수 선택)</span></div>
+                  <div class="j-tags cs-survey-chips" data-cs-survey="csPoints">
+                    <span class="j-tag" onclick="toggleJTag(this)">가격</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">기술력</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">품질</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">납기</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">인증·규격</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">디자인</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">브랜드</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">신제품</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">A/S</span>
+                  </div>
+                </div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">바이어 유형 <span class="cs-survey-q__hint">(복수 선택)</span></div>
+                  <div class="j-tags cs-survey-chips" data-cs-survey="csBuyerType">
+                    <span class="j-tag" onclick="toggleJTag(this)">실수요 바이어</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">에이전트·딜러</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">동종업계</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">학술·연구</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">단순 관람객</span>
+                  </div>
+                </div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">후속 가능성 <span class="cs-survey-q__hint">(복수 선택)</span></div>
+                  <div class="j-tags cs-survey-chips" data-cs-survey="csFollowup">
+                    <span class="j-tag" onclick="toggleJTag(this)">현장 계약</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">견적 요청</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">샘플 요청</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">후속 미팅 약속</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">명함만 교환</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ② 통역사 평가 보강 -->
+              <div class="cs-survey-block">
+                <div class="cs-survey-block__title">② 통역사 평가 보강 <span class="cs-survey-q__hint">(별점과 함께 활용)</span></div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">통역사 강점 <span class="cs-survey-q__hint">(복수 선택)</span></div>
+                  <div class="j-tags cs-survey-chips" data-cs-survey="csStrength">
+                    <span class="j-tag" onclick="toggleJTag(this)">전문용어 정확</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">친절한 매너</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">빠른 순발력</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">문화 이해도 높음</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">적극적 응대</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">비즈니스 감각</span>
+                  </div>
+                </div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">개선 요청사항 <span class="cs-survey-q__hint">(복수 선택)</span></div>
+                  <div class="j-tags cs-survey-chips" data-cs-survey="csImprove">
+                    <span class="j-tag" onclick="toggleJTag(this)">발음·억양</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">통역 속도</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">사전 자료 숙지</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">부스 소음 대응</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">시간 엄수</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">특별히 없음</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ③ 콘텐츄어 협의 필요사항 -->
+              <div class="cs-survey-block">
+                <div class="cs-survey-block__title">③ 콘텐츄어 협의 필요사항</div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">협의 항목 <span class="cs-survey-q__hint">(복수 선택)</span></div>
+                  <div class="j-tags cs-survey-chips" data-cs-survey="csConsult">
+                    <span class="j-tag" onclick="toggleJTag(this)">추가 자료 요청</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">일정 조율</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">계약 검토</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">통역사 변경·추가</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">정산 문의</span>
+                    <span class="j-tag" onclick="toggleJTag(this)">기타</span>
+                  </div>
+                </div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">긴급도</div>
+                  <div class="cs-scale cs-scale--3" data-cs-survey="csUrgency">
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">일반</span>
+                    <span class="cs-scale__opt" onclick="customerScalePick(this)">우선</span>
+                    <span class="cs-scale__opt cs-scale__opt--alert" onclick="customerScalePick(this)">긴급</span>
+                  </div>
+                </div>
+
+                <div class="cs-survey-group">
+                  <div class="cs-survey-q">자유 메모 <span class="cs-survey-q__hint">(선택)</span></div>
+                  <textarea id="cs-consult-memo" class="cs-survey-memo" rows="2" placeholder="콘텐츄어 담당자에게 전달할 추가 메모를 자유롭게 적어주세요."></textarea>
+                </div>
+              </div>
             </div><!-- end jeditor-body -->
 
             <div class="jeditor-footer" id="contentourFooter">
@@ -1595,6 +1723,7 @@
             endTime: extra.endTime || '',
             durationMinutes: extra.durationMinutes || 0,
             issues: extra.issues || [],
+            customerSurvey: extra.customerSurvey || null,
             source: (j.interpreter_id && j.interpreter_id !== user.id) ? 'interpreter' : 'customer',
             status: j.status === 'submitted' ? 'complete' : (j.status === 'reviewed' ? 'complete' : 'draft'),
             reviewComment: j.review_comment || '',
@@ -1642,6 +1771,9 @@
         var tagText = el.textContent.trim();
         el.classList.toggle('selected', j.countries && j.countries.indexOf(tagText) !== -1);
       });
+
+      // 클릭 설문 복원
+      customerSurveyApply(j.customerSurvey);
 
       // 통역사 작성 내용 표시 (interpreter-submitted journal)
       var interpBox = document.getElementById('interpDetailBox');
@@ -1704,6 +1836,8 @@
       ['j-total','j-contract','j-sample','j-follow'].forEach(id => document.getElementById(id).value = '0');
       ['j-summary','j-result','j-issue','j-action','j-eval'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
       document.querySelectorAll('.j-tag').forEach(t => t.classList.remove('selected'));
+      document.querySelectorAll('.cs-scale__opt').forEach(t => t.classList.remove('selected'));
+      var cmemo = document.getElementById('cs-consult-memo'); if (cmemo) cmemo.value = '';
       Object.keys(starValues).forEach(k => { starValues[k] = 0; renderStars(k); });
       document.getElementById('jeditorSavedAt').textContent = '마지막 저장: —';
     }
@@ -1745,6 +1879,10 @@
       var selectedCountries = [];
       document.querySelectorAll('#countryTags .j-tag.selected').forEach(function(el) { selectedCountries.push(el.textContent.trim()); });
 
+      // 클릭 설문 응답 수집
+      var customerSurvey = customerSurveyRead();
+      var customerSurveyText = customerSurveyBuildText(customerSurvey);
+
       // Supabase DB에 저장
       if (window.sbClient) {
         try {
@@ -1767,7 +1905,9 @@
               submitted_at: type === 'complete' ? new Date().toISOString() : null,
               attachments: JSON.stringify({
                 total: total, contract: contractCount, sample: sampleCount, follow: followCount, issue: issue,
-                countries: selectedCountries, lang: lang || ''
+                countries: selectedCountries, lang: lang || '',
+                customerSurvey: customerSurvey,
+                customerSurveyText: customerSurveyText
               })
             };
 
@@ -1838,6 +1978,8 @@
         result: result,
         issue: issue,
         action: action,
+        customerSurvey: customerSurvey,
+        customerSurveyText: customerSurveyText,
         status: type === 'complete' ? 'new' : 'draft',
         source: 'customer',
         stars: { term: starValues.term, manner: starValues.manner, comm: starValues.comm, overall: starValues.overall },
@@ -1881,6 +2023,107 @@
     function renderStars(key) { const group = document.getElementById('stars-' + key); if (!group) return; group.querySelectorAll('.star-btn').forEach((btn,i) => btn.classList.toggle('active', i < starValues[key])); }
     function toggleJTag(el) { el.classList.toggle('selected'); }
     function showJToast(msg) { const t = document.getElementById('toast'); t.innerHTML = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3200); }
+
+    // ══════════════ 클릭 설문 (현장 소견) — A안 ══════════════
+    function customerScalePick(el) {
+      var parent = el.parentElement;
+      parent.querySelectorAll('.cs-scale__opt').forEach(function(o) { o.classList.remove('selected'); });
+      el.classList.add('selected');
+    }
+
+    function customerSurveyRead() {
+      function chips(key) {
+        var arr = [];
+        document.querySelectorAll('[data-cs-survey="' + key + '"] .j-tag.selected').forEach(function(t) { arr.push(t.textContent.trim()); });
+        return arr;
+      }
+      function scale(key) {
+        var sel = document.querySelector('[data-cs-survey="' + key + '"] .cs-scale__opt.selected');
+        return sel ? sel.textContent.trim() : '';
+      }
+      var memoEl = document.getElementById('cs-consult-memo');
+      return {
+        buyerReaction: {
+          traffic: scale('csTraffic'),
+          interest: scale('csInterest'),
+          points: chips('csPoints'),
+          buyerTypes: chips('csBuyerType'),
+          followup: chips('csFollowup')
+        },
+        interpEval: {
+          strengths: chips('csStrength'),
+          improvements: chips('csImprove')
+        },
+        consultation: {
+          items: chips('csConsult'),
+          urgency: scale('csUrgency'),
+          memo: memoEl ? memoEl.value.trim() : ''
+        }
+      };
+    }
+
+    function customerSurveyApply(s) {
+      // reset
+      document.querySelectorAll('[data-cs-survey] .j-tag.selected').forEach(function(t) { t.classList.remove('selected'); });
+      document.querySelectorAll('[data-cs-survey] .cs-scale__opt.selected').forEach(function(t) { t.classList.remove('selected'); });
+      var memoEl = document.getElementById('cs-consult-memo');
+      if (memoEl) memoEl.value = '';
+      if (!s) return;
+
+      function applyChips(key, vals) {
+        if (!vals || !vals.length) return;
+        var c = document.querySelector('[data-cs-survey="' + key + '"]');
+        if (!c) return;
+        c.querySelectorAll('.j-tag').forEach(function(t) {
+          if (vals.indexOf(t.textContent.trim()) !== -1) t.classList.add('selected');
+        });
+      }
+      function applyScale(key, val) {
+        if (!val) return;
+        var c = document.querySelector('[data-cs-survey="' + key + '"]');
+        if (!c) return;
+        c.querySelectorAll('.cs-scale__opt').forEach(function(t) {
+          if (t.textContent.trim() === val) t.classList.add('selected');
+        });
+      }
+
+      if (s.buyerReaction) {
+        applyScale('csTraffic', s.buyerReaction.traffic);
+        applyScale('csInterest', s.buyerReaction.interest);
+        applyChips('csPoints', s.buyerReaction.points);
+        applyChips('csBuyerType', s.buyerReaction.buyerTypes);
+        applyChips('csFollowup', s.buyerReaction.followup);
+      }
+      if (s.interpEval) {
+        applyChips('csStrength', s.interpEval.strengths);
+        applyChips('csImprove', s.interpEval.improvements);
+      }
+      if (s.consultation) {
+        applyChips('csConsult', s.consultation.items);
+        applyScale('csUrgency', s.consultation.urgency);
+        if (s.consultation.memo && memoEl) memoEl.value = s.consultation.memo;
+      }
+    }
+
+    function customerSurveyBuildText(s) {
+      // 어드민·통역사·고객사 모두에서 readable한 한 줄 요약 (검색·표시용)
+      if (!s) return '';
+      var parts = [];
+      var b = s.buyerReaction || {};
+      if (b.traffic) parts.push('방문량: ' + b.traffic);
+      if (b.interest) parts.push('관심도: ' + b.interest);
+      if (b.points && b.points.length) parts.push('관심 포인트: ' + b.points.join(', '));
+      if (b.buyerTypes && b.buyerTypes.length) parts.push('바이어 유형: ' + b.buyerTypes.join(', '));
+      if (b.followup && b.followup.length) parts.push('후속: ' + b.followup.join(', '));
+      var i = s.interpEval || {};
+      if (i.strengths && i.strengths.length) parts.push('통역사 강점: ' + i.strengths.join(', '));
+      if (i.improvements && i.improvements.length) parts.push('통역사 개선요청: ' + i.improvements.join(', '));
+      var c = s.consultation || {};
+      if (c.items && c.items.length) parts.push('협의 항목: ' + c.items.join(', '));
+      if (c.urgency) parts.push('긴급도: ' + c.urgency);
+      if (c.memo) parts.push('메모: ' + c.memo);
+      return parts.join('\n');
+    }
 
     // ===== 양식 전환 =====
     // ===== 양식 권한 체크 =====

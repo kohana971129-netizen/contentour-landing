@@ -5831,6 +5831,8 @@
                                 endTime: extra.endTime || '',
                                 durationMinutes: extra.durationMinutes || 0,
                                 issues: extra.issues || [],
+                                customerSurvey: extra.customerSurvey || null,
+                                customerSurveyText: extra.customerSurveyText || '',
                                 star1: 0, star2: 0, star3: 0, star4: 0,
                                 adminComment: j.review_comment || '',
                                 status: j.status === 'submitted' ? 'new' : (j.status === 'reviewed' ? 'reviewed' : 'draft'),
@@ -6229,6 +6231,9 @@
                         '<div class="jv-star-item"><div class="jv-star-lbl">전반적 만족도</div><div class="jv-star-val">' + stars(j.stars.overall) + '</div></div>' +
                         '</div>' +
                         (j.eval ? '<div class="jv-text" style="margin-top:8px;">' + j.eval + '</div>' : '');
+                }
+                if (!isInterp && j.customerSurveyText) {
+                    starsHtml += '<div class="jv-sec">고객사 현장 소견 (클릭 설문)</div><div class="jv-text">' + j.customerSurveyText + '</div>';
                 }
 
                 jv.innerHTML =
