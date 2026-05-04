@@ -2371,6 +2371,7 @@
 
         function jnlNew() {
             _activeJournalDbId = null;
+            _activeJournalStatus = null;
             document.querySelectorAll('.jnl-list-item').forEach(i => i.classList.remove('active'));
             jnlReset();
             document.getElementById('jnlEditorTitle').textContent = '새 상담일지 작성';
@@ -2408,124 +2409,135 @@
         }
 
         async function jnlSave(type) {
-            if (type === 'submit') {
-                var expoVal = document.getElementById('jnl-expo').value;
-                var date = document.getElementById('jnl-date').value;
-                var client = document.getElementById('jnl-client').value;
-                var summary = document.getElementById('jnl-summary').value.trim();
+            var isSubmit = (type === 'submit');
+            var expoVal = document.getElementById('jnl-expo').value;
+            var date = document.getElementById('jnl-date').value;
+            var client = document.getElementById('jnl-client').value;
+            var summary = document.getElementById('jnl-summary').value.trim();
 
-                if (!expoVal || !date || !client || !summary) {
-                    showToast('⚠️ 전시회, 날짜, 고객사, 상담 내용 요약은 필수 항목입니다.');
-                    return;
+            // 임시저장: 전시회·날짜만 필수. 제출: 추가로 고객사·요약 필수
+            if (!expoVal || !date) {
+                showToast('⚠️ 전시회와 날짜는 필수 항목입니다.');
+                return;
+            }
+            if (isSubmit && (!client || !summary)) {
+                showToast('⚠️ 제출하려면 고객사와 상담 내용 요약도 작성해주세요.');
+                return;
+            }
+
+            // 제출완료 일지에 다시 저장 시도 → 새 일지로 처리 (원본 보호)
+            var updatingExisting = !!(_activeJournalDbId && _activeJournalStatus === 'draft');
+            if (_activeJournalDbId && _activeJournalStatus === 'submitted') {
+                _activeJournalDbId = null; // 새 entry로 INSERT
+            }
+
+            var expoName = document.getElementById('jnl-expo').value.trim();
+            var locationSel = document.getElementById('jnl-location');
+            var locationCustom = document.getElementById('jnl-location-custom');
+            var location = (locationCustom && locationCustom.style.display !== 'none' && locationCustom.value) ? locationCustom.value : locationSel.value;
+            var langText = document.getElementById('jnl-lang').selectedOptions[0] ? document.getElementById('jnl-lang').selectedOptions[0].text : '';
+            var periodStart = document.getElementById('jnl-period-start').value;
+            var periodEnd = document.getElementById('jnl-period-end').value;
+
+            var total = parseInt(document.getElementById('jnl-c-total').value) || 0;
+            var contract = parseInt(document.getElementById('jnl-c-contract').value) || 0;
+            var sample = parseInt(document.getElementById('jnl-c-sample').value) || 0;
+            var follow = parseInt(document.getElementById('jnl-c-follow').value) || 0;
+
+            var startTime = document.getElementById('jnl-time-start').value;
+            var endTime = document.getElementById('jnl-time-end').value;
+            var durationMinutes = 0;
+            if (startTime && endTime) {
+                var sP = startTime.split(':'), eP = endTime.split(':');
+                var d = (parseInt(eP[0],10)*60 + parseInt(eP[1],10)) - (parseInt(sP[0],10)*60 + parseInt(sP[1],10));
+                if (d < 0) d += 24*60;
+                durationMinutes = d > 0 ? d : 0;
+            }
+
+            var result = document.getElementById('jnl-result').value.trim();
+            var action = document.getElementById('jnl-action').value.trim();
+            var survey = jnlReadSurvey();
+            var atmosphere = jnlBuildAtmosphereText(survey);
+            var difficulty = jnlBuildDifficultyText(survey);
+            var clientNote = jnlBuildNoteText(survey);
+
+            var countries = [];
+            document.querySelectorAll('#jnlCountryTags .jnl-tag.selected').forEach(function(t) {
+                countries.push(t.textContent.trim());
+            });
+
+            var issues = [];
+            document.querySelectorAll('#jnlIssueList .jnl-issue-card').forEach(function(card) {
+                var issueType = card.querySelector('select') ? card.querySelector('select').value : '';
+                var issueTime = card.querySelector('input[type="time"]') ? card.querySelector('input[type="time"]').value : '';
+                var issueText = card.querySelector('textarea') ? card.querySelector('textarea').value.trim() : '';
+                var resolved = card.querySelector('input[type="checkbox"]') ? card.querySelector('input[type="checkbox"]').checked : false;
+                if (issueText) {
+                    issues.push({ type: issueType, time: issueTime, text: issueText, resolved: resolved });
                 }
+            });
 
-                var expoName = document.getElementById('jnl-expo').value.trim();
-                var locationSel = document.getElementById('jnl-location');
-                var locationCustom = document.getElementById('jnl-location-custom');
-                var location = (locationCustom && locationCustom.style.display !== 'none' && locationCustom.value) ? locationCustom.value : locationSel.value;
-                var langText = document.getElementById('jnl-lang').selectedOptions[0] ? document.getElementById('jnl-lang').selectedOptions[0].text : '';
-                var periodStart = document.getElementById('jnl-period-start').value;
-                var periodEnd = document.getElementById('jnl-period-end').value;
+            var journalData = {
+                id: _activeJournalDbId || Date.now(),
+                expo: expoName,
+                company: client,
+                date: date,
+                interp: (window.InterpreterApp && InterpreterApp.interpProfile ? InterpreterApp.interpProfile.display_name : '통역사'),
+                lang: langText || '한국어↔영어',
+                status: isSubmit ? 'new' : 'draft',
+                source: 'interpreter',
+                total: total,
+                contract: contract,
+                sample: sample,
+                follow: follow,
+                startTime: startTime,
+                endTime: endTime,
+                durationMinutes: durationMinutes,
+                countries: countries,
+                summary: summary,
+                result: result,
+                action: action,
+                atmosphere: atmosphere,
+                difficulty: difficulty,
+                clientNote: clientNote,
+                survey: survey,
+                issues: issues,
+                location: location,
+                periodStart: periodStart,
+                periodEnd: periodEnd,
+                stars: { term: 0, manner: 0, comm: 0, overall: 0 },
+                eval: '',
+                adminComment: ''
+            };
 
-                var total = parseInt(document.getElementById('jnl-c-total').value) || 0;
-                var contract = parseInt(document.getElementById('jnl-c-contract').value) || 0;
-                var sample = parseInt(document.getElementById('jnl-c-sample').value) || 0;
-                var follow = parseInt(document.getElementById('jnl-c-follow').value) || 0;
-
-                var startTime = document.getElementById('jnl-time-start').value;
-                var endTime = document.getElementById('jnl-time-end').value;
-                var durationMinutes = 0;
-                if (startTime && endTime) {
-                    var sP = startTime.split(':'), eP = endTime.split(':');
-                    var d = (parseInt(eP[0],10)*60 + parseInt(eP[1],10)) - (parseInt(sP[0],10)*60 + parseInt(sP[1],10));
-                    if (d < 0) d += 24*60;
-                    durationMinutes = d > 0 ? d : 0;
-                }
-
-                var result = document.getElementById('jnl-result').value.trim();
-                var action = document.getElementById('jnl-action').value.trim();
-                var survey = jnlReadSurvey();
-                var atmosphere = jnlBuildAtmosphereText(survey);
-                var difficulty = jnlBuildDifficultyText(survey);
-                var clientNote = jnlBuildNoteText(survey);
-
-                var countries = [];
-                document.querySelectorAll('#jnlCountryTags .jnl-tag.selected').forEach(function(t) {
-                    countries.push(t.textContent.trim());
-                });
-
-                var issues = [];
-                document.querySelectorAll('#jnlIssueList .jnl-issue-card').forEach(function(card) {
-                    var issueType = card.querySelector('select') ? card.querySelector('select').value : '';
-                    var issueTime = card.querySelector('input[type="time"]') ? card.querySelector('input[type="time"]').value : '';
-                    var issueText = card.querySelector('textarea') ? card.querySelector('textarea').value.trim() : '';
-                    var resolved = card.querySelector('input[type="checkbox"]') ? card.querySelector('input[type="checkbox"]').checked : false;
-                    if (issueText) {
-                        issues.push({ type: issueType, time: issueTime, text: issueText, resolved: resolved });
-                    }
-                });
-
-                var journalData = {
-                    id: Date.now(),
-                    expo: expoName,
-                    company: client,
-                    date: date,
-                    interp: (window.InterpreterApp && InterpreterApp.interpProfile ? InterpreterApp.interpProfile.display_name : '통역사'),
-                    lang: langText || '한국어↔영어',
-                    status: 'new',
-                    source: 'interpreter',
-                    total: total,
-                    contract: contract,
-                    sample: sample,
-                    follow: follow,
-                    startTime: startTime,
-                    endTime: endTime,
-                    durationMinutes: durationMinutes,
-                    countries: countries,
-                    summary: summary,
-                    result: result,
-                    action: action,
-                    atmosphere: atmosphere,
-                    difficulty: difficulty,
-                    clientNote: clientNote,
-                    survey: survey,
-                    issues: issues,
-                    location: location,
-                    periodStart: periodStart,
-                    periodEnd: periodEnd,
-                    stars: { term: 0, manner: 0, comm: 0, overall: 0 },
-                    eval: '',
-                    adminComment: ''
-                };
-
-                // Save to persistent storage
+            // localStorage 저장 (같은 브라우저 어드민 실시간 알림용 — submit만)
+            if (isSubmit) {
                 var savedJournals = [];
                 try { savedJournals = JSON.parse(localStorage.getItem('contentour_interpreter_journals') || '[]'); } catch(e) {}
                 savedJournals.push(journalData);
                 localStorage.setItem('contentour_interpreter_journals', JSON.stringify(savedJournals));
-
-                // Broadcast real-time event to admin (same-browser)
                 localStorage.removeItem('contentour_journal_submit');
                 setTimeout(function() {
                     localStorage.setItem('contentour_journal_submit', JSON.stringify(journalData));
                 }, 50);
-
-                // Cross-device persistence: save to Supabase so customer & admin see it from any device
-                var newDbId = null;
-                try {
-                    newDbId = await jnlInsertToSupabase(journalData);
-                } catch(e) {
-                    console.error('[상담일지] Supabase 저장 예외:', e);
-                }
-
-                // 제출 후 일지 목록 새로고침 + 방금 제출한 일지 active 처리
-                if (newDbId) _activeJournalDbId = newDbId;
-                try { await jnlLoadList(); } catch(e) {}
-
-                showToast('✅ 상담일지가 제출되었습니다.');
-            } else {
-                showToast('💾 임시 저장되었습니다.');
             }
+
+            // Supabase 영구 저장 (draft + submit 모두 / 기존 draft 재편집이면 UPDATE, 아니면 INSERT)
+            var savedDbId = null;
+            try {
+                savedDbId = await jnlSaveToSupabase(journalData, isSubmit ? 'submitted' : 'draft', updatingExisting ? _activeJournalDbId : null);
+            } catch(e) {
+                console.error('[상담일지] Supabase 저장 예외:', e);
+            }
+
+            if (savedDbId) {
+                _activeJournalDbId = savedDbId;
+                _activeJournalStatus = isSubmit ? 'submitted' : 'draft';
+            }
+
+            try { await jnlLoadList(); } catch(e) {}
+
+            showToast(isSubmit ? '✅ 상담일지가 제출되었습니다.' : '💾 임시저장되었습니다 (영구 보관).');
 
             var now = new Date();
             var timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -2536,10 +2548,10 @@
             el.classList.toggle('selected');
         }
 
-        // ══════════════ Supabase 저장 (44_상담일지) ══════════════
-        async function jnlInsertToSupabase(jd) {
+        // ══════════════ Supabase 저장 (44_상담일지) — INSERT 또는 UPDATE ══════════════
+        async function jnlSaveToSupabase(jd, status, existingDbId) {
             var sb = window.sbClient;
-            if (!sb) return;
+            if (!sb) return null;
             var user = null;
             if (window.InterpreterApp && InterpreterApp.currentUser) {
                 user = InterpreterApp.currentUser;
@@ -2548,7 +2560,7 @@
             }
             if (!user || !user.id) {
                 console.warn('[상담일지] 인증 정보 없음 — Supabase 저장 스킵');
-                return;
+                return null;
             }
 
             var contracts = window._jnlContracts || [];
@@ -2571,8 +2583,8 @@
                 buyer_interest: jd.result || '',
                 follow_up_needed: (jd.follow || 0) > 0,
                 follow_up_notes: jd.action || '',
-                status: 'submitted',
-                submitted_at: new Date().toISOString(),
+                status: status,
+                submitted_at: status === 'submitted' ? new Date().toISOString() : null,
                 attachments: JSON.stringify({
                     total: jd.total || 0,
                     contract: jd.contract || 0,
@@ -2593,18 +2605,24 @@
                 })
             };
 
-            var resp = await sb.from('44_상담일지').insert(record).select('id').single();
+            var resp;
+            if (existingDbId) {
+                resp = await sb.from('44_상담일지').update(record).eq('id', existingDbId).select('id').single();
+            } else {
+                resp = await sb.from('44_상담일지').insert(record).select('id').single();
+            }
             if (resp.error) {
                 console.error('[상담일지] Supabase 저장 실패:', resp.error.message);
                 showToast('⚠️ 클라우드 저장 실패: ' + resp.error.message);
                 return null;
             }
-            console.log('[상담일지] Supabase 저장 완료:', resp.data && resp.data.id, '(customer_id=' + customerId + ')');
-            return resp.data ? resp.data.id : null;
+            console.log('[상담일지] Supabase 저장 완료:', resp.data && resp.data.id, '(' + (existingDbId ? 'UPDATE' : 'INSERT') + ', status=' + status + ', customer_id=' + customerId + ')');
+            return resp.data ? resp.data.id : (existingDbId || null);
         }
 
         // ══════════════ 상담일지 목록 로드/표시 ══════════════
         let _activeJournalDbId = null;
+        let _activeJournalStatus = null; // 'draft' | 'submitted' | null — 제출완료 일지 보호 + UPDATE 분기용
         window._interpJournals = [];
 
         async function jnlLoadList() {
@@ -2743,6 +2761,7 @@
             var j = arr.find(function(x) { return String(x.dbId) === String(dbId); });
             if (!j) return;
             _activeJournalDbId = j.dbId;
+            _activeJournalStatus = j.status; // 'draft' or 'submitted'
 
             jnlReset();
 
@@ -2813,13 +2832,18 @@
                 } catch(e) {}
             }
 
-            // View mode notice
+            // View mode notice — draft / submitted 구분
             var notice = document.getElementById('jnlViewNotice');
             if (notice) notice.remove();
             notice = document.createElement('div');
             notice.id = 'jnlViewNotice';
-            notice.style.cssText = 'margin:14px 28px 0;padding:10px 14px;background:#e3f2fd;border:1px solid #90caf9;border-left:4px solid #1565c0;border-radius:8px;font-size:0.82rem;color:#0d47a1;';
-            notice.innerHTML = '📖 제출된 일지를 조회 중입니다. 새 일지를 작성하려면 좌측 <strong>+ 새 일지</strong> 버튼을 눌러주세요.';
+            if (j.status === 'draft') {
+                notice.style.cssText = 'margin:14px 28px 0;padding:10px 14px;background:#fff8e1;border:1px solid #ffcc80;border-left:4px solid #f57c00;border-radius:8px;font-size:0.82rem;color:#5d4037;';
+                notice.innerHTML = '📝 임시저장된 일지입니다. 수정 후 <strong>임시저장</strong>하면 같은 일지가 갱신되고, <strong>제출하기</strong>하면 최종 제출됩니다.';
+            } else {
+                notice.style.cssText = 'margin:14px 28px 0;padding:10px 14px;background:#e3f2fd;border:1px solid #90caf9;border-left:4px solid #1565c0;border-radius:8px;font-size:0.82rem;color:#0d47a1;';
+                notice.innerHTML = '📖 제출완료된 일지를 조회 중입니다. (수정 후 저장 시 새 일지로 등록됩니다)';
+            }
             var editorHead = document.querySelector('.jnl-editor__head');
             if (editorHead && editorHead.parentNode) editorHead.parentNode.insertBefore(notice, editorHead.nextSibling);
 
