@@ -107,10 +107,12 @@
         .interp-back:hover { opacity: 0.7; }
 
         /* 국가 탭 (가로 스크롤) */
-        .country-tabs-wrap { position: relative; margin-bottom: 32px; padding: 0 40px; }
+        .country-tabs-wrap { position: relative; margin-bottom: 32px; padding: 0; transition: padding 0.2s; }
+        .country-tabs-wrap.has-overflow { padding: 0 40px; }
         .country-tabs {
             display: flex;
             gap: 8px;
+            justify-content: center;
             overflow-x: auto;
             scroll-behavior: smooth;
             scroll-snap-type: x proximity;
@@ -118,6 +120,7 @@
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none; /* Firefox */
         }
+        .country-tabs-wrap.has-overflow .country-tabs { justify-content: flex-start; }
         .country-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
         .country-tab {
             display: flex; align-items: center; gap: 8px;
@@ -170,7 +173,8 @@
         .country-tabs-wrap.has-overflow-right::after { opacity: 1; }
 
         @media (max-width: 580px) {
-            .country-tabs-wrap { padding: 0 8px; }
+            .country-tabs-wrap { padding: 0; }
+            .country-tabs-wrap.has-overflow { padding: 0 8px; }
             .country-tabs-wrap::before { left: 8px; }
             .country-tabs-wrap::after { right: 8px; }
             .country-tabs-arrow { display: none !important; } /* 모바일은 터치 스와이프로 */
@@ -677,6 +681,9 @@
             var hasOverflow = tabs.scrollWidth > tabs.clientWidth + 4;
             var atStart = tabs.scrollLeft <= 4;
             var atEnd = tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 4;
+
+            // overflow 없으면 슬라이드 바 인프라 자체를 숨김 (padding·중앙정렬·화살표·페이드 모두)
+            wrap.classList.toggle('has-overflow', hasOverflow);
 
             // 화살표 표시 (overflow 없으면 둘 다 숨김)
             if (arrowL) arrowL.classList.toggle('visible', hasOverflow);
