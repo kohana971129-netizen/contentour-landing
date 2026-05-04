@@ -106,22 +106,28 @@
         .interp-back { display: inline-flex; align-items: center; gap: 6px; color: #1565c0; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-bottom: 24px; transition: opacity 0.15s; }
         .interp-back:hover { opacity: 0.7; }
 
-        /* 국가 탭 (가로 스크롤) */
+        /* 국가 탭 — 기본은 줄바꿈, 슬라이드 모드는 .slide-mode 클래스로 전환 */
         .country-tabs-wrap { position: relative; margin-bottom: 32px; padding: 0; transition: padding 0.2s; }
-        .country-tabs-wrap.has-overflow { padding: 0 40px; }
         .country-tabs {
             display: flex;
             gap: 8px;
             justify-content: center;
+            flex-wrap: wrap;
+            padding: 4px 16px;
+        }
+
+        /* 슬라이드 모드 (국가 개수가 일정 수 이상일 때만 활성) */
+        .country-tabs-wrap.slide-mode { padding: 0 40px; }
+        .country-tabs-wrap.slide-mode .country-tabs {
+            flex-wrap: nowrap;
+            justify-content: flex-start;
             overflow-x: auto;
             scroll-behavior: smooth;
             scroll-snap-type: x proximity;
-            padding: 4px 16px;
             -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
+            scrollbar-width: none;
         }
-        .country-tabs-wrap.has-overflow .country-tabs { justify-content: flex-start; }
-        .country-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+        .country-tabs-wrap.slide-mode .country-tabs::-webkit-scrollbar { display: none; }
         .country-tab {
             display: flex; align-items: center; gap: 8px;
             padding: 10px 18px;
@@ -173,8 +179,7 @@
         .country-tabs-wrap.has-overflow-right::after { opacity: 1; }
 
         @media (max-width: 580px) {
-            .country-tabs-wrap { padding: 0; }
-            .country-tabs-wrap.has-overflow { padding: 0 8px; }
+            .country-tabs-wrap.slide-mode { padding: 0 8px; }
             .country-tabs-wrap::before { left: 8px; }
             .country-tabs-wrap::after { right: 8px; }
             .country-tabs-arrow { display: none !important; } /* 모바일은 터치 스와이프로 */
@@ -515,7 +520,12 @@
                 '</a>';
             });
             document.getElementById('countryTabs').innerHTML = tabsHtml;
-            // 슬라이드 바 overflow 상태 갱신 + active 탭 화면 가운데로 스크롤
+            // 슬라이드 모드 결정: 국가 개수가 임계값 초과 시에만 슬라이드 활성화
+            // 현재 7개국이라 임계값을 7로 잡음 — 8번째부터 자동으로 슬라이드 모드
+            var SLIDE_THRESHOLD = 7;
+            var countryCount = Object.keys(interpData).length;
+            var wrapEl = document.getElementById('countryTabsWrap');
+            if (wrapEl) wrapEl.classList.toggle('slide-mode', countryCount > SLIDE_THRESHOLD);
             setTimeout(updateCountryTabsOverflow, 0);
             setTimeout(scrollActiveCountryIntoView, 50);
 
@@ -678,14 +688,20 @@
             var arrowR = document.getElementById('countryTabsArrowR');
             if (!tabs || !wrap) return;
 
+            // 슬라이드 모드가 아니면 화살표·페이드 모두 끄고 종료 (줄바꿈 모드)
+            var isSlideMode = wrap.classList.contains('slide-mode');
+            if (!isSlideMode) {
+                if (arrowL) arrowL.classList.remove('visible');
+                if (arrowR) arrowR.classList.remove('visible');
+                wrap.classList.remove('has-overflow-left', 'has-overflow-right');
+                return;
+            }
+
             var hasOverflow = tabs.scrollWidth > tabs.clientWidth + 4;
             var atStart = tabs.scrollLeft <= 4;
             var atEnd = tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 4;
 
-            // overflow 없으면 슬라이드 바 인프라 자체를 숨김 (padding·중앙정렬·화살표·페이드 모두)
-            wrap.classList.toggle('has-overflow', hasOverflow);
-
-            // 화살표 표시 (overflow 없으면 둘 다 숨김)
+            // 화살표 표시 (실제 overflow 시점에만)
             if (arrowL) arrowL.classList.toggle('visible', hasOverflow);
             if (arrowR) arrowR.classList.toggle('visible', hasOverflow);
             if (arrowL) arrowL.disabled = atStart;
