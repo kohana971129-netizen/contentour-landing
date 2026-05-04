@@ -74,7 +74,7 @@
         .profile-card__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
         .profile-card__tag { font-size: 0.7rem; padding: 4px 10px; background: #f0f4ff; color: #1565c0; border-radius: 12px; font-weight: 600; }
         .profile-card__tag.field { background: #fff3e0; color: #e65100; }
-        .profile-card__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 14px; border-top: 1px solid #f0f2f5; }
+        .profile-card__stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding-top: 14px; border-top: 1px solid #f0f2f5; }
         .profile-card__stat { text-align: center; }
         .profile-card__stat-num { font-size: 1rem; font-weight: 800; color: #0a2a5e; }
         .profile-card__stat-label { font-size: 0.65rem; color: #999; margin-top: 2px; }
@@ -544,12 +544,8 @@
                     '</div>';
                 }
 
-                // 응답률 + 최근 활동
-                var responseRate = Math.min(100, 80 + Math.floor(Math.random() * 20));
-                var metaHtml = '<div class="profile-card__meta">' +
-                    '<span class="profile-card__meta-item"><span class="profile-card__meta-dot online"></span> 활동중</span>' +
-                    '<span class="profile-card__meta-item">응답률 ' + responseRate + '%</span>' +
-                '</div>';
+                // 응답률·활동중 표시 제거 — 실시간 데이터 연동 전까지는 노출 X
+                var metaHtml = '';
 
                 // 리뷰 미리보기 (샘플)
                 var reviewHtml = '';
@@ -581,7 +577,6 @@
                         '</div>' +
                         '<div class="profile-card__stats">' +
                             '<div class="profile-card__stat"><div class="profile-card__stat-num">' + p.cases + '건</div><div class="profile-card__stat-label">파견 실적</div></div>' +
-                            '<div class="profile-card__stat"><div class="profile-card__stat-num">' + p.rating + '</div><div class="profile-card__stat-label">평점</div></div>' +
                             '<div class="profile-card__stat"><div class="profile-card__stat-num">' + p.years + '년</div><div class="profile-card__stat-label">경력</div></div>' +
                         '</div>' +
                     '</div>' +
