@@ -3903,8 +3903,7 @@
           '<tr><td>일당 ' + formatMoney(q.dailyRate) + ' x ' + q.days + '일</td><td>' + formatMoney(q.subtotal) + '</td></tr>' +
           '<tr><td>플랫폼 수수료 (10%)</td><td>' + formatMoney(q.platformFee) + '</td></tr>' +
           '<tr class="total"><td>총 견적 금액</td><td>' + formatMoney(q.total) + '</td></tr>' +
-          '<tr class="sub"><td>선결제 (100%) — 계약 체결 시</td><td>' + formatMoney(q.deposit) + '</td></tr>' +
-          (q.balance > 0 ? '<tr class="sub"><td>잔금</td><td>' + formatMoney(q.balance) + '</td></tr>' : '') +
+          '<tr class="sub"><td>선결제 (100%) — 계약 체결 시</td><td>' + formatMoney(q.total) + '</td></tr>' +
         '</table>';
       if (q.memo) {
         bodyHtml += '<div class="qd-section">관리자 메모</div><div class="qd-memo">' + q.memo + '</div>';
