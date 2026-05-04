@@ -515,37 +515,6 @@
                                     </div>
                                 </div>
 
-                                <!-- 현장 이슈 -->
-                                <div class="jnl-section">현장 이슈 리포트</div>
-                                <div class="jnl-notice" style="border-color:#ffcc80;background:#fff8f0;color:var(--warn);">
-                                    ⚠️ 전시회 현장에서 발생한 이슈를 기록해주세요. 시설, 운영, 통역, 고객 관련 모든 사항을 포함합니다.
-                                </div>
-                                <div class="jnl-issue-list" id="jnlIssueList">
-                                    <div class="jnl-issue-card" data-idx="0">
-                                        <div class="jnl-issue-card__top">
-                                            <select>
-                                                <option value="">이슈 유형 선택</option>
-                                                <option value="facility">🏗️ 시설/장비</option>
-                                                <option value="operation">⚙️ 운영/진행</option>
-                                                <option value="interpret">🗣️ 통역 관련</option>
-                                                <option value="client">🏢 고객사 요청</option>
-                                                <option value="buyer">🤝 바이어 관련</option>
-                                                <option value="safety">🛡️ 안전/보안</option>
-                                                <option value="other">📌 기타</option>
-                                            </select>
-                                            <input type="time" value="10:30">
-                                        </div>
-                                        <textarea placeholder="이슈 내용을 상세히 기록하세요. 예: 오전 10:30경 부스 전원 차단 발생. 주최사 측 연락 후 11:00에 복구 완료."></textarea>
-                                        <div class="jnl-issue-card__footer">
-                                            <label class="jnl-issue-resolved">
-                                                <input type="checkbox"> 해결 완료
-                                            </label>
-                                            <button class="jnl-issue-remove" onclick="jnlRemoveIssue(this)">삭제</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button class="jnl-add-btn" onclick="jnlAddIssue()" style="margin-top:12px;">+ 이슈 추가</button>
-
                                 <!-- 통역사 현장 소견 (클릭 설문) -->
                                 <div class="jnl-section">통역사 현장 소견</div>
                                 <div class="jnl-notice" style="border-color:#90caf9;background:#e3f2fd;color:#0d47a1;">
@@ -700,6 +669,37 @@
                                         <textarea id="jnl-note-memo" class="jnl-survey-memo" rows="2" placeholder="고객사에 전달할 추가 메모를 자유롭게 적어주세요."></textarea>
                                     </div>
                                 </div>
+
+                                <!-- 현장 이슈 -->
+                                <div class="jnl-section">현장 이슈 리포트</div>
+                                <div class="jnl-notice" style="border-color:#ffcc80;background:#fff8f0;color:var(--warn);">
+                                    ⚠️ 전시회 현장에서 발생한 이슈를 기록해주세요. 시설, 운영, 통역, 고객 관련 모든 사항을 포함합니다.
+                                </div>
+                                <div class="jnl-issue-list" id="jnlIssueList">
+                                    <div class="jnl-issue-card" data-idx="0">
+                                        <div class="jnl-issue-card__top">
+                                            <select>
+                                                <option value="">이슈 유형 선택</option>
+                                                <option value="facility">🏗️ 시설/장비</option>
+                                                <option value="operation">⚙️ 운영/진행</option>
+                                                <option value="interpret">🗣️ 통역 관련</option>
+                                                <option value="client">🏢 고객사 요청</option>
+                                                <option value="buyer">🤝 바이어 관련</option>
+                                                <option value="safety">🛡️ 안전/보안</option>
+                                                <option value="other">📌 기타</option>
+                                            </select>
+                                            <input type="time" value="10:30">
+                                        </div>
+                                        <textarea placeholder="이슈 내용을 상세히 기록하세요. 예: 오전 10:30경 부스 전원 차단 발생. 주최사 측 연락 후 11:00에 복구 완료."></textarea>
+                                        <div class="jnl-issue-card__footer">
+                                            <label class="jnl-issue-resolved">
+                                                <input type="checkbox"> 해결 완료
+                                            </label>
+                                            <button class="jnl-issue-remove" onclick="jnlRemoveIssue(this)">삭제</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="jnl-add-btn" onclick="jnlAddIssue()" style="margin-top:12px;">+ 이슈 추가</button>
                             </div>
 
                             <div class="jnl-editor__foot">
