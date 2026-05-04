@@ -1019,6 +1019,15 @@
                             <p class="field-error">올바른 사업자등록번호를 입력해주세요.</p>
                         </div>
 
+                        <div class="field-group">
+                            <label for="reg-brn-file">사업자등록증 파일 첨부 <span class="req">*</span></label>
+                            <div class="input-wrap" style="padding:0;border:1.5px dashed #c5d8f5;background:#f6f9ff;">
+                                <input type="file" id="reg-brn-file" accept=".pdf,.jpg,.jpeg,.png" required style="padding:14px 16px;cursor:pointer;font-size:0.85rem;color:var(--text);background:transparent;border:none;width:100%;font-family:inherit;">
+                            </div>
+                            <p style="font-size:0.72rem;color:var(--gray-400);margin-top:4px;">PDF · JPG · PNG · 최대 10MB. 가입 후 관리자 검수를 거쳐 승인됩니다.</p>
+                            <p class="field-error">사업자등록증 파일을 첨부해주세요.</p>
+                        </div>
+
                         <div class="field-row">
                             <div class="field-group">
                                 <label for="reg-name">담당자명 <span class="req">*</span></label>
@@ -1249,6 +1258,7 @@
             e.preventDefault();
             const company = document.getElementById('reg-company');
             const brn = document.getElementById('reg-brn');
+            const brnFileEl = document.getElementById('reg-brn-file');
             const name = document.getElementById('reg-name');
             const pos = document.getElementById('reg-pos');
             const email = document.getElementById('reg-email');
@@ -1268,6 +1278,21 @@
             if (!/^\d{3}-\d{2}-\d{5}$/.test(brn.value)) {
                 brn.classList.add('error'); valid = false;
             } else brn.classList.remove('error');
+
+            // 사업자등록증 파일 검증
+            var brnFile = brnFileEl.files && brnFileEl.files[0];
+            if (!brnFile) {
+                brnFileEl.classList.add('error'); valid = false;
+                showAlert('사업자등록증 파일을 첨부해주세요.', 'error');
+            } else if (!/\.(pdf|jpg|jpeg|png)$/i.test(brnFile.name)) {
+                brnFileEl.classList.add('error'); valid = false;
+                showAlert('PDF, JPG, PNG 파일만 첨부 가능합니다.', 'error');
+            } else if (brnFile.size > 10 * 1024 * 1024) {
+                brnFileEl.classList.add('error'); valid = false;
+                showAlert('파일 크기는 10MB 이하여야 합니다.', 'error');
+            } else {
+                brnFileEl.classList.remove('error');
+            }
 
             if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
                 email.classList.add('error'); valid = false;

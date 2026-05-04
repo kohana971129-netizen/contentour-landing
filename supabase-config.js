@@ -68,7 +68,7 @@
         },
 
         // 회원가입 (고객사)
-        async registerCustomer({ email, password, name, phone, company, brn, position }) {
+        async registerCustomer({ email, password, name, phone, company, brn, position, brnFile }) {
             if (!sb) return { error: { message: 'Supabase가 초기화되지 않았습니다.' } };
 
             const { data: authData, error: authError } = await sb.auth.signUp({
@@ -82,25 +82,55 @@
             if (authError) return { data: null, error: authError };
 
             // 01_회원은 DB 트리거(handle_new_user)가 role, phone 포함 자동 생성
+            // 가입 직후 세션이 있으면 파일 업로드 + 회사정보 저장
+            const userId = authData && authData.user ? authData.user.id : null;
+            let warningMsg = '';
 
-            if (company) {
-                const { error: companyError } = await sb
-                    .from('02_국내기업')
-                    .insert({
-                        name: company,
-                        business_number: brn,
-                        contact_name: name,
-                        contact_email: email,
-                        contact_phone: phone
-                    });
-
-                if (companyError) {
-                    console.warn('기업 정보 저장 실패:', companyError.message);
-                    return { data: authData, error: null, warning: '가입은 완료되었으나 기업 정보 저장에 실패했습니다. 마이페이지에서 기업 정보를 다시 입력해주세요.' };
+            // 사업자등록증 파일 업로드
+            let brnFileUrl = null;
+            if (brnFile && userId) {
+                try {
+                    const ts = Date.now();
+                    const safeName = brnFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const path = userId + '/' + ts + '_' + safeName;
+                    const { error: upErr } = await sb.storage
+                        .from('business-registrations')
+                        .upload(path, brnFile, { upsert: false, contentType: brnFile.type });
+                    if (upErr) {
+                        console.warn('사업자등록증 파일 업로드 실패:', upErr.message);
+                        warningMsg = '가입은 완료되었으나 사업자등록증 업로드에 실패했습니다. 마이페이지에서 다시 업로드해주세요.';
+                    } else {
+                        brnFileUrl = path;
+                    }
+                } catch (e) {
+                    console.warn('사업자등록증 업로드 예외:', e);
+                    warningMsg = '가입은 완료되었으나 사업자등록증 업로드에 실패했습니다. 마이페이지에서 다시 업로드해주세요.';
                 }
             }
 
-            return { data: authData, error: null };
+            // 01_회원에 회사명·사업자번호·등록증 정보 저장
+            if (userId) {
+                const updateFields = {};
+                if (company) updateFields.company_name = company;
+                if (brn) updateFields.business_number = brn;
+                if (brnFileUrl) {
+                    updateFields.business_registration_url = brnFileUrl;
+                    updateFields.business_registration_status = 'pending';
+                    updateFields.business_registration_uploaded_at = new Date().toISOString();
+                }
+                if (Object.keys(updateFields).length > 0) {
+                    const { error: updErr } = await sb
+                        .from('01_회원')
+                        .update(updateFields)
+                        .eq('id', userId);
+                    if (updErr) {
+                        console.warn('회원 정보 업데이트 실패:', updErr.message);
+                        if (!warningMsg) warningMsg = '가입은 완료되었으나 기업 정보 저장에 실패했습니다. 마이페이지에서 다시 입력해주세요.';
+                    }
+                }
+            }
+
+            return { data: authData, error: null, warning: warningMsg || undefined };
         },
 
         // 회원가입 (통역사)
