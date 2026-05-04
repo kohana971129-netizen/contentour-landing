@@ -106,12 +106,75 @@
         .interp-back { display: inline-flex; align-items: center; gap: 6px; color: #1565c0; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-bottom: 24px; transition: opacity 0.15s; }
         .interp-back:hover { opacity: 0.7; }
 
-        /* 국가 탭 (전체 보기 모드) */
-        .country-tabs { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
-        .country-tab { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border: 1.5px solid #d0d7e3; border-radius: 12px; background: #fff; cursor: pointer; transition: all 0.2s; text-decoration: none; color: #333; font-size: 0.82rem; font-weight: 600; }
+        /* 국가 탭 (가로 스크롤) */
+        .country-tabs-wrap { position: relative; margin-bottom: 32px; padding: 0 40px; }
+        .country-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scroll-snap-type: x proximity;
+            padding: 4px 16px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+        .country-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+        .country-tab {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px;
+            border: 1.5px solid #d0d7e3; border-radius: 12px;
+            background: #fff; cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none; color: #333;
+            font-size: 0.82rem; font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
         .country-tab img { width: 24px; height: auto; border-radius: 2px; }
         .country-tab:hover { border-color: #1565c0; background: #f0f4ff; }
         .country-tab.active { background: #1565c0; color: #fff; border-color: #1565c0; }
+
+        /* 좌우 화살표 버튼 */
+        .country-tabs-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 36px; height: 36px;
+            border: 1.5px solid #d0d7e3; border-radius: 50%;
+            background: #fff; cursor: pointer;
+            display: none; /* JS로 overflow 감지 후 보이게 */
+            align-items: center; justify-content: center;
+            font-size: 1.4rem; font-weight: 700; color: #1565c0;
+            line-height: 1; padding: 0;
+            transition: all 0.15s;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            font-family: inherit;
+        }
+        .country-tabs-arrow:hover { background: #1565c0; color: #fff; border-color: #1565c0; }
+        .country-tabs-arrow.left { left: 0; }
+        .country-tabs-arrow.right { right: 0; }
+        .country-tabs-arrow.visible { display: flex; }
+        .country-tabs-arrow:disabled { opacity: 0.3; cursor: default; }
+        .country-tabs-arrow:disabled:hover { background: #fff; color: #1565c0; border-color: #d0d7e3; }
+
+        /* 좌우 페이드 그라데이션 */
+        .country-tabs-wrap::before,
+        .country-tabs-wrap::after {
+            content: ''; position: absolute; top: 0; bottom: 0;
+            width: 32px; pointer-events: none; z-index: 1;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .country-tabs-wrap::before { left: 36px; background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0)); }
+        .country-tabs-wrap::after { right: 36px; background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0)); }
+        .country-tabs-wrap.has-overflow-left::before { opacity: 1; }
+        .country-tabs-wrap.has-overflow-right::after { opacity: 1; }
+
+        @media (max-width: 580px) {
+            .country-tabs-wrap { padding: 0 8px; }
+            .country-tabs-wrap::before { left: 8px; }
+            .country-tabs-wrap::after { right: 8px; }
+            .country-tabs-arrow { display: none !important; } /* 모바일은 터치 스와이프로 */
+        }
 
         /* CTA 배너 */
         .interp-cta { background: linear-gradient(135deg, #0a2a5e, #1565c0); border-radius: 16px; padding: 40px; text-align: center; margin-top: 48px; }
@@ -250,8 +313,12 @@
                 <!-- JS에서 동적 렌더링 -->
             </div>
 
-            <!-- 국가 탭 -->
-            <div class="country-tabs" id="countryTabs"></div>
+            <!-- 국가 탭 (가로 스크롤 + 좌우 화살표) -->
+            <div class="country-tabs-wrap" id="countryTabsWrap">
+                <button type="button" class="country-tabs-arrow left" id="countryTabsArrowL" aria-label="이전" onclick="scrollCountryTabs(-1)">‹</button>
+                <div class="country-tabs" id="countryTabs"></div>
+                <button type="button" class="country-tabs-arrow right" id="countryTabsArrowR" aria-label="다음" onclick="scrollCountryTabs(1)">›</button>
+            </div>
 
             <!-- 검색 + 정렬 -->
             <div class="interp-toolbar">
@@ -431,12 +498,12 @@
                     '<div class="interp-page__count">등록 통역사 <strong>' + interpreters.length + '</strong>명</div>';
             }
 
-            // 국가 탭 (전체 포함) — 클릭 시 페이지 리로드 없이 전환
+            // 국가 탭 — interpData에서 자동 렌더 (새 국가 추가 시 interpData에만 추가하면 됨)
             var tabsHtml = '<a href="#" class="country-tab' + (currentCountry === 'all' ? ' active' : '') + '" onclick="event.preventDefault();switchCountry(\'all\')">' +
                 '<span style="font-size:1.1em;">🌍</span><span>전체</span></a>';
-            var codes = ['us', 'jp', 'cn', 'de', 'vn', 'ae', 'th'];
-            codes.forEach(function(code) {
+            Object.keys(interpData).forEach(function(code) {
                 var cd = interpData[code];
+                if (!cd) return;
                 var isActive = code === currentCountry ? ' active' : '';
                 tabsHtml += '<a href="#" class="country-tab' + isActive + '" onclick="event.preventDefault();switchCountry(\'' + code + '\')">' +
                     '<img src="https://flagcdn.com/w40/' + cd.flag + '.png" alt="' + cd.country + '">' +
@@ -444,6 +511,9 @@
                 '</a>';
             });
             document.getElementById('countryTabs').innerHTML = tabsHtml;
+            // 슬라이드 바 overflow 상태 갱신 + active 탭 화면 가운데로 스크롤
+            setTimeout(updateCountryTabsOverflow, 0);
+            setTimeout(scrollActiveCountryIntoView, 50);
 
             // 분야 필터 태그 수집
             var fields = ['전체'];
@@ -595,6 +665,58 @@
             renderPage();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
+        // ── 국가 탭 가로 스크롤 제어 ──
+        function updateCountryTabsOverflow() {
+            var tabs = document.getElementById('countryTabs');
+            var wrap = document.getElementById('countryTabsWrap');
+            var arrowL = document.getElementById('countryTabsArrowL');
+            var arrowR = document.getElementById('countryTabsArrowR');
+            if (!tabs || !wrap) return;
+
+            var hasOverflow = tabs.scrollWidth > tabs.clientWidth + 4;
+            var atStart = tabs.scrollLeft <= 4;
+            var atEnd = tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 4;
+
+            // 화살표 표시 (overflow 없으면 둘 다 숨김)
+            if (arrowL) arrowL.classList.toggle('visible', hasOverflow);
+            if (arrowR) arrowR.classList.toggle('visible', hasOverflow);
+            if (arrowL) arrowL.disabled = atStart;
+            if (arrowR) arrowR.disabled = atEnd;
+
+            // 페이드 그라데이션 (좌우 끝에 도달하면 그쪽 fade 끔)
+            wrap.classList.toggle('has-overflow-left', hasOverflow && !atStart);
+            wrap.classList.toggle('has-overflow-right', hasOverflow && !atEnd);
+        }
+
+        function scrollCountryTabs(direction) {
+            var tabs = document.getElementById('countryTabs');
+            if (!tabs) return;
+            var step = Math.max(200, Math.floor(tabs.clientWidth * 0.7));
+            tabs.scrollBy({ left: direction * step, behavior: 'smooth' });
+        }
+
+        function scrollActiveCountryIntoView() {
+            var tabs = document.getElementById('countryTabs');
+            if (!tabs) return;
+            var active = tabs.querySelector('.country-tab.active');
+            if (!active) return;
+            var tabsRect = tabs.getBoundingClientRect();
+            var activeRect = active.getBoundingClientRect();
+            // 이미 보이면 스킵
+            if (activeRect.left >= tabsRect.left && activeRect.right <= tabsRect.right) return;
+            var offset = active.offsetLeft - (tabs.clientWidth / 2) + (active.offsetWidth / 2);
+            tabs.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+        }
+
+        // 스크롤·리사이즈 시 화살표·페이드 갱신
+        document.addEventListener('DOMContentLoaded', function() {
+            var tabs = document.getElementById('countryTabs');
+            if (tabs) {
+                tabs.addEventListener('scroll', updateCountryTabsOverflow, { passive: true });
+            }
+            window.addEventListener('resize', updateCountryTabsOverflow);
+        });
 
         function filterByField(field) {
             currentField = field;
