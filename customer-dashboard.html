@@ -1180,6 +1180,13 @@
 
             applyUserProfile(_currentUserProfile);
 
+            // 사업자등록증 검수 상태 배너 표시
+            try {
+                var bizStatus = member && member.business_registration_status;
+                var bizReason = member && member.business_registration_reject_reason;
+                showBizVerifyBanner(bizStatus, bizReason);
+            } catch(e) {}
+
             // 상담일지 전시회 목록 채우기
             try {
                 var { data: myContracts } = await window.sbClient
@@ -1236,6 +1243,32 @@
             console.error('프로필 로드 실패:', e);
         }
     })();
+
+    function showBizVerifyBanner(status, reason) {
+        var existing = document.getElementById('bizVerifyBanner');
+        if (existing) existing.remove();
+        if (!status || status === 'approved' || status === 'none') return;
+
+        var banner = document.createElement('div');
+        banner.id = 'bizVerifyBanner';
+        banner.style.cssText = 'position:sticky;top:0;z-index:99;padding:12px 24px;font-size:0.85rem;font-weight:600;line-height:1.5;border-bottom:1px solid;';
+
+        if (status === 'pending') {
+            banner.style.background = '#fff8e1';
+            banner.style.borderColor = '#ffcc80';
+            banner.style.color = '#5d4037';
+            banner.innerHTML = '⏳ <strong>사업자등록증 검수 대기 중</strong> — 관리자 승인 후 결제·계약 진행이 가능합니다 (평균 1~2 영업일 소요).';
+        } else if (status === 'rejected') {
+            banner.style.background = '#ffebee';
+            banner.style.borderColor = '#ef9a9a';
+            banner.style.color = '#c62828';
+            banner.innerHTML = '❌ <strong>사업자등록증 반려</strong> — 사유: ' + (reason || '-') + ' · 마이페이지에서 새 파일을 업로드해주세요.';
+        }
+
+        var main = document.querySelector('.main') || document.querySelector('main') || document.body.firstElementChild;
+        if (main && main.parentNode) main.parentNode.insertBefore(banner, main);
+        else document.body.insertBefore(banner, document.body.firstChild);
+    }
 
     function applyUserProfile(p) {
         var displayName = p.position ? p.name + ' ' + p.position : p.name;
@@ -4939,9 +4972,35 @@
 
     let currentPayment = { contractId: null, type: null, method: null, agreed: false, step: 1, bankCode: null, cardData: {} };
 
-    function openPaymentModal(contractId, type) {
+    async function openPaymentModal(contractId, type) {
       const c = contracts.find(x => x.id === contractId);
       if (!c) return;
+
+      // A안: 사업자등록증 미승인 고객 결제 차단
+      try {
+        if (window.sbClient) {
+          var user = await ContentourAuth.getCurrentUser();
+          if (user) {
+            var verifyResp = await window.sbClient
+              .from('01_회원')
+              .select('business_registration_status, business_registration_reject_reason')
+              .eq('id', user.id)
+              .single();
+            if (verifyResp.data) {
+              var st = verifyResp.data.business_registration_status;
+              if (st !== 'approved') {
+                var msg;
+                if (st === 'pending') msg = '사업자등록증이 검수 대기 중입니다.\n관리자 승인 후 결제를 진행할 수 있습니다.\n(평균 1~2 영업일 소요)';
+                else if (st === 'rejected') msg = '사업자등록증이 반려되었습니다.\n사유: ' + (verifyResp.data.business_registration_reject_reason || '-') + '\n\n마이페이지에서 새 파일을 업로드해주세요.';
+                else msg = '사업자등록증이 등록되지 않았습니다.\n마이페이지에서 사업자등록증을 업로드 후 다시 시도해주세요.';
+                alert(msg);
+                return;
+              }
+            }
+          }
+        }
+      } catch(e) { console.warn('[결제] 사업자등록증 검증 실패:', e); }
+
       currentPayment = { contractId, type, method: null, agreed: false, step: 1, bankCode: null, cardData: {} };
       pmRenderStep1(c, type);
       document.getElementById('paymentModalOverlay').classList.add('open');

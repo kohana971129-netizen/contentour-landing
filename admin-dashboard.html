@@ -3698,6 +3698,10 @@
             <a class="sb-item" id="sb-customers" onclick="switchTab('customers')">
                 <span class="sb-item__icon">🏢</span> 고객사 관리
             </a>
+            <a class="sb-item" id="sb-bizverify" onclick="switchTab('bizverify')">
+                <span class="sb-item__icon">📑</span> 사업자등록증 검수
+                <span class="sb-item__badge" id="bizVerifyBadge" style="display:none;background:#e65100;">0</span>
+            </a>
             <a class="sb-item" id="sb-loyalty" onclick="switchTab('loyalty')">
                 <span class="sb-item__icon">⭐</span> 적립금 관리
             </a>
@@ -4406,6 +4410,25 @@
                             <tbody id="custTableBody"></tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- ══ 사업자등록증 검수 뷰 ══ -->
+                <div class="view" id="view-bizverify">
+                    <div style="background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:18px;border:1px solid var(--g200);">
+                        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+                            <h3 style="font-size:1.05rem;font-weight:800;color:var(--text);margin:0;">📑 사업자등록증 검수</h3>
+                            <select id="bizVerifyFilter" onchange="bizVerifyRender()" style="padding:8px 12px;border:1.5px solid var(--g200);border-radius:8px;font-size:0.82rem;font-family:inherit;background:#fff;">
+                                <option value="pending">⏳ 검수 대기</option>
+                                <option value="approved">✅ 승인됨</option>
+                                <option value="rejected">❌ 반려됨</option>
+                                <option value="all">전체</option>
+                            </select>
+                            <span id="bizVerifyCount" style="font-size:0.78rem;color:var(--g600);font-weight:600;"></span>
+                            <button onclick="bizVerifyLoad()" style="margin-left:auto;padding:8px 14px;background:#fff;color:var(--blue);border:1.5px solid var(--blue);border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">🔄 새로고침</button>
+                        </div>
+                        <p style="font-size:0.78rem;color:var(--g600);margin:0;">담당 관리자: 관리자 · 가입한 고객사가 첨부한 사업자등록증을 검토하고 승인/반려해주세요.</p>
+                    </div>
+                    <div id="bizVerifyList"></div>
                 </div>
 
                 <!-- ══ 적립금 관리 뷰 ══ -->
@@ -5503,12 +5526,13 @@
                 if (tab === 'cases') { title = '성과사례 관리'; loadAdminCases(); }
                 if (tab === 'system-settings') { title = '시스템 설정'; loadSystemSettings(); }
                 if (tab === 'exhibitions') { title = '해외전시회 DB 관리'; exLoad(); }
+                if (tab === 'bizverify') { title = '사업자등록증 검수'; bizVerifyLoad(); }
                 document.getElementById('pageTitle').textContent = title;
 
                 if (tab === 'interpreters') { title = '통역사 관리'; loadInterpVerifyList(); }
 
                 // Sidebar highlighting
-                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-loyalty', 'sb-cases', 'sb-exhibitions', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
+                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-bizverify', 'sb-loyalty', 'sb-cases', 'sb-exhibitions', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
@@ -10743,6 +10767,134 @@
         })();
 
         let _allApps = [];
+        // ══════════════ 사업자등록증 검수 ══════════════
+        let _bizVerifyData = [];
+
+        async function bizVerifyLoad() {
+            if (!window.sbClient) return;
+            try {
+                var resp = await window.sbClient
+                    .from('01_회원')
+                    .select('id, name, email, company_name, business_number, business_registration_url, business_registration_status, business_registration_uploaded_at, business_registration_reviewed_at, business_registration_reject_reason')
+                    .eq('role', 'customer')
+                    .order('business_registration_uploaded_at', { ascending: false, nullsFirst: false });
+                if (resp.error) {
+                    console.error('[검수] 로드 실패:', resp.error.message);
+                    showToast('⚠️ 검수 목록 로드 실패: ' + resp.error.message);
+                    return;
+                }
+                _bizVerifyData = resp.data || [];
+                bizVerifyRender();
+                bizVerifyUpdateBadge();
+            } catch(e) { console.error('[검수] 예외:', e); }
+        }
+
+        function bizVerifyUpdateBadge() {
+            var pendingCount = _bizVerifyData.filter(function(r) { return r.business_registration_status === 'pending'; }).length;
+            var badge = document.getElementById('bizVerifyBadge');
+            if (badge) {
+                badge.textContent = pendingCount;
+                badge.style.display = pendingCount > 0 ? '' : 'none';
+            }
+        }
+
+        function bizVerifyRender() {
+            var filterEl = document.getElementById('bizVerifyFilter');
+            var filter = filterEl ? filterEl.value : 'pending';
+            var arr = _bizVerifyData;
+            if (filter !== 'all') arr = arr.filter(function(r) { return r.business_registration_status === filter; });
+
+            var countEl = document.getElementById('bizVerifyCount');
+            if (countEl) countEl.textContent = arr.length + '건';
+
+            var listEl = document.getElementById('bizVerifyList');
+            if (!listEl) return;
+            if (arr.length === 0) {
+                listEl.innerHTML = '<div style="background:#fff;border:1px solid var(--g200);border-radius:14px;padding:60px;text-align:center;color:var(--g400);font-size:0.9rem;">해당 상태의 검수 건이 없습니다.</div>';
+                return;
+            }
+
+            listEl.innerHTML = arr.map(function(r) {
+                var statusBadge;
+                if (r.business_registration_status === 'pending') statusBadge = '<span style="background:#fff3e0;color:#e65100;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;">⏳ 검수 대기</span>';
+                else if (r.business_registration_status === 'approved') statusBadge = '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;">✅ 승인됨</span>';
+                else if (r.business_registration_status === 'rejected') statusBadge = '<span style="background:#ffebee;color:#c62828;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;">❌ 반려됨</span>';
+                else statusBadge = '<span style="background:#eceff1;color:#546e7a;padding:3px 10px;border-radius:8px;font-size:0.7rem;font-weight:700;">미제출</span>';
+
+                var uploadedAt = r.business_registration_uploaded_at ? new Date(r.business_registration_uploaded_at).toLocaleString('ko-KR') : '-';
+                var hasFile = !!r.business_registration_url;
+
+                var actionBtns = '';
+                if (r.business_registration_status === 'pending' && hasFile) {
+                    actionBtns =
+                        '<button onclick="bizVerifyApprove(\'' + r.id + '\')" style="padding:8px 14px;background:linear-gradient(135deg,#43a047,#2e7d32);color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">✅ 승인</button>' +
+                        '<button onclick="bizVerifyReject(\'' + r.id + '\')" style="padding:8px 14px;background:#fff;color:#c62828;border:1.5px solid #ffcdd2;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;">❌ 반려</button>';
+                } else if (r.business_registration_status === 'rejected') {
+                    actionBtns = '<div style="font-size:0.75rem;color:#c62828;background:#ffebee;padding:8px 12px;border-radius:8px;">사유: ' + (r.business_registration_reject_reason || '-') + '</div>';
+                }
+
+                var fileBtn = hasFile
+                    ? '<button onclick="bizVerifyPreview(\'' + r.business_registration_url + '\')" style="padding:7px 12px;background:#e3f2fd;color:#0d47a1;border:1.5px solid #90caf9;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;">📄 파일 보기</button>'
+                    : '<span style="color:var(--g400);font-size:0.75rem;">파일 없음</span>';
+
+                return '<div style="background:#fff;border:1px solid var(--g200);border-radius:14px;padding:18px 22px;margin-bottom:12px;">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">' +
+                        '<div style="flex:1;min-width:240px;">' +
+                            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">' +
+                                '<strong style="font-size:0.95rem;color:var(--text);">' + (r.company_name || '회사명 미입력') + '</strong>' +
+                                statusBadge +
+                            '</div>' +
+                            '<div style="font-size:0.78rem;color:var(--g600);margin-bottom:3px;">담당자: ' + (r.name || '-') + ' · ' + (r.email || '-') + '</div>' +
+                            '<div style="font-size:0.78rem;color:var(--g600);margin-bottom:3px;">사업자번호: ' + (r.business_number || '-') + '</div>' +
+                            '<div style="font-size:0.72rem;color:var(--g400);">제출일: ' + uploadedAt + '</div>' +
+                        '</div>' +
+                        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+                            fileBtn +
+                            actionBtns +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        async function bizVerifyPreview(path) {
+            if (!window.sbClient || !path) return;
+            try {
+                var resp = await window.sbClient.storage.from('business-registrations').createSignedUrl(path, 300);
+                if (resp.error) { showToast('⚠️ 파일 URL 생성 실패: ' + resp.error.message); return; }
+                window.open(resp.data.signedUrl, '_blank');
+            } catch(e) { showToast('⚠️ 파일 미리보기 실패'); }
+        }
+
+        async function bizVerifyApprove(userId) {
+            if (!confirm('이 사업자등록증을 승인하시겠습니까?\n승인 후 해당 고객사는 결제가 가능해집니다.')) return;
+            if (!window.sbClient) return;
+            try {
+                var resp = await window.sbClient.rpc('admin_approve_business_registration', { p_user_id: userId });
+                if (resp.error) { showToast('⚠️ 승인 실패: ' + resp.error.message); return; }
+                showToast('✅ 승인 완료');
+                await bizVerifyLoad();
+            } catch(e) { showToast('⚠️ 승인 처리 중 오류'); }
+        }
+
+        async function bizVerifyReject(userId) {
+            var reason = prompt('반려 사유를 입력해주세요. (고객에게 전달됩니다)');
+            if (!reason || !reason.trim()) return;
+            if (!window.sbClient) return;
+            try {
+                var resp = await window.sbClient.rpc('admin_reject_business_registration', { p_user_id: userId, p_reason: reason.trim() });
+                if (resp.error) { showToast('⚠️ 반려 실패: ' + resp.error.message); return; }
+                showToast('❌ 반려 완료. 고객에게 사유가 전달됩니다.');
+                await bizVerifyLoad();
+            } catch(e) { showToast('⚠️ 반려 처리 중 오류'); }
+        }
+
+        // 페이지 로드 시 뱃지 한번 갱신 (사이드바 표시용)
+        if (window.sbClient) {
+            setTimeout(function() { bizVerifyLoad().catch(function(){}); }, 1500);
+        }
+
+
         let _appFilter = 'all';
 
         // ── 지원서 로드 ──
