@@ -362,6 +362,53 @@
             display: block;
         }
 
+        /* ── 파일 업로드 위젯 ── */
+        .file-upload-wrap { position:relative; display:block; }
+        .file-upload-input { position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+        .file-upload-label {
+            display:flex; align-items:center; gap:10px;
+            padding:14px 14px;
+            border:1.5px dashed #c5d8f5;
+            border-radius:10px;
+            background:linear-gradient(180deg,#f6f9ff 0%,#fafbff 100%);
+            cursor:pointer;
+            transition:all 0.2s;
+            font-family:inherit;
+        }
+        .file-upload-label:active { background:linear-gradient(180deg,#edf3ff 0%,#f6f9ff 100%); }
+        .file-upload-label.has-file {
+            border-style:solid; border-color:#43a047;
+            background:linear-gradient(180deg,#f1f8e9 0%,#e8f5e9 100%);
+        }
+        .file-upload-icon { font-size:1.4rem; flex-shrink:0; line-height:1; }
+        .file-upload-text { flex:1; min-width:0; }
+        .file-upload-title {
+            font-size:0.85rem; font-weight:700;
+            color:var(--text); margin-bottom:2px;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .file-upload-sub { font-size:0.7rem; color:var(--gray-400); }
+        .file-upload-action {
+            font-size:0.72rem; font-weight:700;
+            color:var(--blue);
+            padding:6px 11px;
+            border:1.5px solid var(--blue);
+            border-radius:8px;
+            background:#fff;
+            flex-shrink:0;
+        }
+        .file-upload-label.has-file .file-upload-action {
+            color:#2e7d32; border-color:#43a047;
+        }
+        .file-upload-hint {
+            font-size:0.7rem; color:var(--gray-400);
+            margin-top:6px; line-height:1.5;
+        }
+        .file-upload-wrap.error .file-upload-label {
+            border-color:var(--error); background:#fff5f5;
+        }
+        .file-upload-wrap.error + .field-error { display:block; }
+
         /* 비밀번호 토글 - 터치 영역 확대 */
         .pw-toggle {
             position: absolute;
@@ -1020,11 +1067,19 @@
                         </div>
 
                         <div class="field-group">
-                            <label for="reg-brn-file">사업자등록증 파일 첨부 <span class="req">*</span></label>
-                            <div class="input-wrap" style="padding:0;border:1.5px dashed #c5d8f5;background:#f6f9ff;">
-                                <input type="file" id="reg-brn-file" accept=".pdf,.jpg,.jpeg,.png" required style="padding:14px 16px;cursor:pointer;font-size:0.85rem;color:var(--text);background:transparent;border:none;width:100%;font-family:inherit;">
+                            <label>사업자등록증 파일 첨부 <span class="req">*</span></label>
+                            <div class="file-upload-wrap" id="reg-brn-file-wrap">
+                                <input type="file" id="reg-brn-file" class="file-upload-input" accept=".pdf,.jpg,.jpeg,.png" required>
+                                <label for="reg-brn-file" class="file-upload-label" id="reg-brn-file-label">
+                                    <span class="file-upload-icon">📄</span>
+                                    <span class="file-upload-text">
+                                        <span class="file-upload-title" id="reg-brn-file-name">파일을 선택해주세요</span>
+                                        <span class="file-upload-sub">PDF · JPG · PNG · 최대 10MB</span>
+                                    </span>
+                                    <span class="file-upload-action" id="reg-brn-file-action">선택</span>
+                                </label>
                             </div>
-                            <p style="font-size:0.72rem;color:var(--gray-400);margin-top:4px;">PDF · JPG · PNG · 최대 10MB. 가입 후 관리자 검수를 거쳐 승인됩니다.</p>
+                            <p class="file-upload-hint">📌 가입 후 관리자 검수를 거쳐 승인됩니다 (평균 1~2 영업일).</p>
                             <p class="field-error">사업자등록증 파일을 첨부해주세요.</p>
                         </div>
 
@@ -1281,17 +1336,18 @@
 
             // 사업자등록증 파일 검증
             var brnFile = brnFileEl.files && brnFileEl.files[0];
+            var brnFileWrap = document.getElementById('reg-brn-file-wrap');
             if (!brnFile) {
-                brnFileEl.classList.add('error'); valid = false;
+                brnFileWrap.classList.add('error'); valid = false;
                 showAlert('사업자등록증 파일을 첨부해주세요.', 'error');
             } else if (!/\.(pdf|jpg|jpeg|png)$/i.test(brnFile.name)) {
-                brnFileEl.classList.add('error'); valid = false;
+                brnFileWrap.classList.add('error'); valid = false;
                 showAlert('PDF, JPG, PNG 파일만 첨부 가능합니다.', 'error');
             } else if (brnFile.size > 10 * 1024 * 1024) {
-                brnFileEl.classList.add('error'); valid = false;
+                brnFileWrap.classList.add('error'); valid = false;
                 showAlert('파일 크기는 10MB 이하여야 합니다.', 'error');
             } else {
-                brnFileEl.classList.remove('error');
+                brnFileWrap.classList.remove('error');
             }
 
             if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
@@ -1324,6 +1380,31 @@
                 setTimeout(() => switchTab('login'), 2500);
             }, 1400);
         });
+        // ── 사업자등록증 파일 선택 시 라벨 갱신 ──
+        document.getElementById('reg-brn-file').addEventListener('change', function(e) {
+            var file = e.target.files && e.target.files[0];
+            var nameEl = document.getElementById('reg-brn-file-name');
+            var subEl = nameEl.parentElement.querySelector('.file-upload-sub');
+            var actionEl = document.getElementById('reg-brn-file-action');
+            var labelEl = document.getElementById('reg-brn-file-label');
+            var wrap = document.getElementById('reg-brn-file-wrap');
+            wrap.classList.remove('error');
+            if (file) {
+                var sizeStr = file.size > 1024 * 1024
+                    ? (file.size / 1024 / 1024).toFixed(1) + 'MB'
+                    : (file.size / 1024).toFixed(0) + 'KB';
+                nameEl.textContent = file.name;
+                subEl.textContent = sizeStr + ' · 변경하려면 탭';
+                actionEl.textContent = '✓ 첨부';
+                labelEl.classList.add('has-file');
+            } else {
+                nameEl.textContent = '파일을 선택해주세요';
+                subEl.textContent = 'PDF · JPG · PNG · 최대 10MB';
+                actionEl.textContent = '선택';
+                labelEl.classList.remove('has-file');
+            }
+        });
+
         // ── 화면 방향 변경 대응 (태블릿) ──
         window.addEventListener('orientationchange', function() {
             setTimeout(function() { window.scrollTo(0, 0); }, 300);
