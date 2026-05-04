@@ -7127,8 +7127,7 @@
                         '<tr><td>\uC77C\uB2F9 '+ctFmt(c.dailyRate)+' x '+c.days+'\uC77C</td><td>'+ctFmt(c.subtotal)+'</td></tr>' +
                         '<tr><td>\uD50C\uB7AB\uD3FC \uC218\uC218\uB8CC (10%)</td><td>'+ctFmt(c.platformFee)+'</td></tr>' +
                         '<tr class="total"><td>\uCD1D \uAE08\uC561</td><td>'+ctFmt(c.total)+'</td></tr>' +
-                        '<tr class="sub"><td>\uC120\uACB0\uC81C (100%) \u2014 \uACC4\uC57D \uCCB4\uACB0 \uC2DC '+(c.depositPaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.deposit)+'</td></tr>' +
-                        (c.balance > 0 ? '<tr class="sub"><td>\uC794\uAE08 '+(c.balancePaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.balance)+'</td></tr>' : '') +
+                        '<tr class="sub"><td>\uC120\uACB0\uC81C (100%) \u2014 \uACC4\uC57D \uCCB4\uACB0 \uC2DC '+(c.depositPaid || c.balancePaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.total)+'</td></tr>' +
                     '</table>' +
                     '<div class="cm-section">\uC9C4\uD589 \uD604\uD669</div>' +
                     '<div class="cm-timeline">' +

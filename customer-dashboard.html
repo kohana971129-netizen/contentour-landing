@@ -4644,8 +4644,7 @@
           <tr><td>일당 ${formatMoney(c.dailyRate)} x ${c.days}일</td><td>${formatMoney(c.subtotal)}</td></tr>
           <tr><td>플랫폼 수수료 (10%)</td><td>${formatMoney(c.platformFee)}</td></tr>
           <tr class="total"><td>총 금액</td><td>${formatMoney(c.total)}</td></tr>
-          <tr class="sub"><td>선결제 (100%) — 계약 체결 시 ${c.depositPaid ? '&#9989; 결제완료' : ''}</td><td>${formatMoney(c.deposit)}</td></tr>
-          ${c.balance > 0 ? `<tr class="sub"><td>잔금 ${c.balancePaid ? '&#9989; 결제완료' : ''}</td><td>${formatMoney(c.balance)}</td></tr>` : ''}
+          <tr class="sub"><td>선결제 (100%) — 계약 체결 시 ${c.depositPaid || c.balancePaid ? '&#9989; 결제완료' : ''}</td><td>${formatMoney(c.total)}</td></tr>
         </table>
         <div class="cm-section">진행 현황</div>
         <div class="cm-timeline">
@@ -4846,8 +4845,7 @@
       w.document.write('<div class="section">' +
         '<div class="section-title">제3조 결제 조건</div>' +
         '<table class="info-table">' +
-          '<tr><th>선결제 (100%)</th><td>₩' + c.deposit.toLocaleString() + ' — 계약 체결 후 <b>3영업일 이내</b> 전액 입금' + (c.depositPaid ? ' ✅ 결제완료' : '') + '</td></tr>' +
-          (c.balance > 0 ? '<tr><th>잔금</th><td>₩' + c.balance.toLocaleString() + (c.balancePaid ? ' ✅ 결제완료' : '') + '</td></tr>' : '') +
+          '<tr><th>선결제 (100%)</th><td>₩' + (c.total || 0).toLocaleString() + ' — 계약 체결 후 <b>3영업일 이내</b> 전액 입금' + (c.depositPaid || c.balancePaid ? ' ✅ 결제완료' : '') + '</td></tr>' +
           '<tr><th>결제 방법</th><td>신용카드, 계좌이체, 가상계좌</td></tr>' +
         '</table>' +
       '</div>');
