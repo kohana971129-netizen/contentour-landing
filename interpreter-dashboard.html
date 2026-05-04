@@ -2414,7 +2414,7 @@
                     return;
                 }
 
-                var expoName = document.getElementById('jnl-expo').selectedOptions[0].text;
+                var expoName = document.getElementById('jnl-expo').value.trim();
                 var locationSel = document.getElementById('jnl-location');
                 var locationCustom = document.getElementById('jnl-location-custom');
                 var location = (locationCustom && locationCustom.style.display !== 'none' && locationCustom.value) ? locationCustom.value : locationSel.value;
