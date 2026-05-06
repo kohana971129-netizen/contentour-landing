@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="interpreter-dashboard.css?v=20260506-5">
     <style>
-        /* build:20260506-1710 ════════════════════════════════════════════
+        /* build:20260506-1715 ════════════════════════════════════════════
            채팅 모바일 — 인라인 스타일로 강제 적용 (CSS 파일 캐시 우회용)
            HTML은 cache-control: no-cache라 매번 새로 받아지므로 외부 캐시 영향 X
            ──────────────────────────────────────────────────────────────── */
@@ -37,21 +37,24 @@
                 min-height: 0 !important;
                 height: 100% !important;
             }
+            /* chat-main을 fixed로 → viewport 기준 정확한 위치 (부모 영향 차단) */
             #view-chat .chat-main {
-                position: absolute !important;
-                top: 0 !important;
+                position: fixed !important;
+                top: 56px !important;             /* topbar 높이 */
                 left: 0 !important;
                 right: 0 !important;
                 bottom: 0 !important;
-                width: auto !important;          /* inset으로 양쪽 고정, width 명시 X */
-                max-width: 100% !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
                 background: #f5f7fb !important;
                 transform: translateX(100%) !important;
                 transition: transform 0.3s ease !important;
-                z-index: 10 !important;
+                z-index: 100 !important;          /* 사이드바보다 위 */
                 min-height: 0 !important;
                 overflow: hidden !important;
                 box-sizing: border-box !important;
+                display: flex !important;
+                flex-direction: column !important;
             }
             #view-chat .chat-layout.chat-open .chat-main {
                 transform: translateX(0) !important;
@@ -91,23 +94,22 @@
             #view-chat .chat-msg-wrap--me { align-items: flex-end !important; }
             #view-chat .chat-msg-wrap--them { align-items: flex-start !important; }
 
-            /* === 메시지 자체 — viewport 기반 절대값 max-width로 화면 밖 차단 ===
-               buffer 크게: 메시지 우측이 화면 가장자리에 너무 붙어 잘리던 문제 해결 */
+            /* === 메시지 자체 — fixed chat-main이 viewport 폭 보장하므로 단순 % === */
             #view-chat .chat-msg,
             #view-chat .chat-msg.me,
             #view-chat .chat-msg.them {
-                max-width: calc(100vw - 110px) !important;
+                max-width: 80% !important;
                 gap: 6px !important;
                 min-width: 0 !important;
                 box-sizing: border-box !important;
                 flex-wrap: nowrap !important;
                 width: auto !important;
             }
-            /* 버블 자체에도 viewport 기반 max-width */
+            /* 버블 자체에도 % 기반 — chat-msg 안에서만 wrap */
             #view-chat .chat-msg__bubble,
             #view-chat .chat-msg.me .chat-msg__bubble,
             #view-chat .chat-msg.them .chat-msg__bubble {
-                max-width: calc(100vw - 130px) !important;
+                max-width: 100% !important;
             }
             /* me 메시지 추가 처방 — row-reverse + margin-left:auto 충돌 회피 */
             #view-chat .chat-msg.me {
