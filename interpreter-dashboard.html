@@ -1727,13 +1727,24 @@
 
         // ══════════════ 사이드바 토글 ══════════════
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarOverlay').classList.toggle('open');
+            var sb = document.getElementById('sidebar');
+            var ov = document.getElementById('sidebarOverlay');
+            sb.classList.toggle('open');
+            ov.classList.toggle('open');
+            // 사이드바 열린 동안 body 스크롤 방지 (배경이 같이 스크롤되는 것 방지)
+            document.body.style.overflow = sb.classList.contains('open') ? 'hidden' : '';
         }
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('open');
+            document.body.style.overflow = '';
         }
+        // ESC 키로 사이드바 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('sidebar').classList.contains('open')) {
+                closeSidebar();
+            }
+        });
         function toggleSidebarCollapse() {
             document.body.classList.toggle('sb-collapsed');
             localStorage.setItem('interp-sb-collapsed', document.body.classList.contains('sb-collapsed') ? '1' : '0');
@@ -1745,6 +1756,8 @@
         // ══════════════ 뷰 전환 ══════════════
         function switchView(view, e) {
             if (e && e.preventDefault) e.preventDefault();
+            // 모바일에서 메뉴 클릭 시 사이드바 자동 닫힘 (768px 이하)
+            if (window.innerWidth <= 768) closeSidebar();
             // URL 해시 업데이트
             history.replaceState(null, '', '#' + view);
             // 사이드바 active

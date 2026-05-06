@@ -3810,6 +3810,15 @@
             }
         }
 
+        /* 모바일에서 노쇼 컨펌 배너 패딩·폰트 축소 (inline style 위에 덮어쓰기) */
+        @media (max-width: 768px) {
+            #confirmationBanner > div { padding: 14px 16px !important; }
+            #confirmationBanner h3 { font-size: 0.95rem !important; }
+            #confirmationBanner p { font-size: 0.78rem !important; }
+            #confirmationBanner > div > div { padding: 12px 14px !important; }
+            #confirmationBanner button { width: 100%; padding: 12px !important; font-size: 0.82rem !important; }
+        }
+
         @media (max-width: 480px) {
             .kpi-grid {
                 grid-template-columns: 1fr;
