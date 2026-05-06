@@ -722,6 +722,7 @@
                                 <span class="jnl-editor__saved" id="jnlSavedAt">마지막 저장: —</span>
                                 <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="jnlReset()">초기화</button>
+                                    <button class="btn-decline-lg" onclick="exportJnlContentourPDF()" style="color:#1a237e;border-color:#1a237e;background:#fff;">📥 PDF</button>
                                     <button class="btn-accept-lg" onclick="jnlSave('submit')">제출하기</button>
                                 </div>
                             </div>
@@ -843,6 +844,7 @@
                                 <span class="jnl-editor__saved" id="jnlBpSavedAt">마지막 저장: —</span>
                                 <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="clearJnlBusan()">초기화</button>
+                                    <button class="btn-decline-lg" onclick="exportJnlBusanPDF()" style="color:#00695c;border-color:#00695c;background:#fff;">📥 PDF</button>
                                     <button class="btn-accept-lg" onclick="saveJnlBusan('draft')" style="background:var(--gray-400);">임시저장</button>
                                     <button class="btn-accept-lg" onclick="saveJnlBusan('submit')">제출하기</button>
                                 </div>
@@ -945,6 +947,7 @@
                                 <span class="jnl-editor__saved" id="jnlKtSavedAt">마지막 저장: —</span>
                                 <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="clearJnlKita()">초기화</button>
+                                    <button class="btn-decline-lg" onclick="exportJnlKitaPDF()" style="color:#1565c0;border-color:#1565c0;background:#fff;">📥 PDF</button>
                                     <button class="btn-accept-lg" onclick="saveJnlKita('draft')" style="background:var(--gray-400);">임시저장</button>
                                     <button class="btn-accept-lg" onclick="saveJnlKita('submit')">제출하기</button>
                                 </div>
@@ -1018,6 +1021,7 @@
                                 <span class="jnl-editor__saved" id="icfbSavedAt">마지막 저장: —</span>
                                 <div class="flex-gap-10">
                                     <button class="btn-decline-lg" onclick="icfbClearWrite()">초기화</button>
+                                    <button class="btn-decline-lg" onclick="exportJnlCustomPDF()" style="color:#333;border-color:#333;background:#fff;">📥 PDF</button>
                                     <button class="btn-accept-lg" onclick="icfbSaveWrite('draft')" style="background:var(--gray-400);">임시저장</button>
                                     <button class="btn-accept-lg" onclick="icfbSaveWrite('submit')">제출하기</button>
                                 </div>
@@ -3158,6 +3162,318 @@
             } else {
                 showToast('💾 한국무역협회 상담일지가 임시저장되었습니다.');
             }
+        }
+
+        // ══════════════ 상담일지 PDF Export — 통역사용 4개 양식 ══════════════
+        function jnlEsc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function exportJnlContentourPDF() {
+            var v = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+            var expoName = v('jnl-expo');
+            var date = v('jnl-date');
+            var locSel = v('jnl-location');
+            var location = locSel === '기타' ? v('jnl-location-custom') : locSel;
+            var periodStart = v('jnl-period-start');
+            var periodEnd = v('jnl-period-end');
+            var period = (periodStart || periodEnd) ? (periodStart + ' ~ ' + periodEnd) : '';
+            var client = v('jnl-client');
+            var lang = v('jnl-lang');
+            var total = v('jnl-c-total') || '0';
+            var contract = v('jnl-c-contract') || '0';
+            var sample = v('jnl-c-sample') || '0';
+            var follow = v('jnl-c-follow') || '0';
+            var summary = v('jnl-summary');
+            var result = v('jnl-result');
+            var action = v('jnl-action');
+            var timeStart = v('jnl-time-start');
+            var timeEnd = v('jnl-time-end');
+            var timeTotalEl = document.getElementById('jnl-time-total');
+            var timeTotal = timeTotalEl ? (timeTotalEl.textContent || '').trim() : '';
+
+            function collectSurvey(key) {
+                var arr = [];
+                document.querySelectorAll('#jnl-fmt-contentour [data-survey="' + key + '"] .selected').forEach(function(el) {
+                    arr.push(el.textContent.trim());
+                });
+                return arr.join(', ');
+            }
+            var s_atmoTraffic = collectSurvey('atmoTraffic');
+            var s_atmoInterest = collectSurvey('atmoInterest');
+            var s_atmoPoints = collectSurvey('atmoPoints');
+            var s_atmoBuyer = collectSurvey('atmoBuyer');
+            var s_atmoFollow = collectSurvey('atmoFollow');
+            var atmoMemo = v('jnl-atmo-memo');
+            var s_diffType = collectSurvey('diffType');
+            var s_diffPrep = collectSurvey('diffPrep');
+            var s_diffImprove = collectSurvey('diffImprove');
+            var diffMemo = v('jnl-diff-memo');
+            var s_noteRequest = collectSurvey('noteRequest');
+            var s_noteUrgency = collectSurvey('noteUrgency');
+            var noteMemo = v('jnl-note-memo');
+
+            var issues = [];
+            document.querySelectorAll('#jnlIssueList .jnl-issue-card').forEach(function(card) {
+                var sel = card.querySelector('select');
+                var typeOpt = sel && sel.options[sel.selectedIndex];
+                var type = (typeOpt && sel.value) ? typeOpt.text : '';
+                var time = card.querySelector('input[type="time"]');
+                var ta = card.querySelector('textarea');
+                var resolved = card.querySelector('input[type="checkbox"]');
+                if ((ta && ta.value) || type) {
+                    issues.push({ type: type, time: time ? time.value : '', text: ta ? ta.value : '', resolved: resolved && resolved.checked });
+                }
+            });
+
+            var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>상담일지(통역사) - ' + jnlEsc(expoName) + '</title>' +
+                '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Malgun Gothic","맑은고딕",sans-serif;padding:40px;color:#222;max-width:800px;margin:0 auto}' +
+                'h1{font-size:1.4rem;text-align:center;margin-bottom:8px;color:#1a237e}' +
+                '.sub{text-align:center;color:#666;font-size:0.85rem;margin-bottom:30px}' +
+                '.section{font-size:0.95rem;font-weight:700;color:#1a237e;border-bottom:2px solid #1a237e;padding-bottom:6px;margin:24px 0 14px}' +
+                '.label{font-size:0.85rem;font-weight:700;color:#444;margin:10px 0 6px}' +
+                'table{width:100%;border-collapse:collapse;margin-bottom:18px}' +
+                'th,td{border:1px solid #ddd;padding:10px 12px;font-size:0.85rem;text-align:left;vertical-align:top}' +
+                'th{background:#f5f6fa;font-weight:700;width:140px;white-space:nowrap}' +
+                '.text-box{background:#fafbfc;border:1px solid #eee;border-radius:6px;padding:14px;font-size:0.85rem;white-space:pre-wrap;margin-bottom:14px;min-height:40px}' +
+                '.issue{background:#fff8f0;border:1px solid #ffd699;border-radius:6px;padding:12px;margin-bottom:8px;font-size:0.85rem}' +
+                '.footer{text-align:center;color:#999;font-size:0.75rem;margin-top:30px;padding-top:16px;border-top:1px solid #eee}' +
+                '.print-btn{display:block;margin:20px auto;padding:12px 32px;background:#1a237e;color:#fff;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer}' +
+                '@media print{.print-btn{display:none!important}}</style></head><body>' +
+                '<h1>📋 전시회 상담일지 (통역사 작성)</h1><div class="sub">CONTENTOUR 표준 양식 · ' + jnlEsc(date) + '</div>' +
+                '<div class="section">전시회 기본 정보</div>' +
+                '<table><tr><th>전시회명</th><td>' + jnlEsc(expoName) + '</td><th>작성일</th><td>' + jnlEsc(date) + '</td></tr>' +
+                '<tr><th>고객사</th><td>' + jnlEsc(client) + '</td><th>통역 언어</th><td>' + jnlEsc(lang) + '</td></tr>' +
+                '<tr><th>개최지</th><td>' + jnlEsc(location) + '</td><th>전시기간</th><td>' + jnlEsc(period) + '</td></tr></table>';
+
+            if (timeStart || timeEnd) {
+                html += '<div class="section">🕐 상담 시간</div>' +
+                    '<table><tr><th>시작</th><td>' + jnlEsc(timeStart || '-') + '</td><th>종료</th><td>' + jnlEsc(timeEnd || '-') + '</td></tr>' +
+                    (timeTotal && timeTotal !== '—' ? '<tr><th>총 시간</th><td colspan="3">' + jnlEsc(timeTotal) + '</td></tr>' : '') + '</table>';
+            }
+
+            html += '<div class="section">상담 실적</div>' +
+                '<table><tr><th>총 상담 건수</th><td>' + jnlEsc(total) + '건</td><th>계약 상담</th><td>' + jnlEsc(contract) + '건</td></tr>' +
+                '<tr><th>샘플 요청</th><td>' + jnlEsc(sample) + '건</td><th>팔로업 예정</th><td>' + jnlEsc(follow) + '건</td></tr></table>' +
+                '<div class="section">주요 상담 내용 & 성과</div>' +
+                '<p class="label">상담 내용 요약</p><div class="text-box">' + jnlEsc(summary || '-') + '</div>' +
+                '<p class="label">주요 성과</p><div class="text-box">' + jnlEsc(result || '-') + '</div>' +
+                '<p class="label">팔로업 액션 플랜</p><div class="text-box">' + jnlEsc(action || '-') + '</div>';
+
+            var hasAtmo = s_atmoTraffic || s_atmoInterest || s_atmoPoints || s_atmoBuyer || s_atmoFollow || atmoMemo;
+            var hasDiff = s_diffType || s_diffPrep || s_diffImprove || diffMemo;
+            var hasNote = s_noteRequest || s_noteUrgency || noteMemo;
+            if (hasAtmo || hasDiff || hasNote) {
+                html += '<div class="section">📝 통역사 현장 소견 (클릭 설문)</div>';
+                if (hasAtmo) {
+                    html += '<p class="label">① 현장 분위기 / 바이어 반응</p><table>' +
+                        (s_atmoTraffic ? '<tr><th>부스 방문량</th><td>' + jnlEsc(s_atmoTraffic) + '</td></tr>' : '') +
+                        (s_atmoInterest ? '<tr><th>바이어 관심도</th><td>' + jnlEsc(s_atmoInterest) + '</td></tr>' : '') +
+                        (s_atmoPoints ? '<tr><th>주요 관심 포인트</th><td>' + jnlEsc(s_atmoPoints) + '</td></tr>' : '') +
+                        (s_atmoBuyer ? '<tr><th>바이어 유형</th><td>' + jnlEsc(s_atmoBuyer) + '</td></tr>' : '') +
+                        (s_atmoFollow ? '<tr><th>후속 가능성</th><td>' + jnlEsc(s_atmoFollow) + '</td></tr>' : '') +
+                        (atmoMemo ? '<tr><th>메모</th><td>' + jnlEsc(atmoMemo) + '</td></tr>' : '') + '</table>';
+                }
+                if (hasDiff) {
+                    html += '<p class="label">② 통역 시 어려웠던 점 / 개선 사항</p><table>' +
+                        (s_diffType ? '<tr><th>어려움 유형</th><td>' + jnlEsc(s_diffType) + '</td></tr>' : '') +
+                        (s_diffPrep ? '<tr><th>사전 준비 충분도</th><td>' + jnlEsc(s_diffPrep) + '</td></tr>' : '') +
+                        (s_diffImprove ? '<tr><th>개선 요청</th><td>' + jnlEsc(s_diffImprove) + '</td></tr>' : '') +
+                        (diffMemo ? '<tr><th>메모</th><td>' + jnlEsc(diffMemo) + '</td></tr>' : '') + '</table>';
+                }
+                if (hasNote) {
+                    html += '<p class="label">③ 고객사 전달 사항</p><table>' +
+                        (s_noteRequest ? '<tr><th>요청 유형</th><td>' + jnlEsc(s_noteRequest) + '</td></tr>' : '') +
+                        (s_noteUrgency ? '<tr><th>긴급도</th><td>' + jnlEsc(s_noteUrgency) + '</td></tr>' : '') +
+                        (noteMemo ? '<tr><th>메모</th><td>' + jnlEsc(noteMemo) + '</td></tr>' : '') + '</table>';
+                }
+            }
+
+            if (issues.length) {
+                html += '<div class="section">⚠️ 현장 이슈 리포트</div>';
+                issues.forEach(function(it) {
+                    html += '<div class="issue"><strong>' + jnlEsc(it.type) + (it.time ? ' · ' + jnlEsc(it.time) : '') + (it.resolved ? ' ✅ 해결' : '') + '</strong><br>' + jnlEsc(it.text || '') + '</div>';
+                });
+            }
+
+            html += '<div class="footer">© ' + new Date().getFullYear() + ' CONTENTOUR · 본 문서는 전시회 상담일지(통역사 작성)로 자동 생성되었습니다.</div>' +
+                '<button class="print-btn" onclick="window.print()">🖨 PDF 저장 / 인쇄</button>' +
+                '</body></html>';
+            var w = window.open('', '_blank');
+            w.document.write(html);
+            w.document.close();
+        }
+
+        function exportJnlBusanPDF() {
+            var v = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+            var buyers = [];
+            document.querySelectorAll('#jnl-bp-buyer-list .j-grid, #jnl-bp-buyer-list .jnl-buyer-row').forEach(function(row) {
+                var inputs = row.querySelectorAll('input, textarea, select');
+                if (inputs.length) buyers.push({
+                    company: inputs[0]?inputs[0].value:'', country: inputs[1]?inputs[1].value:'',
+                    contact: inputs[2]?inputs[2].value:'', email: inputs[3]?inputs[3].value:'',
+                    summary: inputs[4]?inputs[4].value:'', result: inputs[5]?inputs[5].value:'',
+                    amount: inputs[6]?inputs[6].value:''
+                });
+            });
+
+            var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>상담일지(통역사) - 부산테크노파크</title>' +
+                '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Malgun Gothic","맑은고딕",sans-serif;padding:40px;color:#222;max-width:800px;margin:0 auto}' +
+                'h1{font-size:1.4rem;text-align:center;margin-bottom:8px;color:#00695c}' +
+                '.sub{text-align:center;color:#666;font-size:0.85rem;margin-bottom:30px}' +
+                '.section{font-size:0.95rem;font-weight:700;color:#00695c;border-bottom:2px solid #00695c;padding-bottom:6px;margin:24px 0 14px}' +
+                '.label{font-size:0.85rem;font-weight:700;color:#444;margin:10px 0 6px}' +
+                'table{width:100%;border-collapse:collapse;margin-bottom:18px}' +
+                'th,td{border:1px solid #ddd;padding:10px 12px;font-size:0.85rem;text-align:left;vertical-align:top}' +
+                'th{background:#e0f2f1;font-weight:700;width:140px;white-space:nowrap}' +
+                '.text-box{background:#fafbfc;border:1px solid #eee;border-radius:6px;padding:14px;font-size:0.85rem;white-space:pre-wrap;margin-bottom:14px;min-height:40px}' +
+                '.buyer-card{background:#f5f5f5;border-radius:8px;padding:14px;margin-bottom:10px;font-size:0.83rem}' +
+                '.buyer-card b{color:#00695c}' +
+                '.footer{text-align:center;color:#999;font-size:0.75rem;margin-top:30px;padding-top:16px;border-top:1px solid #eee}' +
+                '.print-btn{display:block;margin:20px auto;padding:12px 32px;background:#00695c;color:#fff;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer}' +
+                '@media print{.print-btn{display:none!important}}</style></head><body>' +
+                '<h1>🏢 부산테크노파크 상담일지 (통역사 작성)</h1><div class="sub">' + jnlEsc(v('jnl-bp-expo')) + ' · ' + jnlEsc(v('jnl-bp-date')) + '</div>' +
+                '<div class="section">사업 기본 정보</div>' +
+                '<table><tr><th>지원사업명</th><td>' + jnlEsc(v('jnl-bp-program')) + '</td><th>전시회명</th><td>' + jnlEsc(v('jnl-bp-expo')) + '</td></tr>' +
+                '<tr><th>참가 기업명</th><td>' + jnlEsc(v('jnl-bp-company')) + '</td><th>대표자명</th><td>' + jnlEsc(v('jnl-bp-ceo')) + '</td></tr>' +
+                '<tr><th>개최지</th><td>' + jnlEsc(v('jnl-bp-location')) + '</td><th>전시 기간</th><td>' + jnlEsc(v('jnl-bp-period')) + '</td></tr>' +
+                '<tr><th>작성일</th><td>' + jnlEsc(v('jnl-bp-date')) + '</td><th>작성자(통역사)</th><td>' + jnlEsc(v('jnl-bp-writer')) + '</td></tr></table>' +
+                '<div class="section">부스 운영 현황</div>' +
+                '<table><tr><th>부스 번호</th><td>' + jnlEsc(v('jnl-bp-booth')) + '</td><th>부스 규모</th><td>' + jnlEsc(v('jnl-bp-boothsize')) + '</td></tr>' +
+                '<tr><th>전시 품목</th><td>' + jnlEsc(v('jnl-bp-products')) + '</td><th>참가 인원</th><td>' + jnlEsc(v('jnl-bp-staff')) + '명</td></tr></table>' +
+                '<div class="section">일별 상담 실적</div>' +
+                '<table><tr><th>총 상담 건수</th><td>' + jnlEsc(v('jnl-bp-total')) + '건</td><th>유망 바이어</th><td>' + jnlEsc(v('jnl-bp-potential')) + '건</td></tr>' +
+                '<tr><th>계약 상담</th><td>' + jnlEsc(v('jnl-bp-contract')) + '건</td><th>MOU 체결</th><td>' + jnlEsc(v('jnl-bp-mou')) + '건</td></tr></table>';
+
+            if (buyers.length) {
+                html += '<div class="section">상담 바이어 정보</div>';
+                buyers.forEach(function(b, i) {
+                    html += '<div class="buyer-card"><b>바이어 ' + (i+1) + '</b> — ' + jnlEsc(b.company || '-') + ' (' + jnlEsc(b.country || '-') + ')<br>' +
+                        '담당자: ' + jnlEsc(b.contact || '-') + ' / 이메일: ' + jnlEsc(b.email || '-') + '<br>' +
+                        '상담 내용: ' + jnlEsc(b.summary || '-') + '<br>' +
+                        '결과: ' + jnlEsc(b.result || '-') + ' / 예상 금액: ' + jnlEsc(b.amount || '-') + '</div>';
+                });
+            }
+
+            html += '<div class="section">성과 및 특이사항</div>' +
+                '<p class="label">주요 성과</p><div class="text-box">' + jnlEsc(v('jnl-bp-result') || '-') + '</div>' +
+                '<p class="label">현장 애로사항</p><div class="text-box">' + jnlEsc(v('jnl-bp-issue') || '-') + '</div>' +
+                '<p class="label">익일 계획</p><div class="text-box">' + jnlEsc(v('jnl-bp-plan') || '-') + '</div>' +
+                (v('jnl-bp-opinion') ? '<div class="section">📝 통역사 의견</div><p class="label">현장 분위기 / 통역 시 특이사항</p><div class="text-box">' + jnlEsc(v('jnl-bp-opinion')) + '</div>' : '') +
+                '<div class="footer">© ' + new Date().getFullYear() + ' CONTENTOUR · 부산테크노파크 상담일지 (통역사 작성)</div>' +
+                '<button class="print-btn" onclick="window.print()">🖨 PDF 저장 / 인쇄</button></body></html>';
+            var w = window.open('', '_blank');
+            w.document.write(html);
+            w.document.close();
+        }
+
+        function exportJnlKitaPDF() {
+            var v = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+            var buyers = [];
+            document.querySelectorAll('#jnl-kt-buyer-list .j-grid, #jnl-kt-buyer-list .jnl-buyer-row').forEach(function(row) {
+                var inputs = row.querySelectorAll('input, textarea, select');
+                if (inputs.length) buyers.push({
+                    company: inputs[0]?inputs[0].value:'', country: inputs[1]?inputs[1].value:'',
+                    type: inputs[2]?inputs[2].value:'', items: inputs[3]?inputs[3].value:'',
+                    content: inputs[4]?inputs[4].value:'', result: inputs[5]?inputs[5].value:'',
+                    amount: inputs[6]?inputs[6].value:''
+                });
+            });
+
+            var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>상담일지(통역사) - 한국무역협회</title>' +
+                '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Malgun Gothic","맑은고딕",sans-serif;padding:40px;color:#222;max-width:800px;margin:0 auto}' +
+                'h1{font-size:1.4rem;text-align:center;margin-bottom:8px;color:#1565c0}' +
+                '.sub{text-align:center;color:#666;font-size:0.85rem;margin-bottom:30px}' +
+                '.section{font-size:0.95rem;font-weight:700;color:#1565c0;border-bottom:2px solid #1565c0;padding-bottom:6px;margin:24px 0 14px}' +
+                '.label{font-size:0.85rem;font-weight:700;color:#444;margin:10px 0 6px}' +
+                'table{width:100%;border-collapse:collapse;margin-bottom:18px}' +
+                'th,td{border:1px solid #ddd;padding:10px 12px;font-size:0.85rem;text-align:left;vertical-align:top}' +
+                'th{background:#e3f2fd;font-weight:700;width:140px;white-space:nowrap}' +
+                '.text-box{background:#fafbfc;border:1px solid #eee;border-radius:6px;padding:14px;font-size:0.85rem;white-space:pre-wrap;margin-bottom:14px;min-height:40px}' +
+                '.buyer-card{background:#f5f5f5;border-radius:8px;padding:14px;margin-bottom:10px;font-size:0.83rem}' +
+                '.buyer-card b{color:#1565c0}' +
+                '.footer{text-align:center;color:#999;font-size:0.75rem;margin-top:30px;padding-top:16px;border-top:1px solid #eee}' +
+                '.print-btn{display:block;margin:20px auto;padding:12px 32px;background:#1565c0;color:#fff;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer}' +
+                '@media print{.print-btn{display:none!important}}</style></head><body>' +
+                '<h1>🌐 한국무역협회(KITA) 상담일지 (통역사 작성)</h1><div class="sub">' + jnlEsc(v('jnl-kt-expo')) + ' · ' + jnlEsc(v('jnl-kt-date')) + '</div>' +
+                '<div class="section">사업 정보</div>' +
+                '<table><tr><th>사업명</th><td>' + jnlEsc(v('jnl-kt-program')) + '</td><th>전시회명</th><td>' + jnlEsc(v('jnl-kt-expo')) + '</td></tr>' +
+                '<tr><th>참가 업체명</th><td>' + jnlEsc(v('jnl-kt-company')) + '</td><th>사업자등록번호</th><td>' + jnlEsc(v('jnl-kt-bizno')) + '</td></tr>' +
+                '<tr><th>개최국/도시</th><td>' + jnlEsc(v('jnl-kt-location')) + '</td><th>전시 기간</th><td>' + jnlEsc(v('jnl-kt-period')) + '</td></tr>' +
+                '<tr><th>작성일</th><td>' + jnlEsc(v('jnl-kt-date')) + '</td><th>작성자(통역사)</th><td>' + jnlEsc(v('jnl-kt-writer')) + '</td></tr>' +
+                '<tr><th>참가 목적</th><td colspan="3">' + jnlEsc(v('jnl-kt-purpose')) + '</td></tr></table>' +
+                '<div class="section">전시 품목 및 부스</div>' +
+                '<table><tr><th>전시 품목</th><td>' + jnlEsc(v('jnl-kt-items')) + '</td><th>부스 위치/규모</th><td>' + jnlEsc(v('jnl-kt-booth')) + '</td></tr>' +
+                '<tr><th>참가 인원</th><td>' + jnlEsc(v('jnl-kt-staff')) + '명</td><th></th><td></td></tr></table>' +
+                '<div class="section">상담 실적</div>' +
+                '<table><tr><th>총 상담 건수</th><td>' + jnlEsc(v('jnl-kt-total')) + '건</td><th>신규 바이어</th><td>' + jnlEsc(v('jnl-kt-newbuyer')) + '건</td></tr>' +
+                '<tr><th>기존 거래선</th><td>' + jnlEsc(v('jnl-kt-existing')) + '건</td><th>계약/MOU</th><td>' + jnlEsc(v('jnl-kt-contract')) + '건</td></tr>' +
+                '<tr><th>현장 계약 금액</th><td>' + jnlEsc(v('jnl-kt-onsite')) + '</td><th>상담 추진 금액</th><td>' + jnlEsc(v('jnl-kt-expected')) + '</td></tr></table>';
+
+            if (buyers.length) {
+                html += '<div class="section">상담 바이어 정보</div>';
+                buyers.forEach(function(b, i) {
+                    html += '<div class="buyer-card"><b>바이어 ' + (i+1) + '</b> — ' + jnlEsc(b.company || '-') + ' (' + jnlEsc(b.country || '-') + ') [' + jnlEsc(b.type || '-') + ']<br>' +
+                        '관심 품목: ' + jnlEsc(b.items || '-') + '<br>상담 내용: ' + jnlEsc(b.content || '-') + '<br>' +
+                        '결과: ' + jnlEsc(b.result || '-') + ' / 예상 금액: ' + jnlEsc(b.amount || '-') + '</div>';
+                });
+            }
+
+            html += '<div class="section">시장 분석</div>' +
+                '<p class="label">시장 동향</p><div class="text-box">' + jnlEsc(v('jnl-kt-market') || '-') + '</div>' +
+                '<p class="label">경쟁사 동향</p><div class="text-box">' + jnlEsc(v('jnl-kt-competitor') || '-') + '</div>' +
+                '<p class="label">자사 강점/약점</p><div class="text-box">' + jnlEsc(v('jnl-kt-strength') || '-') + '</div>' +
+                '<div class="section">종합 평가 및 향후 계획</div>' +
+                '<p class="label">종합 평가</p><div class="text-box">' + jnlEsc(v('jnl-kt-evaluation') || '-') + '</div>' +
+                '<p class="label">후속 조치 계획</p><div class="text-box">' + jnlEsc(v('jnl-kt-followup') || '-') + '</div>' +
+                (v('jnl-kt-opinion') ? '<div class="section">📝 통역사 의견</div><p class="label">현장 분위기 / 통역 시 특이사항</p><div class="text-box">' + jnlEsc(v('jnl-kt-opinion')) + '</div>' : '') +
+                '<div class="footer">© ' + new Date().getFullYear() + ' CONTENTOUR · 한국무역협회(KITA) 상담일지 (통역사 작성)</div>' +
+                '<button class="print-btn" onclick="window.print()">🖨 PDF 저장 / 인쇄</button></body></html>';
+            var w = window.open('', '_blank');
+            w.document.write(html);
+            w.document.close();
+        }
+
+        function exportJnlCustomPDF() {
+            if (typeof icfbWritingTplIdx === 'undefined' || icfbWritingTplIdx < 0) { showToast('⚠️ 양식을 먼저 선택해주세요.'); return; }
+            var tpl = icfbTemplates[icfbWritingTplIdx];
+            if (!tpl) { showToast('⚠️ 양식 정보를 찾을 수 없습니다.'); return; }
+
+            var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>상담일지(통역사) - ' + jnlEsc(tpl.name) + '</title>' +
+                '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Malgun Gothic","맑은고딕",sans-serif;padding:40px;color:#222;max-width:800px;margin:0 auto}' +
+                'h1{font-size:1.4rem;text-align:center;margin-bottom:8px;color:#333}' +
+                '.sub{text-align:center;color:#666;font-size:0.85rem;margin-bottom:30px}' +
+                '.section{font-size:0.95rem;font-weight:700;color:#333;border-bottom:2px solid #333;padding-bottom:6px;margin:24px 0 14px}' +
+                '.label{font-size:0.85rem;font-weight:700;color:#444;margin:10px 0 6px}' +
+                'table{width:100%;border-collapse:collapse;margin-bottom:18px}' +
+                'th,td{border:1px solid #ddd;padding:10px 12px;font-size:0.85rem;text-align:left;vertical-align:top}' +
+                'th{background:#f5f6fa;font-weight:700;width:140px;white-space:nowrap}' +
+                '.text-box{background:#fafbfc;border:1px solid #eee;border-radius:6px;padding:14px;font-size:0.85rem;white-space:pre-wrap;margin-bottom:14px;min-height:40px}' +
+                '.footer{text-align:center;color:#999;font-size:0.75rem;margin-top:30px;padding-top:16px;border-top:1px solid #eee}' +
+                '.print-btn{display:block;margin:20px auto;padding:12px 32px;background:#333;color:#fff;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer}' +
+                '@media print{.print-btn{display:none!important}}</style></head><body>' +
+                '<h1>📋 ' + jnlEsc(tpl.name) + ' (통역사 작성)</h1><div class="sub">나만의 양식 · ' + new Date().toLocaleDateString('ko-KR') + '</div>';
+
+            (tpl.sections || []).forEach(function(sec) {
+                html += '<div class="section">' + jnlEsc(sec.title || '') + '</div><table>';
+                (sec.fields || []).forEach(function(f) {
+                    var id = 'icfb-f-' + (f.name || '').replace(/[^a-zA-Z0-9가-힣]/g, '_');
+                    var el = document.getElementById(id);
+                    var val = el ? el.value : '';
+                    if (f.type === 'textarea') {
+                        html += '</table><p class="label">' + jnlEsc(f.label || '') + '</p><div class="text-box">' + jnlEsc(val || '-') + '</div><table>';
+                    } else {
+                        html += '<tr><th>' + jnlEsc(f.label || '') + '</th><td>' + jnlEsc(val || '-') + '</td></tr>';
+                    }
+                });
+                html += '</table>';
+            });
+
+            html += '<div class="footer">© ' + new Date().getFullYear() + ' CONTENTOUR · ' + jnlEsc(tpl.name) + ' (통역사 작성)</div>' +
+                '<button class="print-btn" onclick="window.print()">🖨 PDF 저장 / 인쇄</button></body></html>';
+            var w = window.open('', '_blank');
+            w.document.write(html);
+            w.document.close();
         }
 
         // ══════════════ 나만의 양식 (Custom Form Builder) ══════════════
