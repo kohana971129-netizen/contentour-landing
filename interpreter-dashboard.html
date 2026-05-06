@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="interpreter-dashboard.css?v=20260506-5">
     <style>
-        /* build:20260506-1705 ════════════════════════════════════════════
+        /* build:20260506-1710 ════════════════════════════════════════════
            채팅 모바일 — 인라인 스타일로 강제 적용 (CSS 파일 캐시 우회용)
            HTML은 cache-control: no-cache라 매번 새로 받아지므로 외부 캐시 영향 X
            ──────────────────────────────────────────────────────────────── */
@@ -71,9 +71,9 @@
                 margin-right: 4px !important;
             }
 
-            /* === 메시지 영역 === */
+            /* === 메시지 영역 — 우측 padding 크게 (메시지 우측 잘림 추가 안전망) === */
             #view-chat .chat-messages {
-                padding: 14px 10px !important;
+                padding: 14px 18px !important;
                 gap: 8px !important;
                 width: 100% !important;
                 max-width: 100% !important;
@@ -91,22 +91,23 @@
             #view-chat .chat-msg-wrap--me { align-items: flex-end !important; }
             #view-chat .chat-msg-wrap--them { align-items: flex-start !important; }
 
-            /* === 메시지 자체 — viewport 기반 절대값 max-width로 화면 밖 차단 === */
+            /* === 메시지 자체 — viewport 기반 절대값 max-width로 화면 밖 차단 ===
+               buffer 크게: 메시지 우측이 화면 가장자리에 너무 붙어 잘리던 문제 해결 */
             #view-chat .chat-msg,
             #view-chat .chat-msg.me,
             #view-chat .chat-msg.them {
-                max-width: calc(100vw - 80px) !important;  /* 화면폭 - padding/avatar buffer */
+                max-width: calc(100vw - 110px) !important;
                 gap: 6px !important;
                 min-width: 0 !important;
                 box-sizing: border-box !important;
                 flex-wrap: nowrap !important;
                 width: auto !important;
             }
-            /* 버블 자체에도 viewport 기반 max-width — 가장 확실한 안전망 */
+            /* 버블 자체에도 viewport 기반 max-width */
             #view-chat .chat-msg__bubble,
             #view-chat .chat-msg.me .chat-msg__bubble,
             #view-chat .chat-msg.them .chat-msg__bubble {
-                max-width: calc(100vw - 90px) !important;
+                max-width: calc(100vw - 130px) !important;
             }
             /* me 메시지 추가 처방 — row-reverse + margin-left:auto 충돌 회피 */
             #view-chat .chat-msg.me {
