@@ -3178,6 +3178,106 @@
             .jnl-editor__foot .flex-gap-10 button { flex: 1 1 100%; }
         }
 
+        /* ══════════════ Step 1-D: 나머지 뷰 모바일 보강 ══════════════ */
+        @media (max-width: 768px) {
+            /* 스케줄 캘린더 */
+            .sch-cal-header { padding: 12px 14px; gap: 6px; }
+            .sch-cal-month { font-size: 0.92rem; }
+            .sch-nav { width: 28px; height: 28px; font-size: 1rem; }
+            .sch-today-btn { padding: 5px 11px; font-size: 0.74rem; }
+            .sch-wdays span { padding: 8px 2px; font-size: 0.66rem; }
+            .sch-grid { padding: 4px; gap: 1px; }
+            .sch-cell { padding: 3px; height: 64px; }
+            .sch-dn { font-size: 0.78rem; }
+
+            /* 정산 내역 헤더 */
+            .stl-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+            .stl-header h2 { font-size: 1.1rem; }
+            .stl-controls { width: 100%; flex-wrap: wrap; }
+            .stl-select, .stl-btn-outline { font-size: 0.78rem; padding: 8px 12px; }
+
+            /* 계약 관리 ct-item — 1fr auto 그리드를 1열로 */
+            .ct-item { grid-template-columns: 1fr; padding: 16px 18px; gap: 12px; }
+            .ct-item__expo { font-size: 0.9rem; }
+            .ct-item__meta { gap: 10px; }
+            .ct-item__meta-item { font-size: 0.76rem; }
+            .ct-item__right { align-items: flex-start; flex-direction: row; justify-content: space-between; width: 100%; gap: 10px; flex-wrap: wrap; }
+            .ct-item__amount { font-size: 1rem; }
+
+            /* 일반 테이블 영역 — 가로 스크롤 폴백 */
+            .stl-table-wrap, .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+            /* 채팅 — 300px 사이드 + 본문 → 1열 (사이드 위, 본문 아래) */
+            .chat-layout { grid-template-columns: 1fr; height: auto; min-height: 480px; }
+            .chat-msg { max-width: 88%; }
+            .chat-msg__bubble { font-size: 0.88rem; padding: 10px 13px; }
+
+            /* 견적·배정·후기 카드 그리드 1열 */
+            .diq-list, .assignment-grid, .review-grid { grid-template-columns: 1fr !important; }
+        }
+
+        @media (max-width: 480px) {
+            .sch-cell { height: 52px; padding: 2px; }
+            .sch-dn { font-size: 0.72rem; }
+            .stl-summary { grid-template-columns: 1fr; gap: 12px; }
+            .ct-item { padding: 14px 14px; }
+            .ct-item__expo { font-size: 0.88rem; }
+            .ct-item__amount { font-size: 0.95rem; }
+        }
+
+        /* ══════════════ Step 1-E: 모달 풀스크린 + 터치 영역 ══════════════ */
+        @media (max-width: 768px) {
+            /* 모든 모달을 모바일에서 풀스크린에 가깝게 — 좁은 화면에서 카드형 모달이 답답한 문제 해소 */
+            .modal-overlay { padding: 0; align-items: stretch; }
+            .modal {
+                max-width: 100%;
+                max-height: 100vh;
+                height: 100%;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            .modal__body { flex: 1; overflow-y: auto; }
+            .modal__close { width: 44px; height: 44px; min-width: 44px; font-size: 1.2rem; }
+
+            /* 통역사 상세 모달 (ip-modal) */
+            .ip-modal-overlay { padding: 0 !important; }
+            .ip-modal { max-width: 100% !important; max-height: 100vh !important; height: 100% !important; border-radius: 0 !important; display: flex !important; flex-direction: column !important; }
+            .ip-modal__body { flex: 1; overflow-y: auto; }
+
+            /* 계약 모달 (contract-modal) */
+            .contract-modal-overlay { padding: 0; }
+            .contract-modal { max-width: 100%; max-height: 100vh; height: 100%; border-radius: 0; }
+
+            /* 터치 영역 — 핵심 액션 버튼 최소 44px (Apple HIG 권장) */
+            .topbar__icon-btn { width: 44px; height: 44px; min-width: 44px; font-size: 1.2rem; }
+            .sb-item { min-height: 44px; }
+            .sch-nav { width: 36px; height: 36px; }  /* 캘린더 네비는 작게 유지 + 클릭 영역만 확보 */
+            .sch-today-btn { min-height: 36px; padding: 8px 14px; }
+
+            /* 사이드바 메뉴 아이템 — 터치 친화적 패딩 */
+            .sb-item { padding: 12px 16px; }
+
+            /* 햄버거 버튼 터치 영역 */
+            .mobile-menu-btn {
+                min-width: 44px;
+                min-height: 44px;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+            }
+        }
+
+        /* iOS Safari — 입력 필드 zoom 방지 (16px 이상 폰트) */
+        @media (max-width: 768px) {
+            input[type="text"], input[type="email"], input[type="tel"],
+            input[type="number"], input[type="date"], input[type="time"],
+            input[type="password"], select, textarea {
+                font-size: 16px;
+            }
+        }
+
         /* ══════════════ 뷰 전환 ══════════════ */
         .view {
             display: none;
