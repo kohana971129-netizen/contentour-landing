@@ -3324,7 +3324,7 @@
 
             /* 메시지 영역 — 패딩 축소 + 가로 잘림 방지 */
             .chat-messages {
-                padding: 14px !important;
+                padding: 14px 10px !important;
                 gap: 8px;
                 width: 100%;
                 max-width: 100%;
@@ -3334,17 +3334,20 @@
             .chat-date-sep { font-size: 0.66rem; padding: 6px 0; }
             .chat-date-sep::before, .chat-date-sep::after { width: calc(50% - 50px); }
 
-            /* 메시지 버블 — flex item wrap 처방 (min-width:0 chain + word-break:break-all) */
+            /* 메시지 버블 — flex item wrap 처방 (min-width:0 chain + word-break:break-all)
+               specificity 올린 selector — 데스크톱 정의 (.chat-msg.me .chat-msg__bubble)에 덮어씌워지지 않게 */
             .chat-msg,
             .chat-msg.me,
             .chat-msg.them {
-                max-width: 78% !important;
+                max-width: calc(100% - 16px) !important;  /* chat-messages 가용 폭 - buffer */
                 gap: 6px;
                 min-width: 0 !important;
                 box-sizing: border-box;
                 flex-wrap: nowrap;
             }
-            .chat-msg__bubble {
+            .chat-msg__bubble,
+            .chat-msg.me .chat-msg__bubble,
+            .chat-msg.them .chat-msg__bubble {
                 min-width: 0 !important;
                 max-width: 100% !important;
                 width: auto;
