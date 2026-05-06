@@ -5795,8 +5795,12 @@
             }
 
             const main = document.getElementById('chatMain');
+            // 모바일 슬라이드 인 활성화 (chat-layout에 chat-open 클래스)
+            const layoutEl = document.querySelector('#view-chat .chat-layout');
+            if (layoutEl) layoutEl.classList.add('chat-open');
             main.innerHTML =
                 '<div class="chat-main__head">' +
+                    '<button class="chat-back-btn" onclick="closeChatMobile()" title="채팅 목록으로">←</button>' +
                     '<div class="chat-main__head-avatar" style="background:' + contact.color + ';">' + escapeHtml(contact.name.charAt(0)) + '</div>' +
                     '<div><div class="chat-main__head-name">' + escapeHtml(contact.name) + '</div><div class="chat-main__head-sub">' + escapeHtml(contact.company) + ' · ' + escapeHtml(contact.expo) + '</div></div>' +
                     '<button class="chat-main__head-btn" onclick="toggleChatSearch()" title="대화 검색">🔍</button>' +
@@ -5908,6 +5912,14 @@
             });
             container.innerHTML = html;
             if (wasAtBottom || forceScroll) container.scrollTop = container.scrollHeight;
+        }
+
+        // 모바일 — 메시지 화면을 닫고 채팅 리스트로 복귀
+        function closeChatMobile() {
+            const layoutEl = document.querySelector('#view-chat .chat-layout');
+            if (layoutEl) layoutEl.classList.remove('chat-open');
+            activeChatId = null;
+            renderChatContacts();  // 활성 표시 갱신
         }
 
         function deleteChatMsg(idx) {
