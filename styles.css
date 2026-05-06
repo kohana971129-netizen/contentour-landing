@@ -3351,17 +3351,22 @@ section {
     grid-template-columns: repeat(6, 1fr);
     gap: 16px;
 }
+.partners-grid--7 { grid-template-columns: repeat(7, 1fr); gap: 12px; }
+.partners-grid--6 { grid-template-columns: repeat(6, 1fr); gap: 14px; }
+.partners-eyebrow--secondary { margin-top: 56px; }
 .partner-logo-card {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 10px;
-    padding: 24px 12px;
+    padding: 20px 10px;
     background: #fff;
     border: 1.5px solid var(--gray-200);
     border-radius: 14px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    min-height: 110px;
 }
 .partner-logo-card:hover {
     transform: translateY(-3px);
@@ -3371,12 +3376,21 @@ section {
 .partner-logo-card__emoji {
     font-size: 1.6rem;
 }
+.partner-logo-card__img {
+    max-width: 100%;
+    max-height: 44px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
 .partner-logo-card__name {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: var(--gray-600);
     text-align: center;
     line-height: 1.4;
+    word-break: keep-all;
 }
 
 /* ══════════════ 서비스 프로세스 섹션 ══════════════ */
@@ -3695,8 +3709,14 @@ section {
     .testimonials-title { font-size: 1.4rem; }
     .testimonials-grid { grid-template-columns: 1fr; }
     .partners-section { padding: 40px 20px; }
-    .partners-title { font-size: 1.2rem; }
+    .partners-title { font-size: 1.2rem; margin-bottom: 24px; }
     .partners-grid { grid-template-columns: repeat(3, 1fr); }
+    .partners-grid--7 { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .partners-grid--6 { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .partners-eyebrow--secondary { margin-top: 36px; }
+    .partner-logo-card { padding: 16px 8px; min-height: 90px; gap: 8px; }
+    .partner-logo-card__img { max-height: 36px; }
+    .partner-logo-card__name { font-size: 0.68rem; }
     .faq-section { padding: 56px 20px; }
     .faq-title { font-size: 1.4rem; }
     .faq-item__q { padding: 16px 20px; font-size: 0.85rem; }
