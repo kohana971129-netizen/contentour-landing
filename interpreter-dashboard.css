@@ -3254,12 +3254,13 @@
             .stl-table-wrap, .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
             /* 채팅 — 카카오톡 스타일 모바일 패턴
-               평소: 채팅 리스트만 풀 화면 / 채팅방 클릭 시 메시지 화면이 우측에서 슬라이드 인 */
+               평소: 채팅 리스트만 풀 화면 / 채팅방 클릭 시 메시지 화면이 우측에서 슬라이드 인
+               dvh — 모바일 브라우저 주소창이 차지하는 영역을 제외한 실제 가시영역 (100vh는 주소창 포함이라 입력창이 가려짐) */
             .chat-layout {
                 grid-template-columns: 1fr !important;
                 grid-template-rows: 1fr !important;
-                height: calc(100vh - 140px) !important;
-                min-height: 480px !important;
+                height: calc(100dvh - 130px) !important;
+                min-height: 0 !important;
                 position: relative !important;
             }
             .chat-contacts {
@@ -3373,7 +3374,7 @@
 
         @media (max-width: 480px) {
             /* 매우 좁은 화면 — 메시지 버블 더 넓게 사용 */
-            .chat-layout { grid-template-columns: 1fr !important; grid-template-rows: 180px 1fr !important; height: calc(100vh - 120px) !important; }
+            .chat-layout { grid-template-columns: 1fr !important; grid-template-rows: 1fr !important; height: calc(100dvh - 110px) !important; }
             .chat-msg { max-width: 90%; }
             .chat-msg__bubble { padding: 8px 11px; font-size: 0.82rem; }
             .chat-img-preview { max-width: 170px; }
