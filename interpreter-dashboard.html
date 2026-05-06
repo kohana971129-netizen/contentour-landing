@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="interpreter-dashboard.css?v=20260506-5">
     <style>
-        /* build:20260506-1645 ════════════════════════════════════════════
+        /* build:20260506-1700 ════════════════════════════════════════════
            채팅 모바일 — 인라인 스타일로 강제 적용 (CSS 파일 캐시 우회용)
            HTML은 cache-control: no-cache라 매번 새로 받아지므로 외부 캐시 영향 X
            ──────────────────────────────────────────────────────────────── */
@@ -93,6 +93,19 @@
                 min-width: 0 !important;
                 box-sizing: border-box !important;
                 flex-wrap: nowrap !important;
+                width: auto !important;
+            }
+            /* me 메시지 추가 처방 — row-reverse + margin-left:auto 충돌 회피 */
+            #view-chat .chat-msg.me {
+                margin-left: 0 !important;     /* margin-left:auto 무력화 */
+                flex-direction: row !important; /* row-reverse 무력화, 정렬은 wrap--me로 처리 */
+            }
+            #view-chat .chat-msg.me .chat-msg__time {
+                order: 2;                       /* 시간을 버블 우측으로 (시각적 동일) */
+                text-align: right;
+            }
+            #view-chat .chat-msg.me .chat-msg__bubble {
+                order: 1;                       /* 버블을 좌측 (wrap--me가 우측 정렬해주니 시각상 동일) */
             }
             #view-chat .chat-msg__avatar { flex-shrink: 0 !important; width: 26px !important; height: 26px !important; font-size: 0.62rem !important; }
             #view-chat .chat-msg__time { flex-shrink: 0 !important; font-size: 0.58rem !important; }
