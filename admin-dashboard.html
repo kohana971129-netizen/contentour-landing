@@ -4618,6 +4618,8 @@
 
                 <!-- ══ 계약·결제 관리 뷰 ══ -->
                 <div class="view" id="view-contracts">
+                    <!-- ⚠️ D-day 컨펌 미확인 통역사 알림 (D-1 ~ 당일 + confirmation_clicked_at IS NULL) -->
+                    <div id="ctNoShowAlert" style="display:none;"></div>
                     <div class="contract-summary" id="ctAdminSummary"></div>
                     <div class="contract-filter-tabs" id="ctAdminFilterTabs" style="position:relative;">
                         <button class="contract-filter-tab active" onclick="ctAdminTabFilter('all')">전체 <span class="cft-count" id="ctf-all">0</span></button>
@@ -7045,6 +7047,68 @@
                 ctAdminRender();
                 ctAdminUpdateBadge();
                 try { updateFabBadge(); } catch(e) {}
+                try { ctLoadNoShowAlert(); } catch(e) { console.warn('[노쇼 알림] 로드 실패:', e); }
+            }
+
+            // ══════════════ D-day 컨펌 미확인 알림 (노쇼 위험 감지) ══════════════
+            // ctAdminContracts에서 D-1 ~ 당일 시작 + confirmation_clicked_at IS NULL인 계약 추출
+            // 통역사가 임박한 계약을 컨펌하지 않으면 어드민에게 빨간 카드로 노출
+            function ctLoadNoShowAlert() {
+                var alertEl = document.getElementById('ctNoShowAlert');
+                if (!alertEl || !Array.isArray(ctAdminContracts)) return;
+
+                var today = new Date(); today.setHours(0,0,0,0);
+                var todayMs = today.getTime();
+                var d1Ms = todayMs + 86400000;
+
+                var risky = ctAdminContracts.filter(function(c) {
+                    if (!c._raw || !c._raw.start_date) return false;
+                    // confirmation_clicked_at 컬럼 자체가 없으면 (마이그레이션 미적용) skip
+                    if (!('confirmation_clicked_at' in c._raw)) return false;
+                    if (c._raw.confirmation_clicked_at) return false; // 이미 확인 완료
+                    var startMs = new Date(c._raw.start_date + 'T00:00:00').getTime();
+                    return startMs >= todayMs && startMs <= d1Ms; // 오늘 또는 내일
+                });
+
+                if (risky.length === 0) { alertEl.style.display = 'none'; alertEl.innerHTML = ''; return; }
+
+                var html = '<div style="background:linear-gradient(135deg,#fff5f5,#ffe0e0);border:2px solid #c62828;border-radius:14px;padding:18px 22px;margin-bottom:18px;box-shadow:0 4px 14px rgba(198,40,40,0.15);">' +
+                    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">' +
+                        '<span style="font-size:1.4rem;">⚠️</span>' +
+                        '<h3 style="font-size:1rem;font-weight:800;color:#c62828;margin:0;">노쇼 위험 — D-day 컨펌 미확인 통역사 ' + risky.length + '명</h3>' +
+                    '</div>' +
+                    '<p style="font-size:0.82rem;color:#555;margin-bottom:12px;line-height:1.5;">아래 통역사들이 임박한 계약을 아직 확인하지 않았습니다. 즉시 연락하여 참석 가능 여부를 확인하세요.</p>';
+
+                risky.forEach(function(c) {
+                    var startDate = new Date(c._raw.start_date + 'T00:00:00');
+                    var startMs = startDate.getTime();
+                    var diffDays = Math.round((startMs - todayMs) / 86400000);
+                    var dDayLabel = diffDays === 0 ? 'D-Day (오늘)' : 'D-1 (내일)';
+                    var urgencyColor = diffDays === 0 ? '#c62828' : '#e65100';
+
+                    html += '<div style="background:#fff;border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">' +
+                        '<div style="flex:1;min-width:280px;">' +
+                            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;">' +
+                                '<span style="background:' + urgencyColor + ';color:#fff;padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:800;">' + dDayLabel + '</span>' +
+                                '<strong style="font-size:0.92rem;color:#1a2a4a;">' + escapeHtml(c.expo) + '</strong>' +
+                            '</div>' +
+                            '<div style="font-size:0.78rem;color:#666;line-height:1.5;">' +
+                                '👤 통역사: <b style="color:#c62828;">' + escapeHtml(c.interpreter.name) + '</b>' +
+                                ' · 🏢 ' + escapeHtml(c.client.company || '-') +
+                                ' · 📅 ' + escapeHtml(c.dates.start || '-') +
+                            '</div>' +
+                        '</div>' +
+                        '<button onclick="openCtModal(\'' + c.id + '\')" style="background:#c62828;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">계약 상세</button>' +
+                    '</div>';
+                });
+
+                html += '</div>';
+                alertEl.innerHTML = html;
+                alertEl.style.display = '';
+            }
+
+            function escapeHtml(s) {
+                return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             }
 
             function ctAdminUpdateSummary() {

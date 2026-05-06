@@ -53,6 +53,11 @@ const InterpreterApp = {
                 await this.loadDashboardHome();
                 console.log('[InterpreterApp] 로드 완료 - assignments:', this._assignments?.length, 'contracts:', this._contracts?.length);
 
+                // 4-1) D-day 컨펌 배너 로드 (interpreter-dashboard.html에 정의)
+                if (typeof loadConfirmationBanner === 'function') {
+                    try { await loadConfirmationBanner(); } catch (e) { console.warn('[D-day 컨펌] 초기 로드 실패:', e); }
+                }
+
                 // 5) 뷰 전환 훅 등록
                 this.hookViewSwitcher();
 
