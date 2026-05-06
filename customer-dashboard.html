@@ -4316,6 +4316,7 @@
                     balancePaid: d.balance_status === 'paid',
                     customerAgreed: d.contract_signed || false,
                     interpreterAgreed: d.interpreter_accepted || false,
+                    confirmationClickedAt: d.confirmation_clicked_at || null,
                     timeline: (function() {
                         // A안: balance가 0이면 잔금 결제 단계 자체를 빼고, 결제 단계 라벨을 "선결제"로
                         var hasBalance = (d.balance_amount && d.balance_amount > 0);
@@ -4376,6 +4377,23 @@
         return;
       }
       listEl.innerHTML = filtered.map(c => {
+        // ⏳/✅ 통역사 D-day 컨펌 상태 뱃지 (D-2 ~ 당일 시작 계약에만 노출)
+        let confirmBadge = '';
+        if (c.dates && c.dates.start) {
+          const _today = new Date(); _today.setHours(0,0,0,0);
+          const _todayMs = _today.getTime();
+          const _startMs = new Date(c.dates.start + 'T00:00:00').getTime();
+          const _d2Ms = _todayMs + 2 * 86400000;
+          if (!isNaN(_startMs) && _startMs >= _todayMs && _startMs <= _d2Ms) {
+            if (c.confirmationClickedAt) {
+              const ts = new Date(c.confirmationClickedAt);
+              const tsStr = (ts.getMonth()+1) + '/' + ts.getDate() + ' ' + String(ts.getHours()).padStart(2,'0') + ':' + String(ts.getMinutes()).padStart(2,'0');
+              confirmBadge = `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;font-size:0.72rem;color:#2e7d32;font-weight:700;">✅ 통역사 일정 확인 완료 <span style="color:#888;font-weight:500;">(${tsStr})</span></div>`;
+            } else {
+              confirmBadge = `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:#fff8e1;border:1px solid #ffd54f;border-radius:8px;font-size:0.72rem;color:#e65100;font-weight:700;">⏳ 통역사 일정 확인 대기 중</div>`;
+            }
+          }
+        }
         let actionHtml = '';
         if (c.status === 'contract_sign') {
           if (c.customerAgreed) {
@@ -4409,6 +4427,7 @@
               <span>&#128197; ${c.dates.start} ~ ${c.dates.end}</span>
               <span>&#127760; ${c.lang}</span>
             </div>
+            ${confirmBadge}
           </div>
           <div class="contract-card__right">
             <div class="contract-card__amount">${formatMoney(c.total)}</div>
