@@ -5773,6 +5773,12 @@
             }
         }
 
+        // realtime UPDATE 핸들러(interpreter-app.js)에서 호출 — 계약 취소 등 변경 시 채팅 목록 강제 재로드
+        window.interpChatReload = function() {
+            _chatDbLoaded = false;
+            chatLoadFromDB();
+        };
+
         chatLoadFromLocal();
 
         // ══════════════ 데모 채팅 시드 (?chatdemo=1) ══════════════

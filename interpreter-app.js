@@ -112,6 +112,10 @@ const InterpreterApp = {
                     if (typeof renderInterpreterContracts === 'function') {
                         await this.loadContractsView();
                     }
+                    // 채팅방 목록도 갱신 (취소된 계약 즉시 사라지도록)
+                    if (typeof window.interpChatReload === 'function') {
+                        window.interpChatReload();
+                    }
                 })
                 .subscribe();
 

@@ -3156,6 +3156,32 @@
         }
     }
 
+    // 42_통역계약 UPDATE 실시간 구독 — 통역사가 취소하거나 결제·승인 등 변경 시 계약·채팅 자동 갱신
+    async function subscribeContractRealtime() {
+        if (!window.sbClient) return;
+        try {
+            const { data: { user } } = await window.sbClient.auth.getUser();
+            if (!user) return;
+            window.sbClient
+                .channel('customer-contracts-' + user.id)
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: '42_통역계약',
+                    filter: 'customer_id=eq.' + user.id
+                }, function(payload) {
+                    console.log('[Realtime] 고객사 계약 업데이트:', payload.new);
+                    _contractsDbLoaded = false;
+                    contractsLoadFromDB();
+                    _chatDbLoaded = false;
+                    chatLoadFromDB();
+                })
+                .subscribe();
+        } catch (e) {
+            console.warn('계약 realtime 구독 실패:', e);
+        }
+    }
+
     // ── 크로스탭 연동 ──
     const CHAT_ROLE = 'customer';
     const chatChannelMap = { hans:'medica2025', james:'smartexpo2026', yamada:'nanotech', suzuki:'foodex2026' };
@@ -6327,6 +6353,7 @@
       loadHomeDashboard();
       updateChatBadges();
       setupDragDrop(); // #1
+      subscribeContractRealtime(); // 통역사 측 변경(취소·승인) 실시간 반영
       // 적립금 캐시 hydrate (결제 모달의 동기 loyGetData() 대비)
       (async function() {
         await loyMigrateFromLocalStorage();
