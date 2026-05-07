@@ -55,7 +55,7 @@ const ChatData = {
 
             const { data: contracts, error } = await query;
             if (error) throw error;
-            if (!contracts || contracts.length === 0) return null;
+            if (!contracts) return [];
 
             // 상대방 이름 조회 (SECURITY DEFINER 함수로 RLS 안전하게 우회)
             let partnerNames = {};
