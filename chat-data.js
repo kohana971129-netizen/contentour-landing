@@ -395,3 +395,6 @@ const ChatData = {
         } catch (e) { return 0; }
     }
 };
+
+// 다른 스크립트(supabase-config 등)에서 window.ChatData로 접근 가능하게
+window.ChatData = ChatData;

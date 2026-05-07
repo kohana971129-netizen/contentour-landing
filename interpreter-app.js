@@ -78,8 +78,10 @@ const InterpreterApp = {
     // ── 실시간 배정 알림 구독 ──
     subscribeRealtime() {
         if (!window.sbClient || !this.currentUser) return;
+        if (this._realtimeChannels && this._realtimeChannels.length) return; // 중복 구독 방지
+        this._realtimeChannels = [];
         try {
-            window.sbClient
+            const ch1 = window.sbClient
                 .channel('interpreter-assignments')
                 .on('postgres_changes', {
                     event: 'INSERT',
@@ -118,9 +120,10 @@ const InterpreterApp = {
                     }
                 })
                 .subscribe();
+            this._realtimeChannels.push(ch1);
 
             // 직접 견적 의뢰 알림 구독 (24_알림 테이블)
-            window.sbClient
+            const ch2 = window.sbClient
                 .channel('interpreter-notifications')
                 .on('postgres_changes', {
                     event: 'INSERT',
@@ -154,11 +157,22 @@ const InterpreterApp = {
                     this.showToast(notif.title || '새 알림이 도착했습니다.');
                 })
                 .subscribe();
+            this._realtimeChannels.push(ch2);
 
             console.log('[InterpreterApp] Realtime 구독 시작');
         } catch (e) {
             console.warn('[InterpreterApp] Realtime 구독 실패:', e);
         }
+    },
+
+    // 로그아웃·세션 만료 시 호출 — 모든 realtime 채널 정리
+    unsubscribeRealtime() {
+        if (!this._realtimeChannels || !window.sbClient) return;
+        this._realtimeChannels.forEach(ch => {
+            try { window.sbClient.removeChannel(ch); } catch (e) {}
+        });
+        this._realtimeChannels = [];
+        console.log('[InterpreterApp] Realtime 구독 해제');
     },
 
     // ── 뷰 전환 시 데이터 로드 훅 ──
@@ -1676,6 +1690,9 @@ function filterDiq(status, btn) {
         card.style.display = card.dataset.status === status ? '' : 'none';
     });
 }
+
+// 다른 스크립트(supabase-config 등)에서 window.InterpreterApp로 접근 가능하게
+window.InterpreterApp = InterpreterApp;
 
 // 페이지 로드 시 초기화 (DOMContentLoaded가 이미 발생한 경우도 대응)
 function _startInterpreterApp() {

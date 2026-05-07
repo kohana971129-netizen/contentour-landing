@@ -272,6 +272,19 @@ window.showToast = window.showToast || function(message, type) {
         // 로그아웃
         async logout() {
             if (!sb) return;
+            // signOut 전에 모든 realtime 구독 해제 (메모리·연결 누수 방지)
+            try {
+                if (window.ChatData) {
+                    if (typeof window.ChatData.unsubscribeChat === 'function') window.ChatData.unsubscribeChat();
+                    if (typeof window.ChatData.unsubscribeNotifications === 'function') window.ChatData.unsubscribeNotifications();
+                }
+                if (window.InterpreterApp && typeof window.InterpreterApp.unsubscribeRealtime === 'function') {
+                    window.InterpreterApp.unsubscribeRealtime();
+                }
+                if (typeof window.unsubscribeCustomerRealtime === 'function') {
+                    window.unsubscribeCustomerRealtime();
+                }
+            } catch (e) { console.warn('Realtime 해제 중 오류:', e); }
             await sb.auth.signOut();
             sessionStorage.removeItem('isAdminLoggedIn');
             sessionStorage.removeItem('adminUsername');
