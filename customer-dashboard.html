@@ -4831,6 +4831,9 @@
 
         c.status = 'cancelled';
         c.statusText = '취소됨';
+        c.cancelledAt = new Date().toISOString();
+        c.cancelledBy = 'customer';
+        c.cancelReason = fullReason;
         closeCancelModal();
         closeContractModal();
         renderContracts();
