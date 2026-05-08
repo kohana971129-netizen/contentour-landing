@@ -3443,10 +3443,12 @@
             if (btnEl) { btnEl.disabled = true; btnEl.textContent = '저장 중...'; }
 
             try {
-                var { error } = await sb
+                var { data: updated, error } = await sb
                     .from('42_통역계약')
                     .update({ confirmation_clicked_at: new Date().toISOString() })
-                    .eq('id', contractId);
+                    .eq('id', contractId)
+                    .select('id, exhibition_name, start_date')
+                    .maybeSingle();
 
                 if (error) {
                     console.error('[D-day 컨펌] 저장 실패:', error.message);
@@ -3454,6 +3456,28 @@
                     if (typeof showToast === 'function') showToast('⚠️ 확인 저장 실패. 다시 시도해주세요.');
                     return;
                 }
+
+                // 어드민에게 컨펌 알림 발송 (실패해도 본 흐름에 영향 없음)
+                try {
+                    var { data: adminUser } = await sb
+                        .from('01_회원')
+                        .select('id')
+                        .eq('role', 'admin')
+                        .limit(1)
+                        .maybeSingle();
+                    if (adminUser) {
+                        var interpName = (window.InterpreterApp && InterpreterApp.interpProfile && InterpreterApp.interpProfile.display_name) || '통역사';
+                        var expoLabel = (updated && updated.exhibition_name) || '계약';
+                        var startLabel = (updated && updated.start_date) || '-';
+                        await sb.from('24_알림').insert({
+                            user_id: adminUser.id,
+                            notification_type: 'service',
+                            title: '✅ 통역사 D-day 컨펌 완료',
+                            message: interpName + '님이 ' + expoLabel + ' (' + startLabel + ') 일정을 확인했습니다.',
+                            is_read: false
+                        });
+                    }
+                } catch(ne) { console.warn('[D-day 컨펌] 어드민 알림 발송 실패:', ne); }
 
                 if (typeof showToast === 'function') showToast('✅ 확인 완료. 어드민에게 컨펌 알림이 전달됩니다.');
                 // 배너 다시 로드 → 방금 확인한 항목 사라지고 남은 게 있으면 갱신

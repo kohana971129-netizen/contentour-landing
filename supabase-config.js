@@ -284,6 +284,9 @@ window.showToast = window.showToast || function(message, type) {
                 if (typeof window.unsubscribeCustomerRealtime === 'function') {
                     window.unsubscribeCustomerRealtime();
                 }
+                if (typeof window.unsubscribeAdminRealtime === 'function') {
+                    window.unsubscribeAdminRealtime();
+                }
             } catch (e) { console.warn('Realtime 해제 중 오류:', e); }
             await sb.auth.signOut();
             sessionStorage.removeItem('isAdminLoggedIn');
