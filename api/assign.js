@@ -145,13 +145,24 @@ module.exports = async function handler(req, res) {
             await sb.from('46_ITQ견적문의').update({ contract_id: contractId }).eq('id', inquiryId);
         }
 
-        // 5. 고객사 알림 발송
+        // 5a. 고객사 알림 발송
         if (customerId) {
             await sb.from('24_알림').insert({
                 user_id: customerId,
                 notification_type: 'assignment',
                 title: '🤝 통역사가 배정되었습니다',
                 message: '"' + (expo || '') + '" 건에 ' + interpreterName + ' 통역사가 배정되었습니다. 계약·결제 탭에서 확인해주세요.',
+                is_read: false
+            });
+        }
+
+        // 5b. 통역사 알림 발송 (새 계약 배정)
+        if (interpreterId) {
+            await sb.from('24_알림').insert({
+                user_id: interpreterId,
+                notification_type: 'assignment',
+                title: '🤝 새 계약이 배정되었습니다',
+                message: '"' + (expo || '') + '" (' + (startDate || '') + ' ~ ' + (endDate || '') + ') 건이 배정되었습니다. 계약 탭에서 확인해주세요.',
                 is_read: false
             });
         }

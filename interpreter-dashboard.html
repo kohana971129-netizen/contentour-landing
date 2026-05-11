@@ -5047,29 +5047,16 @@
                 var modal = document.getElementById('intCancelModal');
                 var startDate = c.dates ? c.dates.start : new Date().toISOString().split('T')[0];
 
-                // 51_취소내역 삽입
-                var { error: cancelErr } = await window.sbClient.from('51_취소내역').insert({
-                    contract_id: c.id,
-                    cancelled_by: 'interpreter',
-                    cancelled_user_id: user.id,
-                    cancel_reason: fullReason,
-                    exhibition_start: startDate,
-                    days_remaining: parseInt(modal.dataset.daysRemaining) || 0,
-                    applied_policy_id: modal.dataset.policyId || null,
-                    penalty_rate: 0,
-                    penalty_amount: 0,
-                    refund_amount: 0,
-                    status: 'pending'
+                // 서버 RPC로 취소 처리 (권한 검증 + 위약금 산정 + 51_취소내역 기록 + 알림 fan-out)
+                var { data: rpcResult, error: rpcErr } = await window.sbClient.rpc('cancel_contract', {
+                    p_contract_id: c.id,
+                    p_cancel_reason: fullReason,
+                    p_cancelled_by: 'interpreter'
                 });
-                if (cancelErr) throw cancelErr;
-
-                // 42_통역계약 상태 업데이트
-                await window.sbClient.from('42_통역계약').update({
-                    status: 'cancelled',
-                    cancelled_by: 'interpreter',
-                    cancel_reason: fullReason,
-                    cancelled_at: new Date().toISOString()
-                }).eq('id', c.id);
+                if (rpcErr) throw rpcErr;
+                if (!rpcResult || rpcResult.success === false) {
+                    throw new Error((rpcResult && rpcResult.error) || '취소 처리 실패');
+                }
 
                 // 40_통역사프로필 패널티 카운트 증가
                 var action = modal.dataset.action || '';

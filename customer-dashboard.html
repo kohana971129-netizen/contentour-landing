@@ -4855,30 +4855,16 @@
         var overlay = document.getElementById('cancelModalOverlay');
         var startDate = c.dates ? c.dates.start : new Date().toISOString().split('T')[0];
 
-        // 51_취소내역 삽입
-        var { error: cancelErr } = await window.sbClient.from('51_취소내역').insert({
-          contract_id: c.dbId || c.id,
-          cancelled_by: 'customer',
-          cancelled_user_id: user.id,
-          cancel_reason: fullReason,
-          exhibition_start: startDate,
-          days_remaining: parseInt(overlay.dataset.daysRemaining) || 0,
-          applied_policy_id: overlay.dataset.policyId || null,
-          penalty_rate: parseInt(overlay.dataset.penaltyRate) || 0,
-          penalty_amount: parseInt(overlay.dataset.penaltyAmount) || 0,
-          refund_amount: parseInt(overlay.dataset.refundAmount) || 0,
-          status: 'pending'
+        // 서버 RPC로 취소 처리 (권한 검증 + 위약금 산정 + 51_취소내역 기록 + 알림 fan-out)
+        var { data: rpcResult, error: rpcErr } = await window.sbClient.rpc('cancel_contract', {
+          p_contract_id: c.dbId || c.id,
+          p_cancel_reason: fullReason,
+          p_cancelled_by: 'customer'
         });
-        if (cancelErr) throw cancelErr;
-
-        // 42_통역계약 상태 업데이트
-        var dbId = c.dbId || c.id;
-        await window.sbClient.from('42_통역계약').update({
-          status: 'cancelled',
-          cancelled_by: 'customer',
-          cancel_reason: fullReason,
-          cancelled_at: new Date().toISOString()
-        }).eq('id', dbId);
+        if (rpcErr) throw rpcErr;
+        if (!rpcResult || rpcResult.success === false) {
+          throw new Error((rpcResult && rpcResult.error) || '취소 처리 실패');
+        }
 
         c.status = 'cancelled';
         c.statusText = '취소됨';
