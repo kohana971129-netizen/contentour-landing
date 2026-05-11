@@ -3459,22 +3459,20 @@
 
                 // 어드민에게 컨펌 알림 발송 (실패해도 본 흐름에 영향 없음)
                 try {
-                    var { data: adminUser } = await sb
-                        .from('01_회원')
-                        .select('id')
-                        .eq('role', 'admin')
-                        .limit(1)
-                        .maybeSingle();
-                    if (adminUser) {
-                        var interpName = (window.InterpreterApp && InterpreterApp.interpProfile && InterpreterApp.interpProfile.display_name) || '통역사';
-                        var expoLabel = (updated && updated.exhibition_name) || '계약';
-                        var startLabel = (updated && updated.start_date) || '-';
-                        await sb.from('24_알림').insert({
-                            user_id: adminUser.id,
-                            notification_type: 'service',
-                            title: '✅ 통역사 D-day 컨펌 완료',
-                            message: interpName + '님이 ' + expoLabel + ' (' + startLabel + ') 일정을 확인했습니다.',
-                            is_read: false
+                    var interpName = (window.InterpreterApp && InterpreterApp.interpProfile && InterpreterApp.interpProfile.display_name) || '통역사';
+                    var expoLabel = (updated && updated.exhibition_name) || '계약';
+                    var startLabel = (updated && updated.start_date) || '-';
+                    var sess1 = await sb.auth.getSession();
+                    var tok1 = sess1 && sess1.data && sess1.data.session && sess1.data.session.access_token;
+                    if (tok1) {
+                        await fetch('/api/notify-admins', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok1 },
+                            body: JSON.stringify({
+                                notification_type: 'service',
+                                title: '✅ 통역사 D-day 컨펌 완료',
+                                message: interpName + '님이 ' + expoLabel + ' (' + startLabel + ') 일정을 확인했습니다.'
+                            })
                         });
                     }
                 } catch(ne) { console.warn('[D-day 컨펌] 어드민 알림 발송 실패:', ne); }
@@ -7080,26 +7078,23 @@
 
                     // 관리자에게 알림 발송
                     try {
-                        var { data: adminUser } = await window.sbClient
-                            .from('01_회원')
-                            .select('id')
-                            .eq('role', 'admin')
-                            .limit(1)
-                            .maybeSingle();
-                        if (adminUser) {
-                            var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
-                            var changes = [];
-                            Object.keys(data.rates).forEach(function(k) {
-                                changes.push((typeNames[k] || k) + ': ₩' + Number(data.rates[k] || 0).toLocaleString());
-                            });
-                            var msgText = (data.name || '통역사') + '님이 단가 변경을 신청했습니다.\n' + changes.join('\n');
-
-                            await window.sbClient.from('24_알림').insert({
-                                user_id: adminUser.id,
-                                notification_type: 'service',
-                                title: '📋 통역사 단가 변경 승인 요청',
-                                message: msgText,
-                                is_read: false
+                        var typeNames = { booth: '부스 상주', meeting: '미팅 동행', conference: '컨퍼런스', operation: '현장 운영' };
+                        var changes = [];
+                        Object.keys(data.rates).forEach(function(k) {
+                            changes.push((typeNames[k] || k) + ': ₩' + Number(data.rates[k] || 0).toLocaleString());
+                        });
+                        var msgText = (data.name || '통역사') + '님이 단가 변경을 신청했습니다.\n' + changes.join('\n');
+                        var sess2 = await window.sbClient.auth.getSession();
+                        var tok2 = sess2 && sess2.data && sess2.data.session && sess2.data.session.access_token;
+                        if (tok2) {
+                            await fetch('/api/notify-admins', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok2 },
+                                body: JSON.stringify({
+                                    notification_type: 'service',
+                                    title: '📋 통역사 단가 변경 승인 요청',
+                                    message: msgText
+                                })
                             });
                         }
                     } catch(e) { console.warn('관리자 알림 발송 실패:', e); }
