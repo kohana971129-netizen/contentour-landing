@@ -211,7 +211,6 @@
                 <label for="password">비밀번호 설정</label>
                 <div style="position:relative;">
                     <input type="password" id="password" name="password" required minlength="8" placeholder="8자 이상 + 대·소문자·숫자">
-                    <button type="button" onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:#94a3b8;" aria-label="비밀번호 보기">👁</button>
                 </div>
                 <div id="pwStrength" style="margin-top:6px;font-size:0.78rem;color:#94a3b8;"></div>
             </div>
@@ -403,10 +402,6 @@
     <script src="supabase-config.js"></script>
     <script src="script.js"></script>
     <script>
-        function togglePw() {
-            var pw = document.getElementById('password');
-            pw.type = pw.type === 'password' ? 'text' : 'password';
-        }
         document.getElementById('password').addEventListener('input', function() {
             var v = this.value, el = document.getElementById('pwStrength');
             if (!v) { el.textContent = ''; return; }
