@@ -4981,12 +4981,10 @@
             if (window.sbClient) {
                 try {
                     var { data: pData } = await window.sbClient.rpc('calculate_penalty', {
-                        p_cancel_type: 'interpreter',
-                        p_days_remaining: daysRemaining,
-                        p_deposit_amount: 0,
-                        p_total_amount: c.serviceFee || 0
+                        p_contract_id: c.id,
+                        p_cancelled_by: 'interpreter'
                     });
-                    if (pData && pData.length > 0) penaltyInfo = pData[0];
+                    if (pData && pData.success) penaltyInfo = pData;
                 } catch(e) { console.error('위약금 계산 실패:', e); }
             }
 
