@@ -56,56 +56,6 @@
     <link rel="stylesheet" href="styles.css?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        .country-card__flag img {
-            width: 32px;
-            height: auto;
-            object-fit: contain;
-            border-radius: 2px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        /* 인기 통역사 섹션 */
-        .popular-interpreters { padding: 80px 0; background: #fff; }
-        .popular-interpreters__inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-        .popular-interpreters__header { text-align: center; margin-bottom: 48px; }
-        .popular-interpreters__badge { display: inline-block; background: linear-gradient(135deg, #f57c00, #ef6c00); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 5px 14px; border-radius: 20px; letter-spacing: 1px; margin-bottom: 16px; }
-        .popular-interpreters__title { font-size: 1.8rem; font-weight: 800; color: #0a2a5e; margin-bottom: 12px; }
-        .popular-interpreters__desc { font-size: 0.92rem; color: #666; line-height: 1.6; }
-        .popular-interpreters__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
-        .pi-card { background: #fff; border-radius: 16px; border: 1px solid #e8ecf2; padding: 28px 24px; transition: all 0.2s; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-        .pi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); border-color: #1565c0; }
-        .pi-card__top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
-        .pi-card__avatar { width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(135deg, #1565c0, #0d47a1); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.5rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(21,101,192,0.25); border: 3px solid #fff; }
-        .pi-card__avatar img { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; }
-        .pi-card__info { flex: 1; min-width: 0; }
-        .pi-card__name { font-size: 1rem; font-weight: 800; color: #1a2a4a; }
-        .pi-card__role { font-size: 0.78rem; color: #8a95a8; margin-top: 2px; }
-        .pi-card__rating { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
-        .pi-card__stars { color: #f57c00; font-size: 0.9rem; letter-spacing: 1px; }
-        .pi-card__score { font-size: 0.92rem; font-weight: 800; color: #f57c00; }
-        .pi-card__reviews { font-size: 0.75rem; color: #999; }
-        .pi-card__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-        .pi-card__tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 12px; background: #f0f4ff; color: #1565c0; font-weight: 600; }
-        .pi-card__intro { font-size: 0.82rem; color: #555; line-height: 1.6; }
-        .pi-card__stats { display: flex; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0f2f5; }
-        .pi-card__stat { font-size: 0.75rem; color: #888; }
-        .pi-card__stat b { color: #333; font-weight: 700; }
-        @media (max-width: 768px) {
-            .popular-interpreters { padding: 50px 0; }
-            .popular-interpreters__title { font-size: 1.4rem; }
-            .popular-interpreters__desc { font-size: 0.88rem; }
-            .popular-interpreters__grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
-            .pi-card { padding: 20px 18px; }
-            .pi-card__intro { font-size: 0.88rem; }
-            .pi-card__role { font-size: 0.82rem; }
-            .pi-card__stat { font-size: 0.78rem; }
-        }
-        @media (max-width: 640px) {
-            .popular-interpreters__title { font-size: 1.3rem; }
-            .popular-interpreters__grid { grid-template-columns: 1fr; }
-        }
-
         /* 카드 가격 */
         .ip-card__price { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: linear-gradient(135deg, #e8f0fe, #f0f4ff); border-radius: 8px; margin: 8px 0 4px; }
         .ip-card__price-label { font-size: 0.7rem; font-weight: 600; color: #666; }
