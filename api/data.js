@@ -1,3 +1,6 @@
+// 통합 라우터: cases / reviews
+// vercel.json rewrites가 옛 URL을 _route 쿼리로 매핑
+
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(
@@ -5,13 +8,31 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-module.exports = async function handler(req, res) {
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+// ────────────────────────── cases ──────────────────────────
+async function handleCases(req, res) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
     try {
-        // 특정 전시회 리뷰 조회 또는 전체 공개 리뷰
+        const { data, error } = await supabase
+            .from('52_성과사례')
+            .select('*')
+            .eq('is_published', true)
+            .order('sort_order', { ascending: true });
+        if (error) throw error;
+
+        res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+        return res.status(200).json(data || []);
+    } catch (e) {
+        console.error('Cases query error:', e);
+        return res.status(500).json({ error: 'Failed to load cases' });
+    }
+}
+
+// ────────────────────────── reviews ──────────────────────────
+async function handleReviews(req, res) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+    try {
         const exhibition = req.query.exhibition;
 
         let query = supabase
@@ -20,66 +41,48 @@ module.exports = async function handler(req, res) {
             .eq('is_public', true)
             .order('created_at', { ascending: false });
 
-        if (exhibition) {
-            query = query.eq('exhibition_name', exhibition);
-        } else {
-            query = query.not('review_text', 'is', null).limit(8);
-        }
+        if (exhibition) query = query.eq('exhibition_name', exhibition);
+        else query = query.not('review_text', 'is', null).limit(8);
 
         const { data: reviews, error: revErr } = await query;
-
         if (revErr) throw revErr;
-        if (!reviews || reviews.length === 0) {
-            return res.status(200).json([]);
-        }
+        if (!reviews || reviews.length === 0) return res.status(200).json([]);
 
-        // 고객 정보 + 이메일을 한 번에 (N+1 제거)
         const custIds = reviews.map(r => r.customer_id).filter(Boolean);
         const custMap = {};
         const companyMap = {};
 
         if (custIds.length > 0) {
             const { data: customers } = await supabase
-                .from('01_회원')
-                .select('id, name, email')
-                .in('id', custIds);
+                .from('01_회원').select('id, name, email').in('id', custIds);
 
             if (customers && customers.length > 0) {
                 customers.forEach(c => { custMap[c.id] = c; });
 
-                // 이메일로 기업 정보 한 번에 (N+1 → 1회)
                 const emails = customers.map(c => c.email).filter(Boolean);
                 if (emails.length > 0) {
                     const { data: companies } = await supabase
-                        .from('02_국내기업')
-                        .select('name, contact_email')
-                        .in('contact_email', emails);
+                        .from('02_국내기업').select('name, contact_email').in('contact_email', emails);
 
                     if (companies && companies.length > 0) {
                         const emailToCompany = {};
                         companies.forEach(co => { emailToCompany[co.contact_email] = co.name; });
                         customers.forEach(c => {
-                            if (c.email && emailToCompany[c.email]) {
-                                companyMap[c.id] = emailToCompany[c.email];
-                            }
+                            if (c.email && emailToCompany[c.email]) companyMap[c.id] = emailToCompany[c.email];
                         });
                     }
                 }
             }
         }
 
-        // 통역사 정보 매핑
         const interpIds = reviews.map(r => r.interpreter_id).filter(Boolean);
         let interpMap = {};
         if (interpIds.length > 0) {
             const { data: interps } = await supabase
-                .from('40_통역사프로필')
-                .select('user_id, display_name')
-                .in('user_id', interpIds);
+                .from('40_통역사프로필').select('user_id, display_name').in('user_id', interpIds);
             if (interps) interps.forEach(p => { interpMap[p.user_id] = p.display_name; });
         }
 
-        // 응답 구성
         const result = reviews.map(r => {
             const cust = custMap[r.customer_id] || {};
             return {
@@ -95,5 +98,15 @@ module.exports = async function handler(req, res) {
     } catch (e) {
         console.error('Reviews query error:', e);
         return res.status(500).json({ error: 'Failed to load reviews' });
+    }
+}
+
+// ────────────────────────── 디스패처 ──────────────────────────
+module.exports = async function handler(req, res) {
+    const route = req.query._route || '';
+    switch (route) {
+        case 'cases': return handleCases(req, res);
+        case 'reviews': return handleReviews(req, res);
+        default: return res.status(404).json({ error: 'Unknown route: ' + route });
     }
 };

@@ -1,5 +1,17 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/submit-inquiry", "destination": "/api/submit?_route=submit-inquiry" },
+    { "source": "/api/submit-application", "destination": "/api/submit?_route=submit-application" },
+    { "source": "/api/upload-application-file", "destination": "/api/submit?_route=upload-application-file" },
+    { "source": "/api/notify-admins", "destination": "/api/submit?_route=notify-admins" },
+    { "source": "/api/verify-payment", "destination": "/api/payment?_route=verify-payment" },
+    { "source": "/api/portone-webhook", "destination": "/api/payment?_route=portone-webhook" },
+    { "source": "/api/my-inquiries", "destination": "/api/my?_route=my-inquiries" },
+    { "source": "/api/my-contracts", "destination": "/api/my?_route=my-contracts" },
+    { "source": "/api/cases", "destination": "/api/data?_route=cases" },
+    { "source": "/api/reviews", "destination": "/api/data?_route=reviews" }
+  ],
   "headers": [
     {
       "source": "/(.*)\\.html",

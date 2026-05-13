@@ -1,0 +1,125 @@
+// 통합 라우터: my-inquiries / my-contracts
+// vercel.json rewrites가 옛 URL을 _route 쿼리로 매핑
+
+const { createClient } = require('@supabase/supabase-js');
+
+const SUPABASE_URL = 'https://jgeqbdrfpekzuumaklvx.supabase.co';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnZXFiZHJmcGVrenV1bWFrbHZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MzgwMzQsImV4cCI6MjA5MDQxNDAzNH0.C2y3UiPtHIF2s4nPvbGycN927HOG4YpO86FfgZAelUw';
+
+const sb = createClient(SUPABASE_URL, SERVICE_KEY);
+const sbAuth = createClient(SUPABASE_URL, ANON_KEY);
+
+async function authenticate(req) {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) return { error: '인증이 필요합니다.', status: 401 };
+    const { data: { user }, error } = await sbAuth.auth.getUser(token);
+    if (error || !user) return { error: '인증 실패', status: 401 };
+    return { user };
+}
+
+// ────────────────────────── my-inquiries ──────────────────────────
+async function handleMyInquiries(req, res) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    const auth = await authenticate(req);
+    if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+    const { data: profile } = await sb.from('01_회원').select('role, name').eq('id', auth.user.id).single();
+    if (!profile || (profile.role !== 'interpreter' && profile.role !== 'admin')) {
+        return res.status(403).json({ error: '통역사 권한이 필요합니다.' });
+    }
+
+    const { data: interpProfile } = await sb
+        .from('40_통역사프로필').select('display_name').eq('user_id', auth.user.id).single();
+    const displayName = interpProfile?.display_name || profile.name || '';
+
+    try {
+        const { data, error } = await sb
+            .from('46_ITQ견적문의')
+            .select('*')
+            .like('admin_note', '%"inquiry_type":"direct"%')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+
+        const filtered = (data || []).filter(d => {
+            try {
+                const note = typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note;
+                if (!note || note.inquiry_type !== 'direct') return false;
+                return note.requested_interpreter_id === auth.user.id || note.interpreter_name === displayName;
+            } catch (e) { return false; }
+        });
+
+        return res.status(200).json(filtered);
+    } catch (e) {
+        console.error('My inquiries error:', e);
+        return res.status(500).json({ error: e.message });
+    }
+}
+
+// ────────────────────────── my-contracts ──────────────────────────
+async function handleMyContracts(req, res) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    const auth = await authenticate(req);
+    if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+    const { data: profile } = await sb.from('01_회원').select('role, name').eq('id', auth.user.id).single();
+    if (!profile) return res.status(404).json({ error: '회원 정보를 찾을 수 없습니다.' });
+
+    try {
+        let query = sb.from('42_통역계약').select('*');
+        if (profile.role === 'customer') query = query.eq('customer_id', auth.user.id);
+        else if (profile.role === 'interpreter') query = query.eq('interpreter_id', auth.user.id);
+        else if (profile.role !== 'admin') return res.status(403).json({ error: '접근 권한이 없습니다.' });
+
+        const { data: contracts, error } = await query.order('created_at', { ascending: false });
+        if (error) throw error;
+
+        const userIds = new Set();
+        contracts.forEach(c => {
+            if (c.interpreter_id) userIds.add(c.interpreter_id);
+            if (c.customer_id) userIds.add(c.customer_id);
+        });
+
+        let nameMap = {};
+        if (userIds.size > 0) {
+            const { data: users } = await sb.from('01_회원').select('id, name, email').in('id', Array.from(userIds));
+            if (users) users.forEach(u => { nameMap[u.id] = u; });
+        }
+
+        const interpIds = contracts.map(c => c.interpreter_id).filter(Boolean);
+        let interpMap = {};
+        if (interpIds.length > 0) {
+            const { data: profiles } = await sb.from('40_통역사프로필')
+                .select('user_id, display_name, languages, profile_image_url').in('user_id', interpIds);
+            if (profiles) profiles.forEach(p => { interpMap[p.user_id] = p; });
+        }
+
+        const result = contracts.map(c => ({
+            ...c,
+            _interpreterName: (interpMap[c.interpreter_id] || {}).display_name || (nameMap[c.interpreter_id] || {}).name || '통역사',
+            _interpreterPhoto: (interpMap[c.interpreter_id] || {}).profile_image_url || '',
+            _interpreterLangs: (interpMap[c.interpreter_id] || {}).languages || [],
+            _customerName: (nameMap[c.customer_id] || {}).name || '고객',
+            _customerEmail: (nameMap[c.customer_id] || {}).email || ''
+        }));
+
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.status(200).json(result);
+    } catch (e) {
+        console.error('Contracts query error:', e);
+        return res.status(500).json({ error: e.message });
+    }
+}
+
+// ────────────────────────── 디스패처 ──────────────────────────
+module.exports = async function handler(req, res) {
+    if (!SERVICE_KEY) return res.status(500).json({ error: '서버 설정 오류' });
+
+    const route = req.query._route || '';
+    switch (route) {
+        case 'my-inquiries': return handleMyInquiries(req, res);
+        case 'my-contracts': return handleMyContracts(req, res);
+        default: return res.status(404).json({ error: 'Unknown route: ' + route });
+    }
+};
