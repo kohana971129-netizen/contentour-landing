@@ -4,6 +4,9 @@
     text-decoration: none;
     font-size: 0.78rem;
     transition: color 0.15s;
+    display: inline-block;
+    padding: 12px 4px;
+    line-height: 1;
 }
 .footer-terms-link:hover {
     color: #fff;

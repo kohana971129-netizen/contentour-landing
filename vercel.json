@@ -10,9 +10,19 @@
     { "source": "/api/my-inquiries", "destination": "/api/my?_route=my-inquiries" },
     { "source": "/api/my-contracts", "destination": "/api/my?_route=my-contracts" },
     { "source": "/api/cases", "destination": "/api/data?_route=cases" },
-    { "source": "/api/reviews", "destination": "/api/data?_route=reviews" }
+    { "source": "/api/reviews", "destination": "/api/data?_route=reviews" },
+    { "source": "/favicon.ico", "destination": "/assets/favicon-32.png" }
   ],
   "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
     {
       "source": "/(.*)\\.html",
       "headers": [

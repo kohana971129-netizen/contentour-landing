@@ -8,7 +8,8 @@
     <meta name="description" content="80개국 현지 전문 통역사 네트워크. 전시회 부스 상주, 미팅 동행, 현장 운영까지. 견적 문의 후 24시간 내 맞춤 통역사 매칭. 영어·일본어·중국어 등 8개 언어 지원.">
     <meta name="keywords" content="전시회 통역, 비즈매칭, 전시 현장 운영, 국제 전시회, 통역사, 부스통역, 전시회통역사, 해외전시회, 콘텐츄어, CONTENTOUR, 미팅통역, 현장통역">
     <meta name="author" content="CONTENTOUR Co., Ltd.">
-    <meta name="robots" content="index, follow">
+    <!-- 출시 전 모드: noindex (robots.txt와 정합). 출시 시 'index, follow'로 복구 -->
+    <meta name="robots" content="noindex, nofollow">
 
     <!-- Open Graph (카카오톡, 페이스북, 슬랙 등) -->
     <meta property="og:type" content="website">
@@ -30,6 +31,10 @@
 
     <!-- Canonical -->
     <link rel="canonical" href="https://contentour-landing.vercel.app">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 
     <!-- Schema.org 구조화 데이터 -->
     <script type="application/ld+json">
@@ -61,69 +66,6 @@
     <link rel="stylesheet" href="design-tokens.css">
     <link rel="stylesheet" href="styles.css?v=1.1">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        /* 카드 가격 */
-        .ip-card__price { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: linear-gradient(135deg, #e8f0fe, #f0f4ff); border-radius: 8px; margin: 8px 0 4px; }
-        .ip-card__price-label { font-size: 0.7rem; font-weight: 600; color: #666; }
-        .ip-card__price-value { font-size: 0.88rem; font-weight: 800; color: #1565c0; letter-spacing: -0.3px; }
-        .ip-card__price-unit { font-size: 0.68rem; color: #999; }
-
-        /* 모달 가격표 */
-        .ip-modal__price-table { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .ip-modal__price-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f5f8ff; border-radius: 10px; border: 1px solid #e3ecf7; }
-        .ip-modal__price-type { font-size: 0.82rem; font-weight: 600; color: #333; }
-        .ip-modal__price-val { font-size: 1rem; font-weight: 800; color: #1565c0; }
-        .ip-modal__price-val small { font-size: 0.7rem; font-weight: 500; color: #999; margin-left: 2px; }
-        .ip-modal__price-note { font-size: 0.72rem; color: #999; margin-top: 10px; }
-        @media (max-width: 768px) {
-            .ip-modal__price-table { grid-template-columns: 1fr; }
-            .ip-modal__price-type { font-size: 0.88rem; }
-            .ip-card__price-unit { font-size: 0.75rem; }
-            .ip-card__price-label { font-size: 0.75rem; }
-        }
-
-        /* 직접 견적 의뢰 폼 */
-        .diq { background: #f0f4ff; border-radius: 14px; padding: 24px; margin-top: 8px; }
-        .diq__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
-        .diq__interp { display: flex; align-items: center; gap: 12px; }
-        .diq__photo { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2.5px solid #1565c0; box-shadow: 0 3px 10px rgba(21,101,192,0.2); }
-        .diq__name { font-size: 0.9rem; font-weight: 800; color: #0a2a5e; }
-        .diq__role { font-size: 0.72rem; color: #666; }
-        .diq__title { font-size: 0.95rem; font-weight: 800; color: #1565c0; }
-        .diq__form { display: flex; flex-direction: column; gap: 12px; }
-        .diq__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .diq__field { display: flex; flex-direction: column; gap: 4px; }
-        .diq__field label { font-size: 0.75rem; font-weight: 700; color: #333; }
-        .diq__req { color: #e53935; }
-        .diq__full { width: 100%; }
-        .diq__field input, .diq__field select, .diq__field textarea {
-            padding: 10px 12px; border: 1px solid #d0d7e3; border-radius: 8px; font-size: 0.82rem;
-            font-family: inherit; outline: none; transition: border-color 0.15s; background: #fff;
-        }
-        .diq__field input:focus, .diq__field select:focus, .diq__field textarea:focus { border-color: #1565c0; }
-        .diq__field textarea { resize: vertical; }
-        .diq__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
-        .diq__cancel { padding: 10px 22px; background: #fff; border: 1px solid #d0d7e3; border-radius: 10px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; color: #666; transition: all 0.15s; }
-        .diq__cancel:hover { border-color: #999; color: #333; }
-        .diq__submit { padding: 10px 28px; background: #1565c0; color: #fff; border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-        .diq__submit:hover { background: #0d47a1; }
-        .diq__success { text-align: center; padding: 20px 0; }
-        .diq__success-icon { font-size: 2.5rem; margin-bottom: 10px; }
-        .diq__success-title { font-size: 1.1rem; font-weight: 800; color: #1565c0; margin-bottom: 10px; }
-        .diq__success-info { font-size: 0.85rem; color: #444; line-height: 1.7; margin-bottom: 16px; }
-        .diq__success-detail { background: #f0f4ff; border-radius: 10px; padding: 14px 18px; display: inline-block; text-align: left; font-size: 0.8rem; color: #555; line-height: 1.8; }
-        @media (max-width: 768px) {
-            .diq__field input, .diq__field select, .diq__field textarea { font-size: 0.9rem; padding: 12px 14px; }
-            .diq__field label { font-size: 0.82rem; }
-            .diq__photo { width: 48px; height: 48px; }
-            .diq__head { gap: 14px; }
-        }
-        @media (max-width: 520px) {
-            .diq__row { grid-template-columns: 1fr; }
-            .diq__head { flex-direction: column; align-items: flex-start; }
-            .diq { padding: 16px; }
-        }
-    </style>
 </head>
 
 <body>
@@ -142,11 +84,14 @@
             </div>
             <h2 style="font-size:1.2rem;font-weight:800;color:#1a2a4a;margin-bottom:6px;">CONTENTOUR</h2>
             <p style="font-size:0.82rem;color:#8a95a8;margin-bottom:24px;">접근이 제한된 페이지입니다. 비밀번호를 입력하세요.</p>
-            <div style="position:relative;">
-                <input id="pwInput" type="password" placeholder="비밀번호 입력" style="width:100%;padding:14px 16px;border:2px solid #e0e5ec;border-radius:12px;font-size:0.92rem;outline:none;box-sizing:border-box;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='#1565c0'" onblur="this.style.borderColor='#e0e5ec'">
-            </div>
-            <div id="pwError" style="color:#c62828;font-size:0.78rem;margin-top:8px;height:20px;"></div>
-            <button onclick="checkPw()" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;margin-top:4px;font-family:inherit;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">확인</button>
+            <form id="pwForm" onsubmit="event.preventDefault();checkPw();" autocomplete="off">
+                <div style="position:relative;">
+                    <label for="pwInput" class="sr-only">비밀번호</label>
+                    <input id="pwInput" name="password" type="password" aria-label="비밀번호" placeholder="비밀번호 입력" style="width:100%;padding:14px 16px;border:2px solid #e0e5ec;border-radius:12px;font-size:0.92rem;outline:none;box-sizing:border-box;font-family:inherit;transition:border 0.2s;" onfocus="this.style.borderColor='#1565c0'" onblur="this.style.borderColor='#e0e5ec'">
+                </div>
+                <div id="pwError" style="color:#c62828;font-size:0.78rem;margin-top:8px;height:20px;"></div>
+                <button type="submit" style="width:100%;padding:14px;background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border:none;border-radius:12px;font-size:0.92rem;font-weight:700;cursor:pointer;margin-top:4px;font-family:inherit;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">확인</button>
+            </form>
         </div>
     </div>
     <script src="pw-gate.js"></script>
@@ -208,7 +153,7 @@
         <section class="hero">
             <div class="hero-overlay"></div>
             <div class="hero-content">
-                <h1>전시회 현장 통역사를 통해서<br><span class="hero-highlight">한층 더 비즈매칭 사업의 현장을 극대화 하세요.</span></h1>
+                <h1>전시회 현장 통역사를 통해서 <br><span class="hero-highlight">한층 더 비즈매칭 사업의 현장을 극대화하세요.</span></h1>
                 <p>언어 능력은 기본, 비즈니스 매너와 열정을 겸비한 통역 파트너.<br>콘텐츄어만의 <strong>Strict Management Process</strong>로 전시회 수준을
                     높이십시오.</p>
                 <div class="hero-cta">
@@ -353,7 +298,7 @@
             <div class="blue-itq__wrap">
                 <header class="blue-itq__head">
                     <p class="blue-itq__eyebrow">Interpreter Quote</p>
-                    <h2 class="blue-itq__title">글로벌 비즈니스를 위한<br>통역 견적 문의</h2>
+                    <h2 class="blue-itq__title">글로벌 비즈니스를 위한 <br>통역 견적 문의</h2>
                     <p class="blue-itq__sub">
                         전시 정보만 알려주셔도 1차 견적 범위를 안내드릴 수 있습니다.<br>
                         영업일 기준 24시간 내 회신을 목표로 합니다.
