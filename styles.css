@@ -257,8 +257,8 @@ body {
 /* Hero Section Restructured */
 .hero {
     position: relative;
-    background: linear-gradient(rgba(26, 32, 44, 0.85), rgba(15, 23, 42, 0.9)),
-        url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background: linear-gradient(rgba(10, 22, 50, 0.78), rgba(15, 23, 42, 0.88)),
+        url('assets/hero-bg.jpg');
     background-size: cover;
     background-position: center;
     color: var(--white);
