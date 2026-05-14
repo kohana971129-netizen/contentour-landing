@@ -33,7 +33,7 @@
         .interp-page__inner { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
 
         /* 페이지 헤더 */
-        .interp-page__header { text-align: center; margin-bottom: 48px; }
+        .interp-page__header { text-align: center; margin-bottom: 48px; min-height: 220px; }
         .interp-page__flag { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
         .interp-page__flag img { width: 48px; height: auto; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
         .interp-page__country { font-size: 1.1rem; font-weight: 700; color: #1565c0; background: #e8f0fe; padding: 6px 16px; border-radius: 20px; }
@@ -54,15 +54,30 @@
         .interp-sort__btn.active { background: #1565c0; color: #fff; border-color: #1565c0; }
 
         /* 필터 바 */
-        .interp-filter { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+        .interp-filter { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; min-height: 44px; }
         .interp-filter__btn { padding: 8px 20px; border: 1.5px solid #d0d7e3; border-radius: 24px; background: #fff; font-size: 0.82rem; font-weight: 600; color: #555; cursor: pointer; transition: all 0.2s; font-family: inherit; }
         .interp-filter__btn:hover { border-color: #1565c0; color: #1565c0; }
         .interp-filter__btn.active { background: #1565c0; color: #fff; border-color: #1565c0; }
 
         /* 카드 그리드 */
-        .interp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .interp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; min-height: 700px; }
         @media (max-width: 900px) { .interp-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 580px) { .interp-grid { grid-template-columns: 1fr; } }
+
+        /* 스켈레톤 카드 (CLS 차단) — 실제 카드 로드 시 교체됨 */
+        .profile-card--skeleton { cursor: default; min-height: 320px; }
+        .profile-card--skeleton:hover { transform: none; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-color: transparent; }
+        .skeleton-bar, .skeleton-circle {
+            background: linear-gradient(90deg, #eef2f7 0%, #f8fafd 50%, #eef2f7 100%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
+        }
+        .skeleton-bar { border-radius: 4px; }
+        .skeleton-circle { border-radius: 50%; }
+        @keyframes skeleton-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
 
         /* 프로필 카드 */
         .profile-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: all 0.25s; cursor: pointer; border: 1.5px solid transparent; }
@@ -111,7 +126,7 @@
         .interp-back:hover { opacity: 0.7; }
 
         /* 국가 탭 — 기본은 줄바꿈, 슬라이드 모드는 .slide-mode 클래스로 전환 */
-        .country-tabs-wrap { position: relative; margin-bottom: 32px; padding: 0; transition: padding 0.2s; }
+        .country-tabs-wrap { position: relative; margin-bottom: 32px; padding: 0; transition: padding 0.2s; min-height: 60px; }
         .country-tabs {
             display: flex;
             gap: 8px;
@@ -355,8 +370,117 @@
             <!-- 분야 필터 -->
             <div class="interp-filter" id="fieldFilter"></div>
 
-            <!-- 통역사 그리드 -->
-            <div class="interp-grid" id="interpGrid"></div>
+            <!-- 통역사 그리드 (초기 스켈레톤 6장 — JS 렌더 시 교체) -->
+            <div class="interp-grid" id="interpGrid">
+                <div class="profile-card profile-card--skeleton" aria-hidden="true">
+                    <div class="profile-card__top">
+                        <div class="skeleton-circle" style="width:60px;height:60px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton-bar" style="height:18px;width:60%;margin-bottom:8px;"></div>
+                            <div class="skeleton-bar" style="height:12px;width:40%;"></div>
+                        </div>
+                    </div>
+                    <div class="profile-card__body">
+                        <div class="skeleton-bar" style="height:14px;width:90%;margin-bottom:8px;"></div>
+                        <div class="skeleton-bar" style="height:14px;width:75%;margin-bottom:14px;"></div>
+                        <div class="skeleton-bar" style="height:48px;border-radius:10px;margin-bottom:14px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-card profile-card--skeleton" aria-hidden="true">
+                    <div class="profile-card__top">
+                        <div class="skeleton-circle" style="width:60px;height:60px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton-bar" style="height:18px;width:55%;margin-bottom:8px;"></div>
+                            <div class="skeleton-bar" style="height:12px;width:35%;"></div>
+                        </div>
+                    </div>
+                    <div class="profile-card__body">
+                        <div class="skeleton-bar" style="height:14px;width:85%;margin-bottom:8px;"></div>
+                        <div class="skeleton-bar" style="height:14px;width:70%;margin-bottom:14px;"></div>
+                        <div class="skeleton-bar" style="height:48px;border-radius:10px;margin-bottom:14px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-card profile-card--skeleton" aria-hidden="true">
+                    <div class="profile-card__top">
+                        <div class="skeleton-circle" style="width:60px;height:60px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton-bar" style="height:18px;width:65%;margin-bottom:8px;"></div>
+                            <div class="skeleton-bar" style="height:12px;width:45%;"></div>
+                        </div>
+                    </div>
+                    <div class="profile-card__body">
+                        <div class="skeleton-bar" style="height:14px;width:92%;margin-bottom:8px;"></div>
+                        <div class="skeleton-bar" style="height:14px;width:78%;margin-bottom:14px;"></div>
+                        <div class="skeleton-bar" style="height:48px;border-radius:10px;margin-bottom:14px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-card profile-card--skeleton" aria-hidden="true">
+                    <div class="profile-card__top">
+                        <div class="skeleton-circle" style="width:60px;height:60px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton-bar" style="height:18px;width:50%;margin-bottom:8px;"></div>
+                            <div class="skeleton-bar" style="height:12px;width:38%;"></div>
+                        </div>
+                    </div>
+                    <div class="profile-card__body">
+                        <div class="skeleton-bar" style="height:14px;width:88%;margin-bottom:8px;"></div>
+                        <div class="skeleton-bar" style="height:14px;width:65%;margin-bottom:14px;"></div>
+                        <div class="skeleton-bar" style="height:48px;border-radius:10px;margin-bottom:14px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-card profile-card--skeleton" aria-hidden="true">
+                    <div class="profile-card__top">
+                        <div class="skeleton-circle" style="width:60px;height:60px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton-bar" style="height:18px;width:58%;margin-bottom:8px;"></div>
+                            <div class="skeleton-bar" style="height:12px;width:42%;"></div>
+                        </div>
+                    </div>
+                    <div class="profile-card__body">
+                        <div class="skeleton-bar" style="height:14px;width:90%;margin-bottom:8px;"></div>
+                        <div class="skeleton-bar" style="height:14px;width:72%;margin-bottom:14px;"></div>
+                        <div class="skeleton-bar" style="height:48px;border-radius:10px;margin-bottom:14px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-card profile-card--skeleton" aria-hidden="true">
+                    <div class="profile-card__top">
+                        <div class="skeleton-circle" style="width:60px;height:60px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton-bar" style="height:18px;width:62%;margin-bottom:8px;"></div>
+                            <div class="skeleton-bar" style="height:12px;width:36%;"></div>
+                        </div>
+                    </div>
+                    <div class="profile-card__body">
+                        <div class="skeleton-bar" style="height:14px;width:86%;margin-bottom:8px;"></div>
+                        <div class="skeleton-bar" style="height:14px;width:70%;margin-bottom:14px;"></div>
+                        <div class="skeleton-bar" style="height:48px;border-radius:10px;margin-bottom:14px;"></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                            <div class="skeleton-bar" style="height:36px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- CTA -->
             <div class="interp-cta">
