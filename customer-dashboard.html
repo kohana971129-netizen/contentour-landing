@@ -6050,16 +6050,18 @@
             .select('id, type, points, source_type, reason, created_at')
             .eq('user_id', user.id).order('created_at', { ascending: false }).limit(100)
         ]);
-        var hist = (ledger || []).map(function(l) {
-          return {
-            id: l.id,
-            date: (l.created_at || '').split('T')[0],
-            type: (l.type === 'use' || l.type === 'expire') ? 'use' : 'earn',
-            pts: Math.abs(l.points),
-            desc: l.reason || l.source_type || '',
-            event: l.source_type
-          };
-        });
+        var hist = (ledger || [])
+          .filter(function(l) { return (l.points || 0) !== 0; })
+          .map(function(l) {
+            return {
+              id: l.id,
+              date: (l.created_at || '').split('T')[0],
+              type: l.points < 0 ? 'use' : 'earn',
+              pts: Math.abs(l.points),
+              desc: l.reason || l.source_type || '',
+              event: l.source_type
+            };
+          });
         _loyDataCache = {
           balance: row ? row.balance : 0,
           totalEarned: row ? row.total_earned : 0,
