@@ -30,10 +30,7 @@
                 </div>
                 <div style="margin-bottom:20px;">
                     <label class="label-sm">비밀번호</label>
-                    <div style="position:relative;">
-                        <input type="password" id="adminPw" placeholder="비밀번호" class="input-field" style="padding-right:48px;" onkeydown="if(event.key==='Enter')adminLogin()">
-                        <button type="button" onclick="var p=document.getElementById('adminPw');p.type=p.type==='password'?'text':'password';" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;display:flex;align-items:center;justify-content:center;width:32px;height:32px;" aria-label="비밀번호 보기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-                    </div>
+                    <input type="password" id="adminPw" placeholder="비밀번호" class="input-field" onkeydown="if(event.key==='Enter')adminLogin()">
                 </div>
                 <button onclick="adminLogin()" id="adminLoginBtn" class="btn-primary-gradient" style="width:100%;">관리자 로그인</button>
                 <div style="text-align:center;margin-top:12px;">
