@@ -40,6 +40,10 @@
 
 /* ══════════════ 공통 컴포넌트 ══════════════ */
 
+/* 브라우저 기본 비밀번호 reveal 아이콘 숨김 (Edge/IE) — 커스텀 SVG 토글 사용 */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear { display: none; }
+
 /* ── 입력 필드 ── */
 .input-field {
     width: 100%;
