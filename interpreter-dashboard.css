@@ -1062,7 +1062,11 @@
         .rate-row__input input::-webkit-inner-spin-button{opacity:0.5;}
         .rate-row__prefix{font-size:0.82rem;font-weight:700;color:#1565c0;}
         .rate-row__suffix{font-size:0.75rem;color:#9ca3af;white-space:nowrap;}
-        .lang-rate-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;font-size:0.8rem;font-weight:600;color:#374151;gap:10px;}
+        .lang-rate-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+        .lang-rate-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;font-size:0.8rem;font-weight:600;color:#374151;gap:10px;min-width:0;}
+        .lang-rate-row > span:first-child{flex-shrink:0;}
+        .lang-rate-row > .rate-row__input{flex:1;min-width:120px;max-width:160px;}
+        .lang-rate-row > .rate-row__input input{width:100%;min-width:0;}
 
         /* 모바일에서 단가 row 세로 분리 — 좁은 화면에서 라벨+input이 한 줄에 못 들어가던 문제 해소 */
         @media (max-width: 768px) {
