@@ -2141,15 +2141,7 @@
                     is_public: true
                   }, { onConflict: 'contract_id,customer_id' });
                   if (revErr) console.warn('통역사 평가 저장 실패:', revErr);
-
-                  // 통역사에게 평가 알림 발송
-                  await window.sbClient.from('24_알림').insert({
-                    user_id: jInterpreterId,
-                    notification_type: 'service',
-                    title: '⭐ 고객사로부터 현장 평가를 받았습니다',
-                    message: '"' + (expoName || '') + '" 건에 대한 현장 평가가 등록되었습니다. 전반적 만족도: ' + starValues.overall + '/5점',
-                    is_read: false
-                  }).then(function(){}).catch(function(){});
+                  // 통역사 알림은 49_통역사리뷰 INSERT trigger가 자동 발송
                 } catch(revE) { console.warn('통역사 평가 저장 예외:', revE); }
               }
             }

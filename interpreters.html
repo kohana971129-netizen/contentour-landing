@@ -1130,13 +1130,12 @@
                 }
             } catch(e) { console.warn('[interpreters] API 로드 실패:', e); }
 
-            // 2차: 클라이언트 Supabase 폴백
+            // 2차: 클라이언트 Supabase 폴백 (interpreters_public view — 민감 컬럼 제외)
             if (!loaded && window.sbClient) {
                 try {
                     var { data: profiles, error: pErr } = await window.sbClient
-                        .from('40_통역사프로필')
-                        .select('user_id, display_name, languages, specialties, experience_years, intro, profile_image_url, country_code, field_tag, cases_count, rating, satisfaction, rate_by_type, is_active')
-                        .eq('is_active', true);
+                        .from('interpreters_public')
+                        .select('user_id, display_name, languages, specialties, experience_years, intro, profile_image_url, country_code, field_tag, cases_count, rating, satisfaction, rate_by_type, is_active');
                     if (pErr) throw pErr;
                     addProfilesToData(profiles);
                     loaded = true;
