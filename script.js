@@ -386,6 +386,14 @@ function initInquiryForm() {
         });
     }
 
+    const backButton = document.getElementById('backInquiry');
+    if (backButton) {
+        backButton.addEventListener('click', () => {
+            contactSection.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    }
+
     // Close on background click
     contactSection.addEventListener('click', (e) => {
         if (e.target === contactSection) {
