@@ -173,7 +173,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.portone.io/v2/browser-sdk.js" async onerror="console.warn('PortOne SDK 로드 실패 - 데모 결제 모드')"></script>
   <script src="supabase-config.js"></script>
-  <script src="review-filter.js?v=20260518"></script>
+  <script src="review-filter.js?v=20260518b"></script>
   <script src="shared-constants.js"></script>
   <script src="chat-data.js?v=20260507-cancelled-at"></script>
   <script src="payment-data.js"></script>
@@ -4764,6 +4764,15 @@
         return;
       }
 
+      // 낮은 별점 자동 보류: 종합 ≤ 2점이면 관리자 검토 대기
+      var lowRatingFlag = (_reviewRatings.overall || 0) <= 2;
+      var shouldHold = filterResult.flaggedSoft || lowRatingFlag;
+
+      // 보류 사유 라벨 합치기
+      var flaggedReasons = [];
+      if (filterResult.flaggedSoft) flaggedReasons = flaggedReasons.concat(filterResult.softMatches);
+      if (lowRatingFlag) flaggedReasons.push('낮은 별점(' + _reviewRatings.overall + '점)');
+
       try {
         var user = await ContentourAuth.getCurrentUser();
         if (!user) { showContractToast('로그인이 필요합니다.'); return; }
@@ -4778,10 +4787,10 @@
           rating_communication: _reviewRatings.communication,
           rating_overall: _reviewRatings.overall,
           review_text: reviewText || null,
-          // 소프트 플래그 매칭 시 자동 보류 (관리자 검토 대기)
-          is_public: !filterResult.flaggedSoft,
-          auto_flagged: filterResult.flaggedSoft,
-          flagged_keywords: filterResult.flaggedSoft ? filterResult.softMatches.join(',') : null
+          // 소프트 플래그 또는 낮은 별점 시 자동 보류 (관리자 검토 대기)
+          is_public: !shouldHold,
+          auto_flagged: shouldHold,
+          flagged_keywords: shouldHold ? flaggedReasons.join(',') : null
         };
 
         var { error } = await window.sbClient.from('49_통역사리뷰').insert(insertPayload);
@@ -4793,8 +4802,8 @@
         try { loyEarnPoints(5000, c.expo + ' 리뷰 작성 보너스', 'review', String(contractId)); } catch(e) {}
         closeReviewModal();
         renderContracts();
-        if (filterResult.flaggedSoft) {
-          showContractToast('리뷰가 접수되었습니다. 일부 표현이 포함되어 관리자 검토 후 공개됩니다. (5,000P 적립)');
+        if (shouldHold) {
+          showContractToast('리뷰가 접수되었습니다. 관리자 검토 후 공개됩니다. (5,000P 적립)');
         } else {
           showContractToast('리뷰가 등록되었습니다! 5,000P가 적립됩니다.');
         }

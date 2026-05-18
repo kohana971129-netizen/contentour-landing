@@ -46,6 +46,17 @@
 
     <textarea id="input" placeholder="리뷰 텍스트를 입력해주세요. 아래 예시 버튼으로 빠르게 테스트할 수 있어요."></textarea>
 
+    <div style="margin-top:14px;display:flex;align-items:center;gap:12px;font-size:0.88rem;">
+      <span style="color:#374151;font-weight:600;">⭐ 종합 별점:</span>
+      <select id="ratingSelect" style="padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:0.9rem;font-family:inherit;">
+        <option value="5">5점 (매우 만족)</option>
+        <option value="4">4점 (만족)</option>
+        <option value="3">3점 (보통)</option>
+        <option value="2">2점 (불만족) — 자동 보류</option>
+        <option value="1">1점 (매우 불만족) — 자동 보류</option>
+      </select>
+    </div>
+
     <div class="btns">
       <button class="btn-primary" onclick="runCheck()">🔍 검사하기</button>
       <button class="btn-clear" onclick="clearAll()">지우기</button>
@@ -84,7 +95,7 @@
     </div>
   </div>
 
-  <script src="review-filter.js?v=20260518"></script>
+  <script src="review-filter.js?v=20260518b"></script>
   <script>
     document.getElementById('metaInfo').textContent =
       '필터 적재: 하드 ' + ReviewFilter.HARD_RULES_COUNT + '개 규칙 / 소프트 ' + ReviewFilter.SOFT_KEYWORDS_COUNT + '개 키워드';
@@ -101,7 +112,9 @@
 
     function runCheck() {
       const text = document.getElementById('input').value;
+      const rating = parseInt(document.getElementById('ratingSelect').value, 10);
       const r = ReviewFilter.check(text);
+      const lowRating = rating <= 2;
       const el = document.getElementById('result');
       el.style.display = 'block';
 
@@ -112,18 +125,19 @@
         body = '<div>매칭된 표현:</div><div class="matches">'
              + r.hardMatches.map(m => '<span class="tag">' + escapeHtml(m) + '</span>').join('')
              + '</div>'
-             + '<div style="margin-top:12px;font-size:0.84rem;color:#555;">실제 작성 시 사용자에게 "부적절한 표현이 포함되어 등록할 수 없습니다" 안내 표시.</div>';
-      } else if (r.flaggedSoft) {
+             + '<div style="margin-top:12px;font-size:0.84rem;color:#555;">실제 작성 시 사용자에게 "부적절한 표현이 포함되어 등록할 수 없습니다" 안내 표시. 별점과 무관하게 차단됨.</div>';
+      } else if (r.flaggedSoft || lowRating) {
         cls = 'soft';
-        title = '⚠️ 소프트 플래그 — 자동 보류';
-        body = '<div>매칭된 키워드:</div><div class="matches">'
-             + r.softMatches.map(m => '<span class="tag">' + escapeHtml(m) + '</span>').join('')
-             + '</div>'
+        title = '⚠️ 자동 보류 — 관리자 검토 대기';
+        const reasons = [];
+        if (r.flaggedSoft) reasons.push('<strong>키워드 매칭:</strong> ' + r.softMatches.map(m => '<span class="tag">' + escapeHtml(m) + '</span>').join(' '));
+        if (lowRating) reasons.push('<strong>낮은 별점:</strong> <span class="tag">' + rating + '점 (≤ 2)</span>');
+        body = '<div>' + reasons.join('<br><br>') + '</div>'
              + '<div style="margin-top:12px;font-size:0.84rem;color:#555;">작성은 허용되지만 <code>is_public=false</code> + <code>auto_flagged=true</code>로 저장됩니다. 관리자 대시보드 "🚩 리뷰 검토" 탭의 "검토 대기"에 표시되고, 관리자가 유지/숨김을 결정합니다.</div>';
       } else {
         cls = 'ok';
         title = '✓ 통과 — 정상 공개';
-        body = '<div style="font-size:0.88rem;color:#2e7d32;">금칙어가 감지되지 않아 즉시 공개됩니다.</div>';
+        body = '<div style="font-size:0.88rem;color:#2e7d32;">금칙어·낮은 별점 모두 해당 없음. 즉시 공개됩니다.</div>';
       }
 
       el.className = 'result ' + cls;
