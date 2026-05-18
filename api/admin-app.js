@@ -195,42 +195,49 @@ module.exports = async function handler(req, res) {
                 cancelReason: '일정 변경으로 부득이하게 취소 요청드립니다.'
             };
 
-            const results = {};
-            results.assigned_customer = await emailTemplates.emailContractAssignedToCustomer({
-                customerEmail: targetEmail, customerName: dummy.customerName,
-                interpreterName: dummy.interpreterName, expo: dummy.expo,
-                startDate: dummy.startDate, endDate: dummy.endDate, totalAmount: 750000
-            });
-            results.assigned_interpreter = await emailTemplates.emailContractAssignedToInterpreter({
-                interpreterEmail: targetEmail, interpreterName: dummy.interpreterName,
-                expo: dummy.expo, customerCompany: dummy.customerCompany,
-                startDate: dummy.startDate, endDate: dummy.endDate
-            });
-            results.payment_deposit_customer = await emailTemplates.emailPaymentCompleteToCustomer({
-                customerEmail: targetEmail, customerName: dummy.customerName,
-                expo: dummy.expo, paymentType: 'deposit', amount: 75000, totalAmount: 750000
-            });
-            results.payment_balance_interpreter = await emailTemplates.emailPaymentCompleteToInterpreter({
-                interpreterEmail: targetEmail, interpreterName: dummy.interpreterName,
-                expo: dummy.expo, paymentType: 'balance', customerCompany: dummy.customerCompany
-            });
-            results.cancel_approved_customer = await emailContractCancelled({
-                recipientEmail: targetEmail, recipientName: dummy.customerName, recipientRole: 'customer',
-                expo: dummy.expo, cancelReason: dummy.cancelReason,
-                cancelledByLabel: '관리자', action: 'approved'
-            });
-            results.cancel_rejected_interpreter = await emailContractCancelled({
-                recipientEmail: targetEmail, recipientName: dummy.interpreterName, recipientRole: 'interpreter',
-                expo: dummy.expo, cancelReason: dummy.cancelReason,
-                cancelledByLabel: '고객사', action: 'rejected'
-            });
-            results.dday_reminder = await emailTemplates.emailDdayReminderToInterpreter({
-                interpreterEmail: targetEmail, interpreterName: dummy.interpreterName,
-                expo: dummy.expo, startDate: dummy.startDate, daysLeft: 2
-            });
+            // 병렬 발송 — Hobby 10초 timeout 회피
+            const ops = {
+                assigned_customer: emailTemplates.emailContractAssignedToCustomer({
+                    customerEmail: targetEmail, customerName: dummy.customerName,
+                    interpreterName: dummy.interpreterName, expo: dummy.expo,
+                    startDate: dummy.startDate, endDate: dummy.endDate, totalAmount: 750000
+                }),
+                assigned_interpreter: emailTemplates.emailContractAssignedToInterpreter({
+                    interpreterEmail: targetEmail, interpreterName: dummy.interpreterName,
+                    expo: dummy.expo, customerCompany: dummy.customerCompany,
+                    startDate: dummy.startDate, endDate: dummy.endDate
+                }),
+                payment_deposit_customer: emailTemplates.emailPaymentCompleteToCustomer({
+                    customerEmail: targetEmail, customerName: dummy.customerName,
+                    expo: dummy.expo, paymentType: 'deposit', amount: 75000, totalAmount: 750000
+                }),
+                payment_balance_interpreter: emailTemplates.emailPaymentCompleteToInterpreter({
+                    interpreterEmail: targetEmail, interpreterName: dummy.interpreterName,
+                    expo: dummy.expo, paymentType: 'balance', customerCompany: dummy.customerCompany
+                }),
+                cancel_approved_customer: emailContractCancelled({
+                    recipientEmail: targetEmail, recipientName: dummy.customerName, recipientRole: 'customer',
+                    expo: dummy.expo, cancelReason: dummy.cancelReason,
+                    cancelledByLabel: '관리자', action: 'approved'
+                }),
+                cancel_rejected_interpreter: emailContractCancelled({
+                    recipientEmail: targetEmail, recipientName: dummy.interpreterName, recipientRole: 'interpreter',
+                    expo: dummy.expo, cancelReason: dummy.cancelReason,
+                    cancelledByLabel: '고객사', action: 'rejected'
+                }),
+                dday_reminder: emailTemplates.emailDdayReminderToInterpreter({
+                    interpreterEmail: targetEmail, interpreterName: dummy.interpreterName,
+                    expo: dummy.expo, startDate: dummy.startDate, daysLeft: 2
+                })
+            };
 
-            const total = Object.keys(results).length;
-            const okCount = Object.values(results).filter(r => r && r.success).length;
+            const keys = Object.keys(ops);
+            const settled = await Promise.all(keys.map(k => ops[k]));
+            const results = {};
+            keys.forEach((k, i) => { results[k] = settled[i]; });
+
+            const total = keys.length;
+            const okCount = settled.filter(r => r && r.success).length;
             return res.status(200).json({
                 success: true,
                 target: targetEmail,
