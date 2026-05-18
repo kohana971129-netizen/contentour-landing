@@ -1130,19 +1130,9 @@
                 }
             } catch(e) { console.warn('[interpreters] API 로드 실패:', e); }
 
-            // 2차: 클라이언트 Supabase 폴백 (interpreters_public view — 민감 컬럼 제외)
-            if (!loaded && window.sbClient) {
-                try {
-                    var { data: profiles, error: pErr } = await window.sbClient
-                        .from('interpreters_public')
-                        .select('user_id, display_name, languages, specialties, experience_years, intro, profile_image_url, country_code, field_tag, cases_count, rating, satisfaction, rate_by_type, is_active');
-                    if (pErr) throw pErr;
-                    addProfilesToData(profiles);
-                    loaded = true;
-                } catch(e) { console.warn('[interpreters] 폴백 로드 실패:', e); }
-            }
-
-            // 두 경로 모두 실패 시 사용자에게 안내
+            // 폴백 제거: /api/interpreters 경로가 실패하면 토스트 안내
+            // (40_통역사프로필 RLS가 본인+admin+계약상대방만 허용하므로 anon/authenticated가
+            //  직접 조회할 수 없음 — service_role API 경유가 유일한 공개 검색 경로)
             if (!loaded && typeof window.showToast === 'function') {
                 window.showToast('통역사 정보를 불러오지 못했습니다. 잠시 후 새로고침해주세요.', 'error');
             }

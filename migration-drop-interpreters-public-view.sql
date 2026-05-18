@@ -1,0 +1,24 @@
+-- ═══════════════════════════════════════════════════════════════
+-- interpreters_public view 제거 (2026-05-18)
+-- ═══════════════════════════════════════════════════════════════
+-- 배경:
+--   v7에서 40_통역사프로필 민감 컬럼(phone, verification_docs 등) 노출 차단을
+--   위해 interpreters_public view(security_invoker=false)를 만들었음.
+--
+--   Supabase Security Advisor가 ERROR 레벨로 "Security Definer View" 경고:
+--   - https://supabase.com/docs/guides/database/database-linter?lint=0010_security_definer_view
+--
+-- 결정:
+--   view를 제거하고 interpreters.html의 2차 폴백 경로도 제거.
+--   1차 경로 `/api/interpreters` (service_role)만 사용.
+--
+-- 이유:
+--   1. /api/interpreters는 Vercel + service_role이라 매우 안정적
+--   2. Supabase 다운 시 폴백도 무의미 (어차피 안 됨)
+--   3. anon/authenticated의 40_통역사프로필 직접 조회 경로가 코드에서 사라져 보안 ↑
+--   4. advisor ERROR 청결 유지 → 다음 점검 때 진짜 갭 묻힘 방지
+--
+-- 멱등: IF EXISTS
+-- ═══════════════════════════════════════════════════════════════
+
+DROP VIEW IF EXISTS interpreters_public;
