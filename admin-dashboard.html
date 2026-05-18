@@ -6590,6 +6590,11 @@
             var chatmonUnread = {};
             var chatmonLoaded = false;
             var chatmonRealtimeSub = null;
+            // 추가 admin 글로벌 구독 (계약·문의·본인 알림)
+            var adminContractRealtimeSub = null;
+            var adminInquiryRealtimeSub = null;
+            var adminNotificationRealtimeSub = null;
+            var _adminRealtimeReloadTimer = null;
 
             // ── Supabase에서 채팅 채널 + 메시지 로드 ──
             async function loadChatmonFromDB() {
@@ -6683,12 +6688,19 @@
                 }
             }
 
-            // 로그아웃 시 ContentourAuth.logout()에서 호출 — admin 채팅 모니터링 채널 정리
+            // 로그아웃 시 ContentourAuth.logout()에서 호출 — 모든 admin realtime 채널 정리
             window.unsubscribeAdminRealtime = function() {
-                if (chatmonRealtimeSub && window.sbClient) {
-                    try { window.sbClient.removeChannel(chatmonRealtimeSub); } catch(e) {}
-                    chatmonRealtimeSub = null;
-                }
+                var subs = [chatmonRealtimeSub, adminContractRealtimeSub, adminInquiryRealtimeSub, adminNotificationRealtimeSub];
+                subs.forEach(function(sub) {
+                    if (sub && window.sbClient) {
+                        try { window.sbClient.removeChannel(sub); } catch(e) {}
+                    }
+                });
+                chatmonRealtimeSub = null;
+                adminContractRealtimeSub = null;
+                adminInquiryRealtimeSub = null;
+                adminNotificationRealtimeSub = null;
+                if (_adminRealtimeReloadTimer) { clearTimeout(_adminRealtimeReloadTimer); _adminRealtimeReloadTimer = null; }
             };
 
             function subscribeChatmonRealtime() {
@@ -6734,6 +6746,101 @@
                         }
                     )
                     .subscribe();
+            }
+
+            // ═══ admin 글로벌 구독 — 계약·문의·본인 알림 자동 갱신 ═══
+            // 채팅 모니터링과 별개. _reloadAllData() 직후 한 번만 호출.
+            window.subscribeAdminGlobalRealtime = async function() {
+                if (!window.sbClient) return;
+
+                // admin 본인 ID 조회 (24_알림 필터에 사용)
+                var adminId = null;
+                try {
+                    if (window.ContentourAuth && ContentourAuth.getUserProfile) {
+                        var prof = await ContentourAuth.getUserProfile();
+                        adminId = prof && prof.id;
+                    }
+                } catch(e) {}
+
+                // 1) admin 본인 앞 알림
+                if (adminId) {
+                    if (adminNotificationRealtimeSub) {
+                        try { window.sbClient.removeChannel(adminNotificationRealtimeSub); } catch(e) {}
+                    }
+                    adminNotificationRealtimeSub = window.sbClient
+                        .channel('admin-notifications-self')
+                        .on('postgres_changes',
+                            { event: 'INSERT', schema: 'public', table: '24_알림', filter: 'user_id=eq.' + adminId },
+                            function(payload) {
+                                var n = payload.new;
+                                if (!n) return;
+                                showToast('🔔 ' + (n.title || '새 알림'));
+                            }
+                        )
+                        .subscribe();
+                }
+
+                // 2) 계약 INSERT/UPDATE
+                if (adminContractRealtimeSub) {
+                    try { window.sbClient.removeChannel(adminContractRealtimeSub); } catch(e) {}
+                }
+                adminContractRealtimeSub = window.sbClient
+                    .channel('admin-contracts-changes')
+                    .on('postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: '42_통역계약' },
+                        function(payload) {
+                            var c = payload.new;
+                            if (!c) return;
+                            showToast('📄 새 계약: ' + (c.exhibition_name || c.id));
+                            _scheduleAdminReload();
+                        }
+                    )
+                    .on('postgres_changes',
+                        { event: 'UPDATE', schema: 'public', table: '42_통역계약' },
+                        function(payload) {
+                            var oldRow = payload.old || {}, newRow = payload.new;
+                            if (!newRow) return;
+                            if (oldRow.status !== newRow.status) {
+                                showToast('📄 계약 상태 변경: ' + (newRow.exhibition_name || newRow.id) + ' → ' + newRow.status);
+                            } else if (oldRow.deposit_status !== newRow.deposit_status) {
+                                showToast('💰 결제 상태 변경: ' + (newRow.exhibition_name || newRow.id));
+                            } else if (!oldRow.cancelled_at && newRow.cancelled_at) {
+                                showToast('❌ 계약 취소: ' + (newRow.exhibition_name || newRow.id));
+                            } else if (!oldRow.interpreter_id && newRow.interpreter_id) {
+                                showToast('🤝 통역사 배정: ' + (newRow.exhibition_name || newRow.id));
+                            }
+                            _scheduleAdminReload();
+                        }
+                    )
+                    .subscribe();
+
+                // 3) 새 견적 문의
+                if (adminInquiryRealtimeSub) {
+                    try { window.sbClient.removeChannel(adminInquiryRealtimeSub); } catch(e) {}
+                }
+                adminInquiryRealtimeSub = window.sbClient
+                    .channel('admin-inquiries-new')
+                    .on('postgres_changes',
+                        { event: 'INSERT', schema: 'public', table: '46_ITQ견적문의' },
+                        function(payload) {
+                            var q = payload.new;
+                            if (!q) return;
+                            showToast('📋 새 견적 문의: ' + (q.company || q.exhibition_name || '신규'));
+                            _scheduleAdminReload();
+                        }
+                    )
+                    .subscribe();
+            };
+
+            // 디바운싱: 짧은 시간 내 여러 이벤트 → reload는 한 번만 (1초)
+            function _scheduleAdminReload() {
+                if (_adminRealtimeReloadTimer) clearTimeout(_adminRealtimeReloadTimer);
+                _adminRealtimeReloadTimer = setTimeout(function() {
+                    _adminRealtimeReloadTimer = null;
+                    if (typeof _reloadAllData === 'function') {
+                        _reloadAllData().catch(function(e) { console.warn('admin auto reload 실패:', e); });
+                    }
+                }, 1000);
             }
 
             function renderChatmonChannels() {
@@ -7220,6 +7327,11 @@
                     renderJList(); updateJournalKPI();
                     if (journals.length > 0 && !activeJId) loadJournal(journals[0].id);
                 }
+            }
+
+            // 7) admin 글로벌 realtime 구독 — 계약·문의·본인 알림 자동 갱신
+            if (typeof window.subscribeAdminGlobalRealtime === 'function') {
+                window.subscribeAdminGlobalRealtime().catch(function(e) { console.warn('admin realtime 구독 실패:', e); });
             }
         }
 
