@@ -15,6 +15,19 @@
   <link rel="stylesheet" href="design-tokens.css">
   <link rel="stylesheet" href="customer-dashboard.css?v=20260518">
   <style>
+    /* ────────────────────────────────────────────────────────────────
+       적립금 UI 비활성화 (LOYALTY_UI_ENABLED=false 시 적용)
+       플래그를 true로 바꾸면 자동 복원됨
+       ──────────────────────────────────────────────────────────────── */
+    body.loyalty-off #mypTierBadge,
+    body.loyalty-off #loyKpiCards,
+    body.loyalty-off #loyVipBanner,
+    body.loyalty-off #myp-panel-points,
+    body.loyalty-off #loyNotifToggle,
+    body.loyalty-off .myp-tab[onclick*="'points'"] {
+        display: none !important;
+    }
+
     /* build:20260506-1715 ════════════════════════════════════════════
        채팅 모바일 — 인라인 스타일로 강제 적용 (통역사 대시보드와 동일 처방)
        데모/실제 메시지 모두 같은 chat-msg 구조라 자동 적용됨
@@ -1116,7 +1129,7 @@
               <div style="display:flex;flex-direction:column;gap:14px;">
                 <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">계약 상태 변경 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
                 <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">결제 완료 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
-                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">적립금 적립/사용 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
+                <label class="cust-notif-toggle" id="loyNotifToggle"><span style="font-size:0.85rem;font-weight:600;">적립금 적립/사용 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
                 <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">채팅 메시지 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
                 <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">마케팅/이벤트 알림</span><input type="checkbox" class="cust-notif-checkbox"></label>
               </div>
@@ -1305,6 +1318,27 @@
             await ContentourAuth.requireAuth(['customer', 'admin']);
         } else {
             location.href = 'client-auth.html';
+        }
+    })();
+
+    // ── 적립금 UI 활성 플래그 (나중에 재오픈 시 true로) ──
+    // false: 마이페이지 적립금 탭·결제 모달 적립금 사용·Realtime 구독·자동 적립 모두 OFF
+    // true: 전체 적립금 UI 복원 (DB·RPC·이력 그대로라 데이터 손실 없음)
+    const LOYALTY_UI_ENABLED = false;
+    (function applyLoyaltyFlag(){
+        if (!LOYALTY_UI_ENABLED) {
+            document.body.classList.add('loyalty-off');
+            // 마이페이지 기본 탭을 '이용 통계'로 전환
+            document.addEventListener('DOMContentLoaded', function(){
+                var pointsTab = document.querySelector('.myp-tab[onclick*="\'points\'"]');
+                var statsTab = document.querySelector('.myp-tab[onclick*="\'stats\'"]');
+                var pointsPanel = document.getElementById('myp-panel-points');
+                var statsPanel = document.getElementById('myp-panel-stats');
+                if (pointsTab) pointsTab.classList.remove('active');
+                if (pointsPanel) pointsPanel.classList.remove('active');
+                if (statsTab) statsTab.classList.add('active');
+                if (statsPanel) statsPanel.classList.add('active');
+            });
         }
     })();
 
@@ -3189,6 +3223,7 @@
     // 적립금 Realtime: 관리자/cron이 잔액 변경 시 새로고침 없이 즉시 화면 반영
     let _customerLoyaltyChannel = null;
     async function subscribeLoyaltyRealtime() {
+        if (!LOYALTY_UI_ENABLED) return; // 적립금 UI OFF — 구독 skip
         if (!window.sbClient) return;
         if (_customerLoyaltyChannel) return;
         try {
@@ -5399,6 +5434,7 @@
           <div class="pm-amount__sub">VAT 포함 금액</div>
         </div>
         ${(function(){
+          if (!LOYALTY_UI_ENABLED) return '';
           try {
             var ld = loyGetData();
             if (ld.balance > 0) {
@@ -5921,10 +5957,12 @@
           if (t.step === '완료 확인') { t.active = true; }
         });
         // 적립금 적립 (잔금 결제 완료 시)
-        try { loyOnContractPayment(c); } catch(e) {}
+        if (LOYALTY_UI_ENABLED) {
+          try { loyOnContractPayment(c); } catch(e) {}
+        }
       }
       // 적립금 사용 처리 — source_id에 contract dbId 전달 (취소 시 회수 매칭용)
-      if (currentPayment.pointsUsed && currentPayment.pointsUsed > 0) {
+      if (LOYALTY_UI_ENABLED && currentPayment.pointsUsed && currentPayment.pointsUsed > 0) {
         try { loyUsePoints(currentPayment.pointsUsed, c.expo + ' 수수료 차감 사용', String(c.dbId || c.id || '')); } catch(e) {}
       }
       // DB 업데이트
