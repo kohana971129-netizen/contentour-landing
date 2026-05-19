@@ -3260,6 +3260,79 @@
         }
     }
 
+    // 24_알림 INSERT Realtime — 새 알림 즉시 토스트 (패널은 다음 오픈 시 자동 갱신)
+    let _customerNotifChannel = null;
+    async function subscribeCustomerNotifRealtime() {
+        if (!window.sbClient) return;
+        if (_customerNotifChannel) return;
+        try {
+            const { data: { user } } = await window.sbClient.auth.getUser();
+            if (!user) return;
+            _customerNotifChannel = window.sbClient
+                .channel('customer-notif-' + user.id)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: '24_알림',
+                    filter: 'user_id=eq.' + user.id
+                }, function(payload) {
+                    console.log('[Realtime] 새 알림:', payload.new);
+                    var title = (payload.new && payload.new.title) || '🔔 새 알림이 도착했습니다';
+                    if (typeof showContractToast === 'function') showContractToast(title);
+                })
+                .subscribe();
+        } catch (e) { console.warn('알림 realtime 구독 실패:', e); }
+    }
+
+    // 44_상담일지 Realtime — 통역사가 작성·수정 시 화면 자동 갱신
+    let _customerJournalChannel = null;
+    async function subscribeJournalRealtime() {
+        if (!window.sbClient) return;
+        if (_customerJournalChannel) return;
+        try {
+            const { data: { user } } = await window.sbClient.auth.getUser();
+            if (!user) return;
+            _customerJournalChannel = window.sbClient
+                .channel('customer-journal-' + user.id)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: '44_상담일지',
+                    filter: 'customer_id=eq.' + user.id
+                }, function(payload) {
+                    console.log('[Realtime] 상담일지 변경:', payload.eventType);
+                    if (typeof journalLoadFromDB === 'function') journalLoadFromDB();
+                    if (payload.eventType === 'INSERT' && typeof showContractToast === 'function') {
+                        showContractToast('📝 통역사가 새 상담일지를 등록했습니다.');
+                    }
+                })
+                .subscribe();
+        } catch (e) { console.warn('상담일지 realtime 구독 실패:', e); }
+    }
+
+    // 49_통역사리뷰 UPDATE Realtime — 통역사 답글·신고 시 화면 자동 갱신
+    let _customerReviewChannel = null;
+    async function subscribeReviewRealtime() {
+        if (!window.sbClient) return;
+        if (_customerReviewChannel) return;
+        try {
+            const { data: { user } } = await window.sbClient.auth.getUser();
+            if (!user) return;
+            _customerReviewChannel = window.sbClient
+                .channel('customer-review-' + user.id)
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: '49_통역사리뷰',
+                    filter: 'customer_id=eq.' + user.id
+                }, function(payload) {
+                    console.log('[Realtime] 리뷰 업데이트:', payload.new);
+                    if (typeof showContractToast === 'function') showContractToast('💬 통역사가 리뷰에 답글을 남겼습니다.');
+                })
+                .subscribe();
+        } catch (e) { console.warn('리뷰 realtime 구독 실패:', e); }
+    }
+
     // 로그아웃 시 ContentourAuth.logout()에서 호출 — 채널 정리
     window.unsubscribeCustomerRealtime = function() {
         if (_customerContractChannel && window.sbClient) {
@@ -3269,6 +3342,18 @@
         if (_customerLoyaltyChannel && window.sbClient) {
             try { window.sbClient.removeChannel(_customerLoyaltyChannel); } catch (e) {}
             _customerLoyaltyChannel = null;
+        }
+        if (_customerNotifChannel && window.sbClient) {
+            try { window.sbClient.removeChannel(_customerNotifChannel); } catch (e) {}
+            _customerNotifChannel = null;
+        }
+        if (_customerJournalChannel && window.sbClient) {
+            try { window.sbClient.removeChannel(_customerJournalChannel); } catch (e) {}
+            _customerJournalChannel = null;
+        }
+        if (_customerReviewChannel && window.sbClient) {
+            try { window.sbClient.removeChannel(_customerReviewChannel); } catch (e) {}
+            _customerReviewChannel = null;
         }
     };
 
@@ -5986,6 +6071,25 @@
         } catch (e) { console.error('결제 DB 업데이트 실패:', e); }
       }
 
+      // Admin에게 결제 완료 알림 (deposit / balance 모두) — UPDATE Realtime 외 영구 기록용
+      try {
+        var sess = await window.sbClient.auth.getSession();
+        var tok = sess?.data?.session?.access_token;
+        if (tok) {
+          var label = type === 'deposit' ? '선결제' : '잔금';
+          var amt = type === 'deposit' ? c.deposit : c.balance;
+          await fetch('/api/notify-admins', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+            body: JSON.stringify({
+              notification_type: 'payment',
+              title: '💰 ' + label + ' 결제 완료',
+              message: (c.expo || '계약') + ' 건의 ' + label + ' (' + formatMoney(amt || 0) + ')이(가) 완료되었습니다. ' + (type === 'deposit' ? '승인 처리해주세요.' : '정산을 진행해주세요.')
+            })
+          });
+        }
+      } catch (ne) { console.warn('[결제] admin 알림 발송 실패:', ne); }
+
       renderContracts();
       return true;
     }
@@ -6548,6 +6652,9 @@
       updateChatBadges();
       setupDragDrop(); // #1
       subscribeContractRealtime(); // 통역사 측 변경(취소·승인) 실시간 반영
+      subscribeCustomerNotifRealtime(); // 24_알림 INSERT — 새 알림 즉시 토스트
+      subscribeJournalRealtime(); // 44_상담일지 — 통역사 작성 시 자동 갱신
+      subscribeReviewRealtime(); // 49_통역사리뷰 — 통역사 답글 시 자동 갱신
       // 적립금 캐시 hydrate (결제 모달의 동기 loyGetData() 대비) + realtime 구독
       (async function() {
         await loyMigrateFromLocalStorage();
