@@ -119,65 +119,46 @@ module.exports = async function handler(req, res) {
             return res.status(200).json({ success: true, data });
 
         } else if (action === 'approve') {
-            const { email, name_ko, phone, language_pairs, specialties, total_experience, intro, certifications } = appData;
+            // B안: Auth 계정·프로필은 지원 시점에 이미 생성됨.
+            // 승인 흐름은 지원서 status='approved' + 프로필 is_active=true 만으로 단순화.
+            const { data: app, error: appErr } = await supabase
+                .from('48_통역사지원서')
+                .select('id, created_user_id, name_ko, email')
+                .eq('id', id)
+                .single();
+            if (appErr || !app) throw new Error('지원서를 찾을 수 없습니다.');
 
-            // 1. 임시 비밀번호
-            const tempPw = 'Ct' + Math.random().toString(36).slice(2, 8) + '!';
+            const userId = app.created_user_id;
+            if (!userId) throw new Error('지원서에 연결된 사용자 정보가 없습니다. (구버전 지원서일 수 있음)');
 
-            // 2. Auth 계정 생성
-            const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-                email: email,
-                password: tempPw,
-                email_confirm: true,
-                user_metadata: { name: name_ko, role: 'interpreter' }
-            });
-            if (authError) throw authError;
-            if (!authData.user) throw new Error('계정 생성 실패');
-
-            const userId = authData.user.id;
-
-            // 3. 회원 테이블 업데이트
-            await supabase.from('01_회원').update({
-                role: 'interpreter',
-                name: name_ko,
-                phone: phone
-            }).eq('id', userId);
-
-            // 4. 통역사 프로필 생성
-            const langList = (language_pairs || []).map(l => l.to)
-                .filter((v, i, arr) => arr.indexOf(v) === i);
-
-            const { error: profileErr } = await supabase.from('40_통역사프로필').insert({
-                user_id: userId,
-                display_name: name_ko,
-                phone: phone,
-                languages: langList.length > 0 ? langList : ['기타'],
-                specialties: (specialties || []).map(s => s.replace(/^[^\s]+\s/, '')),
-                experience_years: parseInt(total_experience) || 0,
-                intro: intro || '',
-                certifications: (certifications || []).map(c => c.name || c),
-                is_active: true
-            });
-            if (profileErr) throw profileErr;
-
-            // 5. 지원서 상태 업데이트
+            // 1) 지원서 status='approved'
             await supabase.from('48_통역사지원서').update({
                 status: 'approved',
-                created_user_id: userId,
                 reviewed_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             }).eq('id', id);
 
-            // 6. 승인 이메일 발송
-            const emailResult = await sendApprovalEmail(email, name_ko, tempPw);
+            // 2) 통역사 프로필 is_active=true (지원 시 생성된 행 활성화)
+            await supabase.from('40_통역사프로필').update({
+                is_active: true
+            }).eq('user_id', userId);
+
+            // 3) 인앱 알림 (이메일 안 보냄)
+            try {
+                await supabase.from('24_알림').insert({
+                    user_id: userId,
+                    notification_type: 'service',
+                    title: '🎉 통역사 계정이 승인되었습니다',
+                    message: '콘텐츄어 통역사 대시보드의 모든 기능을 사용하실 수 있습니다.',
+                    is_read: false
+                });
+            } catch (e) { /* 알림 실패는 무시 */ }
 
             return res.status(200).json({
                 success: true,
                 userId: userId,
-                tempPw: tempPw,
-                name: name_ko,
-                email: email,
-                emailSent: emailResult.success
+                name: app.name_ko,
+                email: app.email
             });
 
         } else if (action === 'notifyCancellation') {

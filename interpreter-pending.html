@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>검수 대기 - 콘텐츄어 통역사</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="design-tokens.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #0a1628, #1a2a4a);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .icon-wrap {
+      width: 72px; height: 72px;
+      margin: 0 auto 20px;
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+    }
+    .icon-wrap.pending { background: linear-gradient(135deg, #fff3e0, #ffe0b2); }
+    .icon-wrap.rejected { background: linear-gradient(135deg, #ffebee, #ffcdd2); }
+    .icon-wrap.loading { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1a2a4a;
+      margin: 0 0 10px;
+    }
+    .sub {
+      font-size: 0.88rem;
+      color: #8a95a8;
+      margin: 0 0 28px;
+      line-height: 1.6;
+    }
+    .info-box {
+      background: #f8fafc;
+      border: 1.5px solid #e5eaf2;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+      margin: 20px 0 28px;
+    }
+    .info-row {
+      display: flex; justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.84rem;
+    }
+    .info-row .label { color: #888; }
+    .info-row .value { font-weight: 700; color: #1a2a4a; }
+    .reject-reason {
+      background: #fff5f5;
+      border: 1.5px solid #ffcdd2;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0 24px;
+      text-align: left;
+      font-size: 0.88rem;
+      color: #c62828;
+      line-height: 1.6;
+    }
+    .reject-reason strong { display: block; margin-bottom: 6px; color: #b71c1c; }
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s, transform 0.1s;
+      text-decoration: none;
+      margin: 4px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: linear-gradient(135deg, #1565c0, #0d47a1); color: #fff; }
+    .btn-outline { background: #fff; color: #1565c0; border: 1.5px solid #1565c0; }
+    .btn-text { background: transparent; color: #8a95a8; padding: 10px 16px; font-size: 0.82rem; }
+    .meta {
+      font-size: 0.78rem;
+      color: #b0bac7;
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+    .meta a { color: #1565c0; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="cardContent">
+      <div class="icon-wrap loading">⏳</div>
+      <h1>확인 중...</h1>
+      <p class="sub">잠시만 기다려주세요.</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    (async function init() {
+      // 로그인 안 됐으면 로그인 페이지로
+      if (typeof ContentourAuth === 'undefined') {
+        window.location.href = 'client-auth.html';
+        return;
+      }
+      const user = await ContentourAuth.getCurrentUser();
+      if (!user) {
+        window.location.href = 'client-auth.html';
+        return;
+      }
+
+      // 본인 지원서 조회 (최신 1건)
+      const { data: app, error } = await window.sbClient
+        .from('48_통역사지원서')
+        .select('id, name_ko, email, status, rejection_reason, created_at, reviewed_at')
+        .eq('created_user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('지원서 조회 실패:', error);
+      }
+
+      // 승인됐거나 지원서가 없으면 대시보드로
+      if (!app || app.status === 'approved') {
+        window.location.href = 'interpreter-dashboard.html';
+        return;
+      }
+
+      if (app.status === 'pending') {
+        renderPending(app);
+      } else if (app.status === 'rejected') {
+        renderRejected(app);
+      } else {
+        // 알 수 없는 status — 일단 pending과 동일 처리
+        renderPending(app);
+      }
+    })();
+
+    function fmtDate(s) {
+      if (!s) return '-';
+      try { return new Date(s).toLocaleString('ko-KR'); } catch(e) { return s; }
+    }
+
+    function renderPending(app) {
+      document.getElementById('cardContent').innerHTML = `
+        <div class="icon-wrap pending">⏳</div>
+        <h1>지원서 검수 중입니다</h1>
+        <p class="sub">콘텐츄어 담당자가 ${app.name_ko}님의 지원서를 검토하고 있습니다.<br>승인되면 즉시 통역사 대시보드를 이용하실 수 있습니다.</p>
+        <div class="info-box">
+          <div class="info-row"><span class="label">지원자</span><span class="value">${esc(app.name_ko)}</span></div>
+          <div class="info-row"><span class="label">이메일</span><span class="value">${esc(app.email)}</span></div>
+          <div class="info-row"><span class="label">제출 일시</span><span class="value">${fmtDate(app.created_at)}</span></div>
+          <div class="info-row"><span class="label">예상 처리</span><span class="value">3~5 영업일 이내</span></div>
+        </div>
+        <button class="btn btn-text" onclick="logout()">로그아웃</button>
+        <p class="meta">
+          문의: <a href="mailto:info@contentour.co.kr">info@contentour.co.kr</a> · 02-868-1522
+        </p>
+      `;
+    }
+
+    function renderRejected(app) {
+      const reason = app.rejection_reason || '상세 사유는 별도로 안내드립니다.';
+      document.getElementById('cardContent').innerHTML = `
+        <div class="icon-wrap rejected">📋</div>
+        <h1>지원서가 반려되었습니다</h1>
+        <p class="sub">아쉽지만 ${app.name_ko}님의 이번 지원서는 반려되었습니다.<br>아래 사유를 확인하시고 보완하여 재지원해주세요.</p>
+        <div class="reject-reason">
+          <strong>반려 사유</strong>
+          ${esc(reason).replace(/\n/g, '<br>')}
+        </div>
+        <a href="interpreter-apply.html" class="btn btn-primary">📝 다시 지원하기</a>
+        <button class="btn btn-text" onclick="logout()">로그아웃</button>
+        <p class="meta">
+          문의: <a href="mailto:info@contentour.co.kr">info@contentour.co.kr</a> · 02-868-1522
+        </p>
+      `;
+    }
+
+    function esc(s) {
+      if (s == null) return '';
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function logout() {
+      try {
+        if (window.ContentourAuth) await ContentourAuth.logout();
+        else if (window.sbClient) await window.sbClient.auth.signOut();
+      } catch(e) {}
+      window.location.href = 'client-auth.html';
+    }
+  </script>
+</body>
+</html>

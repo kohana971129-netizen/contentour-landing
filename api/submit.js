@@ -102,6 +102,8 @@ async function handleInquiry(req, res) {
 }
 
 // ────────────────────────── submit-application ──────────────────────────
+// B안: 지원자가 본인 비밀번호 직접 입력 → 즉시 Auth 계정 생성 + 01_회원 role='interpreter' 활성화
+//      + 48_통역사지원서.status='pending'. 승인 전엔 검수 대기 페이지만 접근 가능.
 async function handleApplication(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -109,10 +111,17 @@ async function handleApplication(req, res) {
     var name_ko = s(b.name_ko, 100);
     var email = s(b.email, 200);
     var phone = s(b.phone, 50);
+    var password = b.password ? String(b.password) : '';
 
     if (!name_ko || !email || !phone) return res.status(400).json({ error: '필수 항목이 누락되었습니다.' });
     if (!isEmail(email)) return res.status(400).json({ error: '이메일 형식이 올바르지 않습니다.' });
     if (b.privacy_consent !== true) return res.status(400).json({ error: '개인정보 수집·이용 동의가 필요합니다.' });
+
+    // 비밀번호 정책: 8자 이상 + 대문자·소문자·숫자 모두 포함
+    if (!password || password.length < 8) return res.status(400).json({ error: '비밀번호는 8자 이상이어야 합니다.' });
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+        return res.status(400).json({ error: '비밀번호는 대문자·소문자·숫자를 모두 포함해야 합니다.' });
+    }
 
     var payload = {
         name_ko, name_en: s(b.name_en, 100), email, phone,
@@ -135,16 +144,100 @@ async function handleApplication(req, res) {
         portfolio_url: s(b.portfolio_url, 500),
         motivation: s(b.motivation, 5000),
         privacy_consent: true,
-        privacy_consent_at: new Date().toISOString()
+        privacy_consent_at: new Date().toISOString(),
+        status: 'pending'
     };
 
     try {
+        // 1) 기존 회원 이메일 중복 체크 — 단, role='interpreter'에 status='rejected' 이력이 있으면 재지원 허용
+        var { data: existing } = await sb.from('01_회원').select('id, role').eq('email', email).maybeSingle();
+        var userId = null;
+        var reapplying = false;
+
+        if (existing && existing.id) {
+            // 기존 통역사가 재지원 케이스 확인
+            if (existing.role === 'interpreter') {
+                var { data: lastApp } = await sb.from('48_통역사지원서')
+                    .select('id, status').eq('created_user_id', existing.id)
+                    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+                if (lastApp && lastApp.status === 'rejected') {
+                    // 재지원 허용 (계정 유지)
+                    userId = existing.id;
+                    reapplying = true;
+                } else {
+                    return res.status(409).json({ error: '이미 지원이 진행 중이거나 승인된 계정입니다. 로그인 후 진행해주세요.' });
+                }
+            } else {
+                return res.status(409).json({ error: '이미 가입된 이메일입니다. 다른 이메일로 지원해주세요.' });
+            }
+        }
+
+        // 2) 신규 가입자: Supabase Auth 계정 생성
+        if (!userId) {
+            var { data: authData, error: authErr } = await sb.auth.admin.createUser({
+                email: email,
+                password: password,
+                email_confirm: true,
+                user_metadata: { name: name_ko, role: 'interpreter' }
+            });
+            if (authErr || !authData || !authData.user) {
+                console.error('Auth 계정 생성 실패:', authErr);
+                if (authErr && /already/i.test(authErr.message || '')) {
+                    return res.status(409).json({ error: '이미 가입된 이메일입니다.' });
+                }
+                return res.status(500).json({ error: '계정 생성 실패. 잠시 후 다시 시도해주세요.' });
+            }
+            userId = authData.user.id;
+
+            // 3) 01_회원 row UPDATE (Auth 트리거가 생성한 row를 통역사용으로 갱신)
+            await sb.from('01_회원').update({
+                role: 'interpreter',
+                name: name_ko,
+                phone: phone
+            }).eq('id', userId);
+
+            // 4) 40_통역사프로필 INSERT (검수 전이므로 is_active=false)
+            var langList = (payload.language_pairs || []).map(function(l) { return l && l.to ? l.to : null; })
+                .filter(function(v) { return !!v; });
+            langList = langList.filter(function(v, i, a) { return a.indexOf(v) === i; });
+            try {
+                await sb.from('40_통역사프로필').insert({
+                    user_id: userId,
+                    display_name: name_ko,
+                    phone: phone,
+                    languages: langList.length > 0 ? langList : ['기타'],
+                    specialties: (payload.specialties || []).map(function(sp) { return String(sp).replace(/^[^\s]+\s/, ''); }),
+                    experience_years: parseInt(payload.total_experience) || 0,
+                    intro: payload.intro || '',
+                    certifications: (payload.certifications || []).map(function(c) { return c && c.name ? c.name : (typeof c === 'string' ? c : ''); }).filter(Boolean),
+                    is_active: false
+                });
+            } catch (pErr) {
+                console.error('통역사 프로필 INSERT 실패 (계속 진행):', pErr);
+            }
+        } else if (reapplying) {
+            // 재지원: 비밀번호 재설정 (사용자가 새 비밀번호를 입력했으므로)
+            try {
+                await sb.auth.admin.updateUserById(userId, { password: password });
+            } catch (pwErr) {
+                console.error('재지원 비밀번호 갱신 실패 (무시):', pwErr);
+            }
+        }
+
+        // 5) 48_통역사지원서 INSERT (status=pending, created_user_id 연결)
+        payload.created_user_id = userId;
         var { data, error } = await sb.from('48_통역사지원서').insert(payload).select('id').single();
         if (error) {
             console.error('지원서 저장 실패:', error);
             return res.status(500).json({ error: '저장 실패. 잠시 후 다시 시도해주세요.' });
         }
-        return res.status(200).json({ ok: true, applicationId: data.id });
+
+        return res.status(200).json({
+            ok: true,
+            applicationId: data.id,
+            userId: userId,
+            reapplying: reapplying
+        });
     } catch (e) {
         console.error('Submit application error:', e);
         return res.status(500).json({ error: '서버 오류가 발생했습니다.' });

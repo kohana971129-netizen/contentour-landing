@@ -8101,7 +8101,7 @@
             if (a.status === 'pending' || a.status === 'reviewing') {
                 actions += '<button onclick="updateAppStatus(\'' + id + '\',\'reviewing\')" style="padding:10px 20px;border:1.5px solid var(--blue);color:var(--blue);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">검토중으로 변경</button>';
                 actions += '<button onclick="rejectApp(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid var(--error);color:var(--error);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">거절</button>';
-                actions += '<button onclick="approveApp(\'' + id + '\')" style="padding:10px 20px;border:none;color:#fff;background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">✅ 승인 & 계정 생성</button>';
+                actions += '<button onclick="approveApp(\'' + id + '\')" style="padding:10px 20px;border:none;color:#fff;background:linear-gradient(135deg,#2e7d32,#43a047);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">✅ 승인</button>';
             } else if (a.status === 'approved') {
                 actions += '<button onclick="resetPassword(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid var(--blue);color:var(--blue);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">🔑 비밀번호 초기화</button>';
                 actions += '<button onclick="toggleAccount(\'' + id + '\')" style="padding:10px 20px;border:1.5px solid var(--warn);color:var(--warn);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">🚫 계정 비활성화</button>';
@@ -8193,7 +8193,7 @@
             const a = _allApps.find(x => x.id === id);
             if (!a) return;
 
-            if (!confirm(a.name_ko + '님의 지원을 승인하고 통역사 계정을 생성하시겠습니까?')) return;
+            if (!confirm(a.name_ko + '님의 지원을 승인하시겠습니까?\n\n승인 시 통역사 본인이 가입할 때 설정한 비밀번호로 즉시 대시보드 이용이 가능합니다.')) return;
 
             const btn = event.target;
             btn.disabled = true;
@@ -8206,23 +8206,13 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({
                         action: 'approve',
-                        id: id,
-                        appData: {
-                            email: a.email,
-                            name_ko: a.name_ko,
-                            phone: a.phone,
-                            language_pairs: a.language_pairs,
-                            specialties: a.specialties,
-                            total_experience: a.total_experience,
-                            intro: a.intro,
-                            certifications: a.certifications
-                        }
+                        id: id
                     })
                 });
                 const result = await res.json();
                 if (!res.ok) throw new Error(result.error);
 
-                alert('✅ 승인 완료!\n\n통역사: ' + result.name + '\n이메일: ' + result.email + '\n임시 비밀번호: ' + result.tempPw + '\n\n이 정보를 통역사에게 전달해주세요.');
+                showToast('✅ ' + (result.name || a.name_ko) + '님의 지원이 승인되었습니다.', 'success');
 
                 // 감사 로그 기록
                 if (typeof CT !== 'undefined' && CT.logAudit) {
@@ -8235,7 +8225,7 @@
             } catch (err) {
                 showToast('❌ 승인 처리 실패: ' + err.message, 'error');
                 btn.disabled = false;
-                btn.textContent = '✅ 승인 & 계정 생성';
+                btn.textContent = '✅ 승인';
             }
         }
 

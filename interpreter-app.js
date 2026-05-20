@@ -42,6 +42,28 @@ const InterpreterApp = {
                 this.currentUser = userProfile.auth;
                 this.profile = userProfile;
 
+                // 1-1) 지원서 검수 상태 가드 (interpreter만 적용, admin 통과)
+                // status가 pending/rejected이면 interpreter-pending.html로 리다이렉트
+                if (userProfile.role === 'interpreter') {
+                    try {
+                        const { data: app } = await window.sbClient
+                            .from('48_통역사지원서')
+                            .select('status')
+                            .eq('created_user_id', this.currentUser.id)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+                        // 지원서 row가 있고 승인되지 않았으면 대기 페이지로
+                        if (app && app.status && app.status !== 'approved') {
+                            console.log('[InterpreterApp] 지원서 status:', app.status, '— 검수 대기 페이지로 이동');
+                            window.location.href = 'interpreter-pending.html';
+                            return;
+                        }
+                    } catch (e) {
+                        console.warn('[InterpreterApp] 지원서 상태 조회 실패 (대시보드 진입 허용):', e);
+                    }
+                }
+
                 // 2) 통역사 프로필 로드
                 try { await this.loadInterpreterProfile(); } catch (e) { console.warn('[InterpreterApp] 프로필 로드 실패:', e); }
 
