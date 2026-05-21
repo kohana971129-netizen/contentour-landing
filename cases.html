@@ -50,13 +50,31 @@
                 <img src="assets/logo.png" alt="CONTENTOUR Logo" class="logo-img">
             </a>
             <nav class="nav__menu" id="navMenu" aria-label="메인 메뉴">
-                <a href="support.html">
-                    <span class="nav__menu-icon">🤝</span>
-                    <div class="nav__menu-text">
-                        <span class="nav__menu-title">통역지원</span>
-                        <span class="nav__menu-desc">서비스 이용 안내</span>
+                <div class="nav__menu-item has-dropdown">
+                    <a href="support.html">
+                        <span class="nav__menu-icon">🤝</span>
+                        <div class="nav__menu-text">
+                            <span class="nav__menu-title">통역지원<span class="nav__menu-caret">▾</span></span>
+                            <span class="nav__menu-desc">서비스 이용 안내</span>
+                        </div>
+                    </a>
+                    <div class="nav__dropdown" role="menu">
+                        <a href="support.html" role="menuitem">
+                            <span class="nav__dropdown-icon">📖</span>
+                            <div>
+                                <div class="nav__dropdown-title">서비스 이용 안내</div>
+                                <div class="nav__dropdown-desc">전체 이용 흐름 안내</div>
+                            </div>
+                        </a>
+                        <a href="interpreter-jobs.html" role="menuitem">
+                            <span class="nav__dropdown-icon">📊</span>
+                            <div>
+                                <div class="nav__dropdown-title">통역사 구인 현황 <span class="nav__dropdown-new">NEW</span></div>
+                                <div class="nav__dropdown-desc">실시간 수요 현황판</div>
+                            </div>
+                        </a>
                     </div>
-                </a>
+                </div>
                 <a href="service.html">
                     <span class="nav__menu-icon">🏢</span>
                     <div class="nav__menu-text">

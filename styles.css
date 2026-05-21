@@ -234,6 +234,130 @@ body {
     text-decoration: underline;
 }
 
+/* ══════════════ 네비 드롭다운 (통역지원) ══════════════ */
+.nav__menu-item {
+    position: relative;
+}
+.nav__menu-item > a {
+    /* .nav__menu a 스타일을 그대로 상속 */
+    display: inline-flex;
+    align-items: center;
+}
+.nav__menu-caret {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.7em;
+    opacity: 0.55;
+    transition: transform 0.2s, opacity 0.2s;
+}
+.nav__menu-item:hover > a .nav__menu-caret,
+.nav__menu-item:focus-within > a .nav__menu-caret {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+.nav__dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: #fff;
+    border: 1px solid var(--gray-200, #e5eaf2);
+    border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(10, 22, 50, 0.12);
+    min-width: 260px;
+    padding: 8px;
+    margin-top: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
+    z-index: 1500;
+}
+.nav__menu-item:hover .nav__dropdown,
+.nav__menu-item:focus-within .nav__dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+.nav__menu .nav__dropdown a {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 500;
+    opacity: 1;
+    transition: background 0.15s;
+}
+.nav__menu .nav__dropdown a:hover {
+    background: rgba(21, 101, 192, 0.08);
+    text-decoration: none;
+}
+.nav__dropdown-icon {
+    font-size: 1.15rem;
+    line-height: 1.2;
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+}
+.nav__dropdown-title {
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--text, #0d1b3e);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+.nav__dropdown-desc {
+    font-size: 0.78rem;
+    color: var(--gray-600, #3d4f6a);
+    font-weight: 400;
+    margin-top: 2px;
+}
+.nav__dropdown-new {
+    background: var(--blue, #1565c0);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.4px;
+}
+
+/* 모바일: 드롭다운을 펼친 상태로 인라인 표시 */
+@media (max-width: 860px) {
+    .nav__menu-item {
+        width: 100%;
+    }
+    .nav__menu-caret {
+        display: none;
+    }
+    .nav__dropdown {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        border: none;
+        box-shadow: none;
+        padding: 0 0 0 60px;
+        margin: 4px 0 0;
+        background: transparent;
+        min-width: 0;
+    }
+    .nav__menu .nav__dropdown a {
+        padding: 12px 8px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+    }
+    .nav__menu .nav__dropdown a:last-child {
+        border-bottom: none;
+    }
+    .nav__dropdown-icon {
+        display: none;
+    }
+}
+
 /* 토글 버튼: 데스크톱에서는 숨김 */
 .nav__toggle {
     display: none;
