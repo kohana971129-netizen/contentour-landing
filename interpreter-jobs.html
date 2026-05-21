@@ -686,12 +686,31 @@
             document.getElementById('counterNeeded').textContent = totalNeeded;
         }
 
-        // 필터 칩 클릭 (Phase 1에서는 일단 동작하게 — URL 동기화는 Phase 2)
+        function activateChip(region) {
+            var target = document.querySelector('.ij-chip[data-region="' + region + '"]');
+            if (!target) return false;
+            document.querySelectorAll('.ij-chip').forEach(function (c) { c.classList.remove('is-active'); });
+            target.classList.add('is-active');
+            return true;
+        }
+
+        function updateUrl(region) {
+            var url = new URL(location.href);
+            if (region === 'all') {
+                url.searchParams.delete('region');
+            } else {
+                url.searchParams.set('region', region.toLowerCase());
+            }
+            history.replaceState(null, '', url);
+        }
+
+        // 필터 칩 클릭 — URL 쿼리스트링 동기화 포함
         document.getElementById('ijFilter').addEventListener('click', function (e) {
             var btn = e.target.closest('.ij-chip');
             if (!btn) return;
-            document.querySelectorAll('.ij-chip').forEach(function (c) { c.classList.remove('is-active'); });
-            btn.classList.add('is-active');
+            var region = btn.getAttribute('data-region');
+            activateChip(region);
+            updateUrl(region);
             expanded = false;
             renderGrid();
         });
@@ -702,8 +721,28 @@
             renderGrid();
         });
 
-        // 초기 렌더
-        renderGrid();
+        // 뒤로가기/앞으로가기 시에도 동기화
+        window.addEventListener('popstate', function () {
+            syncFromUrl();
+        });
+
+        // 초기 로드: URL 쿼리스트링에서 region 읽어서 적용
+        function syncFromUrl() {
+            var params = new URLSearchParams(location.search);
+            var raw = params.get('region');
+            var region = raw ? raw.toUpperCase() : 'all';
+            if (region === 'ALL') region = 'all';
+            if (!activateChip(region)) {
+                // 잘못된 값 → 전체로 폴백 + URL 정리
+                activateChip('all');
+                var url = new URL(location.href);
+                url.searchParams.delete('region');
+                history.replaceState(null, '', url);
+            }
+            expanded = false;
+            renderGrid();
+        }
+        syncFromUrl();
     </script>
 </body>
 
