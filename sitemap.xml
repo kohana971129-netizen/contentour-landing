@@ -43,22 +43,10 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://contentour-landing.vercel.app/signup</loc>
-    <lastmod>2026-05-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://contentour-landing.vercel.app/client-auth</loc>
-    <lastmod>2026-05-07</lastmod>
+    <lastmod>2026-05-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://contentour-landing.vercel.app/login</loc>
-    <lastmod>2026-05-07</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://contentour-landing.vercel.app/terms</loc>
