@@ -11,6 +11,7 @@
     { "source": "/api/portone-webhook", "destination": "/api/payment?_route=portone-webhook" },
     { "source": "/api/my-inquiries", "destination": "/api/my?_route=my-inquiries" },
     { "source": "/api/my-contracts", "destination": "/api/my?_route=my-contracts" },
+    { "source": "/api/my-showcase-postings", "destination": "/api/my?_route=my-showcase-postings" },
     { "source": "/api/cases", "destination": "/api/data?_route=cases" },
     { "source": "/api/reviews", "destination": "/api/data?_route=reviews" },
     { "source": "/api/showcase", "destination": "/api/data?_route=showcase" },

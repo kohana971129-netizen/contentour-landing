@@ -112,6 +112,55 @@ async function handleMyContracts(req, res) {
     }
 }
 
+// ────────────────────────── my-showcase-postings ──────────────────────────
+// 로그인 고객사 본인이 등록한 통역사 구인공고 목록 + 지원자/매칭 카운트
+async function handleMyShowcasePostings(req, res) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    const auth = await authenticate(req);
+    if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+    const { data: profile } = await sb.from('01_회원').select('role').eq('id', auth.user.id).single();
+    if (!profile || profile.role !== 'customer') {
+        return res.status(403).json({ error: '고객사 권한이 필요합니다.' });
+    }
+
+    try {
+        const { data, error } = await sb
+            .from('46_ITQ견적문의')
+            .select('id, exhibition_name, location, venue, start_date, end_date, language_pair, headcount, message, showcase_label, showcase_industry, showcase_country_code, company_name_disclosure, review_status, review_note, reviewed_at, contract_id, created_at')
+            .eq('source_type', 'direct_posting')
+            .eq('posted_by_user_id', auth.user.id)
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+
+        const postingIds = (data || []).map(d => d.id);
+        const countsMap = {};
+        if (postingIds.length > 0) {
+            const { data: apps } = await sb
+                .from('70_구인공고지원')
+                .select('posting_id, status')
+                .in('posting_id', postingIds);
+            (apps || []).forEach(a => {
+                if (!countsMap[a.posting_id]) countsMap[a.posting_id] = { total: 0, matched: 0 };
+                countsMap[a.posting_id].total += 1;
+                if (a.status === 'matched') countsMap[a.posting_id].matched += 1;
+            });
+        }
+
+        const result = (data || []).map(d => ({
+            ...d,
+            _applicants_count: countsMap[d.id] ? countsMap[d.id].total : 0,
+            _matched_count: countsMap[d.id] ? countsMap[d.id].matched : 0
+        }));
+
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.status(200).json(result);
+    } catch (e) {
+        console.error('My showcase postings error:', e);
+        return res.status(500).json({ error: e.message });
+    }
+}
+
 // ────────────────────────── 디스패처 ──────────────────────────
 module.exports = async function handler(req, res) {
     if (!SERVICE_KEY) return res.status(500).json({ error: '서버 설정 오류' });
@@ -120,6 +169,7 @@ module.exports = async function handler(req, res) {
     switch (route) {
         case 'my-inquiries': return handleMyInquiries(req, res);
         case 'my-contracts': return handleMyContracts(req, res);
+        case 'my-showcase-postings': return handleMyShowcasePostings(req, res);
         default: return res.status(404).json({ error: 'Unknown route: ' + route });
     }
 };

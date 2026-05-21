@@ -211,6 +211,7 @@
       <a class="nav-item" href="#inquiry" onclick="switchView('inquiry');if(event)event.preventDefault()"><span class="nav-item__icon">&#128203;</span> 통역 문의 접수</a>
       <a class="nav-item" href="#list" onclick="switchView('list');if(event)event.preventDefault()"><span class="nav-item__icon">&#128194;</span> 나의 문의 현황<span class="nav-item__badge" id="inquiryNavBadge" style="display:none;">0</span></a>
       <a class="nav-item" href="#contract" onclick="switchView('contract');if(event)event.preventDefault()"><span class="nav-item__icon">&#128196;</span> 계약·결제<span class="nav-item__badge" id="contractNavBadge" style="display:none;">0</span></a>
+      <a class="nav-item" href="#showcase" onclick="switchView('showcase');if(event)event.preventDefault()"><span class="nav-item__icon">&#127914;</span> 내 구인공고<span class="nav-item__badge" id="showcaseNavBadge" style="display:none;">0</span></a>
       <div class="nav-section-label">관리</div>
       <a class="nav-item" href="#chat" onclick="switchView('chat');if(event)event.preventDefault()"><span class="nav-item__icon">&#128172;</span> 통역사 채팅<span class="nav-item__badge" id="chatNavBadge" style="display:none;">0</span></a>
       <a class="nav-item" href="#schedule" onclick="switchView('schedule');if(event)event.preventDefault()"><span class="nav-item__icon">&#128197;</span> 일정 확인</a>
@@ -474,6 +475,165 @@
             <button class="quote-detail-modal__close" onclick="closeQuoteDetail()">&#10005;</button>
           </div>
           <div class="quote-detail-modal__body" id="qdBody"></div>
+        </div>
+      </div>
+
+      <!-- VIEW: 내 구인공고 -->
+      <div class="view" id="view-showcase">
+        <style>
+            .sc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; gap:12px; flex-wrap:wrap; }
+            .sc-head__title { font-size:1.15rem; font-weight:800; color:#1a2a4a; margin:0; }
+            .sc-head__sub { font-size:0.84rem; color:#6b7280; margin-top:4px; }
+            .sc-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:14px; }
+            .sc-card { background:#fff; border:1px solid rgba(0,0,0,0.06); border-radius:14px; padding:18px 18px; display:flex; flex-direction:column; gap:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+            .sc-card__top { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+            .sc-status { font-size:0.7rem; font-weight:800; padding:3px 10px; border-radius:10px; letter-spacing:0.3px; }
+            .sc-status--pending { background:#fff7e6; color:#d97706; }
+            .sc-status--approved { background:#ecfdf5; color:#047857; }
+            .sc-status--rejected { background:#fee2e2; color:#b91c1c; }
+            .sc-status--matched { background:#e0e7ff; color:#3730a3; }
+            .sc-card__title { font-size:0.96rem; font-weight:700; color:#1a2a4a; line-height:1.4; margin:0; }
+            .sc-card__rows { display:grid; grid-template-columns:max-content 1fr; gap:4px 12px; font-size:0.8rem; color:#4a5a75; }
+            .sc-card__rows dt { color:#9ca3af; font-weight:600; font-size:0.74rem; }
+            .sc-card__rows dd { margin:0; color:#1a2a4a; font-weight:500; }
+            .sc-card__chips { display:flex; gap:6px; flex-wrap:wrap; }
+            .sc-chip { background:#eef2ff; color:#4338ca; padding:2px 9px; border-radius:8px; font-size:0.72rem; font-weight:600; }
+            .sc-card__rej { background:#fee2e2; border-left:3px solid #dc2626; padding:8px 12px; font-size:0.78rem; color:#991b1b; border-radius:6px; }
+            .sc-card__applicants { background:#f3f4f6; padding:8px 12px; border-radius:8px; font-size:0.8rem; color:#1a2a4a; font-weight:600; text-align:center; }
+            .sc-card__date { font-size:0.72rem; color:#9ca3af; }
+            .sc-empty { background:#fff; border:1px dashed rgba(0,0,0,0.12); border-radius:14px; padding:48px 20px; text-align:center; color:#9ca3af; font-size:0.92rem; }
+
+            /* 등록 모달 — interpreter-jobs.html과 동일 패턴, prefix sc- */
+            .sc-modal { position:fixed; inset:0; z-index:9500; display:none; }
+            .sc-modal.is-open { display:block; }
+            .sc-modal__bg { position:absolute; inset:0; background:rgba(10,22,40,0.5); }
+            .sc-modal__sheet { position:relative; max-width:580px; margin:40px auto; background:#fff; border-radius:18px; padding:32px 28px; max-height:calc(100vh - 80px); overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+            .sc-modal__close { position:absolute; top:14px; right:14px; width:32px; height:32px; border:none; background:transparent; font-size:1.5rem; color:#9ca3af; cursor:pointer; border-radius:8px; }
+            .sc-modal__head h3 { font-size:1.2rem; font-weight:800; color:#1a2a4a; margin:0 0 6px; }
+            .sc-modal__head p { font-size:0.82rem; color:#6b7280; margin:0; }
+            .sc-modal__form { display:grid; grid-template-columns:1fr 1fr; gap:14px 12px; margin-top:22px; }
+            .sc-field { display:flex; flex-direction:column; gap:5px; }
+            .sc-field--full { grid-column:1 / -1; }
+            .sc-field label { font-size:0.78rem; font-weight:600; color:#4a5a75; }
+            .sc-field .req { color:#dc2626; }
+            .sc-field input, .sc-field select, .sc-field textarea { font-family:inherit; font-size:0.88rem; padding:9px 11px; border:1px solid rgba(0,0,0,0.12); border-radius:9px; background:#fff; outline:none; transition:border 0.15s, box-shadow 0.15s; box-sizing:border-box; width:100%; }
+            .sc-field input:focus, .sc-field select:focus, .sc-field textarea:focus { border-color:#1565c0; box-shadow:0 0 0 3px rgba(21,101,192,0.12); }
+            .sc-field textarea { resize:vertical; min-height:70px; }
+            .sc-field--check { grid-column:1 / -1; flex-direction:row; align-items:flex-start; gap:8px; padding:10px 12px; background:#f9fafb; border-radius:9px; }
+            .sc-field--check input { width:auto; margin-top:2px; }
+            .sc-field--check label { font-size:0.82rem; line-height:1.5; color:#1a2a4a; font-weight:500; }
+            .sc-field--check .help { display:block; font-size:0.74rem; color:#9ca3af; margin-top:4px; font-weight:400; }
+            .sc-modal__help { grid-column:1 / -1; font-size:0.74rem; color:#9ca3af; line-height:1.5; margin-top:-6px; }
+            .sc-modal__actions { grid-column:1 / -1; display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+            .sc-modal__btn { padding:11px 22px; border-radius:10px; font-size:0.88rem; font-weight:700; cursor:pointer; border:1.5px solid #1565c0; font-family:inherit; transition:all 0.15s; }
+            .sc-modal__btn--cancel { background:#fff; color:#6b7280; border-color:rgba(0,0,0,0.12); }
+            .sc-modal__btn--cancel:hover { background:#f3f4f6; }
+            .sc-modal__btn--primary { background:#1565c0; color:#fff; }
+            .sc-modal__btn--primary:hover { background:#0d47a1; border-color:#0d47a1; }
+            .sc-modal__btn--primary:disabled { background:#94a3b8; border-color:#94a3b8; cursor:not-allowed; }
+            @media (max-width: 768px) {
+              .sc-modal__sheet { margin:20px 12px; padding:24px 20px; }
+              .sc-modal__form { grid-template-columns:1fr; }
+              .sc-modal__actions { flex-direction:column-reverse; }
+              .sc-modal__btn { width:100%; }
+            }
+        </style>
+        <div class="sc-head">
+          <div>
+            <h2 class="sc-head__title">&#127914; 내 구인공고</h2>
+            <div class="sc-head__sub">통역사 구인 현황 페이지(/interpreter-jobs)에 노출할 공고를 등록하고 검토 상태·지원자 수를 확인합니다.</div>
+          </div>
+          <button class="btn-primary" id="newShowcaseBtn" type="button">+ 공고 올리기</button>
+        </div>
+        <div class="sc-grid" id="myShowcaseList">
+          <div class="sc-empty">불러오는 중...</div>
+        </div>
+
+        <!-- 등록 모달 -->
+        <div class="sc-modal" id="scModal" aria-hidden="true">
+          <div class="sc-modal__bg" id="scModalBg"></div>
+          <div class="sc-modal__sheet" role="dialog" aria-labelledby="scModalTitle">
+            <button class="sc-modal__close" type="button" id="scModalClose" aria-label="닫기">&times;</button>
+            <header class="sc-modal__head">
+              <h3 id="scModalTitle">통역사 모집 공고 올리기</h3>
+              <p>입력 후 관리자 검토를 거쳐 게재됩니다. 연락처·회사명은 통역사에게 직접 노출되지 않습니다.</p>
+            </header>
+            <form id="scForm" class="sc-modal__form" autocomplete="off">
+              <div class="sc-field sc-field--full">
+                <label for="sc-exhibition">전시회명 <span class="req">*</span></label>
+                <input id="sc-exhibition" name="exhibition_name" required maxlength="300" placeholder="예: CES 2026" />
+              </div>
+              <div class="sc-field">
+                <label for="sc-country">국가 <span class="req">*</span></label>
+                <select id="sc-country" name="showcase_country_code" required>
+                  <option value="">선택</option>
+                  <option value="JP">일본</option><option value="CN">중국</option><option value="US">미국</option>
+                  <option value="DE">독일</option><option value="VN">베트남</option><option value="AE">UAE</option>
+                  <option value="FR">프랑스</option><option value="GB">영국</option><option value="IT">이탈리아</option>
+                  <option value="ES">스페인</option><option value="TH">태국</option><option value="ID">인도네시아</option>
+                  <option value="IN">인도</option><option value="SG">싱가포르</option><option value="TR">튀르키예</option>
+                  <option value="BR">브라질</option><option value="MX">멕시코</option><option value="OT">기타</option>
+                </select>
+              </div>
+              <div class="sc-field">
+                <label for="sc-location">개최지(도시) <span class="req">*</span></label>
+                <input id="sc-location" name="location" required maxlength="200" placeholder="예: 라스베이거스" />
+              </div>
+              <div class="sc-field">
+                <label for="sc-start">시작일 <span class="req">*</span></label>
+                <input id="sc-start" name="start_date" type="date" required />
+              </div>
+              <div class="sc-field">
+                <label for="sc-end">종료일 <span class="req">*</span></label>
+                <input id="sc-end" name="end_date" type="date" required />
+              </div>
+              <div class="sc-field">
+                <label for="sc-industry">산업 <span class="req">*</span></label>
+                <select id="sc-industry" name="showcase_industry" required>
+                  <option value="">선택</option>
+                  <option>IT</option><option>의료기기</option><option>뷰티·화장품</option>
+                  <option>자동차 부품</option><option>식품·F&amp;B</option><option>건축·자재</option>
+                  <option>반도체</option><option>에너지·환경</option><option>섬유·패션</option>
+                  <option>기계·로봇</option><option>유아·완구</option><option>스포츠·레저</option><option>기타</option>
+                </select>
+              </div>
+              <div class="sc-field">
+                <label for="sc-headcount">필요 인원 <span class="req">*</span></label>
+                <input id="sc-headcount" name="headcount" type="number" min="1" max="99" required placeholder="예: 2" />
+              </div>
+              <div class="sc-field sc-field--full">
+                <label for="sc-languages">필요 언어 <span class="req">*</span></label>
+                <input id="sc-languages" name="language_pair" required maxlength="200" placeholder="예: 영어, 일본어" />
+              </div>
+              <div class="sc-field sc-field--full">
+                <label for="sc-venue">전시장 (선택)</label>
+                <input id="sc-venue" name="venue" maxlength="200" placeholder="예: Las Vegas Convention Center" />
+              </div>
+              <div class="sc-field sc-field--check">
+                <input id="sc-disclose" name="company_name_disclosure" type="checkbox" />
+                <label for="sc-disclose">
+                  로그인 통역사에게 실제 회사명 공개
+                  <span class="help">기본은 익명 노출입니다. 체크 시 회사명이 가입된 통역사에게만 보입니다. 비로그인 사용자에게는 어떤 경우에도 익명입니다.</span>
+                </label>
+              </div>
+              <div class="sc-field sc-field--full">
+                <label for="sc-label">익명 라벨 (선택)</label>
+                <input id="sc-label" name="showcase_label" maxlength="100" placeholder="예: 한국 IT 중견기업 — 비우면 산업 기준 자동 생성" />
+              </div>
+              <div class="sc-field sc-field--full">
+                <label for="sc-message">추가 메모 (선택)</label>
+                <textarea id="sc-message" name="message" maxlength="2000" placeholder="통역사 지원 시 참고할 추가 정보가 있다면 입력해주세요."></textarea>
+              </div>
+              <p class="sc-modal__help">
+                🛡 통역사가 카드에서 "지원하기"를 누르면 콘텐츄어 관리자가 검토 후 매칭을 제안드립니다.
+                직접 컨택 적발 시 해당 통역사는 통역사 풀에서 영구 제명됩니다.
+              </p>
+              <div class="sc-modal__actions">
+                <button type="button" class="sc-modal__btn sc-modal__btn--cancel" id="scCancelBtn">취소</button>
+                <button type="submit" class="sc-modal__btn sc-modal__btn--primary" id="scSubmitBtn">제출</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 
@@ -1510,13 +1670,13 @@
       var tabEl = document.getElementById('ptab-' + v);
       if (viewEl) viewEl.classList.add('active');
       if (tabEl) tabEl.classList.add('active');
-      const titles = { home:'홈', inquiry:'통역 문의 접수', list:'나의 문의 현황', contract:'계약·결제 관리', schedule:'파견 일정 확인', chat:'통역사 채팅', journal:'상담일지 작성', mypage:'마이페이지' };
+      const titles = { home:'홈', inquiry:'통역 문의 접수', list:'나의 문의 현황', contract:'계약·결제 관리', showcase:'내 구인공고', schedule:'파견 일정 확인', chat:'통역사 채팅', journal:'상담일지 작성', mypage:'마이페이지' };
       document.getElementById('topbarTitle').textContent = titles[v] || '';
       // 의뢰 현황 카드: 의뢰 접수/문의 현황 뷰에서만 표시
       const inquiryCards = document.getElementById('inquirySummaryCards');
       if (inquiryCards) inquiryCards.style.display = (v === 'inquiry' || v === 'list') ? '' : 'none';
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      const navMap = { home:0, inquiry:1, list:2, contract:3, chat:4, schedule:5, journal:6, mypage:7 };
+      const navMap = { home:0, inquiry:1, list:2, contract:3, showcase:4, chat:5, schedule:6, journal:7, mypage:8 };
       const navItems = document.querySelectorAll('.nav-item');
       if (navMap[v] !== undefined && navItems[navMap[v]]) navItems[navMap[v]].classList.add('active');
       if (v === 'home') { loadHomeDashboard(); }
@@ -1525,6 +1685,7 @@
       if (v === 'chat') { renderChatContacts(); chatLoadFromDB(); }
       if (v === 'contract') { _contractsDbLoaded = false; renderContracts(); contractsLoadFromDB(); }
       if (v === 'list') { loadMyInquiries(); }
+      if (v === 'showcase') { loadMyShowcasePostings(); }
       if (v === 'mypage') {
         (async function() {
           await loyMigrateFromLocalStorage();
@@ -6697,6 +6858,160 @@
         await loyLoadFromDB();
         subscribeLoyaltyRealtime();
       })();
+    });
+
+    // ══════════════ 내 구인공고 (Phase 4: 고객사 대시보드 통합) ══════════════
+    var __scLoaded = false;
+
+    async function __scGetToken() {
+      if (!window.sbClient) return null;
+      try {
+        var s = await window.sbClient.auth.getSession();
+        return s.data && s.data.session ? s.data.session.access_token : null;
+      } catch (e) { return null; }
+    }
+
+    function __scEscape(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    function __scFmtDate(s) {
+      if (!s) return '-';
+      return String(s).replace(/T.*$/, '').replace(/-/g, '.');
+    }
+
+    async function loadMyShowcasePostings() {
+      var grid = document.getElementById('myShowcaseList');
+      grid.innerHTML = '<div class="sc-empty">불러오는 중...</div>';
+      var token = await __scGetToken();
+      if (!token) { grid.innerHTML = '<div class="sc-empty">로그인이 필요합니다.</div>'; return; }
+      try {
+        var r = await fetch('/api/my-showcase-postings', { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' });
+        var json = await r.json();
+        if (!r.ok) { grid.innerHTML = '<div class="sc-empty">조회 실패: ' + (json.error || r.status) + '</div>'; return; }
+        renderMyShowcasePostings(json || []);
+        __scLoaded = true;
+      } catch (e) {
+        console.error(e);
+        grid.innerHTML = '<div class="sc-empty">네트워크 오류</div>';
+      }
+    }
+
+    function renderMyShowcasePostings(list) {
+      var grid = document.getElementById('myShowcaseList');
+      if (!list || list.length === 0) {
+        grid.innerHTML = '<div class="sc-empty">아직 등록한 공고가 없습니다.<br><span style="font-size:0.8rem;color:#9ca3af;">"+ 공고 올리기"로 첫 공고를 등록해보세요.</span></div>';
+        return;
+      }
+      grid.innerHTML = list.map(function (r) {
+        var statusBadge = '';
+        if (r.contract_id) statusBadge = '<span class="sc-status sc-status--matched">✓ 매칭 완료</span>';
+        else if (r.review_status === 'pending') statusBadge = '<span class="sc-status sc-status--pending">검토 대기</span>';
+        else if (r.review_status === 'approved') statusBadge = '<span class="sc-status sc-status--approved">게재 중</span>';
+        else if (r.review_status === 'rejected') statusBadge = '<span class="sc-status sc-status--rejected">거부됨</span>';
+        else statusBadge = '<span class="sc-status sc-status--pending">처리 중</span>';
+
+        var rejBlock = (r.review_status === 'rejected' && r.review_note)
+          ? '<div class="sc-card__rej">거부 사유: ' + __scEscape(r.review_note) + '</div>'
+          : '';
+
+        var applicantsBlock = (r.review_status === 'approved')
+          ? '<div class="sc-card__applicants">👥 지원자 ' + (r._applicants_count || 0) + '명' + (r._matched_count > 0 ? ' · 매칭 ' + r._matched_count : '') + '</div>'
+          : '';
+
+        return '<div class="sc-card">' +
+          '<div class="sc-card__top">' + statusBadge + '<span class="sc-card__date">등록 ' + __scFmtDate(r.created_at) + '</span></div>' +
+          '<h3 class="sc-card__title">' + __scEscape(r.exhibition_name || '(전시회명 없음)') + '</h3>' +
+          '<div class="sc-card__chips">' +
+            '<span class="sc-chip">' + __scEscape(r.showcase_country_code || '?') + '</span>' +
+            '<span class="sc-chip">' + __scEscape(r.showcase_industry || '?') + '</span>' +
+            '<span class="sc-chip">' + (r.company_name_disclosure ? '🔓 실명' : '🔒 익명') + '</span>' +
+          '</div>' +
+          '<dl class="sc-card__rows">' +
+            '<dt>개최지</dt><dd>' + __scEscape(r.location || '-') + (r.venue ? ' · ' + __scEscape(r.venue) : '') + '</dd>' +
+            '<dt>기간</dt><dd>' + __scFmtDate(r.start_date) + ' ~ ' + __scFmtDate(r.end_date) + '</dd>' +
+            '<dt>언어 · 인원</dt><dd>' + __scEscape(r.language_pair || '-') + ' · ' + (r.headcount || 0) + '명</dd>' +
+            '<dt>익명 라벨</dt><dd>' + __scEscape(r.showcase_label || '-') + '</dd>' +
+          '</dl>' +
+          rejBlock + applicantsBlock +
+        '</div>';
+      }).join('');
+    }
+
+    // 모달 제어
+    function openShowcaseModal() {
+      document.getElementById('scModal').classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () {
+        var f = document.getElementById('sc-exhibition');
+        if (f) f.focus();
+      }, 50);
+    }
+    function closeShowcaseModal() {
+      document.getElementById('scModal').classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var newBtn = document.getElementById('newShowcaseBtn');
+      if (newBtn) newBtn.addEventListener('click', openShowcaseModal);
+      var closeBtn = document.getElementById('scModalClose');
+      if (closeBtn) closeBtn.addEventListener('click', closeShowcaseModal);
+      var cancelBtn = document.getElementById('scCancelBtn');
+      if (cancelBtn) cancelBtn.addEventListener('click', closeShowcaseModal);
+      var bg = document.getElementById('scModalBg');
+      if (bg) bg.addEventListener('click', closeShowcaseModal);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.getElementById('scModal').classList.contains('is-open')) closeShowcaseModal();
+      });
+
+      var form = document.getElementById('scForm');
+      var submitBtn = document.getElementById('scSubmitBtn');
+      if (form) form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var token = await __scGetToken();
+        if (!token) { if (window.showToast) window.showToast('로그인이 만료되었습니다.', 'error'); return; }
+        var fd = new FormData(form);
+        var payload = {
+          exhibition_name: fd.get('exhibition_name'),
+          location: fd.get('location'),
+          venue: fd.get('venue') || null,
+          showcase_country_code: fd.get('showcase_country_code'),
+          start_date: fd.get('start_date'),
+          end_date: fd.get('end_date'),
+          language_pair: fd.get('language_pair'),
+          headcount: parseInt(fd.get('headcount'), 10) || 1,
+          showcase_industry: fd.get('showcase_industry'),
+          showcase_label: fd.get('showcase_label') || null,
+          company_name_disclosure: fd.get('company_name_disclosure') === 'on',
+          message: fd.get('message') || null
+        };
+        submitBtn.disabled = true;
+        submitBtn.textContent = '제출 중...';
+        try {
+          var r = await fetch('/api/submit-showcase-posting', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify(payload)
+          });
+          var json = await r.json().catch(function () { return {}; });
+          if (!r.ok) {
+            if (window.showToast) window.showToast(json.error || '등록 실패. 잠시 후 다시 시도해주세요.', 'error');
+            return;
+          }
+          if (window.showToast) window.showToast('공고가 등록되었습니다.\n관리자 검토 후 게재됩니다.', 'success');
+          form.reset();
+          closeShowcaseModal();
+          loadMyShowcasePostings();
+        } catch (err) {
+          console.error('Posting submit failed:', err);
+          if (window.showToast) window.showToast('네트워크 오류. 잠시 후 다시 시도해주세요.', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '제출';
+        }
+      });
     });
   </script>
   <script src="script.js"></script>
