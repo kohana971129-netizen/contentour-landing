@@ -1174,19 +1174,31 @@
         }
 
         async function handleOpenPostingClick() {
-            // 로그인 안 되어 있으면 로그인 페이지로
             if (!window.ContentourAuth) {
                 if (window.showToast) window.showToast('잠시 후 다시 시도해주세요.', 'error');
                 return;
             }
-            if (!currentProfile) {
+
+            // 1) 세션 자체부터 확인 (currentProfile 캐시는 stale일 수 있음)
+            var user = null;
+            try { user = await window.ContentourAuth.getCurrentUser(); } catch (e) { user = null; }
+            if (!user) {
                 if (confirm('로그인하면 직접 공고를 올릴 수 있습니다.\n로그인 페이지로 이동할까요?')) {
                     location.href = 'client-auth.html';
                 }
                 return;
             }
-            if (currentProfile.role !== 'customer') {
-                if (window.showToast) window.showToast('고객사 계정만 공고를 등록할 수 있습니다.', 'error');
+
+            // 2) 프로필 (role) 최신 상태로 재조회
+            var profile = null;
+            try { profile = await window.ContentourAuth.getUserProfile(); } catch (e) { profile = null; }
+            currentProfile = profile;
+
+            if (!profile || profile.role !== 'customer') {
+                var roleLabel = profile && profile.role
+                    ? ({ interpreter: '통역사', admin: '관리자' }[profile.role] || profile.role)
+                    : '비회원';
+                if (window.showToast) window.showToast('고객사 계정만 공고를 등록할 수 있습니다.\n(현재 로그인: ' + roleLabel + ')', 'error');
                 return;
             }
             openPostingModal();
@@ -1275,14 +1287,24 @@
         // ══════════════ 카드 "지원하기" (Phase 4D) ══════════════
         async function handleApply(postingId, btn) {
             if (!postingId || btn.disabled) return;
-            if (!currentProfile) {
+
+            // 세션·역할 클릭 시점에 재확인 (currentProfile 캐시 stale 대응)
+            var user = null;
+            try { user = window.ContentourAuth ? await window.ContentourAuth.getCurrentUser() : null; } catch (e) { user = null; }
+            if (!user) {
                 if (confirm('로그인하면 이 공고에 지원할 수 있습니다.\n로그인 페이지로 이동할까요?')) {
                     location.href = 'client-auth.html';
                 }
                 return;
             }
-            if (currentProfile.role !== 'interpreter') {
-                if (window.showToast) window.showToast('통역사 계정만 지원할 수 있습니다.', 'error');
+            var profile = null;
+            try { profile = await window.ContentourAuth.getUserProfile(); } catch (e) { profile = null; }
+            currentProfile = profile;
+            if (!profile || profile.role !== 'interpreter') {
+                var roleLabel = profile && profile.role
+                    ? ({ customer: '고객사', admin: '관리자' }[profile.role] || profile.role)
+                    : '비회원';
+                if (window.showToast) window.showToast('통역사 계정만 지원할 수 있습니다.\n(현재 로그인: ' + roleLabel + ')', 'error');
                 return;
             }
             if (!confirm('이 공고에 지원하시겠습니까?\n콘텐츄어 관리자가 검토 후 매칭을 제안드립니다.\n\n⚠️ 고객사에 직접 연락 시 통역사 풀에서 영구 제명됩니다.')) return;
