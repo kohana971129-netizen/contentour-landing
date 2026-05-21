@@ -245,9 +245,12 @@ body {
 }
 .nav__menu-caret {
     display: inline-block;
-    margin-left: 4px;
-    font-size: 0.7em;
+    margin-left: 6px;
+    width: 10px;
+    height: 6px;
+    color: currentColor;
     opacity: 0.55;
+    vertical-align: middle;
     transition: transform 0.2s, opacity 0.2s;
 }
 .nav__menu-item:hover > a .nav__menu-caret,
