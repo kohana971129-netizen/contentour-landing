@@ -47,8 +47,8 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #fee2e2;
-            color: #dc2626;
+            background: #e7f1fb;
+            color: #1565c0;
             padding: 6px 12px;
             border-radius: 999px;
             font-size: 0.72rem;
@@ -59,13 +59,13 @@
         .ij-live-dot {
             width: 6px;
             height: 6px;
-            background: #dc2626;
+            background: #1565c0;
             border-radius: 50%;
-            animation: ij-pulse 1.6s ease-in-out infinite;
+            animation: ij-pulse 2.4s ease-in-out infinite;
         }
         @keyframes ij-pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
         }
         .ij-hero h1 {
             font-size: 1.75rem;
@@ -100,7 +100,7 @@
             font-weight: 500;
         }
         .ij-counter__big {
-            font-size: 2.6rem;
+            font-size: 2.1rem;
             font-weight: 800;
             color: var(--blue);
             margin: 0 4px;
@@ -187,16 +187,16 @@
             letter-spacing: 0.3px;
         }
         .ij-badge--recruit {
-            background: #fee2e2;
-            color: #dc2626;
+            background: #fef3c7;
+            color: #b45309;
         }
         .ij-badge--recruit::before {
             content: '';
             width: 5px;
             height: 5px;
-            background: #dc2626;
+            background: #d97706;
             border-radius: 50%;
-            animation: ij-pulse 1.6s ease-in-out infinite;
+            animation: ij-pulse 2.4s ease-in-out infinite;
         }
         .ij-badge--matched {
             background: #dcfce7;
@@ -581,7 +581,7 @@
             .ij-hero h1 { font-size: 1.45rem; }
             .ij-hero__sub { font-size: 0.84rem; }
             .ij-counter { padding: 18px 20px; }
-            .ij-counter__big { font-size: 2.1rem; }
+            .ij-counter__big { font-size: 1.8rem; }
             .ij-grid { grid-template-columns: 1fr; }
             .ij-filter { justify-content: flex-start; }
             .ij-corp-cta { padding: 28px 20px; }
@@ -1282,7 +1282,36 @@
             } catch (e) {
                 currentProfile = null;
             }
+            // Phase B3: 통역사 로그인 시 본인 지원 목록을 서버에서 받아서 appliedSet 갱신
+            if (currentProfile && currentProfile.role === 'interpreter') {
+                await refreshAppliedSet();
+            }
         })();
+
+        async function refreshAppliedSet() {
+            if (!window.sbClient) return;
+            try {
+                var s = await window.sbClient.auth.getSession();
+                var t = s.data && s.data.session ? s.data.session.access_token : null;
+                if (!t) return;
+                var r = await fetch('/api/my-showcase-applications', {
+                    headers: { 'Authorization': 'Bearer ' + t },
+                    cache: 'no-store'
+                });
+                if (!r.ok) return;
+                var apps = await r.json();
+                if (!Array.isArray(apps)) return;
+                apps.forEach(function (a) {
+                    if (a.posting_id) {
+                        appliedSet.add(a.posting_id);
+                        try { sessionStorage.setItem('ij-applied-' + a.posting_id, '1'); } catch (e) {}
+                    }
+                });
+                renderGrid();
+            } catch (e) {
+                console.warn('refreshAppliedSet failed:', e);
+            }
+        }
 
         // ══════════════ 전시회명 자동완성 (60_해외전시회DB) ══════════════
         // script.js의 attachExpoAutocomplete를 모달 input에 attach.

@@ -161,6 +161,72 @@ async function handleMyShowcasePostings(req, res) {
     }
 }
 
+// ────────────────────────── my-showcase-applications ──────────────────────────
+// 로그인 통역사 본인이 지원한 구인공고 목록 + 공고 정보 join
+async function handleMyShowcaseApplications(req, res) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    const auth = await authenticate(req);
+    if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+    const { data: profile } = await sb.from('01_회원').select('role').eq('id', auth.user.id).single();
+    if (!profile || profile.role !== 'interpreter') {
+        return res.status(403).json({ error: '통역사 권한이 필요합니다.' });
+    }
+
+    try {
+        const { data: apps, error } = await sb
+            .from('70_구인공고지원')
+            .select('id, posting_id, status, applied_at, updated_at, contract_id')
+            .eq('interpreter_id', auth.user.id)
+            .order('applied_at', { ascending: false });
+        if (error) throw error;
+        if (!apps || apps.length === 0) {
+            res.setHeader('Cache-Control', 'no-cache');
+            return res.status(200).json([]);
+        }
+
+        const postingIds = Array.from(new Set(apps.map(a => a.posting_id)));
+        const { data: postings } = await sb
+            .from('46_ITQ견적문의')
+            .select('id, exhibition_name, location, venue, start_date, end_date, language_pair, headcount, showcase_label, showcase_industry, showcase_country_code, review_status, contract_id, company_name_disclosure, company')
+            .in('id', postingIds);
+        const postingMap = {};
+        (postings || []).forEach(p => { postingMap[p.id] = p; });
+
+        const result = apps.map(a => {
+            const p = postingMap[a.posting_id] || {};
+            const label = (p.company_name_disclosure && p.company) ? p.company : (p.showcase_label || '한국 기업');
+            return {
+                id: a.id,
+                posting_id: a.posting_id,
+                status: a.status,
+                applied_at: a.applied_at,
+                updated_at: a.updated_at,
+                contract_id: a.contract_id,
+                label,
+                isAnonymous: !(p.company_name_disclosure && p.company),
+                exhibition: p.exhibition_name || '',
+                location: p.location || '',
+                venue: p.venue || '',
+                start_date: p.start_date || '',
+                end_date: p.end_date || '',
+                language_pair: p.language_pair || '',
+                headcount: p.headcount || 0,
+                industry: p.showcase_industry || '',
+                country_code: p.showcase_country_code || '',
+                posting_review_status: p.review_status,
+                posting_contract_id: p.contract_id
+            };
+        });
+
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.status(200).json(result);
+    } catch (e) {
+        console.error('My showcase applications error:', e);
+        return res.status(500).json({ error: e.message });
+    }
+}
+
 // ────────────────────────── 디스패처 ──────────────────────────
 module.exports = async function handler(req, res) {
     if (!SERVICE_KEY) return res.status(500).json({ error: '서버 설정 오류' });
@@ -170,6 +236,7 @@ module.exports = async function handler(req, res) {
         case 'my-inquiries': return handleMyInquiries(req, res);
         case 'my-contracts': return handleMyContracts(req, res);
         case 'my-showcase-postings': return handleMyShowcasePostings(req, res);
+        case 'my-showcase-applications': return handleMyShowcaseApplications(req, res);
         default: return res.status(404).json({ error: 'Unknown route: ' + route });
     }
 };

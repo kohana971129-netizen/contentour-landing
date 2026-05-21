@@ -215,6 +215,10 @@
                 <span class="sb-item__icon">📋</span> 배정 요청
                 <span class="sb-item__badge" id="assignNavBadge" style="display:none;">0</span>
             </a>
+            <a class="sb-item" href="#showcase-applications" onclick="switchView('showcase-applications', event)">
+                <span class="sb-item__icon">🎪</span> 내가 지원한 공고
+                <span class="sb-item__badge" id="showcaseAppsBadge" style="display:none;">0</span>
+            </a>
             <a class="sb-item" href="#schedule" onclick="switchView('schedule', event)">
                 <span class="sb-item__icon">📅</span> 내 스케줄
             </a>
@@ -462,6 +466,45 @@
                     <div class="assign-card-list" id="assignCardList">
                     </div>
                 </div><!-- /view-assignments -->
+
+                <!-- ══════════════ 내가 지원한 공고 (Phase B2) ══════════════ -->
+                <div class="view" id="view-showcase-applications">
+                    <style>
+                        .sca-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; gap:12px; flex-wrap:wrap; }
+                        .sca-head__title { font-size:1.15rem; font-weight:800; color:#1a2a4a; margin:0; }
+                        .sca-head__sub { font-size:0.84rem; color:#6b7280; margin-top:4px; }
+                        .sca-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:14px; }
+                        .sca-card { background:#fff; border:1px solid rgba(0,0,0,0.06); border-radius:14px; padding:18px 18px; display:flex; flex-direction:column; gap:10px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+                        .sca-card--matched { background:#ecfdf5; border-color:#a7f3d0; }
+                        .sca-card--declined { opacity:0.65; }
+                        .sca-card__top { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+                        .sca-status { font-size:0.7rem; font-weight:800; padding:3px 10px; border-radius:10px; letter-spacing:0.3px; }
+                        .sca-status--pending { background:#fff7e6; color:#d97706; }
+                        .sca-status--forwarded { background:#dbeafe; color:#1d4ed8; }
+                        .sca-status--matched { background:#d1fae5; color:#047857; }
+                        .sca-status--declined { background:#fee2e2; color:#b91c1c; }
+                        .sca-status--posting-removed { background:#f3f4f6; color:#6b7280; }
+                        .sca-card__title { font-size:0.96rem; font-weight:700; color:#1a2a4a; line-height:1.4; margin:0; }
+                        .sca-card__rows { display:grid; grid-template-columns:max-content 1fr; gap:4px 12px; font-size:0.8rem; color:#4a5a75; }
+                        .sca-card__rows dt { color:#9ca3af; font-weight:600; font-size:0.74rem; }
+                        .sca-card__rows dd { margin:0; color:#1a2a4a; font-weight:500; }
+                        .sca-card__chips { display:flex; gap:6px; flex-wrap:wrap; }
+                        .sca-chip { background:#eef2ff; color:#4338ca; padding:2px 9px; border-radius:8px; font-size:0.72rem; font-weight:600; }
+                        .sca-card__date { font-size:0.72rem; color:#9ca3af; }
+                        .sca-card__msg { font-size:0.78rem; color:#4a5a75; background:#fafafa; padding:8px 12px; border-radius:8px; line-height:1.5; }
+                        .sca-empty { background:#fff; border:1px dashed rgba(0,0,0,0.12); border-radius:14px; padding:48px 20px; text-align:center; color:#9ca3af; font-size:0.92rem; }
+                    </style>
+                    <div class="sca-head">
+                        <div>
+                            <h2 class="sca-head__title">🎪 내가 지원한 공고</h2>
+                            <div class="sca-head__sub">통역사 구인 현황 페이지에서 지원한 공고의 진행 상태를 확인합니다. 매칭은 콘텐츄어 관리자가 검토 후 제안드립니다.</div>
+                        </div>
+                        <a href="interpreter-jobs.html" class="btn-ghost" style="padding:8px 14px;font-size:0.85rem;text-decoration:none;border:1.5px solid #1565c0;color:#1565c0;border-radius:9px;font-weight:700;">+ 새 공고 둘러보기</a>
+                    </div>
+                    <div class="sca-grid" id="scaList">
+                        <div class="sca-empty">불러오는 중...</div>
+                    </div>
+                </div>
 
                 <!-- ══════════════ 내 스케줄 뷰 ══════════════ -->
                 <div class="view" id="view-schedule">
@@ -2018,6 +2061,7 @@
                     home: '통역사 대시보드',
                     'direct-inquiries': '견적 요청 관리',
                     assignments: '배정 요청 관리',
+                    'showcase-applications': '내가 지원한 공고',
                     schedule: '내 스케줄',
                     journal: '상담일지 작성',
                     contracts: '계약 관리',
@@ -2032,6 +2076,10 @@
                 if (view === 'journal') {
                     loadJnlContracts();
                     jnlLoadList();
+                }
+                // 내가 지원한 공고 뷰
+                if (view === 'showcase-applications') {
+                    loadShowcaseApplications();
                 }
                 // 홈 뷰 진입 시 D-day 컨펌 배너 갱신
                 if (view === 'home') {
@@ -7520,6 +7568,93 @@
             document.getElementById('lrate-ar').value = 80000;
             updateRatePreview();
             showToast('단가가 경력 기준 초기값으로 복원되었습니다.');
+        }
+
+        // ══════════════ 내가 지원한 공고 (Phase B2) ══════════════
+        async function __scaGetToken() {
+            if (!window.sbClient) return null;
+            try {
+                var s = await window.sbClient.auth.getSession();
+                return s.data && s.data.session ? s.data.session.access_token : null;
+            } catch (e) { return null; }
+        }
+        function __scaEscape(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+        function __scaFmtDate(s) {
+            if (!s) return '-';
+            return String(s).replace(/T.*$/, '').replace(/-/g, '.');
+        }
+        async function loadShowcaseApplications() {
+            var grid = document.getElementById('scaList');
+            if (!grid) return;
+            grid.innerHTML = '<div class="sca-empty">불러오는 중...</div>';
+            var token = await __scaGetToken();
+            if (!token) { grid.innerHTML = '<div class="sca-empty">로그인이 필요합니다.</div>'; return; }
+            try {
+                var r = await fetch('/api/my-showcase-applications', { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' });
+                var json = await r.json();
+                if (!r.ok) { grid.innerHTML = '<div class="sca-empty">조회 실패: ' + (json.error || r.status) + '</div>'; return; }
+                renderShowcaseApplications(json || []);
+                // 진행 중 (pending/forwarded) 뱃지 카운트
+                var active = (json || []).filter(function (a) { return a.status === 'pending' || a.status === 'forwarded'; }).length;
+                var badge = document.getElementById('showcaseAppsBadge');
+                if (badge) {
+                    if (active > 0) { badge.style.display = ''; badge.textContent = active; }
+                    else badge.style.display = 'none';
+                }
+            } catch (e) {
+                console.error(e);
+                grid.innerHTML = '<div class="sca-empty">네트워크 오류</div>';
+            }
+        }
+        function renderShowcaseApplications(list) {
+            var grid = document.getElementById('scaList');
+            if (!list || list.length === 0) {
+                grid.innerHTML = '<div class="sca-empty">아직 지원한 공고가 없습니다.<br><span style="font-size:0.8rem;color:#9ca3af;">"새 공고 둘러보기"로 통역사 구인 현황을 확인해보세요.</span></div>';
+                return;
+            }
+            grid.innerHTML = list.map(function (a) {
+                var statusBadge = '';
+                var cardClass = '';
+                if (a.status === 'matched') {
+                    statusBadge = '<span class="sca-status sca-status--matched">🎉 매칭 확정</span>';
+                    cardClass = ' sca-card--matched';
+                } else if (a.status === 'forwarded') {
+                    statusBadge = '<span class="sca-status sca-status--forwarded">제안 중</span>';
+                } else if (a.status === 'declined') {
+                    statusBadge = '<span class="sca-status sca-status--declined">거절됨</span>';
+                    cardClass = ' sca-card--declined';
+                } else if (a.posting_contract_id && a.status !== 'matched') {
+                    statusBadge = '<span class="sca-status sca-status--posting-removed">공고 마감</span>';
+                    cardClass = ' sca-card--declined';
+                } else {
+                    statusBadge = '<span class="sca-status sca-status--pending">검토 대기</span>';
+                }
+
+                var matchedHint = (a.status === 'matched')
+                    ? '<div class="sca-card__msg" style="background:#d1fae5;color:#047857;font-weight:600;">매칭이 확정되었습니다. 계약 관리 탭에서 자세한 내용을 확인하세요.</div>'
+                    : '';
+
+                return '<div class="sca-card' + cardClass + '">' +
+                    '<div class="sca-card__top">' + statusBadge + '<span class="sca-card__date">지원 ' + __scaFmtDate(a.applied_at) + '</span></div>' +
+                    '<h3 class="sca-card__title">' + __scaEscape(a.exhibition || '(전시회명 없음)') + '</h3>' +
+                    '<div class="sca-card__chips">' +
+                        '<span class="sca-chip">' + __scaEscape(a.country_code || '?') + '</span>' +
+                        '<span class="sca-chip">' + __scaEscape(a.industry || '?') + '</span>' +
+                        '<span class="sca-chip">' + (a.isAnonymous ? '🔒 익명' : '🔓 ' + __scaEscape(a.label)) + '</span>' +
+                    '</div>' +
+                    '<dl class="sca-card__rows">' +
+                        '<dt>고객사</dt><dd>' + __scaEscape(a.label) + '</dd>' +
+                        '<dt>개최지</dt><dd>' + __scaEscape(a.location || '-') + (a.venue ? ' · ' + __scaEscape(a.venue) : '') + '</dd>' +
+                        '<dt>기간</dt><dd>' + __scaFmtDate(a.start_date) + ' ~ ' + __scaFmtDate(a.end_date) + '</dd>' +
+                        '<dt>언어 · 인원</dt><dd>' + __scaEscape(a.language_pair || '-') + ' · ' + (a.headcount || 0) + '명</dd>' +
+                    '</dl>' +
+                    matchedHint +
+                '</div>';
+            }).join('');
         }
     </script>
 
