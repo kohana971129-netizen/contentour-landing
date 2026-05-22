@@ -321,7 +321,8 @@ window.showToast = window.showToast || function(message, type) {
                     'contentour_chat_typing',
                     'contentour_quote_response',
                     'contentour_loyalty_data',
-                    'contentour_custom_templates_'
+                    'contentour_custom_templates_',
+                    'contentour_apply_draft_'
                 ];
                 var keysToRemove = [];
                 for (var i = 0; i < localStorage.length; i++) {

@@ -235,6 +235,49 @@
         }
         .reapply-banner__desc b { color: #0d47a1; }
 
+        /* 임시저장 복원 배너 */
+        .draft-banner {
+            display: none;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: #fff8e1;
+            border: 1.5px solid #ffe082;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+        .draft-banner__icon { font-size: 1.3rem; line-height: 1; flex-shrink: 0; }
+        .draft-banner__body { flex: 1; min-width: 0; }
+        .draft-banner__title { font-weight: 700; color: #e65100; font-size: 0.92rem; margin-bottom: 2px; }
+        .draft-banner__desc { font-size: 0.8rem; color: #6d4c00; }
+        .draft-banner__actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .draft-btn {
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            border: 1.5px solid transparent;
+            transition: background 0.15s;
+        }
+        .draft-btn--primary { background: #1565c0; color: #fff; border-color: #1565c0; }
+        .draft-btn--primary:hover { background: #0d47a1; border-color: #0d47a1; }
+        .draft-btn--ghost { background: #fff; color: #888; border-color: #e0e0e0; }
+        .draft-btn--ghost:hover { background: #f5f5f5; color: #333; }
+        .draft-status {
+            font-size: 0.72rem;
+            color: #999;
+            text-align: right;
+            margin-bottom: 10px;
+            min-height: 1em;
+        }
+        @media (max-width: 560px) {
+            .draft-banner { flex-direction: column; align-items: stretch; }
+            .draft-banner__actions { justify-content: stretch; }
+            .draft-btn { flex: 1; }
+        }
+
         /* 진행 표시 */
         .progress-bar {
             display: flex;
@@ -1032,6 +1075,20 @@
             </div>
         </div>
 
+        <!-- 임시저장 복원 배너 — 이전 작성 내용 발견 시 JS가 표시 -->
+        <div class="draft-banner" id="draftBanner" style="display:none;">
+            <div class="draft-banner__icon">💾</div>
+            <div class="draft-banner__body">
+                <div class="draft-banner__title">이어서 작성하시겠어요?</div>
+                <div class="draft-banner__desc" id="draftBannerDesc">이전에 작성하던 내용이 있습니다.</div>
+            </div>
+            <div class="draft-banner__actions">
+                <button type="button" class="draft-btn draft-btn--primary" id="draftRestoreBtn">이어서 작성</button>
+                <button type="button" class="draft-btn draft-btn--ghost" id="draftDiscardBtn">새로 시작</button>
+            </div>
+        </div>
+        <div class="draft-status" id="draftStatus" aria-live="polite"></div>
+
         <!-- 진행바 -->
         <div class="progress-bar" id="progressBar">
             <div class="pb-step">
@@ -1765,6 +1822,9 @@
                 return;
             }
 
+            // 제출 성공 — 임시저장 draft 정리
+            if (typeof window.__clearApplyDraft === 'function') window.__clearApplyDraft();
+
             // 완료 화면
             const langStr = langPairs.map(l => `${l.from} ↔ ${l.to}`).join(', ');
             const specStr = specs.join(', ');
@@ -1837,6 +1897,220 @@
                     if (b) b.style.display = 'flex';
                 }
             } catch (e) { /* 무시 */ }
+        })();
+
+        // ══════════════ 4단계 폼 중간 저장 ══════════════
+        // localStorage에 자동 저장 (디바운스 1초) + 페이지 진입 시 복원 배너.
+        // 비밀번호·파일은 보안상 제외. TTL 24시간.
+        (function () {
+            var DRAFT_KEY = 'contentour_apply_draft_v1';
+            var DRAFT_TTL = 24 * 60 * 60 * 1000;
+            // 저장할 단일 입력 필드 ID 목록 (비밀번호·파일 제외)
+            var SINGLE_FIELDS = [
+                'name-ko', 'name-en', 'nationality', 'birth', 'email', 'phone',
+                'gender', 'city', 'intro',
+                'totalExp', 'edu-school', 'edu-major',
+                'portfolio', 'motivation'
+            ];
+            var TAG_GROUPS = ['specTags', 'typeTags', 'regionTags'];
+
+            function getSingleValues() {
+                var out = {};
+                SINGLE_FIELDS.forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el && el.value !== '') out[id] = el.value;
+                });
+                return out;
+            }
+            function getTagSelections() {
+                var out = {};
+                TAG_GROUPS.forEach(function (gid) {
+                    var grp = document.getElementById(gid);
+                    if (!grp) return;
+                    out[gid] = Array.prototype.map.call(
+                        grp.querySelectorAll('.selected'),
+                        function (b) { return (b.textContent || '').trim(); }
+                    );
+                });
+                return out;
+            }
+            function getDynamicRows() {
+                // 언어 쌍
+                var langRows = (typeof langs !== 'undefined' ? langs : []).map(function (id) {
+                    return {
+                        from: (document.getElementById('ls-' + id) || {}).value || '',
+                        to: (document.getElementById('lt-' + id) || {}).value || ''
+                    };
+                }).filter(function (l) { return l.from || l.to; });
+                // 경력
+                var careerRows = (typeof careers !== 'undefined' ? careers : []).map(function (id) {
+                    return {
+                        expo: (document.getElementById('ce-' + id) || {}).value || '',
+                        loc: (document.getElementById('cl-' + id) || {}).value || '',
+                        period: (document.getElementById('cp-' + id) || {}).value || '',
+                        lang: (document.getElementById('cln-' + id) || {}).value || ''
+                    };
+                }).filter(function (c) { return c.expo || c.loc || c.period || c.lang; });
+                // 자격증 (파일 제외, 이름·연도만)
+                var certRows = (typeof certs !== 'undefined' ? certs : []).map(function (id) {
+                    return {
+                        name: (document.getElementById('cn-' + id) || {}).value || '',
+                        year: (document.getElementById('cy-' + id) || {}).value || ''
+                    };
+                }).filter(function (c) { return c.name || c.year; });
+                return { langs: langRows, careers: careerRows, certs: certRows };
+            }
+
+            function saveDraft() {
+                try {
+                    var fields = getSingleValues();
+                    var tags = getTagSelections();
+                    var dyn = getDynamicRows();
+                    var totalKeys = Object.keys(fields).length
+                        + (tags.specTags || []).length + (tags.typeTags || []).length + (tags.regionTags || []).length
+                        + dyn.langs.length + dyn.careers.length + dyn.certs.length;
+                    if (totalKeys === 0) {
+                        try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+                        updateStatus('');
+                        return;
+                    }
+                    var payload = { ts: Date.now(), fields: fields, tags: tags, dyn: dyn };
+                    localStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+                    updateStatus('자동 저장됨 · ' + new Date().toLocaleTimeString('ko-KR'));
+                } catch (e) { /* localStorage 비활성 환경 무시 */ }
+            }
+
+            function updateStatus(msg) {
+                var el = document.getElementById('draftStatus');
+                if (el) el.textContent = msg;
+            }
+
+            function readDraft() {
+                try {
+                    var raw = localStorage.getItem(DRAFT_KEY);
+                    if (!raw) return null;
+                    var d = JSON.parse(raw);
+                    if (!d || !d.ts) return null;
+                    if (Date.now() - d.ts > DRAFT_TTL) {
+                        localStorage.removeItem(DRAFT_KEY);
+                        return null;
+                    }
+                    return d;
+                } catch (e) { return null; }
+            }
+
+            function restoreDraft(d) {
+                if (!d) return;
+                // 단일 필드
+                Object.keys(d.fields || {}).forEach(function (id) {
+                    var el = document.getElementById(id);
+                    if (el) el.value = d.fields[id];
+                });
+                // 태그
+                Object.keys(d.tags || {}).forEach(function (gid) {
+                    var grp = document.getElementById(gid);
+                    if (!grp) return;
+                    var sels = d.tags[gid] || [];
+                    grp.querySelectorAll('.field-tag').forEach(function (btn) {
+                        var label = (btn.textContent || '').trim();
+                        if (sels.indexOf(label) >= 0) btn.classList.add('selected');
+                    });
+                });
+                // 동적: 언어 (이미 1개는 onload에서 추가됨)
+                if (d.dyn && Array.isArray(d.dyn.langs) && d.dyn.langs.length > 0) {
+                    // 첫 행 채우고 나머지는 새 행 추가
+                    d.dyn.langs.forEach(function (l, idx) {
+                        if (idx > 0) addLang();
+                        var lastId = langs[langs.length - 1];
+                        if (l.from) (document.getElementById('ls-' + lastId) || {}).value = l.from;
+                        if (l.to) (document.getElementById('lt-' + lastId) || {}).value = l.to;
+                    });
+                }
+                if (d.dyn && Array.isArray(d.dyn.careers) && d.dyn.careers.length > 0) {
+                    d.dyn.careers.forEach(function (c, idx) {
+                        if (idx > 0) addCareer();
+                        var lastId = careers[careers.length - 1];
+                        var setIf = function (id, v) { var e = document.getElementById(id); if (e && v) e.value = v; };
+                        setIf('ce-' + lastId, c.expo);
+                        setIf('cl-' + lastId, c.loc);
+                        setIf('cp-' + lastId, c.period);
+                        setIf('cln-' + lastId, c.lang);
+                    });
+                }
+                if (d.dyn && Array.isArray(d.dyn.certs) && d.dyn.certs.length > 0) {
+                    d.dyn.certs.forEach(function (c) {
+                        addCert();
+                        var lastId = certs[certs.length - 1];
+                        var setIf = function (id, v) { var e = document.getElementById(id); if (e && v) e.value = v; };
+                        setIf('cn-' + lastId, c.name);
+                        setIf('cy-' + lastId, c.year);
+                    });
+                }
+                // 비밀번호 강도 표시 갱신 (값은 비어있지만 UI 일관성)
+                if (typeof checkPwStrength === 'function') {
+                    var pwEl = document.getElementById('pw');
+                    if (pwEl) checkPwStrength(pwEl);
+                }
+                updateStatus('이전 작성 내용 복원 완료 · ' + new Date(d.ts).toLocaleString('ko-KR') + ' 저장');
+            }
+
+            // 디바운스 자동 저장 (1초)
+            var saveTimer = null;
+            function scheduleAutoSave() {
+                if (saveTimer) clearTimeout(saveTimer);
+                saveTimer = setTimeout(saveDraft, 1000);
+            }
+
+            // 페이지 로드 후 배너 표시 + 이벤트 바인딩
+            // window.onload는 이미 사용 중이라 wrapping
+            var origOnload = window.onload;
+            window.onload = function () {
+                if (typeof origOnload === 'function') origOnload();
+                // 폼 변경 감지
+                var form = document.getElementById('applyForm');
+                if (form) {
+                    form.addEventListener('input', function (e) {
+                        // 비밀번호 필드는 저장 대상 아님 — 안전상 명시 제외
+                        if (e.target && (e.target.id === 'pw' || e.target.id === 'pw2')) return;
+                        scheduleAutoSave();
+                    });
+                    form.addEventListener('change', scheduleAutoSave);
+                    // 태그 클릭도 저장
+                    ['specTags', 'typeTags', 'regionTags'].forEach(function (gid) {
+                        var grp = document.getElementById(gid);
+                        if (grp) grp.addEventListener('click', scheduleAutoSave);
+                    });
+                }
+
+                // 복원 배너
+                var draft = readDraft();
+                if (draft) {
+                    var banner = document.getElementById('draftBanner');
+                    var desc = document.getElementById('draftBannerDesc');
+                    if (banner && desc) {
+                        var when = new Date(draft.ts).toLocaleString('ko-KR');
+                        desc.textContent = '저장 시각: ' + when + ' — 비밀번호·파일은 보안상 저장되지 않으므로 다시 입력해야 합니다.';
+                        banner.style.display = 'flex';
+                    }
+                    var rb = document.getElementById('draftRestoreBtn');
+                    if (rb) rb.addEventListener('click', function () {
+                        restoreDraft(draft);
+                        if (banner) banner.style.display = 'none';
+                    });
+                    var db = document.getElementById('draftDiscardBtn');
+                    if (db) db.addEventListener('click', function () {
+                        try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+                        if (banner) banner.style.display = 'none';
+                        updateStatus('');
+                    });
+                }
+            };
+
+            // 제출 성공 시 draft 삭제 (전역 노출)
+            window.__clearApplyDraft = function () {
+                try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+                updateStatus('');
+            };
         })();
     </script>
 </body>
