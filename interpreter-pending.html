@@ -151,13 +151,57 @@
 
       if (app.status === 'pending') {
         renderPending(app);
+        subscribeStatusChange(app.id);
       } else if (app.status === 'rejected') {
         renderRejected(app);
       } else {
         // 알 수 없는 status — 일단 pending과 동일 처리
         renderPending(app);
+        subscribeStatusChange(app.id);
       }
     })();
+
+    // 승인 시점 자동 리다이렉트 — Realtime UPDATE 구독 + 30초 polling 폴백
+    function subscribeStatusChange(appId) {
+      if (!window.sbClient || !appId) return;
+      let redirected = false;
+      const onApproved = () => {
+        if (redirected) return;
+        redirected = true;
+        try { window.sbClient.removeChannel(channel); } catch (e) {}
+        if (pollTimer) clearInterval(pollTimer);
+        window.location.href = 'interpreter-dashboard.html';
+      };
+
+      // Realtime 구독
+      const channel = window.sbClient
+        .channel('apply-status-' + appId)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: '48_통역사지원서',
+          filter: 'id=eq.' + appId
+        }, (payload) => {
+          const newRow = payload.new;
+          if (newRow && newRow.status === 'approved') onApproved();
+          else if (newRow && newRow.status === 'rejected') window.location.reload();
+        })
+        .subscribe();
+
+      // 폴백 polling (Realtime 끊긴 환경 대비) — 30초마다 확인
+      const pollTimer = setInterval(async () => {
+        if (redirected) return;
+        try {
+          const { data } = await window.sbClient
+            .from('48_통역사지원서')
+            .select('status')
+            .eq('id', appId)
+            .maybeSingle();
+          if (data && data.status === 'approved') onApproved();
+          else if (data && data.status === 'rejected') window.location.reload();
+        } catch (e) { /* 무시 */ }
+      }, 30000);
+    }
 
     function fmtDate(s) {
       if (!s) return '-';

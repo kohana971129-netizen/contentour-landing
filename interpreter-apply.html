@@ -1081,8 +1081,9 @@
                     </div>
                     <div class="field" id="f-pw2">
                         <label for="pw2">비밀번호 확인 <span class="req">*</span></label>
-                        <input type="password" id="pw2" name="pw2" autocomplete="new-password" placeholder="비밀번호 재입력">
+                        <input type="password" id="pw2" name="pw2" autocomplete="new-password" placeholder="비밀번호 재입력" oninput="checkPwMatch()" onblur="checkPwMatch(true)">
                         <div class="field-err">비밀번호가 일치하지 않습니다.</div>
+                        <div class="pw-match-hint" id="pwMatchHint" style="margin-top:6px;font-size:0.78rem;display:none;"></div>
                     </div>
                     <div class="field" id="f-gender">
                         <label for="gender">성별</label>
@@ -1764,6 +1765,27 @@
                 item.textContent = (ok ? '✅' : '❌') + ' ' + label;
                 item.style.color = ok ? '#2e7d32' : '#888';
             });
+            // 첫 비번이 바뀌면 재입력 일치 여부도 다시 체크
+            if (document.getElementById('pw2') && document.getElementById('pw2').value) checkPwMatch();
+        }
+
+        // 비밀번호 재입력 일치 여부 즉시 피드백
+        function checkPwMatch(showWhenEmpty) {
+            const pw = document.getElementById('pw').value;
+            const pw2 = document.getElementById('pw2').value;
+            const hint = document.getElementById('pwMatchHint');
+            if (!hint) return;
+            if (!pw2 && !showWhenEmpty) { hint.style.display = 'none'; return; }
+            if (!pw2 && showWhenEmpty) { hint.style.display = 'none'; return; }
+            if (pw === pw2) {
+                hint.textContent = '✅ 비밀번호가 일치합니다.';
+                hint.style.color = '#2e7d32';
+                hint.style.display = 'block';
+            } else {
+                hint.textContent = '❌ 비밀번호가 일치하지 않습니다.';
+                hint.style.color = '#c62828';
+                hint.style.display = 'block';
+            }
         }
     </script>
 </body>

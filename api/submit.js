@@ -252,6 +252,17 @@ const ALLOWED_TYPES = [
     'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'
 ];
 const ALLOWED_EXTS = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'webp'];
+// 확장자 ↔ MIME 일치 검증 — 위장 업로드 차단
+const EXT_TO_MIME = {
+    'pdf':  ['application/pdf'],
+    'doc':  ['application/msword'],
+    'docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    'jpg':  ['image/jpeg', 'image/jpg'],
+    'jpeg': ['image/jpeg', 'image/jpg'],
+    'png':  ['image/png'],
+    'gif':  ['image/gif'],
+    'webp': ['image/webp']
+};
 
 async function handleUploadFile(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -267,7 +278,17 @@ async function handleUploadFile(req, res) {
         ? filename.split('.').pop().toLowerCase().slice(0, 8).replace(/[^a-z0-9]/g, '')
         : '';
     if (!ext || !ALLOWED_EXTS.includes(ext)) return res.status(400).json({ error: '허용되지 않는 파일 형식입니다.' });
-    if (contentType && !ALLOWED_TYPES.includes(contentType)) return res.status(400).json({ error: '허용되지 않는 MIME 형식입니다.' });
+    // MIME 타입이 제공된 경우 화이트리스트 + 확장자와 일치 여부 검증 (위장 업로드 차단)
+    // MIME이 비어있으면(브라우저가 못 알아낸 경우) ext 기반으로 통과 — Storage RLS·버킷 정책이 최종 방어선
+    if (contentType) {
+        if (!ALLOWED_TYPES.includes(contentType)) {
+            return res.status(400).json({ error: '허용되지 않는 MIME 형식입니다.' });
+        }
+        const allowedMimesForExt = EXT_TO_MIME[ext] || [];
+        if (!allowedMimesForExt.includes(contentType)) {
+            return res.status(400).json({ error: '파일 확장자와 MIME 타입이 일치하지 않습니다.' });
+        }
+    }
 
     const prefix = kind === 'certification' ? 'certifications' : 'applications';
     const rand = Math.random().toString(36).slice(2);
