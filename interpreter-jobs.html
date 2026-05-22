@@ -153,18 +153,52 @@
         }
         .ij-hero__cta:hover { opacity: 0.92; transform: translateY(-1px); }
 
-        /* ── 필터 칩 ── */
+        /* ── 국가 필터 슬라이드 (좌우 화살표 + nowrap 가로 스크롤) ── */
+        .ij-filter-wrap {
+            position: relative;
+            margin: 8px 0 28px;
+        }
         .ij-filter {
             display: flex;
-            justify-content: center;
             gap: 8px;
-            margin: 8px 0 28px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             overflow-x: auto;
-            padding: 0 4px;
+            overflow-y: hidden;
+            padding: 4px 44px;
+            scroll-behavior: smooth;
             scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
         }
         .ij-filter::-webkit-scrollbar { display: none; }
+        .ij-filter-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid #e5eaf2;
+            background: #fff;
+            color: var(--gray-700);
+            font-size: 1.3rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            padding: 0;
+            transition: background 0.15s, color 0.15s, opacity 0.2s;
+            font-family: inherit;
+        }
+        .ij-filter-arrow:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .ij-filter-arrow:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+        .ij-filter-arrow--left { left: 0; }
+        .ij-filter-arrow--right { right: 0; }
+        .ij-filter-arrow[hidden] { display: none; }
         .ij-subfilter {
             display: flex;
             gap: 14px;
@@ -207,6 +241,7 @@
             cursor: pointer;
             transition: all 0.15s;
             white-space: nowrap;
+            flex-shrink: 0;
             font-family: inherit;
         }
         .ij-chip:hover { border-color: var(--text); }
@@ -945,7 +980,9 @@
             .ij-counter { padding: 18px 20px; }
             .ij-counter__big { font-size: 1.8rem; }
             .ij-grid { grid-template-columns: 1fr; }
-            .ij-filter { justify-content: flex-start; }
+            /* 모바일: 손가락 스와이프로 충분 — 화살표 숨김 */
+            .ij-filter { padding: 4px 0; }
+            .ij-filter-arrow { display: none !important; }
             .ij-corp-cta { padding: 28px 20px; }
             .ij-corp-cta__title { font-size: 1.1rem; }
             .ij-modal__sheet { margin: 20px 12px; padding: 24px 20px; }
@@ -1074,15 +1111,38 @@
                 <a href="interpreter-apply.html" class="ij-hero__cta">통역사로 지원하기</a>
             </section>
 
-            <!-- 필터 칩 -->
-            <div class="ij-filter" id="ijFilter">
-                <button class="ij-chip is-active" data-region="all">전체</button>
-                <button class="ij-chip" data-region="JP">일본</button>
-                <button class="ij-chip" data-region="CN">중국</button>
-                <button class="ij-chip" data-region="DE">독일</button>
-                <button class="ij-chip" data-region="US">미국</button>
-                <button class="ij-chip" data-region="AE">UAE</button>
-                <button class="ij-chip" data-region="VN">베트남</button>
+            <!-- 국가 필터 (가로 슬라이드) -->
+            <div class="ij-filter-wrap">
+                <button type="button" class="ij-filter-arrow ij-filter-arrow--left" id="ijFilterPrev" aria-label="이전" hidden>‹</button>
+                <div class="ij-filter" id="ijFilter">
+                    <button class="ij-chip is-active" data-region="all">전체</button>
+                    <button class="ij-chip" data-region="JP">🇯🇵 일본</button>
+                    <button class="ij-chip" data-region="CN">🇨🇳 중국</button>
+                    <button class="ij-chip" data-region="US">🇺🇸 미국</button>
+                    <button class="ij-chip" data-region="DE">🇩🇪 독일</button>
+                    <button class="ij-chip" data-region="VN">🇻🇳 베트남</button>
+                    <button class="ij-chip" data-region="AE">🇦🇪 UAE</button>
+                    <button class="ij-chip" data-region="FR">🇫🇷 프랑스</button>
+                    <button class="ij-chip" data-region="GB">🇬🇧 영국</button>
+                    <button class="ij-chip" data-region="IT">🇮🇹 이탈리아</button>
+                    <button class="ij-chip" data-region="ES">🇪🇸 스페인</button>
+                    <button class="ij-chip" data-region="TH">🇹🇭 태국</button>
+                    <button class="ij-chip" data-region="ID">🇮🇩 인도네시아</button>
+                    <button class="ij-chip" data-region="IN">🇮🇳 인도</button>
+                    <button class="ij-chip" data-region="SG">🇸🇬 싱가포르</button>
+                    <button class="ij-chip" data-region="TR">🇹🇷 튀르키예</button>
+                    <button class="ij-chip" data-region="BR">🇧🇷 브라질</button>
+                    <button class="ij-chip" data-region="MX">🇲🇽 멕시코</button>
+                    <button class="ij-chip" data-region="TW">🇹🇼 대만</button>
+                    <button class="ij-chip" data-region="HK">🇭🇰 홍콩</button>
+                    <button class="ij-chip" data-region="MY">🇲🇾 말레이시아</button>
+                    <button class="ij-chip" data-region="PH">🇵🇭 필리핀</button>
+                    <button class="ij-chip" data-region="AU">🇦🇺 호주</button>
+                    <button class="ij-chip" data-region="CA">🇨🇦 캐나다</button>
+                    <button class="ij-chip" data-region="NL">🇳🇱 네덜란드</button>
+                    <button class="ij-chip" data-region="RU">🇷🇺 러시아</button>
+                </div>
+                <button type="button" class="ij-filter-arrow ij-filter-arrow--right" id="ijFilterNext" aria-label="다음">›</button>
             </div>
 
             <!-- 산업 · 정렬 필터 -->
@@ -1596,6 +1656,18 @@
             if (!target) return false;
             document.querySelectorAll('.ij-chip').forEach(function (c) { c.classList.remove('is-active'); });
             target.classList.add('is-active');
+            // 활성 칩이 슬라이드 영역 밖이면 가운데로 스크롤
+            try {
+                var wrap = document.getElementById('ijFilter');
+                if (wrap) {
+                    var rect = target.getBoundingClientRect();
+                    var wrapRect = wrap.getBoundingClientRect();
+                    if (rect.left < wrapRect.left + 40 || rect.right > wrapRect.right - 40) {
+                        var offset = target.offsetLeft - wrap.clientWidth / 2 + target.clientWidth / 2;
+                        wrap.scrollTo({ left: offset, behavior: 'smooth' });
+                    }
+                }
+            } catch (e) { /* 무시 */ }
             return true;
         }
 
@@ -1631,6 +1703,37 @@
         if (__ijIndustryEl) __ijIndustryEl.addEventListener('change', function () { visibleCount = INITIAL_COUNT; renderGrid(); });
         var __ijSortEl = document.getElementById('ijSortBy');
         if (__ijSortEl) __ijSortEl.addEventListener('change', function () { visibleCount = INITIAL_COUNT; renderGrid(); });
+
+        // 국가 슬라이드 — 좌우 화살표 클릭 + 스크롤 끝 도달 시 화살표 자동 숨김
+        (function () {
+            var filterEl = document.getElementById('ijFilter');
+            var prevBtn = document.getElementById('ijFilterPrev');
+            var nextBtn = document.getElementById('ijFilterNext');
+            if (!filterEl || !prevBtn || !nextBtn) return;
+            var SCROLL_STEP = 240;
+
+            function updateArrows() {
+                var max = filterEl.scrollWidth - filterEl.clientWidth;
+                prevBtn.hidden = filterEl.scrollLeft <= 2;
+                nextBtn.hidden = filterEl.scrollLeft >= max - 2;
+            }
+            prevBtn.addEventListener('click', function () {
+                filterEl.scrollBy({ left: -SCROLL_STEP, behavior: 'smooth' });
+            });
+            nextBtn.addEventListener('click', function () {
+                filterEl.scrollBy({ left: SCROLL_STEP, behavior: 'smooth' });
+            });
+            filterEl.addEventListener('scroll', function () {
+                // requestAnimationFrame으로 디바운스
+                if (filterEl.__scrollRaf) return;
+                filterEl.__scrollRaf = requestAnimationFrame(function () {
+                    filterEl.__scrollRaf = null;
+                    updateArrows();
+                });
+            });
+            window.addEventListener('resize', updateArrows);
+            updateArrows();
+        })();
 
         // 뒤로가기/앞으로가기 시에도 동기화
         window.addEventListener('popstate', function () {
