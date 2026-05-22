@@ -1180,6 +1180,9 @@
 
             <!-- 통역사 카드 그리드 -->
             <div class="interp-grid" id="interpGrid"></div>
+
+            <!-- 페이지네이션 -->
+            <div id="interpPager" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:24px;flex-wrap:wrap;"></div>
         </div>
     </div>
 
@@ -1282,16 +1285,32 @@
             document.getElementById('kpi-langs').textContent = langs;
         }
 
+        // 페이지네이션 — 300명+ 대비 (50명/page)
+        const INTERP_PAGE_SIZE = 50;
+        let _interpPage = 1;
+
         function renderGrid() {
             const grid = document.getElementById('interpGrid');
+            const pager = document.getElementById('interpPager');
             if (!visibleInterps.length) {
                 grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
       <div class="empty-icon">🔍</div>
       <div class="empty-title">검색 결과가 없습니다</div>
       <div class="empty-desc">다른 조건으로 검색해보세요.</div>
-    </div>`; return;
+    </div>`;
+                if (pager) pager.innerHTML = '';
+                return;
             }
-            grid.innerHTML = visibleInterps.map(p => `
+
+            // 페이지 범위 정리 (필터 변경 시 totalPages 줄어들 수 있음)
+            const totalPages = Math.max(1, Math.ceil(visibleInterps.length / INTERP_PAGE_SIZE));
+            if (_interpPage > totalPages) _interpPage = totalPages;
+            if (_interpPage < 1) _interpPage = 1;
+
+            const from0 = (_interpPage - 1) * INTERP_PAGE_SIZE;
+            const sliced = visibleInterps.slice(from0, from0 + INTERP_PAGE_SIZE);
+
+            grid.innerHTML = sliced.map(p => `
     <div class="icard" onclick="openModal('${p.id}')">
       <div class="icard-head">
         <div class="icard-avatar" style="background:${p.color};">${p.nameKo.charAt(0)}</div>
@@ -1320,6 +1339,39 @@
         </div>
       </div>
     </div>`).join('');
+
+            renderInterpPager(visibleInterps.length, _interpPage);
+        }
+
+        function gotoInterpPage(p) {
+            _interpPage = p;
+            renderGrid();
+            // 스크롤 위로
+            try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+        }
+
+        function renderInterpPager(total, page) {
+            const pager = document.getElementById('interpPager');
+            if (!pager) return;
+            const totalPages = Math.max(1, Math.ceil(total / INTERP_PAGE_SIZE));
+            if (totalPages <= 1) {
+                pager.innerHTML = '<span style="color:#9ca3af;font-size:0.82rem;">총 ' + total + '명</span>';
+                return;
+            }
+            const btn = 'padding:7px 13px;border:1.5px solid #d0d7e3;background:#fff;border-radius:8px;font-size:0.85rem;cursor:pointer;font-family:inherit;color:#333;';
+            const activeBtn = 'padding:7px 13px;border:1.5px solid #1565c0;background:#1565c0;border-radius:8px;font-size:0.85rem;cursor:pointer;font-family:inherit;color:#fff;';
+            const disabledBtn = btn + 'opacity:0.4;cursor:not-allowed;';
+            let html = '<span style="color:#9ca3af;font-size:0.82rem;margin-right:12px;">총 ' + total + '명 · ' + page + '/' + totalPages + '</span>';
+            html += '<button onclick="gotoInterpPage(' + Math.max(1, page - 1) + ')" ' + (page === 1 ? 'disabled style="' + disabledBtn + '"' : 'style="' + btn + '"') + '>‹ 이전</button>';
+            // 페이지 윈도우 (최대 7개)
+            let start = Math.max(1, page - 3);
+            let end = Math.min(totalPages, start + 6);
+            start = Math.max(1, end - 6);
+            for (let i = start; i <= end; i++) {
+                html += '<button onclick="gotoInterpPage(' + i + ')" style="' + (i === page ? activeBtn : btn) + '">' + i + '</button>';
+            }
+            html += '<button onclick="gotoInterpPage(' + Math.min(totalPages, page + 1) + ')" ' + (page === totalPages ? 'disabled style="' + disabledBtn + '"' : 'style="' + btn + '"') + '>다음 ›</button>';
+            pager.innerHTML = html;
         }
 
         // ═══════════════════════════
@@ -1494,6 +1546,7 @@
                 const matchSt = status === 'all' || p.status === status;
                 return matchQ && matchLang && matchSt;
             });
+            _interpPage = 1; // 필터 변경 시 1페이지로 리셋
             renderGrid();
         }
 

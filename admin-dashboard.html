@@ -182,6 +182,9 @@
             <a class="sb-item" id="sb-system-settings" onclick="switchTab('system-settings')">
                 <span class="sb-item__icon">⚙️</span> 시스템 설정
             </a>
+            <a class="sb-item" id="sb-audit-log" onclick="switchTab('audit-log')">
+                <span class="sb-item__icon">📜</span> 감사 로그
+            </a>
             <a class="sb-item" href="javascript:void(0)" onclick="adminLogout()">
                 <span class="sb-item__icon">🚪</span> 로그아웃
             </a>
@@ -1588,6 +1591,41 @@
                     </div>
                 </div><!-- /view-exhibitions -->
 
+                <!-- ══ 감사 로그 뷰 ══ -->
+                <div class="view" id="view-audit-log">
+                    <div class="view-header" style="margin-bottom:18px;">
+                        <h2 style="font-size:1.1rem;font-weight:800;color:#0a2a5e;margin:0;">📜 감사 로그</h2>
+                        <p style="font-size:0.78rem;color:#9daec8;margin-top:4px;">환불·취소·승인 등 되돌릴 수 없는 관리자 액션 기록. 최신순.</p>
+                    </div>
+
+                    <!-- 필터 바 -->
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;padding:14px;background:#fff;border:1px solid #e5eaf2;border-radius:12px;">
+                        <select id="alFilterAction" style="padding:8px 12px;border:1.5px solid #d0d7e3;border-radius:8px;font-size:0.84rem;font-family:inherit;">
+                            <option value="">전체 액션</option>
+                            <option value="refund_complete">환불 완료</option>
+                            <option value="cancel_approve">취소 승인</option>
+                            <option value="cancel_reject">취소 거절</option>
+                            <option value="interpreter_approve">통역사 승인</option>
+                            <option value="interpreter_reject">통역사 거절</option>
+                            <option value="showcase_approve">공고 승인</option>
+                            <option value="showcase_reject">공고 거절</option>
+                            <option value="showcase_assign">공고 매칭</option>
+                        </select>
+                        <input type="date" id="alFilterFrom" style="padding:8px 12px;border:1.5px solid #d0d7e3;border-radius:8px;font-size:0.84rem;font-family:inherit;" />
+                        <span style="color:#999;">~</span>
+                        <input type="date" id="alFilterTo" style="padding:8px 12px;border:1.5px solid #d0d7e3;border-radius:8px;font-size:0.84rem;font-family:inherit;" />
+                        <input type="text" id="alFilterActor" placeholder="actor email 검색" style="padding:8px 12px;border:1.5px solid #d0d7e3;border-radius:8px;font-size:0.84rem;font-family:inherit;flex:1;min-width:200px;" />
+                        <button class="btn-primary" onclick="loadAuditLog(1)" style="padding:8px 20px;font-size:0.84rem;">조회</button>
+                        <button onclick="alResetFilters()" style="padding:8px 16px;background:#fff;border:1.5px solid #d0d7e3;border-radius:8px;font-size:0.84rem;color:#666;cursor:pointer;font-family:inherit;">초기화</button>
+                    </div>
+
+                    <!-- 로그 목록 -->
+                    <div id="auditLogList" style="display:flex;flex-direction:column;gap:8px;"></div>
+
+                    <!-- 페이지네이션 -->
+                    <div id="auditLogPager" style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:20px;flex-wrap:wrap;"></div>
+                </div><!-- /view-audit-log -->
+
                 <!-- ══ 전시회 추가/수정 모달 ══ -->
                 <div class="overlay" id="exModalOverlay" onclick="if(event.target===this)exCloseModal()">
                     <div class="modal" style="max-width:560px;">
@@ -2015,12 +2053,13 @@
                 if (tab === 'system-settings') { title = '시스템 설정'; loadSystemSettings(); }
                 if (tab === 'exhibitions') { title = '해외전시회 DB 관리'; exLoad(); }
                 if (tab === 'bizverify') { title = '사업자등록증 검수'; bizVerifyLoad(); }
+                if (tab === 'audit-log') { title = '감사 로그'; loadAuditLog(1); }
                 document.getElementById('pageTitle').textContent = title;
 
                 if (tab === 'interpreters') { title = '통역사 관리'; loadInterpVerifyList(); }
 
                 // Sidebar highlighting
-                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-bizverify', 'sb-loyalty', 'sb-reviews', 'sb-cases', 'sb-exhibitions', 'sb-system-settings', 'sb-interp-verify'].forEach(id => {
+                ['sb-inquiries', 'sb-contracts', 'sb-cancellations', 'sb-calendar', 'sb-journal', 'sb-settlement', 'sb-chatmon', 'sb-applications', 'sb-customers', 'sb-bizverify', 'sb-loyalty', 'sb-reviews', 'sb-cases', 'sb-exhibitions', 'sb-system-settings', 'sb-audit-log', 'sb-interp-verify'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('active');
                 });
@@ -7631,6 +7670,132 @@
                 btn.disabled = false;
                 btn.textContent = '변경하기';
             }
+        }
+
+        // ══════════════ 감사 로그 (99_감사로그) ══════════════
+        const AUDIT_PAGE_SIZE = 50;
+        let _auditPage = 1;
+        const ACTION_LABELS = {
+            'refund_complete': { icon: '💰', label: '환불 완료', color: '#1565c0' },
+            'cancel_approve': { icon: '✅', label: '취소 승인', color: '#2e7d32' },
+            'cancel_reject': { icon: '❌', label: '취소 거절', color: '#c62828' },
+            'interpreter_approve': { icon: '👤', label: '통역사 승인', color: '#2e7d32' },
+            'interpreter_reject': { icon: '🚫', label: '통역사 거절', color: '#c62828' },
+            'showcase_approve': { icon: '📋', label: '공고 승인', color: '#2e7d32' },
+            'showcase_reject': { icon: '🚫', label: '공고 거절', color: '#c62828' },
+            'showcase_assign': { icon: '🤝', label: '공고 매칭', color: '#0d47a1' }
+        };
+
+        function alResetFilters() {
+            ['alFilterAction', 'alFilterFrom', 'alFilterTo', 'alFilterActor'].forEach(function (id) {
+                var el = document.getElementById(id); if (el) el.value = '';
+            });
+            loadAuditLog(1);
+        }
+
+        async function loadAuditLog(page) {
+            if (!supabase) return;
+            page = page || 1;
+            _auditPage = page;
+            var listEl = document.getElementById('auditLogList');
+            var pagerEl = document.getElementById('auditLogPager');
+            if (!listEl) return;
+            listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#9daec8;">불러오는 중...</div>';
+            pagerEl.innerHTML = '';
+
+            var action = document.getElementById('alFilterAction').value;
+            var from = document.getElementById('alFilterFrom').value;
+            var to = document.getElementById('alFilterTo').value;
+            var actor = document.getElementById('alFilterActor').value.trim();
+
+            var from0 = (page - 1) * AUDIT_PAGE_SIZE;
+            var to0 = from0 + AUDIT_PAGE_SIZE - 1;
+
+            try {
+                var q = supabase
+                    .from('99_감사로그')
+                    .select('id, actor_user_id, actor_role, actor_email, action, target_table, target_id, before_data, after_data, note, ip_address, created_at', { count: 'exact' })
+                    .order('created_at', { ascending: false })
+                    .range(from0, to0);
+                if (action) q = q.eq('action', action);
+                if (from) q = q.gte('created_at', from + 'T00:00:00');
+                if (to) q = q.lte('created_at', to + 'T23:59:59');
+                if (actor) q = q.ilike('actor_email', '%' + actor + '%');
+
+                var { data, count, error } = await q;
+                if (error) {
+                    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;">조회 실패: ' + (error.message || error) + '</div>';
+                    return;
+                }
+                if (!data || data.length === 0) {
+                    listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#9daec8;">조건에 맞는 기록이 없습니다.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = data.map(renderAuditRow).join('');
+                renderAuditPager(count || 0, page);
+            } catch (e) {
+                console.error('[audit-log] 로드 실패:', e);
+                listEl.innerHTML = '<div style="padding:40px;text-align:center;color:#c62828;">네트워크 오류</div>';
+            }
+        }
+
+        function _alEsc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function renderAuditRow(r) {
+            var spec = ACTION_LABELS[r.action] || { icon: '📝', label: r.action, color: '#666' };
+            var when = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '-';
+            var actor = r.actor_email || r.actor_user_id || '?';
+            var target = r.target_table ? (r.target_table + (r.target_id ? ' / ' + r.target_id.slice(0, 12) : '')) : '-';
+            var details = '';
+            if (r.after_data && typeof r.after_data === 'object') {
+                details = '<pre style="margin:6px 0 0;padding:8px 10px;background:#f7f9fc;border-radius:6px;font-size:0.72rem;color:#444;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;">'
+                    + _alEsc(JSON.stringify(r.after_data, null, 2)) + '</pre>';
+            }
+            var noteHtml = r.note ? '<div style="font-size:0.78rem;color:#666;margin-top:4px;">📝 ' + _alEsc(r.note) + '</div>' : '';
+            return '<div style="background:#fff;border:1px solid #e5eaf2;border-left:3px solid ' + spec.color + ';border-radius:10px;padding:14px 16px;">'
+                + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">'
+                + '<div style="flex:1;min-width:0;">'
+                + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+                + '<span style="font-size:0.92rem;font-weight:700;color:' + spec.color + ';">' + spec.icon + ' ' + spec.label + '</span>'
+                + '<span style="font-size:0.74rem;color:#9ca3af;">' + _alEsc(r.action) + '</span>'
+                + '</div>'
+                + '<div style="font-size:0.8rem;color:#666;">'
+                + '<b>actor</b> ' + _alEsc(actor) + ' · <b>target</b> ' + _alEsc(target)
+                + (r.ip_address ? ' · <b>ip</b> ' + _alEsc(r.ip_address) : '')
+                + '</div>'
+                + noteHtml
+                + details
+                + '</div>'
+                + '<div style="font-size:0.78rem;color:#9ca3af;white-space:nowrap;">' + _alEsc(when) + '</div>'
+                + '</div>'
+                + '</div>';
+        }
+
+        function renderAuditPager(total, page) {
+            var pagerEl = document.getElementById('auditLogPager');
+            var totalPages = Math.max(1, Math.ceil(total / AUDIT_PAGE_SIZE));
+            if (totalPages <= 1) {
+                pagerEl.innerHTML = '<span style="color:#9ca3af;font-size:0.8rem;">총 ' + total + '건</span>';
+                return;
+            }
+            var html = '<span style="color:#9ca3af;font-size:0.8rem;margin-right:12px;">총 ' + total + '건</span>';
+            var btnStyle = 'padding:6px 12px;border:1.5px solid #d0d7e3;background:#fff;border-radius:8px;font-size:0.84rem;cursor:pointer;font-family:inherit;color:#333;';
+            var activeBtnStyle = btnStyle.replace('#d0d7e3', '#1565c0').replace('background:#fff', 'background:#1565c0').replace('color:#333', 'color:#fff');
+            html += '<button onclick="loadAuditLog(' + Math.max(1, page - 1) + ')" ' + (page === 1 ? 'disabled style="' + btnStyle + 'opacity:0.4;cursor:not-allowed;"' : 'style="' + btnStyle + '"') + '>‹ 이전</button>';
+            // 페이지 번호 (최대 7개 윈도우)
+            var start = Math.max(1, page - 3);
+            var end = Math.min(totalPages, start + 6);
+            start = Math.max(1, end - 6);
+            for (var i = start; i <= end; i++) {
+                html += '<button onclick="loadAuditLog(' + i + ')" style="' + (i === page ? activeBtnStyle : btnStyle) + '">' + i + '</button>';
+            }
+            html += '<button onclick="loadAuditLog(' + Math.min(totalPages, page + 1) + ')" ' + (page === totalPages ? 'disabled style="' + btnStyle + 'opacity:0.4;cursor:not-allowed;"' : 'style="' + btnStyle + '"') + '>다음 ›</button>';
+            pagerEl.innerHTML = html;
         }
 
         // ══════════════ 시스템 설정 ══════════════
