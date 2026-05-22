@@ -217,14 +217,20 @@
         }
 
         /* ── 게시판 표 ── */
-        .ij-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+        /* 표가 컨테이너보다 넓으면 가로 스크롤 (좁은 화면 대비) */
+        .ij-table-wrap {
             background: #fff;
             border: 1px solid #e5eaf2;
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+        }
+        .ij-table {
+            width: 100%;
+            min-width: 1180px;
+            border-collapse: separate;
+            border-spacing: 0;
             font-size: 0.88rem;
         }
         .ij-table thead {
@@ -241,12 +247,16 @@
             border-bottom: 1px solid #e5eaf2;
             white-space: nowrap;
         }
-        .ij-th--status { width: 100px; }
-        .ij-th--country { width: 70px; text-align: center; }
-        .ij-th--date { width: 165px; }
-        .ij-th--memo { width: 220px; }
-        .ij-th--interest { width: 65px; text-align: center; }
-        .ij-th--action { width: 110px; text-align: center; }
+        /* 컬럼별 너비 — 합계 ~1180px과 일치 */
+        .ij-th--status      { width:  96px; }
+        .ij-th--label       { width: 160px; }
+        .ij-th--exhibition  { width: 210px; }
+        .ij-th--country     { width:  60px; text-align: center; }
+        .ij-th--date        { width: 170px; }
+        .ij-th--lang        { width: 150px; }
+        .ij-th--memo        { width: 220px; }
+        .ij-th--interest    { width:  60px; text-align: center; }
+        .ij-th--action      { width: 120px; text-align: center; }
         .ij-tr {
             cursor: pointer;
             transition: background 0.15s;
@@ -261,16 +271,37 @@
             vertical-align: middle;
             border-bottom: 1px solid #f1f5f9;
             color: var(--gray-700);
+            white-space: nowrap;          /* 기본 한 줄 (개행 차단) */
         }
         .ij-tbody tr:last-child .ij-td { border-bottom: none; }
+        /* 다중 줄 허용 셀 — 라벨·전시회·본문만 */
+        .ij-td--label, .ij-td--exhibition { white-space: normal; }
+        .ij-td--memo { white-space: normal; }
         .ij-td--status {
             display: flex;
             flex-direction: column;
             gap: 4px;
             align-items: flex-start;
         }
-        .ij-td__label-main { font-weight: 700; color: var(--text); }
-        .ij-td__label-sub { font-size: 0.78rem; color: var(--gray-400); margin-top: 2px; }
+        .ij-td__label-main {
+            font-weight: 700;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+        .ij-td__label-sub {
+            font-size: 0.78rem;
+            color: var(--gray-400);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
         .ij-td--country { text-align: center; }
         .ij-td--interest { text-align: center; color: var(--gray-400); }
         .ij-td--action { text-align: center; }
@@ -395,7 +426,8 @@
 
         /* ── 모바일 카드 폴백 (768px 이하) — 표 행을 카드처럼 ── */
         @media (max-width: 768px) {
-            .ij-table { border: none; background: transparent; }
+            .ij-table-wrap { border: none; background: transparent; overflow: visible; }
+            .ij-table { min-width: 0; border: none; background: transparent; }
             .ij-table thead { display: none; }
             .ij-tr {
                 display: block;
@@ -1083,22 +1115,24 @@
             </div>
 
             <!-- 게시판 (데스크톱: 표, 모바일: 카드 폴백) -->
-            <table class="ij-table" id="ijTable">
-                <thead>
-                    <tr>
-                        <th class="ij-th ij-th--status" scope="col">구분</th>
-                        <th class="ij-th ij-th--label" scope="col">기업·산업</th>
-                        <th class="ij-th ij-th--exhibition" scope="col">전시회 · 개최지</th>
-                        <th class="ij-th ij-th--country" scope="col">국가</th>
-                        <th class="ij-th ij-th--date" scope="col">기간</th>
-                        <th class="ij-th ij-th--lang" scope="col">언어 · 인원</th>
-                        <th class="ij-th ij-th--memo" scope="col">본문</th>
-                        <th class="ij-th ij-th--interest" scope="col">관심</th>
-                        <th class="ij-th ij-th--action" scope="col">지원</th>
-                    </tr>
-                </thead>
-                <tbody id="ijGrid"></tbody>
-            </table>
+            <div class="ij-table-wrap">
+                <table class="ij-table" id="ijTable">
+                    <thead>
+                        <tr>
+                            <th class="ij-th ij-th--status" scope="col">구분</th>
+                            <th class="ij-th ij-th--label" scope="col">기업·산업</th>
+                            <th class="ij-th ij-th--exhibition" scope="col">전시회 · 개최지</th>
+                            <th class="ij-th ij-th--country" scope="col">국가</th>
+                            <th class="ij-th ij-th--date" scope="col">기간</th>
+                            <th class="ij-th ij-th--lang" scope="col">언어 · 인원</th>
+                            <th class="ij-th ij-th--memo" scope="col">본문</th>
+                            <th class="ij-th ij-th--interest" scope="col">관심</th>
+                            <th class="ij-th ij-th--action" scope="col">지원</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ijGrid"></tbody>
+                </table>
+            </div>
 
             <!-- 더 보기 -->
             <div class="ij-more-wrap" id="ijMoreWrap">
