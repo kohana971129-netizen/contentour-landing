@@ -18,6 +18,16 @@ async function verifyAdmin(token) {
     return user;
 }
 
+// admin + is_super_admin=true 인 경우만 통과. Phase 1 권한 분리.
+async function verifySuperAdmin(token) {
+    if (!token) return null;
+    const { data: { user }, error } = await sbAuth.auth.getUser(token);
+    if (error || !user) return null;
+    const { data: profile } = await supabase.from('01_회원').select('role, is_super_admin').eq('id', user.id).single();
+    if (!profile || profile.role !== 'admin' || !profile.is_super_admin) return null;
+    return user;
+}
+
 // ────────────────────────── 감사로그 헬퍼 ──────────────────────────
 // 99_감사로그에 관리자 중요 액션 1줄 기록. 실패해도 본 액션은 영향 없음 (best-effort).
 // 테이블 미적용 환경에서도 호출이 깨지지 않도록 try/catch로 감싼다.
@@ -616,6 +626,121 @@ module.exports = async function handler(req, res) {
                 note: trimmed
             });
             return res.status(200).json({ success: true, data });
+
+        } else if (action === 'cancelApprove') {
+            // 계약 취소 승인 — super_admin 전용 (되돌릴 수 없는 액션)
+            const superAdmin = await verifySuperAdmin(token);
+            if (!superAdmin) return res.status(403).json({ error: 'super_admin 권한이 필요합니다.' });
+
+            const { cancelId } = req.body;
+            if (!cancelId) return res.status(400).json({ error: 'cancelId 필수' });
+
+            const { data: cancel, error: qErr } = await supabase
+                .from('51_취소내역')
+                .select('id, contract_id, refund_amount, penalty_amount, status, cancelled_user_id')
+                .eq('id', cancelId).single();
+            if (qErr || !cancel) return res.status(404).json({ error: '취소내역을 찾을 수 없습니다.' });
+            if (cancel.status !== 'pending') return res.status(409).json({ error: '이미 처리된 취소 건입니다.' });
+
+            const { error: updErr } = await supabase.from('51_취소내역').update({
+                status: 'approved',
+                admin_note: '관리자 승인',
+                updated_at: new Date().toISOString()
+            }).eq('id', cancelId);
+            if (updErr) return res.status(500).json({ error: '승인 처리 실패: ' + updErr.message });
+
+            await recordAudit(req, superAdmin, {
+                action: 'cancel_approve',
+                target_table: '51_취소내역',
+                target_id: cancelId,
+                after: { status: 'approved', contract_id: cancel.contract_id, refund_amount: cancel.refund_amount, penalty_amount: cancel.penalty_amount }
+            });
+            return res.status(200).json({ success: true, cancel });
+
+        } else if (action === 'refundComplete') {
+            // 환불 완료 처리 — super_admin 전용 (환불은 되돌릴 수 없음)
+            const superAdmin = await verifySuperAdmin(token);
+            if (!superAdmin) return res.status(403).json({ error: 'super_admin 권한이 필요합니다.' });
+
+            const { cancelId } = req.body;
+            if (!cancelId) return res.status(400).json({ error: 'cancelId 필수' });
+
+            const { data: cancel, error: qErr } = await supabase
+                .from('51_취소내역')
+                .select('id, contract_id, refund_amount, status, admin_note')
+                .eq('id', cancelId).single();
+            if (qErr || !cancel) return res.status(404).json({ error: '취소내역을 찾을 수 없습니다.' });
+            if (cancel.status !== 'approved') return res.status(409).json({ error: '승인 상태에서만 환불 완료 처리할 수 있습니다.' });
+
+            const prevNote = cancel.admin_note ? cancel.admin_note + '\n' : '';
+            const { error: updErr } = await supabase.from('51_취소내역').update({
+                status: 'refunded',
+                admin_note: prevNote + '[' + new Date().toISOString().slice(0,10) + '] 환불 완료 처리',
+                updated_at: new Date().toISOString()
+            }).eq('id', cancelId);
+            if (updErr) return res.status(500).json({ error: '환불 처리 실패: ' + updErr.message });
+
+            // 47_결제기록 동기화 (webhook 미수신 케이스 대비)
+            if (cancel.contract_id) {
+                try {
+                    await supabase.from('47_결제기록')
+                        .update({ status: 'refunded', cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                        .eq('contract_id', cancel.contract_id)
+                        .neq('status', 'refunded');
+                } catch (e) { console.warn('[refund] 47_결제기록 동기화 실패:', e); }
+            }
+
+            await recordAudit(req, superAdmin, {
+                action: 'refund_complete',
+                target_table: '51_취소내역',
+                target_id: cancelId,
+                before: { status: 'approved' },
+                after: { status: 'refunded', contract_id: cancel.contract_id, refund_amount: cancel.refund_amount },
+                note: 'PortOne 외부 환불 완료 후 시스템 반영'
+            });
+            return res.status(200).json({ success: true });
+
+        } else if (action === 'cancelReject') {
+            // 취소 거절 — 일반 admin 허용 (계약 복구만 하므로 비파괴적)
+            const { cancelId, reason } = req.body;
+            if (!cancelId) return res.status(400).json({ error: 'cancelId 필수' });
+            const trimmed = String(reason || '').trim().slice(0, 500);
+            if (!trimmed) return res.status(400).json({ error: '거절 사유 필수' });
+
+            const { data: cancel, error: qErr } = await supabase
+                .from('51_취소내역')
+                .select('id, contract_id, status')
+                .eq('id', cancelId).single();
+            if (qErr || !cancel) return res.status(404).json({ error: '취소내역을 찾을 수 없습니다.' });
+            if (cancel.status !== 'pending') return res.status(409).json({ error: '이미 처리된 취소 건입니다.' });
+
+            const { error: updErr } = await supabase.from('51_취소내역').update({
+                status: 'rejected',
+                admin_note: trimmed,
+                updated_at: new Date().toISOString()
+            }).eq('id', cancelId);
+            if (updErr) return res.status(500).json({ error: '거절 처리 실패: ' + updErr.message });
+
+            // 계약 상태 복구
+            if (cancel.contract_id) {
+                try {
+                    await supabase.from('42_통역계약').update({
+                        status: 'pending',
+                        cancelled_by: null,
+                        cancel_reason: null,
+                        cancelled_at: null
+                    }).eq('id', cancel.contract_id);
+                } catch (e) { console.warn('[cancelReject] 계약 복구 실패:', e); }
+            }
+
+            await recordAudit(req, admin, {
+                action: 'cancel_reject',
+                target_table: '51_취소내역',
+                target_id: cancelId,
+                after: { status: 'rejected', contract_id: cancel.contract_id, contract_restored_to: 'pending' },
+                note: trimmed
+            });
+            return res.status(200).json({ success: true });
 
         } else {
             return res.status(400).json({ error: 'Unknown action' });

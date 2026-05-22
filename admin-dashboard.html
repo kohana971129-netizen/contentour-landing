@@ -3921,6 +3921,36 @@
             // ═══ 취소 관리 시스템 ═══
             var cancelAdminData = [];
             var cancelFilterStatus = 'all';
+            // Phase 1 권한 분리 — super_admin만 취소 승인·환불 완료 가능
+            var _isSuperAdmin = false;
+            async function loadSuperAdminFlag() {
+                try {
+                    if (window.ContentourAuth) {
+                        var p = await ContentourAuth.getUserProfile();
+                        _isSuperAdmin = !!(p && p.is_super_admin);
+                    }
+                } catch (e) { _isSuperAdmin = false; }
+            }
+            // 페이지 진입 직후 1회만 로드 (이후 캐시 사용)
+            if (window.ContentourAuth) loadSuperAdminFlag();
+
+            // API helper — admin-app.js 액션 호출
+            async function callAdminAction(payload) {
+                try {
+                    if (!supabase) throw new Error('DB 연결 없음');
+                    var s = await supabase.auth.getSession();
+                    var token = s && s.data && s.data.session && s.data.session.access_token;
+                    if (!token) throw new Error('인증 만료');
+                    var r = await fetch('/api/admin-app', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify(payload)
+                    });
+                    var json = await r.json().catch(function() { return {}; });
+                    if (!r.ok) throw new Error(json.error || ('HTTP ' + r.status));
+                    return json;
+                } catch (e) { throw e; }
+            }
 
             async function loadCancellations() {
                 var listEl = document.getElementById('cancelList');
@@ -4003,15 +4033,20 @@
                     var date = d.created_at ? d.created_at.split('T')[0] : '';
                     var actions = '';
                     if (d.status === 'pending') {
+                        // 승인은 super_admin 전용, 거절은 일반 admin 허용
+                        var approveBtn = _isSuperAdmin
+                            ? '<button onclick="approveCancellation(\''+d.id+'\')" style="padding:8px 16px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">승인</button>'
+                            : '<span title="super_admin 권한 필요" style="padding:8px 16px;background:#f3f5f9;color:#9ca3af;border-radius:8px;font-size:0.78rem;font-weight:600;">승인 (권한 필요)</span>';
                         actions = '<div style="display:flex;gap:6px;margin-top:10px;">' +
-                            '<button onclick="approveCancellation(\''+d.id+'\')" style="padding:8px 16px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">승인</button>' +
+                            approveBtn +
                             '<button onclick="rejectCancellation(\''+d.id+'\')" style="padding:8px 16px;background:#c62828;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">거절</button>' +
                         '</div>';
                     } else if (d.status === 'approved') {
-                        // 승인 후 PortOne 외부 환불 처리 완료 시 마지막 단계로 'refunded' 표시
-                        actions = '<div style="display:flex;gap:6px;margin-top:10px;">' +
-                            '<button onclick="markCancelRefunded(\''+d.id+'\')" style="padding:8px 16px;background:#1565c0;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">💰 환불 완료 처리</button>' +
-                        '</div>';
+                        // 환불 완료 처리는 super_admin 전용 (되돌릴 수 없음)
+                        var refundBtn = _isSuperAdmin
+                            ? '<button onclick="markCancelRefunded(\''+d.id+'\')" style="padding:8px 16px;background:#1565c0;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">💰 환불 완료 처리</button>'
+                            : '<span title="super_admin 권한 필요" style="padding:8px 16px;background:#f3f5f9;color:#9ca3af;border-radius:8px;font-size:0.78rem;font-weight:600;">💰 환불 완료 (권한 필요)</span>';
+                        actions = '<div style="display:flex;gap:6px;margin-top:10px;">' + refundBtn + '</div>';
                     }
                     return '<div style="background:#fff;border:1px solid #e5eaf2;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">' +
                         '<div style="flex:1;">' +
@@ -4099,29 +4134,18 @@
             }
 
             async function approveCancellation(cancelId) {
-                if (!supabase) return;
+                if (!_isSuperAdmin) { showToast('취소 승인은 super_admin 권한이 필요합니다.'); return; }
                 try {
                     var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
-                    await supabase.from('51_취소내역').update({ status: 'approved', admin_note: '관리자 승인', updated_at: new Date().toISOString() }).eq('id', cancelId);
+                    // 서버측 super_admin 검증 + UPDATE + 감사로그 (admin-app.js)
+                    await callAdminAction({ action: 'cancelApprove', cancelId: cancelId });
+
+                    // 클라이언트측 후처리 (적립금 회수, 이메일) — 비파괴적이므로 client-side 유지
                     var reversed = 0;
                     if (cancel && cancel.contract_id && cancel.cancelled_user_id) {
                         reversed = await reverseLoyaltyForContract(cancel.contract_id, cancel.cancelled_user_id);
                     }
-                    // 이메일 발송 (실패해도 무시)
                     notifyCancellationEmail(cancel, 'approved');
-                    // 감사로그 (실패해도 무시)
-                    recordAuditClient({
-                        action: 'cancel_approve',
-                        target_table: '51_취소내역',
-                        target_id: cancelId,
-                        after: {
-                            status: 'approved',
-                            contract_id: cancel && cancel.contract_id,
-                            refund_amount: cancel && cancel.refund_amount,
-                            penalty_amount: cancel && cancel.penalty_amount,
-                            loyalty_reversed: reversed
-                        }
-                    });
                     showToast(reversed > 0
                         ? '✅ 취소 승인 완료 (적립금 ' + reversed.toLocaleString() + 'P 회수)'
                         : '✅ 취소가 승인되었습니다.');
@@ -4163,42 +4187,13 @@
 
             // 외부(PortOne) 환불 처리 완료를 시스템에 반영 — 승인 → 환불완료 전이
             async function markCancelRefunded(cancelId) {
-                if (!supabase) return;
+                if (!_isSuperAdmin) { showToast('환불 완료 처리는 super_admin 권한이 필요합니다.'); return; }
                 var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
                 var refundAmt = (cancel && cancel.refund_amount) ? cancel.refund_amount.toLocaleString() + '원' : '환불 금액';
                 if (!confirm('PortOne 콘솔에서 ' + refundAmt + ' 환불을 실제로 완료하셨나요?\n시스템에 "환불완료" 상태로 반영됩니다.')) return;
                 try {
-                    var prevNote = (cancel && cancel.admin_note) ? cancel.admin_note + '\n' : '';
-                    await supabase.from('51_취소내역').update({
-                        status: 'refunded',
-                        admin_note: prevNote + '[' + new Date().toISOString().slice(0,10) + '] 환불 완료 처리',
-                        updated_at: new Date().toISOString()
-                    }).eq('id', cancelId);
-
-                    // 47_결제기록 status도 함께 동기화 (webhook 미수신 케이스 대비)
-                    if (cancel && cancel.contract_id) {
-                        try {
-                            await supabase.from('47_결제기록')
-                                .update({ status: 'refunded', cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-                                .eq('contract_id', cancel.contract_id)
-                                .neq('status', 'refunded');
-                        } catch (e) { console.warn('[refund] 47_결제기록 동기화 실패:', e); }
-                    }
-
-                    // 감사로그 — 환불은 되돌릴 수 없으므로 반드시 기록
-                    recordAuditClient({
-                        action: 'refund_complete',
-                        target_table: '51_취소내역',
-                        target_id: cancelId,
-                        before: { status: 'approved' },
-                        after: {
-                            status: 'refunded',
-                            contract_id: cancel && cancel.contract_id,
-                            refund_amount: cancel && cancel.refund_amount
-                        },
-                        note: 'PortOne 외부 환불 완료 후 시스템 반영'
-                    });
-
+                    // 서버측 super_admin 검증 + 51_취소내역·47_결제기록 동기화 + 감사로그 (admin-app.js)
+                    await callAdminAction({ action: 'refundComplete', cancelId: cancelId });
                     showToast('💰 환불 완료 처리되었습니다.');
                     loadCancellations();
                 } catch(e) {
@@ -4207,38 +4202,14 @@
             }
 
             async function rejectCancellation(cancelId) {
-                if (!supabase) return;
                 var reason = prompt('거절 사유를 입력해주세요:');
                 if (!reason) return;
                 try {
-                    // 취소내역 거절
-                    await supabase.from('51_취소내역').update({ status: 'rejected', admin_note: reason, updated_at: new Date().toISOString() }).eq('id', cancelId);
-
-                    // 계약 상태 복구
-                    var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
-                    if (cancel) {
-                        await supabase.from('42_통역계약').update({
-                            status: 'pending',
-                            cancelled_by: null,
-                            cancel_reason: null,
-                            cancelled_at: null
-                        }).eq('id', cancel.contract_id);
-                    }
-
+                    // 서버측 admin 검증 + UPDATE + 계약 복구 + 감사로그 (admin-app.js)
+                    await callAdminAction({ action: 'cancelReject', cancelId: cancelId, reason: reason });
                     // 이메일 발송 (실패해도 무시)
+                    var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
                     if (cancel) notifyCancellationEmail(cancel, 'rejected');
-                    // 감사로그
-                    recordAuditClient({
-                        action: 'cancel_reject',
-                        target_table: '51_취소내역',
-                        target_id: cancelId,
-                        after: {
-                            status: 'rejected',
-                            contract_id: cancel && cancel.contract_id,
-                            contract_restored_to: 'pending'
-                        },
-                        note: reason
-                    });
                     showToast('❌ 취소가 거절되었습니다. 계약이 복구되었습니다.');
                     loadCancellations();
                 } catch(e) {
