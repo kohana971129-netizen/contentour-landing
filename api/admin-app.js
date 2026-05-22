@@ -18,6 +18,32 @@ async function verifyAdmin(token) {
     return user;
 }
 
+// ────────────────────────── 감사로그 헬퍼 ──────────────────────────
+// 99_감사로그에 관리자 중요 액션 1줄 기록. 실패해도 본 액션은 영향 없음 (best-effort).
+// 테이블 미적용 환경에서도 호출이 깨지지 않도록 try/catch로 감싼다.
+async function recordAudit(req, actor, payload) {
+    try {
+        if (!actor || !actor.id) return;
+        const row = {
+            actor_user_id: actor.id,
+            actor_role: 'admin',
+            actor_email: actor.email || null,
+            action: payload.action,
+            target_table: payload.target_table || null,
+            target_id: payload.target_id ? String(payload.target_id) : null,
+            before_data: payload.before || null,
+            after_data: payload.after || null,
+            note: payload.note || null,
+            ip_address: (req && (req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || (req.socket && req.socket.remoteAddress))) || null,
+            user_agent: (req && req.headers['user-agent']) || null
+        };
+        const { error } = await supabase.from('99_감사로그').insert(row);
+        if (error) console.warn('[audit] insert 실패 (무시):', error.message);
+    } catch (e) {
+        console.warn('[audit] 예외 (무시):', e && e.message);
+    }
+}
+
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 async function sendApprovalEmail(email, name, tempPw) {
@@ -116,6 +142,13 @@ module.exports = async function handler(req, res) {
                 .eq('id', id)
                 .select();
             if (error) throw error;
+            await recordAudit(req, admin, {
+                action: 'interpreter_reject',
+                target_table: '48_통역사지원서',
+                target_id: id,
+                after: { status: 'rejected' },
+                note: reason || null
+            });
             return res.status(200).json({ success: true, data });
 
         } else if (action === 'approve') {
@@ -153,6 +186,13 @@ module.exports = async function handler(req, res) {
                     is_read: false
                 });
             } catch (e) { /* 알림 실패는 무시 */ }
+
+            await recordAudit(req, admin, {
+                action: 'interpreter_approve',
+                target_table: '48_통역사지원서',
+                target_id: id,
+                after: { status: 'approved', user_id: userId, name: app.name_ko, email: app.email }
+            });
 
             return res.status(200).json({
                 success: true,
@@ -354,6 +394,12 @@ module.exports = async function handler(req, res) {
                     });
                 } catch (e) { console.warn('승인 알림 실패:', e); }
             }
+            await recordAudit(req, admin, {
+                action: 'showcase_approve',
+                target_table: '46_ITQ견적문의',
+                target_id: pid,
+                after: { review_status: 'approved', exhibition_name: data && data.exhibition_name }
+            });
             return res.status(200).json({ success: true, data });
 
         } else if (action === 'showcaseApplicantsList') {
@@ -512,6 +558,21 @@ module.exports = async function handler(req, res) {
                 if (notifs.length > 0) await supabase.from('24_알림').insert(notifs);
             } catch (e) { console.warn('매칭 알림 실패:', e); }
 
+            await recordAudit(req, admin, {
+                action: 'showcase_assign',
+                target_table: '42_통역계약',
+                target_id: newContract.id,
+                after: {
+                    posting_id: postingId,
+                    interpreter_id: interpreterId,
+                    interpreter_name: interpDisplay,
+                    daily_rate: rate,
+                    total_amount: totalAmount,
+                    customer_id: customerId
+                },
+                note: memo || null
+            });
+
             return res.status(200).json({ success: true, contractId: newContract.id });
 
         } else if (action === 'showcaseReject') {
@@ -547,6 +608,13 @@ module.exports = async function handler(req, res) {
                     });
                 } catch (e) { console.warn('거부 알림 실패:', e); }
             }
+            await recordAudit(req, admin, {
+                action: 'showcase_reject',
+                target_table: '46_ITQ견적문의',
+                target_id: pid,
+                after: { review_status: 'rejected' },
+                note: trimmed
+            });
             return res.status(200).json({ success: true, data });
 
         } else {

@@ -4046,6 +4046,31 @@
                 });
             }
 
+            // ────── 감사로그(99_감사로그) 클라이언트 헬퍼 ──────
+            // 실패해도 본 액션은 영향 없음 (best-effort). RLS: admin authenticated만 본인 row INSERT 가능.
+            async function recordAuditClient(payload) {
+                try {
+                    if (!supabase) return;
+                    var s = await supabase.auth.getSession();
+                    var user = s && s.data && s.data.session && s.data.session.user;
+                    if (!user) return;
+                    var row = {
+                        actor_user_id: user.id,
+                        actor_role: 'admin',
+                        actor_email: user.email || null,
+                        action: payload.action,
+                        target_table: payload.target_table || null,
+                        target_id: payload.target_id ? String(payload.target_id) : null,
+                        before_data: payload.before || null,
+                        after_data: payload.after || null,
+                        note: payload.note || null,
+                        user_agent: navigator.userAgent || null
+                    };
+                    var { error } = await supabase.from('99_감사로그').insert(row);
+                    if (error) console.warn('[audit] insert 실패:', error.message);
+                } catch (e) { console.warn('[audit] 예외:', e && e.message); }
+            }
+
             // 계약 취소 승인 시 해당 계약으로 적립된 포인트 일괄 회수
             async function reverseLoyaltyForContract(contractId, userId) {
                 if (!supabase || !contractId || !userId) return 0;
@@ -4084,6 +4109,19 @@
                     }
                     // 이메일 발송 (실패해도 무시)
                     notifyCancellationEmail(cancel, 'approved');
+                    // 감사로그 (실패해도 무시)
+                    recordAuditClient({
+                        action: 'cancel_approve',
+                        target_table: '51_취소내역',
+                        target_id: cancelId,
+                        after: {
+                            status: 'approved',
+                            contract_id: cancel && cancel.contract_id,
+                            refund_amount: cancel && cancel.refund_amount,
+                            penalty_amount: cancel && cancel.penalty_amount,
+                            loyalty_reversed: reversed
+                        }
+                    });
                     showToast(reversed > 0
                         ? '✅ 취소 승인 완료 (적립금 ' + reversed.toLocaleString() + 'P 회수)'
                         : '✅ 취소가 승인되었습니다.');
@@ -4147,6 +4185,20 @@
                         } catch (e) { console.warn('[refund] 47_결제기록 동기화 실패:', e); }
                     }
 
+                    // 감사로그 — 환불은 되돌릴 수 없으므로 반드시 기록
+                    recordAuditClient({
+                        action: 'refund_complete',
+                        target_table: '51_취소내역',
+                        target_id: cancelId,
+                        before: { status: 'approved' },
+                        after: {
+                            status: 'refunded',
+                            contract_id: cancel && cancel.contract_id,
+                            refund_amount: cancel && cancel.refund_amount
+                        },
+                        note: 'PortOne 외부 환불 완료 후 시스템 반영'
+                    });
+
                     showToast('💰 환불 완료 처리되었습니다.');
                     loadCancellations();
                 } catch(e) {
@@ -4175,6 +4227,18 @@
 
                     // 이메일 발송 (실패해도 무시)
                     if (cancel) notifyCancellationEmail(cancel, 'rejected');
+                    // 감사로그
+                    recordAuditClient({
+                        action: 'cancel_reject',
+                        target_table: '51_취소내역',
+                        target_id: cancelId,
+                        after: {
+                            status: 'rejected',
+                            contract_id: cancel && cancel.contract_id,
+                            contract_restored_to: 'pending'
+                        },
+                        note: reason
+                    });
                     showToast('❌ 취소가 거절되었습니다. 계약이 복구되었습니다.');
                     loadCancellations();
                 } catch(e) {
