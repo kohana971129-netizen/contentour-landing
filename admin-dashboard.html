@@ -7746,28 +7746,86 @@
             });
         }
 
+        // target_table 한글 라벨 매핑 (있으면 사용, 없으면 원본 표시)
+        const TARGET_TABLE_LABELS = {
+            '48_통역사지원서': '통역사 지원서',
+            '46_ITQ견적문의': '견적 문의',
+            '42_통역계약': '통역 계약',
+            '51_취소내역': '취소 신청',
+            '70_구인공고지원': '공고 지원',
+            '47_결제기록': '결제 기록'
+        };
+
+        function _alFormatTarget(table, id) {
+            if (!table) return '-';
+            var label = TARGET_TABLE_LABELS[table] || table;
+            if (!id) return label;
+            return label + ' #' + id.slice(0, 8);
+        }
+
+        function _alFormatAfter(data) {
+            if (!data || typeof data !== 'object') return '';
+            // status만 있고 한글 라벨에서 이미 표시되는 단순한 경우는 생략
+            var keys = Object.keys(data);
+            if (keys.length === 1 && keys[0] === 'status') return '';
+            // 주요 필드 사람이 읽기 쉬운 라벨로 표시
+            var labelMap = {
+                refund_amount: '환불 금액',
+                penalty_amount: '위약금',
+                penalty_rate: '위약금률',
+                total_amount: '총 금액',
+                daily_rate: '일당',
+                contract_id: '계약 ID',
+                exhibition_name: '전시회',
+                interpreter_name: '통역사',
+                interpreter_id: '통역사 ID',
+                customer_id: '고객사 ID',
+                user_id: '회원 ID',
+                name: '이름',
+                email: '이메일',
+                posting_id: '공고 ID',
+                review_status: '검토 상태',
+                loyalty_reversed: '회수 적립금',
+                contract_restored_to: '계약 복구 상태',
+                status: '상태'
+            };
+            var rows = [];
+            keys.forEach(function (k) {
+                var v = data[k];
+                if (v == null || v === '') return;
+                var displayKey = labelMap[k] || k;
+                var displayVal;
+                if (typeof v === 'number') {
+                    displayVal = v.toLocaleString();
+                    if (/amount|rate/.test(k)) displayVal = v.toLocaleString() + (k.indexOf('rate') >= 0 ? '%' : '원');
+                } else {
+                    displayVal = String(v);
+                }
+                rows.push('<div style="display:flex;gap:8px;font-size:0.78rem;line-height:1.7;"><span style="color:#9ca3af;min-width:80px;">' + _alEsc(displayKey) + '</span><span style="color:#333;word-break:break-all;">' + _alEsc(displayVal) + '</span></div>');
+            });
+            return rows.length > 0
+                ? '<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:0.78rem;color:#1565c0;user-select:none;">상세 보기</summary><div style="margin-top:8px;padding:10px 12px;background:#f7f9fc;border-radius:8px;">' + rows.join('') + '</div></details>'
+                : '';
+        }
+
         function renderAuditRow(r) {
             var spec = ACTION_LABELS[r.action] || { icon: '📝', label: r.action, color: '#666' };
             var when = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '-';
             var actor = r.actor_email || r.actor_user_id || '?';
-            var target = r.target_table ? (r.target_table + (r.target_id ? ' / ' + r.target_id.slice(0, 12) : '')) : '-';
-            var details = '';
-            if (r.after_data && typeof r.after_data === 'object') {
-                details = '<pre style="margin:6px 0 0;padding:8px 10px;background:#f7f9fc;border-radius:6px;font-size:0.72rem;color:#444;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;">'
-                    + _alEsc(JSON.stringify(r.after_data, null, 2)) + '</pre>';
-            }
-            var noteHtml = r.note ? '<div style="font-size:0.78rem;color:#666;margin-top:4px;">📝 ' + _alEsc(r.note) + '</div>' : '';
-            return '<div style="background:#fff;border:1px solid #e5eaf2;border-left:3px solid ' + spec.color + ';border-radius:10px;padding:14px 16px;">'
+            var target = _alFormatTarget(r.target_table, r.target_id);
+            var details = _alFormatAfter(r.after_data);
+            var noteHtml = r.note ? '<div style="font-size:0.82rem;color:#444;margin-top:6px;">📝 ' + _alEsc(r.note) + '</div>' : '';
+            // 영문 액션 코드는 hover 시 툴팁으로만 노출 (디버그·필터 식별용)
+            return '<div style="background:#fff;border:1px solid #e5eaf2;border-left:3px solid ' + spec.color + ';border-radius:10px;padding:14px 16px;" title="action: ' + _alEsc(r.action) + '">'
                 + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">'
                 + '<div style="flex:1;min-width:0;">'
                 + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
-                + '<span style="font-size:0.92rem;font-weight:700;color:' + spec.color + ';">' + spec.icon + ' ' + spec.label + '</span>'
-                + '<span style="font-size:0.74rem;color:#9ca3af;">' + _alEsc(r.action) + '</span>'
+                + '<span style="font-size:0.95rem;font-weight:700;color:' + spec.color + ';">' + spec.icon + ' ' + spec.label + '</span>'
                 + '</div>'
-                + '<div style="font-size:0.8rem;color:#666;">'
-                + '<b>actor</b> ' + _alEsc(actor) + ' · <b>target</b> ' + _alEsc(target)
-                + (r.ip_address ? ' · <b>ip</b> ' + _alEsc(r.ip_address) : '')
+                + '<div style="font-size:0.82rem;color:#555;">'
+                + '<b>처리자</b> ' + _alEsc(actor) + ' · <b>대상</b> ' + _alEsc(target)
                 + '</div>'
+                + (r.ip_address ? '<div style="font-size:0.72rem;color:#9ca3af;margin-top:2px;">IP ' + _alEsc(r.ip_address) + '</div>' : '')
                 + noteHtml
                 + details
                 + '</div>'
