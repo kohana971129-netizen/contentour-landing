@@ -79,6 +79,21 @@
       line-height: 1.6;
     }
     .reject-reason strong { display: block; margin-bottom: 6px; color: #b71c1c; }
+    .reapply-guide {
+      background: #eef5ff;
+      border: 1.5px solid #c5d8f0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      text-align: left;
+      font-size: 0.85rem;
+      color: #0d47a1;
+      line-height: 1.6;
+    }
+    .reapply-guide strong { display: block; margin-bottom: 8px; color: #0d47a1; }
+    .reapply-guide ul { margin: 0; padding-left: 18px; }
+    .reapply-guide li { margin-bottom: 4px; }
+    .reapply-guide li b { color: #1565c0; }
     .btn {
       display: inline-block;
       padding: 14px 28px;
@@ -236,7 +251,15 @@
           <strong>반려 사유</strong>
           ${esc(reason).replace(/\n/g, '<br>')}
         </div>
-        <a href="interpreter-apply.html" class="btn btn-primary">📝 다시 지원하기</a>
+        <div class="reapply-guide">
+          <strong>📌 재지원 안내</strong>
+          <ul>
+            <li>동일 이메일(<b>${esc(app.email)}</b>)로 재지원 가능합니다 — 신규 계정 생성 불필요</li>
+            <li>재제출 시 관리자가 다시 검토합니다 (3~5 영업일 이내)</li>
+            <li>승인되면 이 페이지가 자동으로 대시보드로 전환됩니다</li>
+          </ul>
+        </div>
+        <a href="interpreter-apply.html?reapply=1" class="btn btn-primary">📝 다시 지원하기</a>
         <button class="btn btn-text" onclick="logout()">로그아웃</button>
         <p class="meta">
           문의: <a href="mailto:info@contentour.co.kr">info@contentour.co.kr</a> · 02-868-1522

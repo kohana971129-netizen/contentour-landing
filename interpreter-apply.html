@@ -206,6 +206,35 @@
             padding: 36px 20px 60px;
         }
 
+        /* 재지원 안내 배너 — ?reapply=1 진입 시 표시 */
+        .reapply-banner {
+            display: none;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 20px;
+            background: #eef5ff;
+            border: 1.5px solid #c5d8f0;
+            border-radius: 14px;
+            margin-bottom: 24px;
+        }
+        .reapply-banner__icon {
+            font-size: 1.4rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .reapply-banner__title {
+            font-weight: 700;
+            color: #0d47a1;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+        .reapply-banner__desc {
+            font-size: 0.85rem;
+            color: #1a3a6e;
+            line-height: 1.6;
+        }
+        .reapply-banner__desc b { color: #0d47a1; }
+
         /* 진행 표시 */
         .progress-bar {
             display: flex;
@@ -990,6 +1019,18 @@
     </div>
 
     <div class="container">
+
+        <!-- 재지원 안내 배너 — ?reapply=1로 진입 시 JS가 표시 -->
+        <div class="reapply-banner" id="reapplyBanner" style="display:none;">
+            <div class="reapply-banner__icon">📌</div>
+            <div class="reapply-banner__body">
+                <div class="reapply-banner__title">재지원으로 진행됩니다</div>
+                <div class="reapply-banner__desc">
+                    이전 지원에서 사용하신 <b>동일 이메일</b>을 그대로 입력해 주세요.
+                    별도 계정 생성은 필요하지 않으며, 관리자가 다시 검토합니다 (3~5 영업일).
+                </div>
+            </div>
+        </div>
 
         <!-- 진행바 -->
         <div class="progress-bar" id="progressBar">
@@ -1787,6 +1828,16 @@
                 hint.style.display = 'block';
             }
         }
+
+        // ?reapply=1로 진입 시 재지원 안내 배너 표시
+        (function () {
+            try {
+                if (new URLSearchParams(location.search).get('reapply') === '1') {
+                    var b = document.getElementById('reapplyBanner');
+                    if (b) b.style.display = 'flex';
+                }
+            } catch (e) { /* 무시 */ }
+        })();
     </script>
 </body>
 
