@@ -6312,20 +6312,9 @@
       }
       // DB 업데이트
       var dbId = c.dbId || c.id;
-      if (window.sbClient && dbId) {
-        try {
-          var updateData = {};
-          if (type === 'deposit') {
-            updateData.deposit_status = 'paid';
-            updateData.deposit_paid_at = new Date().toISOString();
-            updateData.status = 'deposit_paid';
-          } else if (type === 'balance') {
-            updateData.balance_status = 'paid';
-            updateData.balance_paid_at = new Date().toISOString();
-          }
-          await window.sbClient.from('42_통역계약').update(updateData).eq('id', dbId);
-        } catch (e) { console.error('결제 DB 업데이트 실패:', e); }
-      }
+      // 결제 상태(deposit_status / balance_status / status)는 서버측 verify-payment에서만 갱신
+      // 클라이언트 직접 UPDATE는 RLS만으로는 컬럼 단위 제한이 어려워 변조 위험 → 제거됨 (2026-05-22)
+      // PortOne 결제 성공 → /api/verify-payment 호출 → 서버측에서 42_통역계약 UPDATE 처리
 
       // Admin에게 결제 완료 알림 (deposit / balance 모두) — UPDATE Realtime 외 영구 기록용
       try {

@@ -119,6 +119,31 @@ async function handleVerifyPayment(req, res, rawBody) {
         }
         if (rpcResult && rpcResult.success === false) return res.status(400).json(rpcResult);
 
+        // 42_통역계약 결제 상태 서버측 UPDATE (service_role)
+        // 클라이언트 직접 UPDATE는 변조 위험이 있어 제거됨 — verify-payment에서만 갱신.
+        // process_payment RPC가 이미 수행했더라도 idempotent (같은 값으로 덮어쓰기 = no-op)
+        try {
+            const nowIso = new Date().toISOString();
+            const contractPatch = { updated_at: nowIso };
+            if (paymentType === 'deposit' || paymentType === 'full') {
+                contractPatch.deposit_status = 'paid';
+                contractPatch.deposit_paid_at = nowIso;
+                contractPatch.status = 'deposit_paid';
+            } else if (paymentType === 'balance') {
+                contractPatch.balance_status = 'paid';
+                contractPatch.balance_paid_at = nowIso;
+                contractPatch.status = 'balance_paid';
+            }
+            if (Object.keys(contractPatch).length > 1) {
+                const { error: ctErr } = await sb.from('42_통역계약')
+                    .update(contractPatch)
+                    .eq('id', contractId);
+                if (ctErr) console.warn('[verify-payment] 42_통역계약 상태 UPDATE 경고 (RPC가 이미 했을 수 있음):', ctErr.message);
+            }
+        } catch (e) {
+            console.warn('[verify-payment] 계약 상태 UPDATE 예외 (무시):', e && e.message);
+        }
+
         // 이메일 발송 (실패해도 결제 결과 영향 없음)
         try {
             const { data: contractFull } = await sb
