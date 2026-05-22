@@ -1215,7 +1215,7 @@
         </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1596,6 +1596,74 @@
         renderGrid();
         loadFromDB();
         loadAdminProfile();
+    </script>
+
+    <script>
+        // ══════════════ 전역 모달 접근성 헬퍼 ══════════════
+        (function () {
+            var MODAL_SELECTOR = '.overlay, .modal-overlay';
+            var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+            var lastTrigger = null;
+            document.addEventListener('mousedown', function (e) {
+                var t = e.target.closest('button, [role="button"], a, .ip-card');
+                if (t && !t.closest(MODAL_SELECTOR)) lastTrigger = t;
+            }, true);
+            function isVisible(el) {
+                if (el.classList.contains('open')) return true;
+                var s = el.style.display;
+                if (s === 'flex' || s === 'block') return true;
+                if (!s) { try { var cs = getComputedStyle(el); if (cs.display !== 'none' && cs.opacity !== '0' && cs.visibility !== 'hidden') return true; } catch (e) {} }
+                return false;
+            }
+            function getOpenModals() {
+                return Array.prototype.filter.call(document.querySelectorAll(MODAL_SELECTOR), isVisible);
+            }
+            function focusFirstIn(modal) {
+                var nodes = modal.querySelectorAll(FOCUSABLE);
+                for (var i = 0; i < nodes.length; i++) {
+                    if (nodes[i].offsetParent !== null) { try { nodes[i].focus(); } catch (e) {} return; }
+                }
+            }
+            var mo = new MutationObserver(function (records) {
+                records.forEach(function (r) {
+                    if (r.attributeName !== 'class' && r.attributeName !== 'style') return;
+                    var el = r.target;
+                    if (!el.matches || !el.matches(MODAL_SELECTOR)) return;
+                    var nowOpen = isVisible(el);
+                    var wasOpen = !!el.__aiWasOpen;
+                    if (nowOpen && !wasOpen) {
+                        el.__aiPrevFocus = lastTrigger || document.activeElement;
+                        setTimeout(function () { focusFirstIn(el); }, 30);
+                        el.__aiWasOpen = true;
+                    } else if (!nowOpen && wasOpen) {
+                        var prev = el.__aiPrevFocus;
+                        if (prev && typeof prev.focus === 'function') { try { prev.focus(); } catch (e) {} }
+                        el.__aiPrevFocus = null;
+                        el.__aiWasOpen = false;
+                    }
+                });
+            });
+            document.querySelectorAll(MODAL_SELECTOR).forEach(function (el) {
+                mo.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+                if (isVisible(el)) el.__aiWasOpen = true;
+            });
+            document.addEventListener('keydown', function (e) {
+                var open = getOpenModals();
+                if (open.length === 0) return;
+                var modal = open[open.length - 1];
+                if (e.key === 'Tab') {
+                    var nodes = Array.prototype.filter.call(modal.querySelectorAll(FOCUSABLE), function (el) { return el.offsetParent !== null; });
+                    if (nodes.length === 0) return;
+                    var first = nodes[0], last = nodes[nodes.length - 1];
+                    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                }
+                if (e.key === 'Escape') {
+                    var closeBtn = modal.querySelector('.modal__close, [aria-label="닫기"], .btn-close');
+                    if (closeBtn) { e.preventDefault(); closeBtn.click(); }
+                }
+            });
+        })();
     </script>
 </body>
 

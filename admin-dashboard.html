@@ -1726,7 +1726,7 @@
             <button class="pop-btn del" onclick="showToast('🗑️ 일정 삭제 — 추후 지원 예정')">삭제</button>
         </div>
     </div>
-    <div class="toast" id="toast"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <!-- 관리자 승인 FAB 패널 -->
     <button class="admin-fab" onclick="toggleAdminFab()" title="승인 대기 알림">
@@ -4007,6 +4007,11 @@
                             '<button onclick="approveCancellation(\''+d.id+'\')" style="padding:8px 16px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">승인</button>' +
                             '<button onclick="rejectCancellation(\''+d.id+'\')" style="padding:8px 16px;background:#c62828;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">거절</button>' +
                         '</div>';
+                    } else if (d.status === 'approved') {
+                        // 승인 후 PortOne 외부 환불 처리 완료 시 마지막 단계로 'refunded' 표시
+                        actions = '<div style="display:flex;gap:6px;margin-top:10px;">' +
+                            '<button onclick="markCancelRefunded(\''+d.id+'\')" style="padding:8px 16px;background:#1565c0;color:#fff;border:none;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">💰 환불 완료 처리</button>' +
+                        '</div>';
                     }
                     return '<div style="background:#fff;border:1px solid #e5eaf2;border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">' +
                         '<div style="flex:1;">' +
@@ -4115,6 +4120,37 @@
                     });
                 } catch (e) {
                     console.warn('[email] 취소 알림 발송 실패:', e && e.message);
+                }
+            }
+
+            // 외부(PortOne) 환불 처리 완료를 시스템에 반영 — 승인 → 환불완료 전이
+            async function markCancelRefunded(cancelId) {
+                if (!supabase) return;
+                var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
+                var refundAmt = (cancel && cancel.refund_amount) ? cancel.refund_amount.toLocaleString() + '원' : '환불 금액';
+                if (!confirm('PortOne 콘솔에서 ' + refundAmt + ' 환불을 실제로 완료하셨나요?\n시스템에 "환불완료" 상태로 반영됩니다.')) return;
+                try {
+                    var prevNote = (cancel && cancel.admin_note) ? cancel.admin_note + '\n' : '';
+                    await supabase.from('51_취소내역').update({
+                        status: 'refunded',
+                        admin_note: prevNote + '[' + new Date().toISOString().slice(0,10) + '] 환불 완료 처리',
+                        updated_at: new Date().toISOString()
+                    }).eq('id', cancelId);
+
+                    // 47_결제기록 status도 함께 동기화 (webhook 미수신 케이스 대비)
+                    if (cancel && cancel.contract_id) {
+                        try {
+                            await supabase.from('47_결제기록')
+                                .update({ status: 'refunded', cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+                                .eq('contract_id', cancel.contract_id)
+                                .neq('status', 'refunded');
+                        } catch (e) { console.warn('[refund] 47_결제기록 동기화 실패:', e); }
+                    }
+
+                    showToast('💰 환불 완료 처리되었습니다.');
+                    loadCancellations();
+                } catch(e) {
+                    showToast('환불 완료 처리 실패: ' + e.message);
                 }
             }
 
@@ -8800,6 +8836,88 @@
             document.addEventListener('DOMContentLoaded', function() {
                 if (window.twemoji) twemoji.parse(document.body);
             });
+        </script>
+
+        <script>
+            // ══════════════ 전역 모달 접근성 헬퍼 ══════════════
+            // admin은 .modal-overlay에 .open 토글과 style.display 토글이 혼재 — 둘 다 감지
+            (function () {
+                var MODAL_SELECTOR = '.modal-overlay';
+                var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+                var lastTrigger = null;
+
+                document.addEventListener('mousedown', function (e) {
+                    var t = e.target.closest('button, [role="button"], a, .qd-card, .ct-card, .ip-card');
+                    if (t && !t.closest(MODAL_SELECTOR)) lastTrigger = t;
+                }, true);
+
+                function isVisible(el) {
+                    if (el.classList.contains('open')) return true;
+                    var s = el.style.display;
+                    if (s === 'flex' || s === 'block') return true;
+                    // computedStyle 확인 (style 미설정 시)
+                    if (!s) {
+                        try {
+                            var cs = window.getComputedStyle(el);
+                            if (cs.display !== 'none' && cs.opacity !== '0' && cs.visibility !== 'hidden') return true;
+                        } catch (e) {}
+                    }
+                    return false;
+                }
+                function getOpenModals() {
+                    return Array.prototype.filter.call(document.querySelectorAll(MODAL_SELECTOR), isVisible);
+                }
+                function focusFirstIn(modal) {
+                    var nodes = modal.querySelectorAll(FOCUSABLE);
+                    for (var i = 0; i < nodes.length; i++) {
+                        if (nodes[i].offsetParent !== null) { try { nodes[i].focus(); } catch (e) {} return; }
+                    }
+                }
+
+                var mo = new MutationObserver(function (records) {
+                    records.forEach(function (r) {
+                        if (r.attributeName !== 'class' && r.attributeName !== 'style') return;
+                        var el = r.target;
+                        if (!el.matches || !el.matches(MODAL_SELECTOR)) return;
+                        var nowOpen = isVisible(el);
+                        var wasOpen = !!el.__adWasOpen;
+                        if (nowOpen && !wasOpen) {
+                            el.__adPrevFocus = lastTrigger || document.activeElement;
+                            setTimeout(function () { focusFirstIn(el); }, 30);
+                            el.__adWasOpen = true;
+                        } else if (!nowOpen && wasOpen) {
+                            var prev = el.__adPrevFocus;
+                            if (prev && typeof prev.focus === 'function') { try { prev.focus(); } catch (e) {} }
+                            el.__adPrevFocus = null;
+                            el.__adWasOpen = false;
+                        }
+                    });
+                });
+                document.querySelectorAll(MODAL_SELECTOR).forEach(function (el) {
+                    mo.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+                    if (isVisible(el)) el.__adWasOpen = true;
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    var open = getOpenModals();
+                    if (open.length === 0) return;
+                    var modal = open[open.length - 1];
+                    if (e.key === 'Tab') {
+                        var nodes = Array.prototype.filter.call(
+                            modal.querySelectorAll(FOCUSABLE),
+                            function (el) { return el.offsetParent !== null; }
+                        );
+                        if (nodes.length === 0) return;
+                        var first = nodes[0], last = nodes[nodes.length - 1];
+                        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                    }
+                    if (e.key === 'Escape') {
+                        var closeBtn = modal.querySelector('.modal__close, [aria-label="닫기"], .btn-close');
+                        if (closeBtn) { e.preventDefault(); closeBtn.click(); }
+                    }
+                });
+            })();
         </script>
 </body>
 
