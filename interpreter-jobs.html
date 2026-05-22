@@ -199,6 +199,67 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+        }
+        .ij-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: rgba(25,118,210,0.25);
+        }
+        .ij-card:focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: 2px;
+        }
+        .ij-badge--own {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid rgba(30, 64, 175, 0.2);
+        }
+        .ij-badge--own::before {
+            content: '★';
+            margin-right: 2px;
+        }
+        /* 상세 모달 본문 */
+        .ij-detail__body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 8px 0 20px;
+        }
+        .ij-detail__row {
+            display: grid;
+            grid-template-columns: 96px 1fr;
+            gap: 12px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        .ij-detail__label {
+            color: var(--gray-400);
+            font-weight: 600;
+        }
+        .ij-detail__value {
+            color: var(--gray-700);
+            word-break: break-word;
+        }
+        .ij-detail__memo {
+            background: #f7f9fc;
+            border: 1px solid #e5eaf2;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 0.88rem;
+            line-height: 1.7;
+            color: var(--gray-700);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .ij-detail__memo-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--gray-400);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .ij-card__head {
             display: flex;
@@ -898,8 +959,8 @@
                 </div>
 
                 <div class="ij-modal__field ij-modal__field--full">
-                    <label for="pf-message">추가 메모 (선택)</label>
-                    <textarea id="pf-message" name="message" maxlength="2000" placeholder="통역사 지원 시 참고할 추가 정보가 있다면 입력해주세요."></textarea>
+                    <label for="pf-message">추가 메모 (선택) <span id="pfMessageCounter" style="font-weight:400;color:var(--gray-400);font-size:0.78rem;float:right;">0 / 2000</span></label>
+                    <textarea id="pf-message" name="message" maxlength="2000" placeholder="통역사 지원 시 참고할 추가 정보가 있다면 입력해주세요." oninput="updatePfMessageCounter()"></textarea>
                 </div>
 
                 <p class="ij-modal__help">
@@ -912,6 +973,21 @@
                     <button type="submit" class="ij-modal__btn ij-modal__btn-primary" id="postingSubmitBtn">제출</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 공고 상세 모달 -->
+    <div class="ij-modal" id="detailModal" aria-hidden="true">
+        <div class="ij-modal__backdrop" id="detailBackdrop"></div>
+        <div class="ij-modal__sheet" role="dialog" aria-labelledby="detailModalTitle" aria-modal="true">
+            <button class="ij-modal__close" type="button" id="detailCloseBtn" aria-label="닫기">×</button>
+            <header class="ij-modal__head">
+                <div id="detailBadges" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;"></div>
+                <h3 id="detailModalTitle">공고 상세</h3>
+                <p id="detailSubtitle"></p>
+            </header>
+            <div id="detailModalBody" class="ij-detail__body"></div>
+            <div class="ij-modal__actions" id="detailActions"></div>
         </div>
     </div>
 
@@ -1028,10 +1104,15 @@
                 }
             }
 
+            // 본인이 올린 공고 식별 배지 (고객사 로그인 + posted_by_user_id 일치 시)
+            var ownBadgeHtml = req.isOwn
+                ? '<span class="ij-badge ij-badge--own" title="회원님이 등록한 공고입니다">내 공고</span>'
+                : '';
+
             return '' +
-                '<div class="ij-card" data-region="' + escapeHtml(req.countryCode) + '">' +
+                '<div class="ij-card" data-region="' + escapeHtml(req.countryCode) + '" data-detail-id="' + escapeHtml(req.id || '') + '" role="button" tabindex="0" aria-label="공고 상세 보기: ' + escapeHtml(req.exhibition) + '">' +
                     '<div class="ij-card__head">' +
-                        badgeHtml +
+                        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' + badgeHtml + ownBadgeHtml + '</div>' +
                         '<span class="ij-card__interest">👁 ' + (req.interestCount || 0) + '</span>' +
                     '</div>' +
                     '<div>' +
@@ -1241,6 +1322,8 @@
                 if (__s) __s.min = __todayStr;
                 if (__e) __e.min = __todayStr;
             } catch (e) { /* min 미지원 브라우저는 BE 검증으로 차단 */ }
+            // 메모 카운터 초기화 (재오픈 시 잔존 값 반영)
+            try { updatePfMessageCounter(); } catch (e) {}
             // 첫 입력으로 포커스
             setTimeout(function () {
                 var first = document.getElementById('pf-exhibition');
@@ -1373,9 +1456,11 @@
                     if (window.showToast) window.showToast(json.error || '등록 실패. 잠시 후 다시 시도해주세요.', 'error');
                     return;
                 }
-                if (window.showToast) window.showToast('공고가 등록되었습니다.\n관리자 검토 후 게재됩니다.', 'success');
+                if (window.showToast) window.showToast('공고가 등록되었습니다.\n관리자 검토 후 게재되며, 진행 상황은 고객사 대시보드 → "내 구인공고"에서 확인할 수 있습니다.', 'success');
                 postingForm.reset();
                 closePostingModal();
+                // 다른 사용자의 신규 공고가 새로 게재됐을 수 있어 카드 목록 새로고침
+                if (typeof fetchShowcase === 'function') fetchShowcase();
             } catch (err) {
                 console.error('Posting submit failed:', err);
                 if (window.showToast) window.showToast('네트워크 오류. 잠시 후 다시 시도해주세요.', 'error');
@@ -1521,7 +1606,7 @@
                 appliedSet.add(postingId);
                 try { sessionStorage.setItem('ij-applied-' + postingId, '1'); } catch (e) {}
                 btn.textContent = '✓ 지원 완료';
-                if (window.showToast) window.showToast('지원이 접수되었습니다.\n관리자 검토 후 매칭 제안을 드립니다.', 'success');
+                if (window.showToast) window.showToast('지원이 접수되었습니다.\n관리자 검토 후 매칭 제안을 드립니다.\n진행 상황은 통역사 대시보드 → "내가 지원한 공고"에서 확인할 수 있습니다.', 'success');
             } catch (err) {
                 console.error('Apply failed:', err);
                 if (window.showToast) window.showToast('네트워크 오류. 잠시 후 다시 시도해주세요.', 'error');
@@ -1531,10 +1616,136 @@
         }
 
         document.getElementById('ijGrid').addEventListener('click', function (e) {
+            // 지원 버튼은 별도 처리 (카드 클릭으로 전파되지 않도록)
             var btn = e.target.closest('.ij-card__apply');
-            if (!btn) return;
-            var id = btn.getAttribute('data-apply-id');
-            handleApply(id, btn);
+            if (btn) {
+                e.stopPropagation();
+                var id = btn.getAttribute('data-apply-id');
+                handleApply(id, btn);
+                return;
+            }
+            // 카드 클릭 → 상세 모달
+            var card = e.target.closest('.ij-card');
+            if (!card) return;
+            var detailId = card.getAttribute('data-detail-id');
+            if (detailId) openDetailModal(detailId);
+        });
+        document.getElementById('ijGrid').addEventListener('keydown', function (e) {
+            // 카드 키보드 활성화 (Enter/Space)
+            if (e.key !== 'Enter' && e.key !== ' ' && e.code !== 'Space') return;
+            var card = e.target.closest('.ij-card');
+            if (!card || e.target.closest('.ij-card__apply')) return;
+            e.preventDefault();
+            var detailId = card.getAttribute('data-detail-id');
+            if (detailId) openDetailModal(detailId);
+        });
+
+        // ══════════════ 공고 상세 모달 ══════════════
+        var detailModal = document.getElementById('detailModal');
+        var detailModalLastFocus = null;
+
+        function escAttr(s) { return escapeHtml(s); }
+
+        // 메모 글자수 카운터
+        function updatePfMessageCounter() {
+            var el = document.getElementById('pf-message');
+            var counter = document.getElementById('pfMessageCounter');
+            if (!el || !counter) return;
+            var len = (el.value || '').length;
+            counter.textContent = len + ' / 2000';
+            counter.style.color = len > 1800 ? '#c62828' : len > 1500 ? '#e65100' : 'var(--gray-400)';
+        }
+
+        function openDetailModal(id) {
+            var req = showcaseData.find(function (r) { return r.id === id; });
+            if (!req) return;
+            detailModalLastFocus = document.activeElement;
+
+            var isRecruit = req.status === 'recruiting';
+            var statusBadge = isRecruit
+                ? '<span class="ij-badge ij-badge--recruit">모집중</span>'
+                : '<span class="ij-badge ij-badge--matched">매칭완료</span>';
+            var ownBadge = req.isOwn ? '<span class="ij-badge ij-badge--own">내 공고</span>' : '';
+            document.getElementById('detailBadges').innerHTML = statusBadge + ownBadge;
+
+            document.getElementById('detailModalTitle').textContent = req.label || '공고 상세';
+            var industry = req.industry || '';
+            var subtitle = industry ? industry + ' · ' + (req.isAnonymous ? '익명 등재' : '실명 공개') : (req.isAnonymous ? '익명 등재' : '실명 공개');
+            document.getElementById('detailSubtitle').textContent = subtitle;
+
+            var languages = Array.isArray(req.languages) ? req.languages : [];
+            var locDisplay = [req.location, req.venue].filter(Boolean).join(' · ') || '-';
+            var rows = [
+                ['전시회', escAttr(req.exhibition) || '-'],
+                ['국가', escAttr(req.countryCode) || '-'],
+                ['개최지', escAttr(locDisplay)],
+                ['기간', escAttr(fmtDate(req.startDate) + ' ~ ' + fmtDate(req.endDate))],
+                ['언어', escAttr(languages.join(' · ')) || '-'],
+                ['필요 인원', (req.needed || 0) + '명'],
+                ['관심', (req.interestCount || 0) + '회 조회됨']
+            ];
+            if (!isRecruit && typeof req.daysLeft === 'number') {
+                rows.push(['파견 시작', 'D-' + req.daysLeft]);
+            }
+
+            var body = rows.map(function (r) {
+                return '<div class="ij-detail__row"><div class="ij-detail__label">' + r[0] + '</div><div class="ij-detail__value">' + r[1] + '</div></div>';
+            }).join('');
+
+            if (req.message) {
+                body += '<div>' +
+                    '<div class="ij-detail__memo-label">고객사 메모</div>' +
+                    '<div class="ij-detail__memo">' + escAttr(req.message) + '</div>' +
+                '</div>';
+            }
+            document.getElementById('detailModalBody').innerHTML = body;
+
+            // 액션 버튼 (지원 버튼 동일 분기)
+            var actionsEl = document.getElementById('detailActions');
+            var actionsHtml = '<button type="button" class="ij-modal__btn ij-modal__btn-secondary" id="detailCloseBtn2">닫기</button>';
+            if (isRecruit && req.sourceType === 'direct_posting' && req.id && !req.isOwn) {
+                if (viewerRole === 'interpreter') {
+                    var done = appliedSet.has(req.id);
+                    actionsHtml += '<button type="button" class="ij-modal__btn ij-modal__btn-primary" data-apply-id="' + escAttr(req.id) + '" id="detailApplyBtn"' + (done ? ' disabled' : '') + '>' + (done ? '✓ 지원 완료' : '지원하기') + '</button>';
+                } else if (!viewerRole) {
+                    actionsHtml += '<button type="button" class="ij-modal__btn ij-modal__btn-primary" data-apply-id="' + escAttr(req.id) + '" id="detailApplyBtn">🔒 로그인 후 지원</button>';
+                }
+            }
+            actionsEl.innerHTML = actionsHtml;
+
+            detailModal.classList.add('is-open');
+            detailModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(function () {
+                var first = document.getElementById('detailCloseBtn');
+                if (first) first.focus();
+            }, 30);
+
+            // 모달 안 액션 핸들러
+            var closeBtn2 = document.getElementById('detailCloseBtn2');
+            if (closeBtn2) closeBtn2.addEventListener('click', closeDetailModal);
+            var applyBtnInModal = document.getElementById('detailApplyBtn');
+            if (applyBtnInModal) {
+                applyBtnInModal.addEventListener('click', function () {
+                    handleApply(req.id, applyBtnInModal);
+                });
+            }
+        }
+
+        function closeDetailModal() {
+            detailModal.classList.remove('is-open');
+            detailModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            if (detailModalLastFocus && typeof detailModalLastFocus.focus === 'function') {
+                try { detailModalLastFocus.focus(); } catch (e) {}
+            }
+            detailModalLastFocus = null;
+        }
+        document.getElementById('detailCloseBtn').addEventListener('click', closeDetailModal);
+        document.getElementById('detailBackdrop').addEventListener('click', closeDetailModal);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && detailModal.classList.contains('is-open')) closeDetailModal();
         });
     </script>
 </body>

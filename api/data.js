@@ -109,7 +109,7 @@ async function handleReviews(req, res) {
 //   2) direct_posting → review_status='approved'                                       (Phase 4)
 // 매칭 상태: contract_id IS NULL → recruiting, 아니면 matched.
 
-const SHOWCASE_COLUMNS = 'id, source_type, exhibition_name, start_date, end_date, language_pair, headcount, contract_id, showcase_label, showcase_industry, showcase_country_code, showcase_published_at, reviewed_at, interest_count, company, company_name_disclosure';
+const SHOWCASE_COLUMNS = 'id, source_type, exhibition_name, location, venue, start_date, end_date, language_pair, headcount, contract_id, showcase_label, showcase_industry, showcase_country_code, showcase_published_at, reviewed_at, interest_count, company, company_name_disclosure, message, posted_by_user_id';
 
 // Phase 4H — 매칭 후 카드 자동 hidden 기준일. 변경 시 한 줄만 수정.
 const SHOWCASE_HIDE_AFTER_DAYS = 14;
@@ -132,9 +132,11 @@ function calcDaysLeft(startDate) {
 // Phase 4F — viewer 역할별로 label 결정
 //  · 비로그인 / 통역사 미동의: 익명 라벨 (admin이 만든 showcase_label)
 //  · 로그인 통역사 + company_name_disclosure=true: 실제 회사명 노출
-// 연락처·이메일·메시지는 어떤 경우에도 응답에 포함되지 않음.
-function rowToCard(r, viewerIsInterpreter) {
+// 연락처·이메일은 어떤 경우에도 응답에 포함되지 않음.
+// message는 direct_posting(고객사가 통역사를 위해 직접 작성한 노트)에 한해 노출.
+function rowToCard(r, viewerIsInterpreter, viewerUserId) {
     const isMatched = !!r.contract_id;
+    const isDirectPosting = r.source_type === 'direct_posting';
     const showRealName = viewerIsInterpreter && r.company_name_disclosure && r.company;
     const card = {
         id: r.id,
@@ -145,12 +147,22 @@ function rowToCard(r, viewerIsInterpreter) {
         isAnonymous: !showRealName,
         countryCode: r.showcase_country_code || '',
         exhibition: r.exhibition_name || '',
+        location: r.location || '',
+        venue: r.venue || '',
         startDate: r.start_date || '',
         endDate: r.end_date || '',
         languages: parseLanguages(r.language_pair),
         needed: Number.isFinite(r.headcount) ? r.headcount : 1,
         interestCount: r.interest_count || 0
     };
+    // direct_posting의 메모만 노출 (admin_inquiry의 message는 customer 사적 요청이라 제외)
+    if (isDirectPosting && r.message) {
+        card.message = String(r.message).slice(0, 2000);
+    }
+    // 본인이 올린 공고 식별용 — user_id 노출 없이 boolean만 전달
+    if (viewerUserId && r.posted_by_user_id && r.posted_by_user_id === viewerUserId) {
+        card.isOwn = true;
+    }
     if (isMatched) {
         const d = calcDaysLeft(r.start_date);
         if (d !== null) card.daysLeft = d;
@@ -167,12 +179,14 @@ async function handleShowcase(req, res) {
 
         // Phase 4F — viewer 판단 (optional auth header)
         let viewerIsInterpreter = false;
+        let viewerUserId = null;
         const authHeader = req.headers.authorization || '';
         const token = authHeader.replace('Bearer ', '');
         if (token) {
             try {
                 const { data: { user } } = await sbAuth.auth.getUser(token);
                 if (user) {
+                    viewerUserId = user.id;
                     const { data: profile } = await supabase.from('01_회원').select('role').eq('id', user.id).single();
                     if (profile && profile.role === 'interpreter') viewerIsInterpreter = true;
                 }
@@ -230,10 +244,10 @@ async function handleShowcase(req, res) {
             .filter(x => x.sortKey)
             .sort((a, b) => new Date(b.sortKey) - new Date(a.sortKey))
             .slice(0, 60)
-            .map(x => rowToCard(x.row, viewerIsInterpreter));
+            .map(x => rowToCard(x.row, viewerIsInterpreter, viewerUserId));
 
-        // viewer별 응답이 달라지므로 통역사 로그인은 비캐시, 그 외는 짧은 공개 캐시
-        if (viewerIsInterpreter) {
+        // viewer별 응답이 달라지므로 로그인 사용자(통역사·고객사)는 비캐시, 비로그인만 공개 캐시
+        if (viewerUserId) {
             res.setHeader('Cache-Control', 'no-store');
         } else {
             res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=30');
