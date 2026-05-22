@@ -59,13 +59,17 @@ function toggleInterp(code, cardEl) {
         otherPanel.classList.remove('open');
         document.querySelectorAll('.country-card.active').forEach(function (c) {
             var cc = c.dataset.country;
-            if (cc && (isRow1 ? row2 : row1).includes(cc)) c.classList.remove('active');
+            if (cc && (isRow1 ? row2 : row1).includes(cc)) {
+                c.classList.remove('active');
+                c.setAttribute('aria-expanded', 'false');
+            }
         });
     }
 
     if (currentOpen === code) {
         panel.classList.remove('open');
         cardEl.classList.remove('active');
+        cardEl.setAttribute('aria-expanded', 'false');
         currentOpen = null;
         return;
     }
@@ -73,13 +77,17 @@ function toggleInterp(code, cardEl) {
     var sameRow = isRow1 ? row1 : row2;
     document.querySelectorAll('.country-card.active').forEach(function (c) {
         var cc = c.dataset.country;
-        if (cc && sameRow.includes(cc)) c.classList.remove('active');
+        if (cc && sameRow.includes(cc)) {
+            c.classList.remove('active');
+            c.setAttribute('aria-expanded', 'false');
+        }
     });
 
     var d = interpData[code];
     if (!d) return;
 
     cardEl.classList.add('active');
+    cardEl.setAttribute('aria-expanded', 'true');
     currentOpen = code;
 
     panel.innerHTML =
@@ -142,7 +150,10 @@ function closeInterp(code) {
     var isRow1 = row1.includes(code);
     var panel = document.getElementById(isRow1 ? 'interpPanel' : 'interpPanel2');
     if (panel) panel.classList.remove('open');
-    document.querySelectorAll('.country-card.active').forEach(function (c) { c.classList.remove('active'); });
+    document.querySelectorAll('.country-card.active').forEach(function (c) {
+        c.classList.remove('active');
+        c.setAttribute('aria-expanded', 'false');
+    });
     currentOpen = null;
 }
 

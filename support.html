@@ -16,7 +16,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="통역지원 서비스 - 콘텐츄어 | 고객사·통역사·관리자 협업 시스템">
     <meta property="og:description" content="고객사 문의부터 통역사 매칭, 현장 파견, 정산까지. 3자 협업 시스템으로 체계적 운영.">
-    <meta property="og:url" content="https://contentour-landing.vercel.app/support.html">
+    <meta property="og:url" content="https://contentour-landing.vercel.app/support">
     <meta property="og:image" content="https://contentour-landing.vercel.app/assets/logo.png">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="통역지원 서비스 - 콘텐츄어">
@@ -445,6 +445,17 @@
     <script src="supabase-config.js"></script>
     <script src="script.js"></script>
     <script src="interpreter-network.js"></script>
+    <script>
+        // country-card 키보드 활성화 (Enter/Space) — role="button" 요소의 표준 동작
+        document.addEventListener('keydown', function (e) {
+            var card = e.target.closest && e.target.closest('.country-card[role="button"]');
+            if (!card) return;
+            if (e.key === 'Enter' || e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+                card.click();
+            }
+        });
+    </script>
 </body>
 
 </html>
