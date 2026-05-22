@@ -228,7 +228,7 @@
         }
         .ij-table {
             width: 100%;
-            min-width: 1180px;
+            min-width: 1060px;
             border-collapse: separate;
             border-spacing: 0;
             font-size: 0.88rem;
@@ -247,16 +247,15 @@
             border-bottom: 1px solid #e5eaf2;
             white-space: nowrap;
         }
-        /* 컬럼별 너비 — 합계 ~1180px과 일치 */
-        .ij-th--status      { width:  96px; }
-        .ij-th--label       { width: 160px; }
-        .ij-th--exhibition  { width: 210px; }
+        /* 컬럼별 너비 (지원 컬럼 제거됨 — 펼침에서만 노출) */
+        .ij-th--status      { width: 100px; }
+        .ij-th--label       { width: 170px; }
+        .ij-th--exhibition  { width: 230px; }
         .ij-th--country     { width:  60px; text-align: center; }
-        .ij-th--date        { width: 170px; }
-        .ij-th--lang        { width: 150px; }
-        .ij-th--memo        { width: 220px; }
-        .ij-th--interest    { width:  60px; text-align: center; }
-        .ij-th--action      { width: 120px; text-align: center; }
+        .ij-th--date        { width: 180px; }
+        .ij-th--lang        { width: 160px; }
+        .ij-th--memo        { width: 170px; text-align: center; }
+        .ij-th--interest    { width:  70px; text-align: center; }
         .ij-tr {
             cursor: pointer;
             transition: background 0.15s;
@@ -310,18 +309,21 @@
 
         /* 행 펼침(확장) — 본 행 클릭 시 노출 */
         .ij-tr[aria-expanded="true"] {
-            background: #eef5ff;
+            background: #dbeafe !important;
+            border-left: 3px solid #1565c0;
         }
-        .ij-tr[aria-expanded="true"]:hover {
-            background: #e6efff;
+        .ij-tr[aria-expanded="true"] .ij-td:first-child {
+            position: relative;
         }
         .ij-tr-detail {
-            background: #f7f9fc;
+            background: #eef5ff;
         }
         .ij-tr-detail .ij-detail-cell {
-            padding: 18px 22px 22px;
-            border-bottom: 1px solid #e5eaf2;
-            background: #f7f9fc;
+            padding: 22px 26px 24px;
+            border-top: 2px solid #1565c0;
+            border-bottom: 2px solid #c5d8f0;
+            background: linear-gradient(180deg, #eef5ff 0%, #f4f8ff 100%);
+            box-shadow: inset 0 4px 8px -4px rgba(13, 71, 161, 0.15);
         }
         .ij-detail-grid {
             display: grid;
@@ -398,30 +400,33 @@
             }
         }
 
-        /* 본문 셀 — 말줄임 처리 */
-        .ij-td--memo {
-            max-width: 220px;
-            color: var(--gray-400);
-            font-size: 0.84rem;
-            line-height: 1.5;
-        }
-        .ij-td__memo {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* 표 안 지원 버튼 — 셀 규격에 맞게 작게 */
-        .ij-td--action .ij-card__apply {
-            margin-top: 0;
-            padding: 6px 12px;
-            font-size: 0.78rem;
-            border-radius: 8px;
-            width: auto;
-            min-width: 78px;
+        /* 본문 셀 — "본문 확인하기 ▾" 안내. 실제 내용은 펼침에서 */
+        .ij-td--memo { text-align: center; }
+        .ij-td__memo-expand {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 12px;
+            background: #eef5ff;
+            color: #1565c0;
+            border: 1px solid #c5d8f0;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
             white-space: nowrap;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .ij-tr:hover .ij-td__memo-expand {
+            background: #dbeafe;
+            border-color: #1565c0;
+        }
+        .ij-td__memo-chev {
+            display: inline-block;
+            transition: transform 0.2s;
+            font-size: 0.78rem;
+        }
+        .ij-tr[aria-expanded="true"] .ij-td__memo-chev {
+            transform: rotate(180deg);
         }
 
         /* ── 모바일 카드 폴백 (768px 이하) — 표 행을 카드처럼 ── */
@@ -457,13 +462,10 @@
                 min-width: 70px;
                 flex-shrink: 0;
             }
-            .ij-td--status,
-            .ij-td--action { justify-content: flex-start; }
-            .ij-td--status::before,
-            .ij-td--action::before { display: none; }
+            .ij-td--status { justify-content: flex-start; }
+            .ij-td--status::before { display: none; }
             .ij-td--status { padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; flex-direction: row; align-items: center; gap: 6px; }
-            .ij-td--action { padding-top: 12px; border-top: 1px solid #f1f5f9; margin-top: 2px; }
-            .ij-td--action .ij-card__apply { width: 100%; }
+            .ij-td--memo { justify-content: flex-end; }
         }
         .ij-badge--own {
             background: #dbeafe;
@@ -1127,7 +1129,6 @@
                             <th class="ij-th ij-th--lang" scope="col">언어 · 인원</th>
                             <th class="ij-th ij-th--memo" scope="col">본문</th>
                             <th class="ij-th ij-th--interest" scope="col">관심</th>
-                            <th class="ij-th ij-th--action" scope="col">지원</th>
                         </tr>
                     </thead>
                     <tbody id="ijGrid"></tbody>
@@ -1391,28 +1392,12 @@
             var metaSuffix = req.isAnonymous ? '익명' : '실명';
             var metaLine = industry ? (escapeHtml(industry) + ' · ' + metaSuffix) : metaSuffix;
 
-            // 지원 액션 분기 (이전 카드와 동일)
-            var applyHtml = '';
-            if (isRecruit && req.sourceType === 'direct_posting' && req.id) {
-                if (viewerRole === 'interpreter') {
-                    var done = appliedSet.has(req.id);
-                    applyHtml = '<button type="button" class="ij-card__apply" data-apply-id="' + escapeHtml(req.id) + '"' + (done ? ' disabled' : '') + '>' + (done ? '✓ 지원 완료' : '지원하기') + '</button>';
-                } else if (!viewerRole) {
-                    applyHtml = '<button type="button" class="ij-card__apply ij-card__apply--guest" data-apply-id="' + escapeHtml(req.id) + '">🔒 로그인 후 지원</button>';
-                }
-            }
-            // 액션 셀이 비면 빈 셀로
-            if (!applyHtml) applyHtml = '<span class="ij-tr__action-empty">—</span>';
+            // 지원 액션은 표 셀에서 제거 (펼침 영역에서만 표시 — detailAction)
 
-            // 본문(메모) 미리보기 — 70자로 자르고 hover 시 풀 텍스트
+            // 본문(메모) — 표 셀에는 "본문 확인하기 ▼" 안내만, 실제 내용은 펼침에서
             var memoFull = req.message || '';
-            var memoPreview = '';
-            if (memoFull) {
-                var clean = memoFull.replace(/\s+/g, ' ').trim();
-                memoPreview = clean.length > 70 ? clean.slice(0, 70) + '…' : clean;
-            }
-            var memoHtml = memoPreview
-                ? '<span class="ij-td__memo" title="' + escapeHtml(memoFull) + '">' + escapeHtml(memoPreview) + '</span>'
+            var memoHtml = memoFull
+                ? '<span class="ij-td__memo-expand">📄 본문 확인하기 <span class="ij-td__memo-chev">▾</span></span>'
                 : '<span class="ij-tr__action-empty">—</span>';
 
             // 전시회 셀에 개최지 sub 노출
@@ -1473,10 +1458,9 @@
                     '<td class="ij-td ij-td--lang" data-label="언어 · 인원">' + escapeHtml(languages.join(' · ')) + ' · ' + (req.needed || 0) + '명</td>' +
                     '<td class="ij-td ij-td--memo" data-label="본문">' + memoHtml + '</td>' +
                     '<td class="ij-td ij-td--interest" data-label="관심">👁 ' + (req.interestCount || 0) + '</td>' +
-                    '<td class="ij-td ij-td--action" data-label="지원">' + applyHtml + '</td>' +
                 '</tr>' +
                 '<tr class="ij-tr-detail" id="ij-detail-' + escapeHtml(req.id || '') + '" data-detail-for="' + escapeHtml(req.id || '') + '" hidden>' +
-                    '<td colspan="9" class="ij-detail-cell">' +
+                    '<td colspan="8" class="ij-detail-cell">' +
                         '<div class="ij-detail-grid">' + detailRowsHtml + '</div>' +
                         memoBlock +
                         detailActionsHtml +
@@ -1496,14 +1480,14 @@
             var counterNo = document.getElementById('counterNeeded');
 
             if (loading) {
-                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="9"><div class="ij-empty">불러오는 중...</div></td></tr>';
+                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="8"><div class="ij-empty">불러오는 중...</div></td></tr>';
                 moreWrap.style.display = 'none';
                 counterCo.textContent = '–';
                 counterNo.textContent = '–';
                 return;
             }
             if (loadError) {
-                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="9"><div class="ij-empty ij-empty__error">데이터를 불러오지 못했습니다.<span class="ij-empty__sub">네트워크 상태를 확인하고 다시 시도해주세요.</span><button type="button" class="ij-empty__retry" id="ijRetryBtn">다시 시도</button></div></td></tr>';
+                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="8"><div class="ij-empty ij-empty__error">데이터를 불러오지 못했습니다.<span class="ij-empty__sub">네트워크 상태를 확인하고 다시 시도해주세요.</span><button type="button" class="ij-empty__retry" id="ijRetryBtn">다시 시도</button></div></td></tr>';
                 moreWrap.style.display = 'none';
                 counterCo.textContent = '0';
                 counterNo.textContent = '0';
@@ -1538,7 +1522,7 @@
                 var msg = hasFilter
                     ? '조건에 맞는 통역 모집 현황이 없습니다.'
                     : '현재 게재된 통역 모집 현황이 없습니다.';
-                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="9"><div class="ij-empty">' + msg + '<span class="ij-empty__sub">곧 다양한 기업의 모집 현황이 공개됩니다.</span></div></td></tr>';
+                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="8"><div class="ij-empty">' + msg + '<span class="ij-empty__sub">곧 다양한 기업의 모집 현황이 공개됩니다.</span></div></td></tr>';
                 moreWrap.style.display = 'none';
                 counterCo.textContent = '0';
                 counterNo.textContent = '0';
