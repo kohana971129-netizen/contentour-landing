@@ -216,31 +216,105 @@
             border-color: var(--text);
         }
 
-        /* ── 카드 그리드 ── */
-        .ij-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-        .ij-card {
+        /* ── 게시판 표 ── */
+        .ij-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
             background: #fff;
-            border: 0.5px solid rgba(0,0,0,0.08);
+            border: 1px solid #e5eaf2;
             border-radius: 12px;
-            padding: 18px;
+            overflow: hidden;
+            font-size: 0.88rem;
+        }
+        .ij-table thead {
+            background: #f7f9fc;
+        }
+        .ij-th {
+            padding: 12px 14px;
+            font-weight: 700;
+            color: var(--gray-400);
+            text-align: left;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 1px solid #e5eaf2;
+            white-space: nowrap;
+        }
+        .ij-th--status { width: 110px; }
+        .ij-th--country { width: 80px; text-align: center; }
+        .ij-th--date { width: 175px; }
+        .ij-th--interest { width: 75px; text-align: center; }
+        .ij-th--action { width: 140px; }
+        .ij-tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .ij-tr:hover { background: #f7f9fc; }
+        .ij-tr:focus-visible {
+            outline: 2px solid var(--blue);
+            outline-offset: -2px;
+        }
+        .ij-td {
+            padding: 14px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--gray-700);
+        }
+        .ij-tbody tr:last-child .ij-td { border-bottom: none; }
+        .ij-td--status {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+            gap: 4px;
+            align-items: flex-start;
         }
-        .ij-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-            border-color: rgba(25,118,210,0.25);
-        }
-        .ij-card:focus-visible {
-            outline: 2px solid var(--blue);
-            outline-offset: 2px;
+        .ij-td__label-main { font-weight: 700; color: var(--text); }
+        .ij-td__label-sub { font-size: 0.78rem; color: var(--gray-400); margin-top: 2px; }
+        .ij-td--country { text-align: center; }
+        .ij-td--interest { text-align: center; color: var(--gray-400); }
+        .ij-td--action { text-align: center; }
+        .ij-tr__action-empty { color: var(--gray-300); font-size: 0.82rem; }
+        .ij-empty-cell { padding: 0 !important; background: transparent; }
+
+        /* ── 모바일 카드 폴백 (768px 이하) — 표 행을 카드처럼 ── */
+        @media (max-width: 768px) {
+            .ij-table { border: none; background: transparent; }
+            .ij-table thead { display: none; }
+            .ij-tr {
+                display: block;
+                background: #fff;
+                border: 0.5px solid rgba(0,0,0,0.08);
+                border-radius: 12px;
+                margin-bottom: 10px;
+                padding: 14px 16px;
+            }
+            .ij-tr:hover { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+            .ij-td {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 6px 0;
+                border-bottom: 1px dashed #f1f5f9;
+                text-align: left;
+            }
+            .ij-td:last-child { border-bottom: none; padding-bottom: 0; }
+            .ij-td::before {
+                content: attr(data-label);
+                font-size: 0.74rem;
+                font-weight: 700;
+                color: var(--gray-400);
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                min-width: 70px;
+                flex-shrink: 0;
+            }
+            .ij-td--status,
+            .ij-td--action { justify-content: flex-start; }
+            .ij-td--status::before,
+            .ij-td--action::before { display: none; }
+            .ij-td--status { padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; flex-direction: row; align-items: center; gap: 6px; }
+            .ij-td--action { padding-top: 12px; border-top: 1px solid #f1f5f9; margin-top: 2px; }
+            .ij-td--action .ij-card__apply { width: 100%; }
         }
         .ij-badge--own {
             background: #dbeafe;
@@ -891,8 +965,22 @@
                 </label>
             </div>
 
-            <!-- 카드 그리드 -->
-            <div class="ij-grid" id="ijGrid"></div>
+            <!-- 게시판 (데스크톱: 표, 모바일: 카드 폴백) -->
+            <table class="ij-table" id="ijTable">
+                <thead>
+                    <tr>
+                        <th class="ij-th ij-th--status" scope="col">구분</th>
+                        <th class="ij-th ij-th--label" scope="col">기업·산업</th>
+                        <th class="ij-th ij-th--exhibition" scope="col">전시회</th>
+                        <th class="ij-th ij-th--country" scope="col">국가</th>
+                        <th class="ij-th ij-th--date" scope="col">기간</th>
+                        <th class="ij-th ij-th--lang" scope="col">언어 · 인원</th>
+                        <th class="ij-th ij-th--interest" scope="col">관심</th>
+                        <th class="ij-th ij-th--action" scope="col">지원</th>
+                    </tr>
+                </thead>
+                <tbody id="ijGrid"></tbody>
+            </table>
 
             <!-- 더 보기 -->
             <div class="ij-more-wrap" id="ijMoreWrap">
@@ -1132,30 +1220,26 @@
             });
         }
 
-        function buildCard(req) {
+        function buildRow(req) {
             var isRecruit = req.status === 'recruiting';
-            var badgeHtml = isRecruit
+            var statusBadge = isRecruit
                 ? '<span class="ij-badge ij-badge--recruit">모집중</span>'
                 : '<span class="ij-badge ij-badge--matched">매칭완료</span>';
 
-            var ddayHtml = (!isRecruit && typeof req.daysLeft === 'number')
-                ? '<span class="ij-card__dday">D-' + req.daysLeft + '</span>'
+            var ownBadge = req.isOwn
+                ? '<span class="ij-badge ij-badge--own" title="회원님이 등록한 공고입니다">내 공고</span>'
                 : '';
 
-            var endShort = (req.endDate && req.endDate.length >= 10)
-                ? fmtDate(req.endDate.slice(5))
-                : fmtDate(req.endDate);
+            var ddayHtml = (!isRecruit && typeof req.daysLeft === 'number')
+                ? ' <span class="ij-card__dday">D-' + req.daysLeft + '</span>'
+                : '';
 
             var languages = Array.isArray(req.languages) ? req.languages : [];
             var industry = req.industry || '';
-            var metaSuffix = req.isAnonymous ? '익명 등재' : '실명 공개';
+            var metaSuffix = req.isAnonymous ? '익명' : '실명';
             var metaLine = industry ? (escapeHtml(industry) + ' · ' + metaSuffix) : metaSuffix;
 
-            // Phase 4D — direct_posting + recruiting 카드에 "지원하기" 버튼 노출
-            // 뷰어 역할별 라벨 분기:
-            //  · interpreter → "지원하기" / "✓ 지원 완료"
-            //  · 비로그인 → "🔒 로그인 후 지원" (클릭 시 로그인 페이지로)
-            //  · customer/admin → 버튼 숨김 (지원 불가 역할)
+            // 지원 액션 분기 (이전 카드와 동일)
             var applyHtml = '';
             if (isRecruit && req.sourceType === 'direct_posting' && req.id) {
                 if (viewerRole === 'interpreter') {
@@ -1165,35 +1249,26 @@
                     applyHtml = '<button type="button" class="ij-card__apply ij-card__apply--guest" data-apply-id="' + escapeHtml(req.id) + '">🔒 로그인 후 지원</button>';
                 }
             }
+            // 액션 셀이 비면 빈 셀로
+            if (!applyHtml) applyHtml = '<span class="ij-tr__action-empty">—</span>';
 
-            // 본인이 올린 공고 식별 배지 (고객사 로그인 + posted_by_user_id 일치 시)
-            var ownBadgeHtml = req.isOwn
-                ? '<span class="ij-badge ij-badge--own" title="회원님이 등록한 공고입니다">내 공고</span>'
-                : '';
-
+            // data-label 속성으로 모바일 카드 폴백 시 컬럼 라벨 노출
             return '' +
-                '<div class="ij-card" data-region="' + escapeHtml(req.countryCode) + '" data-detail-id="' + escapeHtml(req.id || '') + '" role="button" tabindex="0" aria-label="공고 상세 보기: ' + escapeHtml(req.exhibition) + '">' +
-                    '<div class="ij-card__head">' +
-                        '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">' + badgeHtml + ownBadgeHtml + '</div>' +
-                        '<span class="ij-card__interest">👁 ' + (req.interestCount || 0) + '</span>' +
-                    '</div>' +
-                    '<div>' +
-                        '<h3 class="ij-card__company">' + escapeHtml(req.label) + '</h3>' +
-                        '<div class="ij-card__meta">' + metaLine + '</div>' +
-                    '</div>' +
-                    '<div class="ij-card__expo">' +
+                '<tr class="ij-tr" data-region="' + escapeHtml(req.countryCode) + '" data-detail-id="' + escapeHtml(req.id || '') + '" tabindex="0" aria-label="공고 상세 보기: ' + escapeHtml(req.exhibition) + '">' +
+                    '<td class="ij-td ij-td--status" data-label="구분">' + statusBadge + ownBadge + '</td>' +
+                    '<td class="ij-td ij-td--label" data-label="기업·산업">' +
+                        '<div class="ij-td__label-main">' + escapeHtml(req.label) + '</div>' +
+                        '<div class="ij-td__label-sub">' + metaLine + '</div>' +
+                    '</td>' +
+                    '<td class="ij-td ij-td--exhibition" data-label="전시회">' + escapeHtml(req.exhibition) + '</td>' +
+                    '<td class="ij-td ij-td--country" data-label="국가">' +
                         '<span class="ij-card__cc">' + escapeHtml(req.countryCode) + '</span>' +
-                        '<span>' + escapeHtml(req.exhibition) + '</span>' +
-                    '</div>' +
-                    '<div class="ij-card__row">' +
-                        '<span>📅</span><span>' + fmtDate(req.startDate) + ' ~ ' + endShort + '</span>' +
-                    '</div>' +
-                    '<div class="ij-card__row">' +
-                        '<span>🌐</span><span>' + escapeHtml(languages.join(' · ')) + ' · ' + (req.needed || 0) + '명</span>' +
-                        ddayHtml +
-                    '</div>' +
-                    applyHtml +
-                '</div>';
+                    '</td>' +
+                    '<td class="ij-td ij-td--date" data-label="기간">' + fmtDate(req.startDate) + ' ~ ' + fmtDate(req.endDate) + ddayHtml + '</td>' +
+                    '<td class="ij-td ij-td--lang" data-label="언어 · 인원">' + escapeHtml(languages.join(' · ')) + ' · ' + (req.needed || 0) + '명</td>' +
+                    '<td class="ij-td ij-td--interest" data-label="관심">👁 ' + (req.interestCount || 0) + '</td>' +
+                    '<td class="ij-td ij-td--action" data-label="지원">' + applyHtml + '</td>' +
+                '</tr>';
         }
 
         function getActiveRegion() {
@@ -1208,14 +1283,14 @@
             var counterNo = document.getElementById('counterNeeded');
 
             if (loading) {
-                grid.innerHTML = '<div class="ij-empty">불러오는 중...</div>';
+                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="8"><div class="ij-empty">불러오는 중...</div></td></tr>';
                 moreWrap.style.display = 'none';
                 counterCo.textContent = '–';
                 counterNo.textContent = '–';
                 return;
             }
             if (loadError) {
-                grid.innerHTML = '<div class="ij-empty ij-empty__error">데이터를 불러오지 못했습니다.<span class="ij-empty__sub">네트워크 상태를 확인하고 다시 시도해주세요.</span><button type="button" class="ij-empty__retry" id="ijRetryBtn">다시 시도</button></div>';
+                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="8"><div class="ij-empty ij-empty__error">데이터를 불러오지 못했습니다.<span class="ij-empty__sub">네트워크 상태를 확인하고 다시 시도해주세요.</span><button type="button" class="ij-empty__retry" id="ijRetryBtn">다시 시도</button></div></td></tr>';
                 moreWrap.style.display = 'none';
                 counterCo.textContent = '0';
                 counterNo.textContent = '0';
@@ -1250,7 +1325,7 @@
                 var msg = hasFilter
                     ? '조건에 맞는 통역 모집 현황이 없습니다.'
                     : '현재 게재된 통역 모집 현황이 없습니다.';
-                grid.innerHTML = '<div class="ij-empty">' + msg + '<span class="ij-empty__sub">곧 다양한 기업의 모집 현황이 공개됩니다.</span></div>';
+                grid.innerHTML = '<tr><td class="ij-empty-cell" colspan="8"><div class="ij-empty">' + msg + '<span class="ij-empty__sub">곧 다양한 기업의 모집 현황이 공개됩니다.</span></div></td></tr>';
                 moreWrap.style.display = 'none';
                 counterCo.textContent = '0';
                 counterNo.textContent = '0';
@@ -1258,7 +1333,7 @@
             }
 
             var visible = list.slice(0, visibleCount);
-            grid.innerHTML = visible.map(buildCard).join('');
+            grid.innerHTML = visible.map(buildRow).join('');
 
             var moreBtn = document.getElementById('ijMoreBtn');
             var remaining = list.length - visibleCount;
@@ -1701,7 +1776,7 @@
         }
 
         document.getElementById('ijGrid').addEventListener('click', function (e) {
-            // 지원 버튼은 별도 처리 (카드 클릭으로 전파되지 않도록)
+            // 지원 버튼은 별도 처리 (행 클릭으로 전파되지 않도록)
             var btn = e.target.closest('.ij-card__apply');
             if (btn) {
                 e.stopPropagation();
@@ -1709,19 +1784,19 @@
                 handleApply(id, btn);
                 return;
             }
-            // 카드 클릭 → 상세 모달
-            var card = e.target.closest('.ij-card');
-            if (!card) return;
-            var detailId = card.getAttribute('data-detail-id');
+            // 행 클릭 → 상세 모달
+            var row = e.target.closest('.ij-tr');
+            if (!row) return;
+            var detailId = row.getAttribute('data-detail-id');
             if (detailId) openDetailModal(detailId);
         });
         document.getElementById('ijGrid').addEventListener('keydown', function (e) {
-            // 카드 키보드 활성화 (Enter/Space)
+            // 키보드 활성화 (Enter/Space)
             if (e.key !== 'Enter' && e.key !== ' ' && e.code !== 'Space') return;
-            var card = e.target.closest('.ij-card');
-            if (!card || e.target.closest('.ij-card__apply')) return;
+            var row = e.target.closest('.ij-tr');
+            if (!row || e.target.closest('.ij-card__apply')) return;
             e.preventDefault();
-            var detailId = card.getAttribute('data-detail-id');
+            var detailId = row.getAttribute('data-detail-id');
             if (detailId) openDetailModal(detailId);
         });
 
