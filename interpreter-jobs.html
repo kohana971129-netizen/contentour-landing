@@ -53,6 +53,13 @@
     <link rel="stylesheet" href="design-tokens.css?v=20260526b">
     <link rel="stylesheet" href="styles.css?v=1.1">
 
+    <!-- Twemoji: Windows의 Segoe UI Emoji가 국기 이모지 미지원 → 모든 이모지를 SVG 이미지로 변환 -->
+    <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+    <style>
+        /* twemoji가 변환한 이모지 img 크기 조정 (텍스트 라인과 정렬) */
+        img.emoji { height: 1em; width: 1em; margin: 0 .05em 0 .1em; vertical-align: -0.1em; display: inline-block; }
+    </style>
+
     <style>
         /* ══════════════ interpreter-jobs 페이지 전용 ══════════════ */
         .ij-page {
@@ -1603,6 +1610,8 @@
 
             var visible = list.slice(0, visibleCount);
             grid.innerHTML = visible.map(buildRow).join('');
+            // 국기 이모지 SVG 변환 (Windows에서 컬러 국기 보이게)
+            if (window.twemoji) try { twemoji.parse(grid); } catch(e) {}
 
             var moreBtn = document.getElementById('ijMoreBtn');
             var remaining = list.length - visibleCount;
@@ -2253,6 +2262,15 @@
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && detailModal.classList.contains('is-open')) closeDetailModal();
         });
+
+        // 페이지 초기 로드 시 국기 이모지 변환 (필터 칩 + 정적 콘텐츠)
+        if (window.twemoji) {
+            try { twemoji.parse(document.body); } catch(e) {}
+        } else {
+            window.addEventListener('load', function() {
+                if (window.twemoji) try { twemoji.parse(document.body); } catch(e) {}
+            });
+        }
     </script>
 </body>
 
