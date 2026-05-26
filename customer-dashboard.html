@@ -4642,17 +4642,31 @@
     async function handleInquiryCancel(e) {
       var btn = e.currentTarget;
       var inquiryId = btn.getAttribute('data-inquiry-id');
-      if (!inquiryId) return;
+      if (!inquiryId) { alert('문의 ID를 찾을 수 없습니다.'); return; }
       if (!confirm('이 견적 문의를 취소하시겠습니까?\n취소 후에는 복구할 수 없습니다.')) return;
 
       btn.disabled = true;
       var originalText = btn.textContent;
       btn.textContent = '취소 중...';
+
+      // 세션 토큰 획득 (만료 시 refresh 시도)
+      async function getFreshToken() {
+        try {
+          var s1 = await window.sbClient.auth.getSession();
+          var t1 = s1 && s1.data && s1.data.session ? s1.data.session.access_token : null;
+          if (t1) return t1;
+        } catch (e1) { console.warn('[cancel-inquiry] getSession 실패:', e1); }
+        try {
+          await window.sbClient.auth.refreshSession();
+          var s2 = await window.sbClient.auth.getSession();
+          return s2 && s2.data && s2.data.session ? s2.data.session.access_token : null;
+        } catch (e2) { console.warn('[cancel-inquiry] refreshSession 실패:', e2); return null; }
+      }
+
       try {
-        var s = await window.sbClient.auth.getSession();
-        var token = s && s.data && s.data.session ? s.data.session.access_token : null;
+        var token = await getFreshToken();
         if (!token) {
-          alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+          alert('로그인이 만료되었습니다. 다시 로그인 후 시도해주세요.');
           btn.disabled = false; btn.textContent = originalText;
           return;
         }
@@ -4663,7 +4677,33 @@
         });
         var json = await r.json().catch(function() { return {}; });
         if (!r.ok) {
-          alert(json.error || '취소 처리 실패. 잠시 후 다시 시도해주세요.');
+          console.error('[cancel-inquiry] HTTP', r.status, json);
+          // 401/403이면 세션 한 번 더 refresh 후 재시도
+          if (r.status === 401 || r.status === 403) {
+            try { await window.sbClient.auth.refreshSession(); } catch(_) {}
+            var retryTok = await getFreshToken();
+            if (retryTok && retryTok !== token) {
+              var r2 = await fetch('/api/cancel-inquiry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + retryTok },
+                body: JSON.stringify({ inquiry_id: inquiryId })
+              });
+              var json2 = await r2.json().catch(function() { return {}; });
+              if (r2.ok) {
+                closeModalDirect();
+                if (window.showToast) window.showToast('견적 문의가 취소되었습니다.', 'success');
+                else alert('견적 문의가 취소되었습니다.');
+                if (typeof loadMyInquiries === 'function') loadMyInquiries();
+                return;
+              }
+              console.error('[cancel-inquiry] 재시도 실패 HTTP', r2.status, json2);
+              alert((json2.error || '취소 처리 실패') + ' (코드: ' + r2.status + ')');
+            } else {
+              alert('로그인이 만료되었습니다. 다시 로그인 후 시도해주세요.');
+            }
+          } else {
+            alert((json.error || '취소 처리 실패') + ' (코드: ' + r.status + ')');
+          }
           btn.disabled = false; btn.textContent = originalText;
           return;
         }
@@ -4672,8 +4712,8 @@
         else alert('견적 문의가 취소되었습니다.');
         if (typeof loadMyInquiries === 'function') loadMyInquiries();
       } catch (err) {
-        console.error('Inquiry cancel failed:', err);
-        alert('네트워크 오류. 잠시 후 다시 시도해주세요.');
+        console.error('[cancel-inquiry] 네트워크 오류:', err);
+        alert('네트워크 오류. 잠시 후 다시 시도해주세요.\n(' + (err && err.message || '') + ')');
         btn.disabled = false; btn.textContent = originalText;
       }
     }
