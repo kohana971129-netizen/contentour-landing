@@ -6591,15 +6591,34 @@
             }
 
             async function rejectVerification(userId) {
-                var reason = prompt('반려 사유를 입력하세요:');
-                if (!reason) return;
+                var reason = prompt('반려 사유를 입력하세요 (통역사 마이페이지에 그대로 표시됩니다):');
+                if (!reason || !reason.trim()) return;
                 if (!supabase) return;
+
+                var trimmed = reason.trim();
+
+                // verification_note에 사유 저장 — 통역사 UI(loadVerifyDocs)에서 "사유: <note>"로 표시
+                // 명시적 필드 리셋으로 승인 데이터 잔재 제거
                 var { error } = await supabase.from('40_통역사프로필').update({
                     is_verified: false,
-                    verification_note: '반려: ' + reason
+                    verified_at: null,
+                    verified_by: null,
+                    verification_note: trimmed
                 }).eq('user_id', userId);
-                if (error) { showToast('⚠️ 반려 처리 실패'); return; }
-                showToast('❌ 통역사 인증이 반려되었습니다.');
+                if (error) { showToast('⚠️ 반려 처리 실패: ' + error.message); return; }
+
+                // 통역사에게 알림 (best-effort — trg_24_알림_enforce_notif_settings가 settings 자동 체크)
+                try {
+                    await supabase.from('24_알림').insert({
+                        user_id: userId,
+                        notification_type: 'service',
+                        title: '⚠️ 경력 인증 반려',
+                        message: '제출하신 경력 증빙 서류가 반려되었습니다. 마이페이지에서 사유를 확인하고 새 파일을 업로드해주세요.\n사유: ' + trimmed,
+                        is_read: false
+                    });
+                } catch (e) { console.warn('반려 알림 발송 실패 (무시):', e); }
+
+                showToast('❌ 통역사 인증이 반려되었습니다. 통역사에게 알림이 발송되었습니다.');
                 closeInterpModal();
                 loadInterpVerifyList();
             }
