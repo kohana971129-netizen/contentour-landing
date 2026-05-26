@@ -1291,11 +1291,11 @@
             <div class="loy-card__head"><h3>&#128276; 알림 설정</h3></div>
             <div class="loy-card__body">
               <div style="display:flex;flex-direction:column;gap:14px;">
-                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">계약 상태 변경 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
-                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">결제 완료 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
-                <label class="cust-notif-toggle" id="loyNotifToggle"><span style="font-size:0.85rem;font-weight:600;">적립금 적립/사용 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
-                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">채팅 메시지 알림</span><input type="checkbox" checked class="cust-notif-checkbox"></label>
-                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">마케팅/이벤트 알림</span><input type="checkbox" class="cust-notif-checkbox"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">계약 상태 변경 알림</span><input type="checkbox" checked class="cust-notif-checkbox" id="notif-contract" onchange="saveNotifSettings()"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">결제 완료 알림</span><input type="checkbox" checked class="cust-notif-checkbox" id="notif-payment" onchange="saveNotifSettings()"></label>
+                <label class="cust-notif-toggle" id="loyNotifToggle"><span style="font-size:0.85rem;font-weight:600;">적립금 적립/사용 알림</span><input type="checkbox" checked class="cust-notif-checkbox" id="notif-points" onchange="saveNotifSettings()"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">채팅 메시지 알림</span><input type="checkbox" checked class="cust-notif-checkbox" id="notif-chat" onchange="saveNotifSettings()"></label>
+                <label class="cust-notif-toggle"><span style="font-size:0.85rem;font-weight:600;">마케팅/이벤트 알림</span><input type="checkbox" class="cust-notif-checkbox" id="notif-marketing" onchange="saveNotifSettings()"></label>
               </div>
             </div>
           </div>
@@ -1431,6 +1431,50 @@
       btn.textContent = '저장하기';
     }
 
+    // ── 알림 설정: 체크박스 ↔ 01_회원.notification_settings JSONB 동기화 ──
+    function applyNotifSettings(settings) {
+      if (!settings || typeof settings !== 'object') return;
+      var map = {
+        'notif-contract':  settings.contract,
+        'notif-payment':   settings.payment,
+        'notif-points':    settings.points,
+        'notif-chat':      settings.chat,
+        'notif-marketing': settings.marketing
+      };
+      Object.keys(map).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && typeof map[id] === 'boolean') el.checked = map[id];
+      });
+    }
+
+    async function saveNotifSettings() {
+      if (!window.sbClient) return;
+      try {
+        var user = await ContentourAuth.getCurrentUser();
+        if (!user) return;
+        var get = function(id) { var el = document.getElementById(id); return !!(el && el.checked); };
+        var settings = {
+          contract:  get('notif-contract'),
+          payment:   get('notif-payment'),
+          points:    get('notif-points'),
+          chat:      get('notif-chat'),
+          marketing: get('notif-marketing')
+        };
+        var { error } = await window.sbClient
+          .from('01_회원')
+          .update({ notification_settings: settings, updated_at: new Date().toISOString() })
+          .eq('id', user.id);
+        if (error) {
+          console.warn('알림 설정 저장 실패:', error);
+          showContractToast('⚠️ 알림 설정 저장 실패: ' + (error.message || ''));
+          return;
+        }
+        showContractToast('✅ 알림 설정이 저장되었습니다.');
+      } catch (e) {
+        console.warn('알림 설정 저장 예외:', e);
+      }
+    }
+
     async function changeMyPassword() {
       var newPw = document.getElementById('myp-new-pw').value;
       var newPw2 = document.getElementById('myp-new-pw2').value;
@@ -1536,6 +1580,9 @@
             currentClientId = user.id;
 
             applyUserProfile(_currentUserProfile);
+
+            // 알림 설정 체크박스 반영 (notification_settings 컬럼이 있을 때만, 없으면 기본값 유지)
+            try { applyNotifSettings(member && member.notification_settings); } catch(e) {}
 
             // 사업자등록증 검수 상태 배너 표시
             try {
