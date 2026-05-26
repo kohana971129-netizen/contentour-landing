@@ -439,7 +439,7 @@ input[type="password"]::-ms-clear { display: none; }
             font-weight: 700;
             letter-spacing: 2.5px;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.48);
             padding: 14px 10px 5px;
         }
 
@@ -449,9 +449,9 @@ input[type="password"]::-ms-clear { display: none; }
             gap: 10px;
             padding: 10px 12px;
             border-radius: 8px;
-            color: rgba(255, 255, 255, 0.92);
+            color: rgba(255, 255, 255, 0.78);
             font-size: 0.86rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             transition: all 0.15s;
