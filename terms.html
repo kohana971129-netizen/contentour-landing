@@ -10,6 +10,7 @@
     <meta property="og:description" content="서비스 이용약관, 고객사·통역사 약관, 운영정책, 개인정보처리방침.">
     <meta property="og:url" content="https://contentour-landing.vercel.app/terms">
     <link rel="canonical" href="https://contentour-landing.vercel.app/terms">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"콘텐츄어 (CONTENTOUR)","url":"https://contentour-landing.vercel.app","logo":"https://contentour-landing.vercel.app/assets/logo.png","telephone":"+82-2-868-1522","email":"info@contentour.co.kr","address":{"@type":"PostalAddress","streetAddress":"서울시 구로구 디지털로26길 43, 대륭포스트타워 8차 L동 2층 204호","addressLocality":"서울","addressCountry":"KR"}}</script>
     <meta property="og:image" content="https://contentour-landing.vercel.app/assets/logo.png">
     <link rel="stylesheet" href="design-tokens.css">
     <style>
@@ -343,12 +344,12 @@
             <h1 class="terms-header__title">이용약관 및 정책</h1>
             <p class="terms-header__sub">콘텐츄어 통역 서비스 플랫폼의 이용약관, 운영정책, 개인정보처리방침을 안내합니다.</p>
 
-            <div class="terms-tabs">
-                <div class="terms-tab active" onclick="switchTermsTab('common')">서비스 이용약관</div>
-                <div class="terms-tab" onclick="switchTermsTab('customer')">고객사 이용약관</div>
-                <div class="terms-tab" onclick="switchTermsTab('interpreter')">통역사 이용약관</div>
-                <div class="terms-tab" onclick="switchTermsTab('operation')">서비스 운영정책</div>
-                <div class="terms-tab" onclick="switchTermsTab('privacy')">개인정보처리방침</div>
+            <div class="terms-tabs" role="tablist" aria-label="약관 종류 선택">
+                <div class="terms-tab active" role="tab" id="tab-common" tabindex="0" aria-selected="true" aria-controls="sec-common" onclick="switchTermsTab('common')">서비스 이용약관</div>
+                <div class="terms-tab" role="tab" id="tab-customer" tabindex="-1" aria-selected="false" aria-controls="sec-customer" onclick="switchTermsTab('customer')">고객사 이용약관</div>
+                <div class="terms-tab" role="tab" id="tab-interpreter" tabindex="-1" aria-selected="false" aria-controls="sec-interpreter" onclick="switchTermsTab('interpreter')">통역사 이용약관</div>
+                <div class="terms-tab" role="tab" id="tab-operation" tabindex="-1" aria-selected="false" aria-controls="sec-operation" onclick="switchTermsTab('operation')">서비스 운영정책</div>
+                <div class="terms-tab" role="tab" id="tab-privacy" tabindex="-1" aria-selected="false" aria-controls="sec-privacy" onclick="switchTermsTab('privacy')">개인정보처리방침</div>
             </div>
         </div>
     </header>
@@ -359,7 +360,7 @@
         <!-- ════════════════════════════════════════════ -->
         <!-- 1. 서비스 이용약관 (공통) -->
         <!-- ════════════════════════════════════════════ -->
-        <div class="terms-section active" id="sec-common">
+        <div class="terms-section active" id="sec-common" role="tabpanel" aria-labelledby="tab-common">
             <div class="terms-meta">
                 <span class="terms-meta__tag terms-meta__tag--version">v1.0</span>
                 <span class="terms-meta__tag terms-meta__tag--date">시행일: 2026.03.11</span>
@@ -616,7 +617,7 @@
         <!-- ════════════════════════════════════════════ -->
         <!-- 2. 고객사 이용약관 -->
         <!-- ════════════════════════════════════════════ -->
-        <div class="terms-section" id="sec-customer">
+        <div class="terms-section" id="sec-customer" role="tabpanel" aria-labelledby="tab-customer">
             <div class="terms-meta">
                 <span class="terms-meta__tag terms-meta__tag--version">v1.0</span>
                 <span class="terms-meta__tag terms-meta__tag--date">시행일: 2026.03.11</span>
@@ -742,7 +743,7 @@
         <!-- ════════════════════════════════════════════ -->
         <!-- 3. 통역사 이용약관 -->
         <!-- ════════════════════════════════════════════ -->
-        <div class="terms-section" id="sec-interpreter">
+        <div class="terms-section" id="sec-interpreter" role="tabpanel" aria-labelledby="tab-interpreter">
             <div class="terms-meta">
                 <span class="terms-meta__tag terms-meta__tag--version">v1.0</span>
                 <span class="terms-meta__tag terms-meta__tag--date">시행일: 2026.03.11</span>
@@ -907,7 +908,7 @@
         <!-- ════════════════════════════════════════════ -->
         <!-- 4. 서비스 운영정책 -->
         <!-- ════════════════════════════════════════════ -->
-        <div class="terms-section" id="sec-operation">
+        <div class="terms-section" id="sec-operation" role="tabpanel" aria-labelledby="tab-operation">
             <div class="terms-meta">
                 <span class="terms-meta__tag terms-meta__tag--version">v1.0</span>
                 <span class="terms-meta__tag terms-meta__tag--date">시행일: 2026.03.11</span>
@@ -1030,7 +1031,7 @@
         <!-- ════════════════════════════════════════════ -->
         <!-- 5. 개인정보처리방침 -->
         <!-- ════════════════════════════════════════════ -->
-        <div class="terms-section" id="sec-privacy">
+        <div class="terms-section" id="sec-privacy" role="tabpanel" aria-labelledby="tab-privacy">
             <div class="terms-meta">
                 <span class="terms-meta__tag terms-meta__tag--version">v1.0</span>
                 <span class="terms-meta__tag terms-meta__tag--date">시행일: 2026.03.11</span>
@@ -1267,10 +1268,17 @@
 
     <script>
         function switchTermsTab(tabId) {
-            document.querySelectorAll('.terms-tab').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.terms-tab').forEach(function(t) {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+                t.setAttribute('tabindex', '-1');
+            });
             document.querySelectorAll('.terms-section').forEach(function(s) { s.classList.remove('active'); });
 
-            event.currentTarget.classList.add('active');
+            var activeTab = event.currentTarget;
+            activeTab.classList.add('active');
+            activeTab.setAttribute('aria-selected', 'true');
+            activeTab.setAttribute('tabindex', '0');
             var sec = document.getElementById('sec-' + tabId);
             if (sec) sec.classList.add('active');
         }
