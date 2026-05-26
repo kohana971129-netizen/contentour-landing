@@ -51,7 +51,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link rel="stylesheet" href="design-tokens.css?v=20260526b">
-    <link rel="stylesheet" href="styles.css?v=1.3">
+    <link rel="stylesheet" href="styles.css?v=1.4">
 
     <!-- Twemoji: Windows의 Segoe UI Emoji가 국기 이모지 미지원 → 모든 이모지를 SVG 이미지로 변환 -->
     <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
@@ -652,9 +652,30 @@
 
         /* ── 더 보기 ── */
         .ij-more-wrap {
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
             margin-top: 28px;
+            flex-wrap: wrap;
         }
+        .ij-page-btn {
+            min-width: 38px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1.5px solid #e5eaf2;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--gray-600);
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .ij-page-btn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+        .ij-page-btn.is-active { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .ij-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .ij-more-btn {
             background: #fff;
             border: 1px solid var(--blue);
@@ -1206,9 +1227,8 @@
             </div>
 
             <!-- 더 보기 -->
-            <div class="ij-more-wrap" id="ijMoreWrap">
-                <button class="ij-more-btn" id="ijMoreBtn">전체 8건 보기</button>
-            </div>
+            <!-- 페이지네이션 — renderPagination이 페이지 버튼을 동적으로 채움 -->
+            <div class="ij-more-wrap" id="ijMoreWrap" style="display:none;"></div>
 
             <!-- 기업용 CTA 박스 -->
             <section class="ij-corp-cta">
@@ -1414,9 +1434,8 @@
         // ══════════════ 상태 ══════════════
         // /api/showcase에서 화이트리스트 컬럼만 받아옴 (Phase 3, 2026-05-21)
         var showcaseData = [];
-        var INITIAL_COUNT = 6;
-        var PAGE_STEP = 6; // "더 보기" 한 번에 추가 노출되는 카드 수
-        var visibleCount = INITIAL_COUNT;
+        var PAGE_SIZE = 5; // 페이지당 카드 수 (5개 초과 시 페이지네이션 표시)
+        var currentPage = 1;
         var loading = true;
         var loadError = false;
         // 뷰어 역할 ('interpreter' | 'customer' | 'admin' | null=비로그인) — 카드 지원 버튼 라벨 결정용
@@ -1608,24 +1627,61 @@
                 return;
             }
 
-            var visible = list.slice(0, visibleCount);
+            // 페이지 범위 보정 (필터 변경 등으로 페이지가 범위를 벗어나면 1로)
+            var totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+            if (currentPage > totalPages) currentPage = 1;
+
+            var startIdx = (currentPage - 1) * PAGE_SIZE;
+            var visible = list.slice(startIdx, startIdx + PAGE_SIZE);
             grid.innerHTML = visible.map(buildRow).join('');
             // 국기 이모지 SVG 변환 (Windows에서 컬러 국기 보이게)
             if (window.twemoji) try { twemoji.parse(grid); } catch(e) {}
 
-            var moreBtn = document.getElementById('ijMoreBtn');
-            var remaining = list.length - visibleCount;
-            if (remaining > 0) {
-                moreWrap.style.display = '';
-                var nextChunk = Math.min(PAGE_STEP, remaining);
-                moreBtn.textContent = '더 보기 (+' + nextChunk + '건, 남은 ' + remaining + '건)';
-            } else {
-                moreWrap.style.display = 'none';
-            }
+            renderPagination(list.length, totalPages, moreWrap);
 
             var recruiting = list.filter(function (r) { return r.status === 'recruiting'; });
             counterCo.textContent = recruiting.length;
             counterNo.textContent = recruiting.reduce(function (sum, r) { return sum + (r.needed || 0); }, 0);
+        }
+
+        // 페이지네이션 렌더링 — 5개 이하면 숨김, 6개 이상이면 페이지 버튼 표시
+        function renderPagination(totalItems, totalPages, wrap) {
+            if (totalPages <= 1) {
+                wrap.style.display = 'none';
+                wrap.innerHTML = '';
+                return;
+            }
+            wrap.style.display = 'flex';
+
+            // 페이지 윈도우 (최대 5개, 현재 페이지 중심)
+            var maxButtons = 5;
+            var startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+            var endPage = Math.min(totalPages, startPage + maxButtons - 1);
+            if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
+
+            var parts = [];
+            parts.push('<button type="button" class="ij-page-btn" data-page="prev" aria-label="이전 페이지"' + (currentPage === 1 ? ' disabled' : '') + '>‹</button>');
+            for (var i = startPage; i <= endPage; i++) {
+                parts.push('<button type="button" class="ij-page-btn' + (i === currentPage ? ' is-active' : '') + '" data-page="' + i + '" aria-label="' + i + '페이지"' + (i === currentPage ? ' aria-current="page"' : '') + '>' + i + '</button>');
+            }
+            parts.push('<button type="button" class="ij-page-btn" data-page="next" aria-label="다음 페이지"' + (currentPage === totalPages ? ' disabled' : '') + '>›</button>');
+
+            wrap.innerHTML = parts.join('');
+            wrap.querySelectorAll('.ij-page-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var p = btn.getAttribute('data-page');
+                    if (p === 'prev' && currentPage > 1) currentPage--;
+                    else if (p === 'next' && currentPage < totalPages) currentPage++;
+                    else {
+                        var n = parseInt(p, 10);
+                        if (!isNaN(n) && n >= 1 && n <= totalPages) currentPage = n;
+                    }
+                    renderGrid();
+                    // 테이블 상단으로 부드럽게 스크롤
+                    var grid = document.getElementById('ijGrid');
+                    if (grid && grid.scrollIntoView) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
         }
 
         async function fetchShowcase() {
@@ -1709,21 +1765,15 @@
             var region = btn.getAttribute('data-region');
             activateChip(region);
             updateUrl(region);
-            visibleCount = INITIAL_COUNT;
-            renderGrid();
-        });
-
-        // 더 보기 — PAGE_STEP만큼 추가 노출
-        document.getElementById('ijMoreBtn').addEventListener('click', function () {
-            visibleCount += PAGE_STEP;
+            currentPage = 1;
             renderGrid();
         });
 
         // 산업·정렬 변경 — 1페이지로 리셋 + 재렌더
         var __ijIndustryEl = document.getElementById('ijIndustryFilter');
-        if (__ijIndustryEl) __ijIndustryEl.addEventListener('change', function () { visibleCount = INITIAL_COUNT; renderGrid(); });
+        if (__ijIndustryEl) __ijIndustryEl.addEventListener('change', function () { currentPage = 1; renderGrid(); });
         var __ijSortEl = document.getElementById('ijSortBy');
-        if (__ijSortEl) __ijSortEl.addEventListener('change', function () { visibleCount = INITIAL_COUNT; renderGrid(); });
+        if (__ijSortEl) __ijSortEl.addEventListener('change', function () { currentPage = 1; renderGrid(); });
 
         // 국가 슬라이드 — 좌우 화살표 클릭 + 스크롤 끝 도달 시 화살표 자동 숨김
         (function () {
@@ -1774,7 +1824,7 @@
                 url.searchParams.delete('region');
                 history.replaceState(null, '', url);
             }
-            visibleCount = INITIAL_COUNT;
+            currentPage = 1;
             renderGrid();
         }
         syncFromUrl();
