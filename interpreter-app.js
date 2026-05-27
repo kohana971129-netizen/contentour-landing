@@ -242,7 +242,7 @@ const InterpreterApp = {
             .from('40_통역사프로필')
             .select('*')
             .eq('user_id', this.currentUser.id)
-            .single();
+            .maybeSingle();  // 프로필 0행(예: admin 접근)이어도 406 대신 null 반환
 
         if (!error && data) {
             this.interpProfile = data;
