@@ -1996,7 +1996,9 @@
             }
 
             function renderInterpreters() {
-                document.getElementById('interpGrid').innerHTML = interpreters.map(p => `
+                var _interpGrid = document.getElementById('interpGrid');
+                if (!_interpGrid) return; // 통역사 탭은 별도 경로로 렌더됨 — interpGrid 부재 시 init 중단 방지
+                _interpGrid.innerHTML = interpreters.map(p => `
     <div class="interp-list-card">
       <div class="ilc-top">
         <div class="ilc-avatar" style="background:${p.color};">${p.initials}</div>
