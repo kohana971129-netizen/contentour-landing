@@ -54,25 +54,15 @@ async function handleReviews(req, res) {
         const companyMap = {};
 
         if (custIds.length > 0) {
+            // 회사명은 01_회원.company_name에 저장됨 (별도 02_국내기업 테이블 없음)
             const { data: customers } = await supabase
-                .from('01_회원').select('id, name, email').in('id', custIds);
+                .from('01_회원').select('id, name, company_name').in('id', custIds);
 
             if (customers && customers.length > 0) {
-                customers.forEach(c => { custMap[c.id] = c; });
-
-                const emails = customers.map(c => c.email).filter(Boolean);
-                if (emails.length > 0) {
-                    const { data: companies } = await supabase
-                        .from('02_국내기업').select('name, contact_email').in('contact_email', emails);
-
-                    if (companies && companies.length > 0) {
-                        const emailToCompany = {};
-                        companies.forEach(co => { emailToCompany[co.contact_email] = co.name; });
-                        customers.forEach(c => {
-                            if (c.email && emailToCompany[c.email]) companyMap[c.id] = emailToCompany[c.email];
-                        });
-                    }
-                }
+                customers.forEach(c => {
+                    custMap[c.id] = c;
+                    if (c.company_name) companyMap[c.id] = c.company_name;
+                });
             }
         }
 

@@ -398,40 +398,6 @@ const AdminData = {
         } catch (e) { return false; }
     },
 
-    // ── 일정 (통역 주문) 로드 ──
-    async loadSchedules() {
-        if (!supabase) return null;
-        try {
-            const { data, error } = await supabase
-                .from('12_통역주문')
-                .select(`
-                    *,
-                    interpreter:interpreter_id (id, name),
-                    client:client_company_id (name)
-                `)
-                .order('service_date', { ascending: true });
-            if (error) throw error;
-            if (!data || data.length === 0) return null;
-
-            const typeMap = { '부스상주': 'booth', '미팅동행': 'meeting', '현장운영': 'ops' };
-
-            return data.map(d => ({
-                id: d.interpretation_id,
-                date: d.service_date,
-                expo: '',
-                company: d.client?.name || '',
-                interp: d.interpreter?.name || '',
-                lang: d.language_pair,
-                type: typeMap[d.service_type] || 'booth',
-                start: '10:00',
-                end: d.duration_hours ? (10 + d.duration_hours) + ':00' : '18:00'
-            }));
-        } catch (e) {
-            console.error('일정 로드 실패:', e);
-            return null;
-        }
-    },
-
     // ── 대시보드 통계 로드 ──
     async loadStats() {
         if (!supabase) return null;
