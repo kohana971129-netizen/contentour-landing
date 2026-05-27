@@ -11,7 +11,8 @@ const interpData = {
     th: { country: '태국', flag: 'th', lang: '태국어 (ภาษาไทย)', link: 'interpreters.html?country=th', interpreters: [] },
     fr: { country: '프랑스', flag: 'fr', lang: '프랑스어 (Français)', link: 'interpreters.html?country=fr', interpreters: [] },
     in: { country: '인도', flag: 'in', lang: '영어·힌디어 (हिन्दी)', link: 'interpreters.html?country=in', interpreters: [] },
-    id: { country: '인도네시아', flag: 'id', lang: '인도네시아어 (Bahasa)', link: 'interpreters.html?country=id', interpreters: [] }
+    id: { country: '인도네시아', flag: 'id', lang: '인도네시아어 (Bahasa)', link: 'interpreters.html?country=id', interpreters: [] },
+    sg: { country: '싱가포르', flag: 'sg', lang: '영어·중국어', link: 'interpreters.html?country=sg', interpreters: [] }
 };
 
 function fmtPrice(arr) {
@@ -43,7 +44,7 @@ function avatarHtml(photo, name, size) {
 }
 
 var row1 = ['jp', 'cn', 'de', 'vn'];
-var row2 = ['us', 'ae', 'th', 'fr', 'in', 'id'];
+var row2 = ['us', 'ae', 'th', 'fr', 'in', 'id', 'sg'];
 var currentOpen = null;
 var _dbLoaded = false;
 var _dbLoadPromise = null;
