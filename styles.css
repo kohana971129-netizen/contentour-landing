@@ -3915,6 +3915,19 @@ section {
 .svc-flow .svc-section-eyebrow { color:var(--blue); }
 .svc-flow .svc-section-title { color:#1a2a4a; }
 .svc-flow .svc-section-sub { color:#5a6a7a; }
+
+/* 메인 9단계 스텝 비주얼 (홈) */
+.flow-steps { display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:8px 4px;margin:8px auto 4px;max-width:980px; }
+.flow-step { display:flex;flex-direction:column;align-items:center;gap:9px;width:92px; }
+.flow-num { width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.98rem;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--blue) 0%,var(--navy) 100%);box-shadow:0 4px 12px rgba(21,101,192,0.25); }
+.flow-label { font-size:0.8rem;font-weight:600;color:var(--text);text-align:center;line-height:1.3; }
+.flow-arrow { display:flex;align-items:center;height:42px;color:var(--blue);font-size:1.25rem;opacity:0.45;user-select:none; }
+@media (max-width:640px) {
+    .flow-steps { gap:18px 14px;max-width:340px; }
+    .flow-arrow { display:none; }
+    .flow-step { width:84px; }
+}
+
 .svc-timeline { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-left:0; }
 .svc-timeline::before { display:none; }
 .svc-tl-item { position:relative;margin-bottom:0; }
