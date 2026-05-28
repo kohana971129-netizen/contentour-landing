@@ -482,6 +482,7 @@
                         .sca-status--matched { background:#d1fae5; color:#047857; }
                         .sca-status--declined { background:#fee2e2; color:#b91c1c; }
                         .sca-status--posting-removed { background:#f3f4f6; color:#6b7280; }
+                        .sca-status--selected { background:#1565c0; color:#fff; }
                         .sca-card__title { font-size:0.96rem; font-weight:700; color:#1a2a4a; line-height:1.4; margin:0; }
                         .sca-card__rows { display:grid; grid-template-columns:max-content 1fr; gap:4px 12px; font-size:0.8rem; color:#4a5a75; }
                         .sca-card__rows dt { color:#9ca3af; font-weight:600; font-size:0.74rem; }
@@ -7739,6 +7740,8 @@
                     cardClass = ' sca-card--matched';
                 } else if (a.status === 'forwarded') {
                     statusBadge = '<span class="sca-status sca-status--forwarded">제안 중</span>';
+                } else if (a.status === 'selected') {
+                    statusBadge = '<span class="sca-status sca-status--selected">🎯 고객 선택 · 확정 대기</span>';
                 } else if (a.status === 'declined') {
                     statusBadge = '<span class="sca-status sca-status--declined">거절됨</span>';
                     cardClass = ' sca-card--declined';
@@ -7751,6 +7754,8 @@
 
                 var matchedHint = (a.status === 'matched')
                     ? '<div class="sca-card__msg" style="background:#d1fae5;color:#047857;font-weight:600;">매칭이 확정되었습니다. 계약 관리 탭에서 자세한 내용을 확인하세요.</div>'
+                    : (a.status === 'selected')
+                    ? '<div class="sca-card__msg" style="background:#eff6ff;color:#1565c0;font-weight:600;">고객사가 회원님을 선택했습니다. 콘텐츄어 관리자 확정 후 계약이 생성됩니다.</div>'
                     : '';
 
                 return '<div class="sca-card' + cardClass + '">' +
