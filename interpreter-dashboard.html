@@ -5226,12 +5226,22 @@
             }).join('');
         }
 
+        // 표시용 계약번호 CT-YYYYMMDD-XXXX (날짜=계약 체결일, 미체결 시 오늘 / 내부 UUID는 그대로 유지)
+        function contractDisplayNumber(c) {
+            var signStep = (c.timeline || []).find(function (t) { return t.step === '계약 체결' && t.done; });
+            var dateStr = (signStep && signStep.date) ? signStep.date : new Date().toISOString().slice(0, 10);
+            var d = String(dateStr).replace(/[^0-9]/g, '').slice(0, 8);
+            if (d.length !== 8) d = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            var suffix = String(c.id || '').replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase() || '0000';
+            return 'CT-' + d + '-' + suffix;
+        }
+
         function openIntContractDetail(id) {
             var c = interpreterContracts.find(function(x) { return x.id === id; });
             if (!c) return;
 
             document.getElementById('ctModalTitle').textContent = c.expo + ' 계약 상세';
-            document.getElementById('ctModalSub').textContent = c.id + ' | ' + c.client.name + ' (' + c.client.company + ')';
+            document.getElementById('ctModalSub').textContent = contractDisplayNumber(c) + ' | ' + c.client.name + ' (' + c.client.company + ')';
 
             var badgeClass = ctGetBadgeClass(c.status);
             // A안: 100% 선결제
