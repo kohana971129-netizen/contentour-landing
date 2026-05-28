@@ -507,6 +507,8 @@
             .sc-card__btn--edit:hover { background:#eff6ff; border-color:#1565c0; }
             .sc-card__btn--delete { background:#fff; color:#c62828; border-color:#fecaca; }
             .sc-card__btn--delete:hover { background:#fef2f2; border-color:#c62828; }
+            .sc-card__btn--view { background:#1565c0; color:#fff; border-color:#1565c0; }
+            .sc-card__btn--view:hover { background:#0d47a1; border-color:#0d47a1; }
             .sc-empty { background:#fff; border:1px dashed rgba(0,0,0,0.12); border-radius:14px; padding:48px 20px; text-align:center; color:#9ca3af; font-size:0.92rem; }
 
             /* 등록 모달 — interpreter-jobs.html과 동일 패턴, prefix sc- */
@@ -639,6 +641,21 @@
                 <button type="submit" class="sc-modal__btn sc-modal__btn--primary" id="scSubmitBtn">제출</button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- 지원자 보기·선택 모달 -->
+      <div class="sc-modal" id="scApplicantsModal" aria-hidden="true">
+        <div class="sc-modal__bg" id="scApplicantsBg"></div>
+        <div class="sc-modal__sheet" role="dialog" aria-labelledby="scApplicantsTitle" style="max-width:640px;">
+          <button class="sc-modal__close" type="button" id="scApplicantsClose" aria-label="닫기">&times;</button>
+          <header class="sc-modal__head">
+            <h3 id="scApplicantsTitle">지원한 통역사</h3>
+            <p>프로필을 확인하고 한 명을 선택하세요. 선택 후 콘텐츄어 관리자 확정을 거쳐 계약이 생성됩니다.</p>
+          </header>
+          <div id="scApplicantsList" style="margin-top:18px;display:flex;flex-direction:column;gap:12px;">
+            <div class="sc-empty">불러오는 중...</div>
           </div>
         </div>
       </div>
@@ -7226,8 +7243,10 @@
         // - rejected: 액션 없음 (새 공고로 재등록)
         // - cancelled: 액션 없음
         var actionsHtml = '';
+        var viewApplicantsBtn = '<button type="button" class="sc-card__btn sc-card__btn--view" data-action="applicants" data-posting-id="' + __scEscape(r.id) + '">👥 지원자 보기</button>';
         if (r.contract_id) {
-            // 매칭 완료 — 액션 없음
+            // 매칭 완료 — 지원자 확인만 가능
+            actionsHtml = '<div class="sc-card__actions">' + viewApplicantsBtn + '</div>';
         } else if (r.review_status === 'pending') {
             actionsHtml = '<div class="sc-card__actions">' +
                 '<button type="button" class="sc-card__btn sc-card__btn--edit" data-action="edit" data-posting-id="' + __scEscape(r.id) + '">✏️ 수정</button>' +
@@ -7235,6 +7254,7 @@
             '</div>';
         } else if (r.review_status === 'approved') {
             actionsHtml = '<div class="sc-card__actions">' +
+                viewApplicantsBtn +
                 '<button type="button" class="sc-card__btn sc-card__btn--delete" data-action="cancel" data-posting-id="' + __scEscape(r.id) + '">🗑 게재 취소</button>' +
             '</div>';
         }
@@ -7265,6 +7285,7 @@
           var pid = btn.getAttribute('data-posting-id');
           if (action === 'cancel') handleCancelShowcasePosting(pid, list);
           else if (action === 'edit') handleEditShowcasePosting(pid, list);
+          else if (action === 'applicants') openApplicantsModal(pid);
         });
       });
     }
@@ -7297,6 +7318,109 @@
         if (window.showToast) window.showToast('네트워크 오류. 잠시 후 다시 시도해주세요.', 'error');
       }
     }
+
+    // ── 지원자 보기·선택 모달 ──
+    var _scApplicantsPostingId = null;
+
+    async function openApplicantsModal(postingId) {
+      _scApplicantsPostingId = postingId;
+      var modal = document.getElementById('scApplicantsModal');
+      var listEl = document.getElementById('scApplicantsList');
+      listEl.innerHTML = '<div class="sc-empty">불러오는 중...</div>';
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      try {
+        var token = await __scGetToken();
+        if (!token) { listEl.innerHTML = '<div class="sc-empty">로그인이 필요합니다.</div>'; return; }
+        var r = await fetch('/api/my-showcase-applicants?posting_id=' + encodeURIComponent(postingId), {
+          headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store'
+        });
+        var json = await r.json();
+        if (!r.ok) { listEl.innerHTML = '<div class="sc-empty">조회 실패: ' + __scEscape(json.error || String(r.status)) + '</div>'; return; }
+        renderApplicants(json);
+      } catch (e) {
+        console.error('applicants load failed:', e);
+        listEl.innerHTML = '<div class="sc-empty">네트워크 오류</div>';
+      }
+    }
+
+    function closeApplicantsModal() {
+      var modal = document.getElementById('scApplicantsModal');
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      _scApplicantsPostingId = null;
+    }
+
+    function renderApplicants(data) {
+      var listEl = document.getElementById('scApplicantsList');
+      var apps = (data && data.applicants) || [];
+      var matched = !!(data && data.posting && data.posting.matched);
+      if (apps.length === 0) {
+        listEl.innerHTML = '<div class="sc-empty">아직 지원한 통역사가 없습니다.</div>';
+        return;
+      }
+      listEl.innerHTML = apps.map(function (a) {
+        var langs = (a.languages || []).map(__scEscape).join(', ');
+        var specs = (a.specialties || []).slice(0, 4).map(__scEscape).join(' · ');
+        var rate = a.base_rate ? ('₩' + Number(a.base_rate).toLocaleString() + ' /일') : '단가 미설정';
+        var statusTag = '';
+        var btn = '';
+        if (a.status === 'matched') {
+          statusTag = '<span class="sc-status sc-status--matched">✓ 매칭됨</span>';
+        } else if (a.status === 'selected') {
+          statusTag = '<span class="sc-status sc-status--approved">✓ 선택됨 · 관리자 확정 대기</span>';
+        } else if (!matched) {
+          btn = '<button type="button" class="sc-modal__btn sc-modal__btn--primary" data-act="select" data-itp="' + __scEscape(a.interpreter_id) + '" data-name="' + __scEscape(a.display_name) + '">이 통역사 선택</button>';
+        }
+        return '<div style="border:1.5px solid #e5eaf2;border-radius:14px;padding:16px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">' +
+            '<strong style="font-size:1rem;color:#1a2a4a;">' + __scEscape(a.display_name) + '</strong>' + statusTag +
+          '</div>' +
+          '<div style="font-size:0.82rem;color:#4a5a75;line-height:1.7;">' +
+            (langs ? '🗣 ' + langs + '<br>' : '') +
+            (specs ? '🏷 ' + specs + '<br>' : '') +
+            '📅 경력 ' + (a.experience_years || 0) + '년 · 💰 ' + rate +
+          '</div>' +
+          (a.intro ? '<div style="font-size:0.8rem;color:#6b7280;margin-top:8px;line-height:1.6;">' + __scEscape(String(a.intro).slice(0, 200)) + '</div>' : '') +
+          (btn ? '<div style="margin-top:12px;text-align:right;">' + btn + '</div>' : '') +
+        '</div>';
+      }).join('');
+
+      listEl.querySelectorAll('[data-act="select"]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          customerSelectApplicant(_scApplicantsPostingId, b.getAttribute('data-itp'), b.getAttribute('data-name'));
+        });
+      });
+    }
+
+    async function customerSelectApplicant(postingId, interpreterId, name) {
+      if (!postingId || !interpreterId) return;
+      if (!confirm((name || '이 통역사') + '님을 선택하시겠습니까?\n선택 후 콘텐츄어 관리자 확정을 거쳐 계약이 생성됩니다.')) return;
+      try {
+        var token = await __scGetToken();
+        if (!token) { if (window.showToast) window.showToast('로그인이 만료되었습니다.', 'error'); return; }
+        var r = await fetch('/api/customer-select-applicant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ posting_id: postingId, interpreter_id: interpreterId })
+        });
+        var json = await r.json().catch(function () { return {}; });
+        if (!r.ok) { if (window.showToast) window.showToast(json.error || '선택 처리 실패', 'error'); return; }
+        if (window.showToast) window.showToast('통역사를 선택했습니다. 관리자 확정 후 계약이 생성됩니다.', 'success');
+        openApplicantsModal(postingId); // 모달 새로고침 (선택 상태 반영)
+        loadMyShowcasePostings();        // 목록 카운트 갱신
+      } catch (e) {
+        console.error('customer-select failed:', e);
+        if (window.showToast) window.showToast('네트워크 오류. 잠시 후 다시 시도해주세요.', 'error');
+      }
+    }
+
+    (function () {
+      var bg = document.getElementById('scApplicantsBg');
+      var closeBtn = document.getElementById('scApplicantsClose');
+      if (bg) bg.addEventListener('click', closeApplicantsModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeApplicantsModal);
+    })();
 
     // 모달 제어 (등록 + 수정 공용)
     var _editingShowcaseId = null;
