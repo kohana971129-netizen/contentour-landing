@@ -5574,21 +5574,14 @@
       if (!c) return;
       document.getElementById('cmTitle').textContent = c.expo;
       document.getElementById('cmSub').textContent = contractDisplayNumber(c) + ' | ' + c.statusText;
-      // 체결 여부: '계약서 확인 대기'(contract_sign)를 지나면 양측 동의 완료 = 체결
-      var isSigned = c.status !== 'contract_sign';
-      var signedStep = (c.timeline || []).find(function (t) { return t.step === '계약 체결'; });
-      var contractDate = (isSigned && signedStep && signedStep.date) ? signedStep.date : '';
-      // 체결 전: 핵심 정보 + 확인·동의 안내만 (견적서·타임라인은 체결 후 표시)
       let bodyHtml = `
         <div class="cm-info-grid">
           <div class="cm-info-item"><div class="cm-info-label">통역사</div><div class="cm-info-value">${c.interpreter.name}</div></div>
           <div class="cm-info-item"><div class="cm-info-label">언어</div><div class="cm-info-value">${c.lang}</div></div>
           <div class="cm-info-item"><div class="cm-info-label">파견 기간</div><div class="cm-info-value">${c.dates.start} ~ ${c.dates.end} (${c.days}일)</div></div>
           <div class="cm-info-item"><div class="cm-info-label">상태</div><div class="cm-info-value"><span class="contract-status-badge ${getStatusBadgeClass(c.status)}">${c.statusText}</span></div></div>
-          ${contractDate ? `<div class="cm-info-item"><div class="cm-info-label">계약 체결일</div><div class="cm-info-value">${contractDate}</div></div>` : ''}
           <div class="cm-info-item"><div class="cm-info-label">담당 관리자</div><div class="cm-info-value">관리자</div></div>
         </div>
-        ${isSigned ? `
         <div class="cm-section">견적서</div>
         <table class="cm-quote-table">
           <tr><th>항목</th><th style="text-align:right;">금액</th></tr>
@@ -5605,7 +5598,6 @@
             ${t.date ? `<div class="cm-timeline-date">${t.date}</div>` : ''}
           </div>`).join('')}
         </div>
-        ` : ''}
       `;
       if (c.status === 'contract_sign') {
         var agreeStatus = '';
@@ -5615,11 +5607,9 @@
         bodyHtml += '<div class="cm-review-box" style="background:linear-gradient(135deg,#e3f0ff,#f0f4ff);border:1.5px solid #bbdefb;">' +
           '<div class="cm-review-box__icon">📄</div>' +
           '<div class="cm-review-box__title">계약서 확인이 필요합니다</div>' +
-          '<div class="cm-review-box__desc">아래 버튼에서 계약서 전문을 확인하고 동의해주세요.<br>양측이 모두 동의하면 계약이 체결되며,<br>체결일과 상세 내역(견적서·진행현황)이 함께 표시됩니다.</div>' +
+          '<div class="cm-review-box__desc">계약서를 확인하고 동의해주세요.<br>고객사와 통역사 양측이 모두 동의하면<br>계약이 체결되고 결제 단계로 진행됩니다.</div>' +
           agreeStatus +
-          (!c.customerAgreed
-            ? '<button class="cm-pay-btn" onclick="openContractDocument(\'' + c.id + '\',true)" style="background:linear-gradient(135deg,#1565c0,#0d47a1);margin-top:8px;">📄 계약서 확인 및 동의하기</button>'
-            : '<button class="cm-pay-btn" onclick="openContractDocument(\'' + c.id + '\')" style="background:#fff;color:#1565c0;border:1.5px solid #1565c0;margin-top:8px;">📄 계약서 보기</button>') +
+          (!c.customerAgreed ? '<button class="cm-pay-btn" onclick="openContractDocument(\'' + c.id + '\',true)" style="background:linear-gradient(135deg,#1565c0,#0d47a1);margin-top:8px;">📄 계약서 확인 및 동의하기</button>' : '') +
         '</div>';
       } else if (c.status === 'deposit_pay') {
         bodyHtml += `<div class="cm-pay-section">
@@ -5653,10 +5643,7 @@
           '<button onclick="openCancelModal(\'' + c.id + '\')" style="padding:10px 24px;background:none;color:#c62828;border:1.5px solid #e57373;border-radius:10px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;">계약 취소 신청</button>' +
         '</div>';
       }
-      // 계약서 보기/PDF는 체결 후에만 (체결 전엔 위 확인·동의 버튼으로 전문 확인)
-      if (isSigned) {
-        bodyHtml += '<div style="margin-top:20px;text-align:center;"><button onclick="openContractDocument(\'' + c.id + '\')" class="contract-view-btn">📄 계약서 보기 / PDF 다운로드</button></div>';
-      }
+      bodyHtml += '<div style="margin-top:20px;text-align:center;"><button onclick="openContractDocument(\'' + c.id + '\')" class="contract-view-btn">📄 계약서 보기 / PDF 다운로드</button></div>';
 
       document.getElementById('cmBody').innerHTML = bodyHtml;
       document.getElementById('contractModalOverlay').classList.add('open');
