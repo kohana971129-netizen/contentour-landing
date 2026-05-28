@@ -52,18 +52,9 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-        // 1. 견적문의 상태 업데이트
+        // 1. 견적문의 상태 매핑 (실제 DB 반영은 아래 원자적 RPC/폴백에서 수행)
         const dbStatusMap = { '검토중': '검토중', '매칭완료': '견적발송', '파견확정': '계약진행', '완료': '완료' };
         const dbStatus = dbStatusMap[status] || '검토중';
-
-        await sb.from('46_ITQ견적문의').update({
-            status: dbStatus,
-            admin_note: JSON.stringify({
-                interpreter: interpreterName,
-                interpreterId: interpreterId,
-                memo: memo || ''
-            })
-        }).eq('id', inquiryId);
 
         // 2. 근무일수 / 단가 계산
         let days = 1;
@@ -93,19 +84,51 @@ module.exports = async function handler(req, res) {
             if (custUser) customerId = custUser.id;
         }
 
-        // 4. 중복 방지: 동일 문의(order_id) 기준으로 기존 계약 확인
-        const { data: existingByOrder } = await sb.from('42_통역계약')
-            .select('id')
-            .eq('order_id', inquiryId)
-            .limit(1);
+        // 4~6. 견적문의 상태·메모 갱신 + 계약 생성/갱신 + contract_id 연결을 원자적으로 처리
+        //  1순위: RPC(assign_inquiry_atomic) — 단일 트랜잭션, 부분 실패 시 전체 롤백
+        //  2순위: RPC 미적용/실패 시 단계별 fallback (트랜잭션 보호 없음 — 기존 동작과 동일)
+        const adminNote = { interpreter: interpreterName, interpreterId: interpreterId, memo: memo || '' };
+        const contractPayload = {
+            customer_id: customerId,
+            interpreter_id: interpreterId,
+            exhibition_name: expo || '',
+            client_company: company || '',
+            venue: venue || location || '',
+            start_date: startDate || null,
+            end_date: endDate || null,
+            working_days: days,
+            language_pair: langPair,
+            service_type: serviceType,
+            daily_rate: dailyRate,
+            total_amount: totalAmount,
+            tax_amount: taxAmount,
+            net_amount: netAmount
+        };
 
-        let contractId = existingByOrder && existingByOrder.length > 0 ? existingByOrder[0].id : null;
+        let contractId = null;
+        try {
+            const { data: rpcId, error: rpcErr } = await sb.rpc('assign_inquiry_atomic', {
+                p_inquiry_id: inquiryId,
+                p_db_status: dbStatus,
+                p_admin_note: adminNote,
+                p_contract: contractPayload
+            });
+            if (rpcErr) throw rpcErr;
+            contractId = rpcId;
+        } catch (rpcErr) {
+            console.warn('[assign] RPC 미적용 또는 실패, 단계별 fallback:', (rpcErr && rpcErr.message) || rpcErr);
 
-        if (contractId) {
-            // 기존 계약이 있으면 통역사/정보만 업데이트
-            await sb.from('42_통역계약').update({
+            await sb.from('46_ITQ견적문의').update({
+                status: dbStatus,
+                admin_note: JSON.stringify(adminNote)
+            }).eq('id', inquiryId);
+
+            const { data: existingByOrder } = await sb.from('42_통역계약')
+                .select('id').eq('order_id', inquiryId).limit(1);
+            contractId = existingByOrder && existingByOrder.length > 0 ? existingByOrder[0].id : null;
+
+            const fields = {
                 interpreter_id: interpreterId,
-                customer_id: customerId || undefined,
                 exhibition_name: expo || '',
                 client_company: company || '',
                 venue: venue || location || '',
@@ -121,38 +144,23 @@ module.exports = async function handler(req, res) {
                 deposit_amount: totalAmount,
                 balance_amount: 0,
                 balance_status: 'paid'
-            }).eq('id', contractId);
-        } else {
-            const { data: newContract, error: cErr } = await sb.from('42_통역계약').insert({
-                order_id: inquiryId,
-                customer_id: customerId,
-                interpreter_id: interpreterId,
-                exhibition_name: expo || '',
-                client_company: company || '',
-                venue: venue || location || '',
-                start_date: startDate,
-                end_date: endDate,
-                working_days: days,
-                language_pair: langPair,
-                service_type: serviceType,
-                daily_rate: dailyRate,
-                total_amount: totalAmount,
-                tax_amount: taxAmount,
-                net_amount: netAmount,
-                deposit_amount: totalAmount,
-                balance_amount: 0,
-                balance_status: 'paid',
-                status: 'pending'
-            }).select().single();
+            };
 
-            if (cErr) {
-                console.error('계약 생성 실패:', cErr);
-                return res.status(500).json({ error: '계약 생성 실패: ' + cErr.message });
+            if (contractId) {
+                await sb.from('42_통역계약')
+                    .update(Object.assign({}, fields, { customer_id: customerId || undefined }))
+                    .eq('id', contractId);
+            } else {
+                const { data: newContract, error: cErr } = await sb.from('42_통역계약')
+                    .insert(Object.assign({}, fields, { order_id: inquiryId, customer_id: customerId, status: 'pending' }))
+                    .select().single();
+                if (cErr) {
+                    console.error('계약 생성 실패:', cErr);
+                    return res.status(500).json({ error: '계약 생성 실패: ' + cErr.message });
+                }
+                contractId = newContract.id;
+                await sb.from('46_ITQ견적문의').update({ contract_id: contractId }).eq('id', inquiryId);
             }
-            contractId = newContract.id;
-
-            // 견적문의에 계약 ID 연결
-            await sb.from('46_ITQ견적문의').update({ contract_id: contractId }).eq('id', inquiryId);
         }
 
         // 5a. 고객사 알림 발송
