@@ -845,6 +845,101 @@ async function handleCancelShowcasePosting(req, res) {
     return res.status(200).json({ ok: true });
 }
 
+// ────────────────────────── customer-select-applicant ──────────────────────────
+// 고객사가 본인 공고 지원자 중 1명을 직접 선택 → status='selected' (admin 확정 대기).
+// 같은 공고의 기존 'selected'는 'pending'으로 되돌려 선택 변경 허용. 계약 생성은 admin 확정 단계에서.
+async function handleCustomerSelectApplicant(req, res) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: '로그인이 필요합니다.' });
+    const { data: { user }, error: authErr } = await sbAuth.auth.getUser(token);
+    if (authErr || !user) return res.status(401).json({ error: '인증 실패' });
+
+    const { data: profile } = await sb.from('01_회원').select('role, company_name, name').eq('id', user.id).single();
+    if (!profile || profile.role !== 'customer') {
+        return res.status(403).json({ error: '고객사 계정만 선택할 수 있습니다.' });
+    }
+
+    const postingId = req.body && req.body.posting_id ? String(req.body.posting_id).trim() : '';
+    const interpreterId = req.body && req.body.interpreter_id ? String(req.body.interpreter_id).trim() : '';
+    if (!postingId || !interpreterId) return res.status(400).json({ error: 'posting_id, interpreter_id 필수' });
+
+    // 공고 소유권 + 상태 확인
+    const { data: posting } = await sb
+        .from('46_ITQ견적문의')
+        .select('id, posted_by_user_id, source_type, review_status, contract_id, exhibition_name')
+        .eq('id', postingId).single();
+    if (!posting) return res.status(404).json({ error: '공고를 찾을 수 없습니다.' });
+    if (posting.posted_by_user_id !== user.id || posting.source_type !== 'direct_posting') {
+        return res.status(403).json({ error: '본인이 등록한 공고만 선택할 수 있습니다.' });
+    }
+    if (posting.review_status !== 'approved') return res.status(400).json({ error: '게재 승인된 공고에서만 선택할 수 있습니다.' });
+    if (posting.contract_id) return res.status(409).json({ error: '이미 매칭이 확정된 공고입니다.' });
+
+    // 지원자 존재 + 선택 가능 상태 확인
+    const { data: appRow } = await sb
+        .from('70_구인공고지원')
+        .select('id, status')
+        .eq('posting_id', postingId)
+        .eq('interpreter_id', interpreterId)
+        .single();
+    if (!appRow) return res.status(404).json({ error: '해당 통역사의 지원 내역이 없습니다.' });
+    if (appRow.status === 'matched') return res.status(409).json({ error: '이미 확정된 통역사입니다.' });
+    if (appRow.status === 'declined') return res.status(409).json({ error: '선택할 수 없는 지원자입니다.' });
+
+    try {
+        // 같은 공고의 기존 'selected'는 pending으로 되돌림 (선택 변경 허용)
+        await sb.from('70_구인공고지원')
+            .update({ status: 'pending' })
+            .eq('posting_id', postingId)
+            .eq('status', 'selected')
+            .neq('interpreter_id', interpreterId);
+
+        // 선택 통역사 → selected
+        const { error: selErr } = await sb.from('70_구인공고지원')
+            .update({ status: 'selected' })
+            .eq('id', appRow.id);
+        if (selErr) {
+            // 마이그레이션(selected CHECK 허용) 미적용 시 여기서 막힘
+            console.error('customer-select 상태 변경 실패:', selErr);
+            return res.status(500).json({ error: '선택 처리 실패. 잠시 후 다시 시도해주세요.' });
+        }
+
+        // admin + 고객 본인 알림 (best-effort)
+        try {
+            const { data: itp } = await sb.from('40_통역사프로필').select('display_name').eq('user_id', interpreterId).single();
+            const itpName = (itp && itp.display_name) || '통역사';
+            const companyDisplay = profile.company_name || profile.name || '고객사';
+            const exName = posting.exhibition_name || '공고';
+
+            const { data: admins } = await sb.from('01_회원').select('id').eq('role', 'admin');
+            const rows = (admins || []).map(a => ({
+                user_id: a.id,
+                notification_type: 'service',
+                title: '🎯 고객사 통역사 선택 — 확정 검토 요청',
+                message: companyDisplay + '이(가) "' + exName + '" 공고에서 ' + itpName + ' 통역사를 선택했습니다. 매칭 확정을 검토해주세요.',
+                link: 'admin-showcase-review.html',
+                is_read: false
+            }));
+            rows.push({
+                user_id: user.id,
+                notification_type: 'service',
+                title: '✅ 통역사 선택 완료',
+                message: '"' + exName + '" 공고에서 ' + itpName + ' 통역사를 선택했습니다. 콘텐츄어 관리자 확정 후 계약이 생성됩니다.',
+                is_read: false
+            });
+            if (rows.length > 0) await sb.from('24_알림').insert(rows);
+        } catch (notifErr) { console.warn('선택 알림 실패 (무시):', notifErr); }
+
+        return res.status(200).json({ ok: true });
+    } catch (e) {
+        console.error('Customer select applicant error:', e);
+        return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+    }
+}
+
 // ────────────────────────── 디스패처 ──────────────────────────
 module.exports = async function handler(req, res) {
     if (!SERVICE_KEY) return res.status(500).json({ error: '서버 설정 오류(SERVICE_KEY 누락).' });
@@ -857,6 +952,7 @@ module.exports = async function handler(req, res) {
         case 'submit-showcase-apply': return handleShowcaseApply(req, res);
         case 'update-showcase-posting': return handleUpdateShowcasePosting(req, res);
         case 'cancel-showcase-posting': return handleCancelShowcasePosting(req, res);
+        case 'customer-select-applicant': return handleCustomerSelectApplicant(req, res);
         case 'cancel-inquiry': return handleCancelInquiry(req, res);
         case 'upload-application-file': return handleUploadFile(req, res);
         case 'notify-admins': return handleNotifyAdmins(req, res);

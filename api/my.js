@@ -224,6 +224,71 @@ async function handleMyShowcaseApplications(req, res) {
     }
 }
 
+// ────────────────────────── my-showcase-applicants ──────────────────────────
+// 로그인 고객사가 본인 공고의 지원자 목록·프로필 조회. 연락처(이메일·전화)는 제외 — 계약 전 비공개.
+async function handleMyShowcaseApplicants(req, res) {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+    const auth = await authenticate(req);
+    if (auth.error) return res.status(auth.status).json({ error: auth.error });
+
+    const { data: profile } = await sb.from('01_회원').select('role').eq('id', auth.user.id).single();
+    if (!profile || profile.role !== 'customer') {
+        return res.status(403).json({ error: '고객사 권한이 필요합니다.' });
+    }
+
+    const postingId = req.query.posting_id ? String(req.query.posting_id).trim() : '';
+    if (!postingId) return res.status(400).json({ error: 'posting_id 필수' });
+
+    // 본인 소유 공고 확인
+    const { data: posting } = await sb
+        .from('46_ITQ견적문의')
+        .select('id, posted_by_user_id, source_type, review_status, contract_id')
+        .eq('id', postingId).single();
+    if (!posting || posting.posted_by_user_id !== auth.user.id || posting.source_type !== 'direct_posting') {
+        return res.status(403).json({ error: '본인이 등록한 공고만 조회할 수 있습니다.' });
+    }
+
+    try {
+        const { data: apps, error } = await sb
+            .from('70_구인공고지원')
+            .select('id, interpreter_id, status, applied_at')
+            .eq('posting_id', postingId)
+            .order('applied_at', { ascending: false });
+        if (error) throw error;
+
+        const result = { posting: { id: posting.id, matched: !!posting.contract_id, review_status: posting.review_status }, applicants: [] };
+        if (apps && apps.length > 0) {
+            const ids = apps.map(a => a.interpreter_id);
+            const { data: profs } = await sb.from('40_통역사프로필')
+                .select('user_id, display_name, languages, specialties, experience_years, base_rate, intro, profile_image_url, rating')
+                .in('user_id', ids);
+            const profMap = {}; (profs || []).forEach(p => { profMap[p.user_id] = p; });
+            result.applicants = apps.map(a => {
+                const p = profMap[a.interpreter_id] || {};
+                return {
+                    application_id: a.id,
+                    interpreter_id: a.interpreter_id,
+                    status: a.status,
+                    applied_at: a.applied_at,
+                    display_name: p.display_name || '통역사',
+                    languages: p.languages || [],
+                    specialties: p.specialties || [],
+                    experience_years: p.experience_years || 0,
+                    base_rate: p.base_rate || null,
+                    intro: p.intro || '',
+                    profile_image_url: p.profile_image_url || '',
+                    rating: p.rating || null
+                };
+            });
+        }
+        res.setHeader('Cache-Control', 'no-store');
+        return res.status(200).json(result);
+    } catch (e) {
+        console.error('My showcase applicants error:', e);
+        return res.status(500).json({ error: e.message });
+    }
+}
+
 // ────────────────────────── 디스패처 ──────────────────────────
 module.exports = async function handler(req, res) {
     if (!SERVICE_KEY) return res.status(500).json({ error: '서버 설정 오류' });
@@ -234,6 +299,7 @@ module.exports = async function handler(req, res) {
         case 'my-contracts': return handleMyContracts(req, res);
         case 'my-showcase-postings': return handleMyShowcasePostings(req, res);
         case 'my-showcase-applications': return handleMyShowcaseApplications(req, res);
+        case 'my-showcase-applicants': return handleMyShowcaseApplicants(req, res);
         default: return res.status(404).json({ error: 'Unknown route: ' + route });
     }
 };
