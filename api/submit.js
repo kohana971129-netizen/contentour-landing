@@ -930,6 +930,16 @@ async function handleCustomerSelectApplicant(req, res) {
                 message: '"' + exName + '" 공고에서 ' + itpName + ' 통역사를 선택했습니다. 콘텐츄어 관리자 확정 후 계약이 생성됩니다.',
                 is_read: false
             });
+            // 선택받은 통역사 본인 알림 (새로 선택된 경우에만 — 재선택 시 중복 방지)
+            if (appRow.status !== 'selected') {
+                rows.push({
+                    user_id: interpreterId,
+                    notification_type: 'service',
+                    title: '🎯 고객사가 회원님을 선택했습니다',
+                    message: '"' + exName + '" 공고에서 고객사가 회원님을 통역사로 선택했습니다. 콘텐츄어 관리자 확정 후 계약이 생성됩니다.',
+                    is_read: false
+                });
+            }
             if (rows.length > 0) await sb.from('24_알림').insert(rows);
         } catch (notifErr) { console.warn('선택 알림 실패 (무시):', notifErr); }
 
