@@ -5787,7 +5787,6 @@
 
       // 제1조 서비스 내용 (v1.3 확장)
       var vatAmount = Math.round((c.total || 0) * 10 / 110);
-      var supplyAmount = (c.total || 0) - vatAmount;
       w.document.write('<div class="section">' +
         '<div class="section-title">제1조 서비스 내용</div>' +
         '<table class="info-table">' +
@@ -5809,9 +5808,7 @@
         '<div class="section-title">제2조 계약 금액</div>' +
         '<table class="amount-table">' +
           '<tr><th>항목</th><th>수량</th><th>단가</th><th>금액</th></tr>' +
-          '<tr><td>통역 서비스</td><td>' + c.days + '일</td><td>₩' + c.dailyRate.toLocaleString() + '</td><td>₩' + c.subtotal.toLocaleString() + '</td></tr>' +
-          '<tr><td>플랫폼 중개 수수료 (10%)</td><td colspan="2"></td><td>₩' + c.platformFee.toLocaleString() + '</td></tr>' +
-          '<tr><td>소계 (공급가액)</td><td colspan="2"></td><td>₩' + supplyAmount.toLocaleString() + '</td></tr>' +
+          '<tr><td>통역 서비스 (공급가액)</td><td>' + c.days + '일</td><td>₩' + c.dailyRate.toLocaleString() + '</td><td>₩' + c.subtotal.toLocaleString() + '</td></tr>' +
           '<tr><td>부가가치세 (10%)</td><td colspan="2"></td><td>₩' + vatAmount.toLocaleString() + '</td></tr>' +
           '<tr class="total-row"><td colspan="3"><b>총 계약 금액 (VAT 포함)</b></td><td><b>₩' + c.total.toLocaleString() + '</b></td></tr>' +
         '</table>' +
@@ -5910,7 +5907,7 @@
         '<div class="clause">③ <b>통지 방법</b>: 본 계약과 관련된 모든 통지는 ① 플랫폼 내 메시지, ② 등록된 이메일, ③ 등록된 연락처 순으로 한다.</div>' +
         '<div class="clause">④ <b>양도·승계 금지</b>: 본 계약상의 권리·의무는 상대방의 서면 동의 없이 제3자에게 양도하거나 승계할 수 없다.</div>' +
         '<div class="clause">⑤ <b>분리 가능성</b>: 본 계약의 일부 조항이 무효 또는 집행 불능으로 판단되더라도 나머지 조항의 효력에는 영향을 미치지 아니한다.</div>' +
-        '<div class="clause">⑥ 분쟁 발생 시 플랫폼(support@contentour.com)에 조정을 먼저 신청할 수 있으며, 조정 불성립 시 <b>서울중앙지방법원</b>을 전속 관할 법원으로 한다.</div>' +
+        '<div class="clause">⑥ 분쟁 발생 시 플랫폼(info@contentour.co.kr)에 조정을 먼저 신청할 수 있으며, 조정 불성립 시 <b>서울중앙지방법원</b>을 전속 관할 법원으로 한다.</div>' +
         '<div class="clause">⑦ 본 약관의 준거법은 <b>대한민국 법령</b>으로 한다.</div>' +
         '<div class="clause">⑧ 본 계약은 전자 계약으로 체결되며, 각 당사자에게 PDF 사본이 자동 발송된다.</div>' +
       '</div>');

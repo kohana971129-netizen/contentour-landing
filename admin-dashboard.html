@@ -5406,7 +5406,6 @@
                     '</div>');
 
                 var adminVat = Math.round(total * 10 / 110);
-                var adminSupply = total - adminVat;
                 w.document.write('<div class="section-title">제1조 (서비스 내용)</div><table>' +
                     '<tr><th>전시회/행사명</th><td>' + se.expo + '</td></tr>' +
                     '<tr><th>개최 장소·주소</th><td>' + se.location + '</td></tr>' +
@@ -5421,9 +5420,7 @@
                 '</table>');
 
                 w.document.write('<div class="section-title">제2조 (계약 금액)</div><table>' +
-                    '<tr><th>통역 서비스</th><td>' + days + '일 × ₩' + fmt(rate) + ' = ₩' + fmt(subtotal) + '</td></tr>' +
-                    '<tr><th>플랫폼 중개 수수료 (10%)</th><td>₩' + fmt(fee) + '</td></tr>' +
-                    '<tr><th>소계 (공급가액)</th><td>₩' + fmt(adminSupply) + '</td></tr>' +
+                    '<tr><th>통역 서비스 (공급가액)</th><td>' + days + '일 × ₩' + fmt(rate) + ' = ₩' + fmt(subtotal) + '</td></tr>' +
                     '<tr><th>부가가치세 (10%)</th><td>₩' + fmt(adminVat) + '</td></tr>' +
                     '<tr><th>총 계약 금액 (VAT 포함)</th><td class="amount-highlight">₩' + fmt(total) + '</td></tr>' +
                 '</table>' +
@@ -5501,7 +5498,7 @@
                     '③ <b>통지 방법</b>: ① 플랫폼 내 메시지 → ② 등록된 이메일 → ③ 등록된 연락처 순.<br>' +
                     '④ <b>양도·승계 금지</b>: 상대방의 서면 동의 없이 제3자에게 양도·승계 불가.<br>' +
                     '⑤ <b>분리 가능성</b>: 일부 조항이 무효·집행 불능이어도 나머지 조항의 효력에 영향 없음.<br>' +
-                    '⑥ 분쟁 발생 시 플랫폼(support@contentour.com)에 조정 신청 가능, 조정 불성립 시 <b>서울중앙지방법원</b>을 전속 관할로 함.<br>' +
+                    '⑥ 분쟁 발생 시 플랫폼(info@contentour.co.kr)에 조정 신청 가능, 조정 불성립 시 <b>서울중앙지방법원</b>을 전속 관할로 함.<br>' +
                     '⑦ 본 약관의 준거법은 <b>대한민국 법령</b>.<br>' +
                     '⑧ 본 계약은 전자 계약으로 체결되며, 각 당사자에게 PDF 사본이 자동 발송된다.</p>');
 
