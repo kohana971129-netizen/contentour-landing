@@ -28,7 +28,7 @@
         /* ── 왼쪽 브랜드 패널 ── */
         .brand-panel {
             width: 45%;
-            background: var(--navy);
+            background: linear-gradient(165deg, #0e3573 0%, #0a2a5e 55%, #071d45 100%);
             position: relative;
             overflow: hidden;
             display: flex;
@@ -61,17 +61,6 @@
             background: radial-gradient(circle, rgba(79, 195, 247, 0.18) 0%, transparent 70%);
             bottom: -80px;
             left: -80px;
-            pointer-events: none;
-        }
-
-        /* 격자 패턴 */
-        .grid-overlay {
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
             pointer-events: none;
         }
 
