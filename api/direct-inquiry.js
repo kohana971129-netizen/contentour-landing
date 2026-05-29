@@ -24,6 +24,12 @@ module.exports = async function handler(req, res) {
         return res.status(401).json({ error: '인증 실패. 다시 로그인해주세요.' });
     }
 
+    // 고객(customer) 회원만 직접 견적 요청 가능
+    const { data: reqProfile } = await sb.from('01_회원').select('role').eq('id', user.id).single();
+    if (!reqProfile || reqProfile.role !== 'customer') {
+        return res.status(403).json({ error: '고객 회원만 직접 견적을 요청할 수 있습니다.' });
+    }
+
     const {
         interpreterName,
         interpreterId,
@@ -98,8 +104,19 @@ module.exports = async function handler(req, res) {
             return res.status(500).json({ error: '저장 실패: ' + insertErr.message });
         }
 
-        // 2. 통역사 user_id 조회 (DB 등록 통역사인 경우)
-        let interpreterUserId = interpreterId || null;
+        // 2. 통역사 user_id 검증·조회 (임의 user_id로 알림 발송 방지)
+        let interpreterUserId = null;
+
+        if (interpreterId) {
+            const { data: byId } = await sb
+                .from('40_통역사프로필')
+                .select('user_id')
+                .eq('user_id', interpreterId)
+                .eq('is_active', true)
+                .limit(1)
+                .single();
+            if (byId) interpreterUserId = byId.user_id;
+        }
 
         if (!interpreterUserId && interpreterName) {
             const { data: interpProfile } = await sb

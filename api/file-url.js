@@ -28,6 +28,16 @@ module.exports = async function handler(req, res) {
     const bucket = req.query.bucket || 'interpreter-docs';
     if (!filePath) return res.status(400).json({ error: 'path 파라미터가 필요합니다.' });
 
+    // 버킷 화이트리스트 — 임의 비공개 버킷 접근 차단
+    const ALLOWED_BUCKETS = ['interpreter-docs', 'business-registrations'];
+    if (!ALLOWED_BUCKETS.includes(bucket)) {
+        return res.status(400).json({ error: '허용되지 않은 버킷입니다.' });
+    }
+    // 경로 탈출 차단
+    if (filePath.includes('..') || filePath.startsWith('/')) {
+        return res.status(400).json({ error: '잘못된 경로입니다.' });
+    }
+
     try {
         const { data, error } = await sb.storage.from(bucket).createSignedUrl(filePath, 300); // 5분 유효
         if (error) throw error;
