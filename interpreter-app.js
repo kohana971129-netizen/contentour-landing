@@ -1213,8 +1213,9 @@ const InterpreterApp = {
             .from('42_통역계약')
             .update({
                 interpreter_accepted: true,
-                accepted_at: new Date().toISOString(),
-                status: 'deposit_paid'
+                accepted_at: new Date().toISOString()
+                // status는 'pending' 유지 — 결제 완료(verify-payment/무통장 승인) 시에만 'deposit_paid'로 전이.
+                // 수락 시 'deposit_paid'로 바꾸면 고객 화면이 선결제 단계를 건너뛰어 결제창이 안 뜸.
             })
             .eq('id', contractId)
             .eq('interpreter_id', this.currentUser.id);
