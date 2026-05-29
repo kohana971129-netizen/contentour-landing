@@ -1209,20 +1209,28 @@ const InterpreterApp = {
     // ══════════════ DB 액션 ══════════════
 
     async acceptAssignment(contractId) {
-        const { error } = await window.sbClient
-            .from('42_통역계약')
-            .update({
-                interpreter_accepted: true,
-                accepted_at: new Date().toISOString()
-                // status는 'pending' 유지 — 결제 완료(verify-payment/무통장 승인) 시에만 'deposit_paid'로 전이.
-                // 수락 시 'deposit_paid'로 바꾸면 고객 화면이 선결제 단계를 건너뛰어 결제창이 안 뜸.
-            })
-            .eq('id', contractId)
-            .eq('interpreter_id', this.currentUser.id);
-
-        if (error) { this.showToast('배정 수락 실패: ' + error.message); return false; }
-        this.showToast('배정을 수락했습니다.');
-        return true;
+        // 서버(service-role)에서 수락 기록 + 고객사·관리자 알림을 한 번에 처리.
+        // status는 'pending' 유지 — 결제 완료(verify-payment/무통장 승인) 시에만 'deposit_paid'로 전이.
+        try {
+            const { data: { session } } = await window.sbClient.auth.getSession();
+            const token = session && session.access_token;
+            if (!token) { this.showToast('로그인이 필요합니다.'); return false; }
+            const res = await fetch('/api/accept-assignment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ contractId: contractId })
+            });
+            const data = await res.json();
+            if (!res.ok || !data || data.success === false) {
+                this.showToast('배정 수락 실패: ' + ((data && data.error) || ''));
+                return false;
+            }
+            this.showToast('배정을 수락했습니다. 고객사·관리자에게 전달되었습니다.');
+            return true;
+        } catch (e) {
+            this.showToast('배정 수락 중 오류: ' + (e.message || ''));
+            return false;
+        }
     },
 
     async declineAssignment(contractId, reason) {

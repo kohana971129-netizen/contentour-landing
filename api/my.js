@@ -290,6 +290,66 @@ async function handleMyShowcaseApplicants(req, res) {
 }
 
 // ────────────────────────── 디스패처 ──────────────────────────
+// ────────────────────────── accept-assignment (통역사 배정 수락 + 고객·관리자 알림) ──────────────────────────
+async function handleAcceptAssignment(req, res) {
+    if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+    const auth = await authenticate(req);
+    if (auth.error) return res.status(auth.status).json({ success: false, error: auth.error });
+
+    const { data: profile } = await sb.from('01_회원').select('role, name').eq('id', auth.user.id).single();
+    if (!profile || profile.role !== 'interpreter') return res.status(403).json({ success: false, error: '통역사만 수락할 수 있습니다.' });
+
+    const contractId = req.body && req.body.contractId;
+    if (!contractId) return res.status(400).json({ success: false, error: '계약 ID가 필요합니다.' });
+
+    try {
+        const { data: c, error: cErr } = await sb.from('42_통역계약')
+            .select('id, customer_id, interpreter_id, exhibition_name, client_company, contract_signed, interpreter_accepted, status')
+            .eq('id', contractId).single();
+        if (cErr || !c) return res.status(404).json({ success: false, error: '계약을 찾을 수 없습니다.' });
+        if (c.interpreter_id !== auth.user.id) return res.status(403).json({ success: false, error: '본인에게 배정된 계약만 수락할 수 있습니다.' });
+        if (c.status === 'cancelled') return res.status(400).json({ success: false, error: '취소된 계약입니다.' });
+
+        // 수락 기록 (status는 'pending' 유지 — 결제 완료 시에만 deposit_paid). 멱등.
+        if (c.interpreter_accepted !== true) {
+            const { error: upErr } = await sb.from('42_통역계약')
+                .update({ interpreter_accepted: true, accepted_at: new Date().toISOString() })
+                .eq('id', contractId);
+            if (upErr) { console.error('accept-assignment update 실패:', upErr); return res.status(500).json({ success: false, error: '수락 처리 실패' }); }
+        }
+
+        const interpName = profile.name || '통역사';
+        const expoLabel = c.exhibition_name || '계약';
+
+        // 고객사 알림
+        if (c.customer_id) {
+            try {
+                await sb.from('24_알림').insert({
+                    user_id: c.customer_id,
+                    notification_type: 'service',
+                    title: '🤝 통역사 수락 완료',
+                    message: '담당 통역사(' + interpName + ')가 "' + expoLabel + '" 계약을 수락했습니다. ' + (c.contract_signed ? '선결제를 진행해주세요.' : '계약서를 확인하고 동의해주세요.'),
+                    is_read: false
+                });
+            } catch (e) { console.error('고객 알림 실패(무시):', e && e.message); }
+        }
+        // 관리자 전원 알림
+        try {
+            const { data: admins } = await sb.from('01_회원').select('id').eq('role', 'admin');
+            if (admins && admins.length) {
+                await sb.from('24_알림').insert(admins.map(function (a) {
+                    return { user_id: a.id, notification_type: 'service', title: '🤝 통역사 배정 수락', message: interpName + '님이 "' + expoLabel + '" (' + (c.client_company || '고객사') + ') 계약을 수락했습니다.', is_read: false };
+                }));
+            }
+        } catch (e) { console.error('관리자 알림 실패(무시):', e && e.message); }
+
+        return res.status(200).json({ success: true });
+    } catch (e) {
+        console.error('accept-assignment 예외:', e);
+        return res.status(500).json({ success: false, error: e.message || '오류' });
+    }
+}
+
 module.exports = async function handler(req, res) {
     if (!SERVICE_KEY) return res.status(500).json({ error: '서버 설정 오류' });
 
@@ -300,6 +360,7 @@ module.exports = async function handler(req, res) {
         case 'my-showcase-postings': return handleMyShowcasePostings(req, res);
         case 'my-showcase-applications': return handleMyShowcaseApplications(req, res);
         case 'my-showcase-applicants': return handleMyShowcaseApplicants(req, res);
+        case 'accept-assignment': return handleAcceptAssignment(req, res);
         default: return res.status(404).json({ error: 'Unknown route: ' + route });
     }
 };
