@@ -7518,20 +7518,54 @@
                 _notifLastSeen = Date.now();
                 try { localStorage.setItem('adminNotifLastSeen', String(_notifLastSeen)); } catch (e) {}
             }
+            function removeNotif(key) {
+                var i = -1;
+                for (var k = 0; k < _notifs.length; k++) { if (_notifs[k].key === key) { i = k; break; } }
+                if (i < 0) return false;
+                _notifs.splice(i, 1);
+                renderNotifPanel();
+                updateNotifDot();
+                return true;
+            }
+            // 정보성(신규 가입·기타 알림)은 한 번 확인하면 목록에서 제거
+            function pruneSeenInfo() {
+                _notifs = _notifs.filter(function (n) {
+                    var isInfo = n.key.indexOf('member-') === 0 || n.key.indexOf('notif-') === 0;
+                    return !(isInfo && n.ts <= _notifLastSeen);
+                });
+            }
+            // 처리 완료(대기 해제)된 검수 항목을 목록에서 정리 — realtime이 못 잡아도 보장
+            async function resyncPending() {
+                var sb = window.sbClient || window.supabase;
+                if (!sb) return;
+                var bizOk = false, appOk = false, bizIds = {}, appIds = {};
+                try { var b = await sb.from('01_회원').select('id').eq('business_registration_status', 'pending'); if (!b.error) { bizOk = true; (b.data || []).forEach(function (r) { bizIds[r.id] = 1; }); } } catch (e) {}
+                try { var a = await sb.from('48_통역사지원서').select('id').eq('status', 'pending'); if (!a.error) { appOk = true; (a.data || []).forEach(function (r) { appIds[r.id] = 1; }); } } catch (e) {}
+                var before = _notifs.length;
+                _notifs = _notifs.filter(function (n) {
+                    if (bizOk && n.key.indexOf('biz-') === 0) return !!bizIds[n.key.slice(4)];
+                    if (appOk && n.key.indexOf('app-') === 0) return !!appIds[n.key.slice(4)];
+                    return true;
+                });
+                if (_notifs.length !== before) { renderNotifPanel(); updateNotifDot(); }
+            }
 
             window.toggleNotifPanel = function (e) {
                 if (e) e.stopPropagation();
                 var p = document.getElementById('notifPanel');
                 if (!p) return;
                 if (p.classList.contains('open')) { p.classList.remove('open'); return; }
+                pruneSeenInfo();              // 이전에 확인한 정보성 알림 제거
                 renderNotifPanel();           // 하이라이트는 직전 lastSeen 기준
                 p.classList.add('open');
                 markSeenNow();                // 열면 점 제거(읽음)
                 updateNotifDot();
+                resyncPending();              // 처리 완료된 검수 항목 정리(비동기)
             };
             window.markAllNotifsRead = function (e) {
                 if (e) e.stopPropagation();
                 markSeenNow();
+                pruneSeenInfo();
                 renderNotifPanel();
                 updateNotifDot();
             };
@@ -7575,6 +7609,7 @@
                         (nt.data || []).forEach(function (r) { addNotif({ key: 'notif-' + r.id, icon: '🔔', title: r.title || '새 알림', sub: r.message || '', ts: tsOf(r), tab: null }); });
                     } catch (e) {}
                 }
+                pruneSeenInfo();
                 renderNotifPanel();
                 updateNotifDot();
 
@@ -7586,6 +7621,14 @@
                         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: '48_통역사지원서' }, function (p) {
                             var r = p.new; if (!r || !r.id) return;
                             if (addNotif({ key: 'app-' + r.id, icon: '📋', title: '통역사 지원서 검수 대기', sub: r.name_ko || r.name || '', ts: tsOf(r) || Date.now(), tab: 'applications' })) { renderNotifPanel(); updateNotifDot(); }
+                        })
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: '01_회원' }, function (p) {
+                            var r = p.new; if (!r || !r.id) return;
+                            if (r.business_registration_status && r.business_registration_status !== 'pending') removeNotif('biz-' + r.id);
+                        })
+                        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: '48_통역사지원서' }, function (p) {
+                            var r = p.new; if (!r || !r.id) return;
+                            if (r.status && r.status !== 'pending') removeNotif('app-' + r.id);
                         });
                     if (_notifAdminId) {
                         ch.on('postgres_changes', { event: 'INSERT', schema: 'public', table: '24_알림', filter: 'user_id=eq.' + _notifAdminId }, function (p) {
