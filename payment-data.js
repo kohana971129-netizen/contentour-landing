@@ -120,6 +120,32 @@ const PaymentData = {
         return await this.processDemoPayment(contract, paymentType, amount, merchantUid, method);
     },
 
+    // ══════════════ 무통장입금 신청 (관리자 수동 승인) ══════════════
+    async requestManualTransfer(contractId, paymentType, depositorName) {
+        if (typeof supabase === 'undefined' || !supabase) return { success: false, error: 'DB 미연결' };
+        if (!contractId) return { success: false, error: '유효하지 않은 계약 ID' };
+        const holder = String(depositorName || '').trim();
+        if (!holder) return { success: false, error: '입금자명을 입력해주세요.' };
+        try {
+            const session = await supabase.auth.getSession();
+            const token = session && session.data && session.data.session && session.data.session.access_token;
+            if (!token) return { success: false, error: '로그인이 필요합니다.' };
+            const res = await fetch('/api/manual-transfer-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ contractId: contractId, paymentType: paymentType, depositorName: holder })
+            });
+            const data = await res.json();
+            if (!res.ok || !data || data.success === false) {
+                return { success: false, error: (data && data.error) || '무통장 입금 신청 실패' };
+            }
+            return data;
+        } catch (e) {
+            console.error('무통장 입금 신청 실패:', e);
+            return { success: false, error: e.message || '신청 중 오류' };
+        }
+    },
+
     // ══════════════ 결제 검증 & DB 저장 ══════════════
 
     async verifyAndSavePayment(contractId, paymentType, amount, method, merchantUid, impUid) {

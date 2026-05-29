@@ -14,6 +14,8 @@
     { "source": "/api/notify-admins", "destination": "/api/submit?_route=notify-admins" },
     { "source": "/api/verify-payment", "destination": "/api/payment?_route=verify-payment" },
     { "source": "/api/portone-webhook", "destination": "/api/payment?_route=portone-webhook" },
+    { "source": "/api/manual-transfer-request", "destination": "/api/payment?_route=manual-transfer-request" },
+    { "source": "/api/manual-transfer-confirm", "destination": "/api/payment?_route=manual-transfer-confirm" },
     { "source": "/api/my-inquiries", "destination": "/api/my?_route=my-inquiries" },
     { "source": "/api/my-contracts", "destination": "/api/my?_route=my-contracts" },
     { "source": "/api/my-showcase-postings", "destination": "/api/my?_route=my-showcase-postings" },

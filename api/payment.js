@@ -416,6 +416,147 @@ async function handleWebhook(req, res, rawBody) {
     }
 }
 
+// ────────────────────────── manual-transfer-request (고객 무통장 신청) ──────────────────────────
+async function handleManualTransferRequest(req, res, rawBody) {
+    if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+    if (!SERVICE_KEY) return res.status(500).json({ success: false, error: '서버 설정 오류 (env 누락)' });
+
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ success: false, error: '로그인이 필요합니다.' });
+    const { data: { user }, error: authErr } = await sbAuth.auth.getUser(token);
+    if (authErr || !user) return res.status(401).json({ success: false, error: '인증 실패' });
+
+    let body;
+    try { body = JSON.parse(rawBody || '{}'); }
+    catch (e) { return res.status(400).json({ success: false, error: 'Invalid JSON' }); }
+
+    const { contractId, paymentType } = body;
+    const holder = String(body.depositorName || '').trim().slice(0, 100);
+    if (!contractId || !paymentType) return res.status(400).json({ success: false, error: '필수 파라미터 누락' });
+    if (!['deposit', 'full'].includes(paymentType)) return res.status(400).json({ success: false, error: '유효하지 않은 결제 유형' });
+    if (!holder) return res.status(400).json({ success: false, error: '입금자명을 입력해주세요.' });
+
+    try {
+        const { data: contract, error: cErr } = await sb
+            .from('42_통역계약')
+            .select('customer_id, exhibition_name, client_company, total_amount, deposit_amount, deposit_status')
+            .eq('id', contractId).single();
+        if (cErr || !contract) return res.status(404).json({ success: false, error: '계약을 찾을 수 없습니다.' });
+        if (contract.customer_id !== user.id) return res.status(403).json({ success: false, error: '본인 계약만 신청 가능합니다.' });
+        if (contract.deposit_status === 'paid') return res.status(400).json({ success: false, error: '이미 결제가 완료된 계약입니다.' });
+
+        // 금액은 서버에서 계약 기준으로 산정 (A안 100% 선결제)
+        const amount = Number(contract.deposit_amount || contract.total_amount) || 0;
+        if (amount <= 0) return res.status(400).json({ success: false, error: '계약에 결제할 금액이 없습니다.' });
+
+        // 중복 신청 방지
+        const { data: existing } = await sb.from('47_결제기록')
+            .select('id').eq('contract_id', contractId).eq('pg_provider', 'manual').eq('status', 'manual_pending').limit(1);
+        if (existing && existing.length) {
+            return res.status(200).json({ success: true, status: 'manual_pending', duplicate: true });
+        }
+
+        const merchantUid = 'MANUAL_' + contractId + '_' + Date.now();
+        const { error: insErr } = await sb.from('47_결제기록').insert({
+            contract_id: contractId,
+            customer_id: user.id,
+            payment_type: paymentType,
+            amount: amount,
+            method: 'transfer',
+            pg_provider: 'manual',
+            status: 'manual_pending',
+            merchant_uid: merchantUid,
+            metadata: { depositor_name: holder, requested_at: new Date().toISOString() }
+        });
+        if (insErr) { console.error('manual-transfer-request insert 실패:', insErr); return res.status(500).json({ success: false, error: '신청 저장 실패' }); }
+
+        // 관리자 전원 알림
+        try {
+            const { data: admins } = await sb.from('01_회원').select('id').eq('role', 'admin');
+            if (admins && admins.length) {
+                const rows = admins.map(function (a) {
+                    return {
+                        user_id: a.id, notification_type: 'service',
+                        title: '💸 무통장 입금 신청',
+                        message: (contract.client_company || '고객사') + ' · ' + (contract.exhibition_name || '계약') + ' · ' + amount.toLocaleString() + '원 (입금자: ' + holder + ') — 입금 확인 후 승인해주세요.',
+                        is_read: false
+                    };
+                });
+                await sb.from('24_알림').insert(rows);
+            }
+        } catch (e) { console.error('manual-transfer 관리자 알림 실패(무시):', e && e.message); }
+
+        return res.status(200).json({ success: true, status: 'manual_pending' });
+    } catch (e) {
+        console.error('manual-transfer-request 예외:', e);
+        return res.status(500).json({ success: false, error: e.message || '오류' });
+    }
+}
+
+// ────────────────────────── manual-transfer-confirm (관리자 승인/반려) ──────────────────────────
+async function handleManualTransferConfirm(req, res, rawBody) {
+    if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
+    if (!SERVICE_KEY) return res.status(500).json({ success: false, error: '서버 설정 오류 (env 누락)' });
+
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ success: false, error: '로그인이 필요합니다.' });
+    const { data: { user }, error: authErr } = await sbAuth.auth.getUser(token);
+    if (authErr || !user) return res.status(401).json({ success: false, error: '인증 실패' });
+    const { data: profile } = await sb.from('01_회원').select('role').eq('id', user.id).single();
+    if (!profile || profile.role !== 'admin') return res.status(403).json({ success: false, error: '관리자 권한이 필요합니다.' });
+
+    let body;
+    try { body = JSON.parse(rawBody || '{}'); }
+    catch (e) { return res.status(400).json({ success: false, error: 'Invalid JSON' }); }
+
+    const { paymentRecordId, action } = body;
+    if (!paymentRecordId || !['approve', 'reject'].includes(action)) return res.status(400).json({ success: false, error: '필수 파라미터 누락' });
+
+    try {
+        const { data: rec, error: rErr } = await sb.from('47_결제기록')
+            .select('id, contract_id, customer_id, amount, pg_provider, status')
+            .eq('id', paymentRecordId).single();
+        if (rErr || !rec) return res.status(404).json({ success: false, error: '결제 신청을 찾을 수 없습니다.' });
+        if (rec.pg_provider !== 'manual') return res.status(400).json({ success: false, error: '무통장 신청이 아닙니다.' });
+        if (rec.status !== 'manual_pending') return res.status(400).json({ success: false, error: '이미 처리된 신청입니다.' });
+
+        const nowIso = new Date().toISOString();
+
+        if (action === 'approve') {
+            const patch = { deposit_status: 'paid', deposit_paid_at: nowIso, status: 'deposit_paid', updated_at: nowIso };
+            const { error: upErr } = await sb.from('42_통역계약').update(patch).eq('id', rec.contract_id);
+            if (upErr) { console.error('manual approve 계약 update 실패:', upErr); return res.status(500).json({ success: false, error: '계약 갱신 실패' }); }
+            await sb.from('47_결제기록').update({ status: 'paid', paid_at: nowIso, updated_at: nowIso }).eq('id', rec.id);
+            try {
+                await sb.from('24_알림').insert({
+                    user_id: rec.customer_id, notification_type: 'service',
+                    title: '✅ 입금 확인 완료',
+                    message: '무통장 입금이 확인되어 결제가 완료되었습니다. (' + (Number(rec.amount) || 0).toLocaleString() + '원)',
+                    is_read: false
+                });
+            } catch (e) {}
+            return res.status(200).json({ success: true, action: 'approve' });
+        } else {
+            const why = String(body.reason || '').trim().slice(0, 500);
+            await sb.from('47_결제기록').update({ status: 'rejected', cancelled_at: nowIso, cancel_reason: why || '입금 미확인', updated_at: nowIso }).eq('id', rec.id);
+            try {
+                await sb.from('24_알림').insert({
+                    user_id: rec.customer_id, notification_type: 'service',
+                    title: '⚠️ 무통장 입금 미확인',
+                    message: '무통장 입금 신청이 반려되었습니다.' + (why ? ' 사유: ' + why : ' 입금 내역 확인 후 다시 신청해주세요.'),
+                    is_read: false
+                });
+            } catch (e) {}
+            return res.status(200).json({ success: true, action: 'reject' });
+        }
+    } catch (e) {
+        console.error('manual-transfer-confirm 예외:', e);
+        return res.status(500).json({ success: false, error: e.message || '오류' });
+    }
+}
+
 // ────────────────────────── 디스패처 ──────────────────────────
 module.exports = async function handler(req, res) {
     let rawBody;
@@ -426,6 +567,8 @@ module.exports = async function handler(req, res) {
     switch (route) {
         case 'verify-payment': return handleVerifyPayment(req, res, rawBody);
         case 'portone-webhook': return handleWebhook(req, res, rawBody);
+        case 'manual-transfer-request': return handleManualTransferRequest(req, res, rawBody);
+        case 'manual-transfer-confirm': return handleManualTransferConfirm(req, res, rawBody);
         default: return res.status(404).json({ error: 'Unknown route: ' + route });
     }
 };

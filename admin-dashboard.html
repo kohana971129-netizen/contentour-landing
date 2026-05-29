@@ -1119,6 +1119,8 @@
                 <div class="view" id="view-contracts">
                     <!-- ⚠️ D-day 컨펌 미확인 통역사 알림 (D-1 ~ 당일 + confirmation_clicked_at IS NULL) -->
                     <div id="ctNoShowAlert" style="display:none;"></div>
+                    <!-- 💸 무통장 입금 확인 대기 -->
+                    <div id="manualDepositPanel" style="display:none;"></div>
                     <div class="contract-summary" id="ctAdminSummary"></div>
                     <div class="contract-filter-tabs" id="ctAdminFilterTabs" style="position:relative;">
                         <button class="contract-filter-tab active" onclick="ctAdminTabFilter('all')">전체 <span class="cft-count" id="ctf-all">0</span></button>
@@ -2097,7 +2099,7 @@
 
                 if (tab === 'interpreters') loadInterpVerifyList();
                 if (tab === 'journal' && typeof renderJList === 'function') { loadInterpreterJournals(); visibleJournals = journals.slice(); renderJList(); updateJournalKPI(); }
-                if (tab === 'contracts') { if (ctAdminContracts.length === 0) loadContractsFromDB(); else ctAdminInit(); }
+                if (tab === 'contracts') { if (ctAdminContracts.length === 0) loadContractsFromDB(); else ctAdminInit(); loadManualDeposits(); }
                 if (tab === 'settlement') stlAdminInit();
                 if (tab === 'chatmon') { loadChatmonFromDB(); renderChatmonChannels(); renderChatmonStats(); }
             }
@@ -7451,6 +7453,87 @@
         <!-- Supabase SDK + 공유 상수 + 데이터 레이어 -->
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="supabase-config.js"></script>
+        <script>
+        /* ══════════ 무통장 입금 확인 (계약·결제 탭) ══════════ */
+        async function loadManualDeposits() {
+            var panel = document.getElementById('manualDepositPanel');
+            if (!panel || !window.sbClient) return;
+            try {
+                var resp = await window.sbClient.from('47_결제기록')
+                    .select('id, contract_id, amount, metadata, created_at')
+                    .eq('pg_provider', 'manual').eq('status', 'manual_pending')
+                    .order('created_at', { ascending: false });
+                if (resp.error) { console.warn('무통장 대기 로드 실패:', resp.error.message); return; }
+                var rows = resp.data || [];
+                if (!rows.length) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+                var ids = rows.map(function (r) { return r.contract_id; }).filter(Boolean);
+                var cmap = {};
+                if (ids.length) {
+                    var cres = await window.sbClient.from('42_통역계약').select('id, exhibition_name, client_company').in('id', ids);
+                    (cres.data || []).forEach(function (c) { cmap[c.id] = c; });
+                }
+                renderManualDeposits(rows, cmap);
+            } catch (e) { console.warn('무통장 대기 예외:', e); }
+        }
+        function renderManualDeposits(rows, cmap) {
+            var panel = document.getElementById('manualDepositPanel');
+            if (!panel) return;
+            function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+            var items = rows.map(function (r) {
+                var c = cmap[r.contract_id] || {};
+                var holder = (r.metadata && r.metadata.depositor_name) || '-';
+                var when = r.created_at ? new Date(r.created_at).toLocaleString('ko-KR') : '';
+                return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #ffe082;background:#fffdf5;border-radius:10px;margin-bottom:8px;flex-wrap:wrap;">' +
+                    '<div style="flex:1;min-width:200px;">' +
+                        '<div style="font-weight:700;color:#1f2d4a;font-size:0.9rem;">' + esc(c.client_company || '고객사') + ' &middot; ' + esc(c.exhibition_name || '계약') + '</div>' +
+                        '<div style="font-size:0.78rem;color:#6b7689;margin-top:3px;">입금자: <b>' + esc(holder) + '</b> &middot; 금액: <b>' + (Number(r.amount) || 0).toLocaleString() + '원</b> &middot; ' + esc(when) + '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:8px;">' +
+                        '<button onclick="manualDepositApprove(\'' + r.id + '\')" style="padding:8px 16px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">입금 확인 · 승인</button>' +
+                        '<button onclick="manualDepositReject(\'' + r.id + '\')" style="padding:8px 14px;background:#fff;color:#c62828;border:1.5px solid #ffcdd2;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">반려</button>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+            panel.innerHTML = '<div style="background:#fff;border:1px solid #e5eaf2;border-radius:14px;padding:16px 18px;margin-bottom:16px;">' +
+                '<div style="font-size:0.92rem;font-weight:800;color:#e65100;margin-bottom:12px;">💸 무통장 입금 확인 대기 <span style="background:#e65100;color:#fff;border-radius:10px;padding:1px 8px;font-size:0.75rem;">' + rows.length + '</span></div>' +
+                items +
+                '<div style="font-size:0.74rem;color:#9aa5b8;margin-top:4px;">※ 기업은행 078-157329-04-020 (주)콘텐츄어 입금 내역을 확인한 뒤 승인하세요.</div>' +
+            '</div>';
+            panel.style.display = '';
+        }
+        async function _manualDepositConfirm(recordId, action, reason) {
+            if (!window.sbClient) { showToast('⚠️ 연결 오류'); return false; }
+            var s = await window.sbClient.auth.getSession();
+            var token = s && s.data && s.data.session && s.data.session.access_token;
+            if (!token) { showToast('⚠️ 로그인이 필요합니다.'); return false; }
+            try {
+                var res = await fetch('/api/manual-transfer-confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ paymentRecordId: recordId, action: action, reason: reason || '' })
+                });
+                var data = await res.json();
+                if (!res.ok || !data || data.success === false) { showToast('⚠️ ' + ((data && data.error) || '처리 실패')); return false; }
+                return true;
+            } catch (e) { showToast('⚠️ 처리 중 오류'); return false; }
+        }
+        async function manualDepositApprove(recordId) {
+            if (!confirm('입금이 확인되었습니까?\n승인하면 해당 계약이 결제 완료 처리됩니다.')) return;
+            if (await _manualDepositConfirm(recordId, 'approve')) {
+                showToast('✅ 입금 확인 · 결제 완료 처리되었습니다.');
+                await loadManualDeposits();
+                if (typeof loadContractsFromDB === 'function') loadContractsFromDB();
+            }
+        }
+        async function manualDepositReject(recordId) {
+            var reason = prompt('반려 사유를 입력해주세요. (고객에게 전달됩니다)');
+            if (reason === null) return;
+            if (await _manualDepositConfirm(recordId, 'reject', reason.trim())) {
+                showToast('반려 처리되었습니다.');
+                await loadManualDeposits();
+            }
+        }
+        </script>
         <script src="shared-constants.js"></script>
         <script>
         /* ══════════ 관리자 알림 센터 (벨 드롭다운) ══════════ */

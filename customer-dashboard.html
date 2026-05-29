@@ -6053,6 +6053,14 @@
               <div class="pm-method__desc">발급된 계좌로 입금 (24시간 이내)</div>
             </div>
           </div>
+          <div class="pm-method${currentPayment.method==='manual'?' selected':''}" onclick="selectPayMethod(this,'manual')">
+            <div class="pm-method__radio"></div>
+            <div class="pm-method__icon">&#129534;</div>
+            <div class="pm-method__info">
+              <div class="pm-method__name">무통장입금</div>
+              <div class="pm-method__desc">콘텐츄어 계좌로 직접 이체 (관리자 확인 후 완료)</div>
+            </div>
+          </div>
         </div>
         <label class="pm-terms"><input type="checkbox" id="pmAgreeCheck" ${currentPayment.agreed?'checked':''} onchange="currentPayment.agreed=this.checked;updatePayBtn()"> 전자금융거래 이용약관 및 에스크로 결제 약관에 동의합니다</label>
         <button class="pm-confirm-btn" id="pmConfirmBtn" ${!(currentPayment.method && currentPayment.agreed)?'disabled':''} onclick="pmGoStep2()">${(typeof PaymentData !== 'undefined' && PaymentData.isReady()) ? '결제하기' : '다음 단계'}</button>
@@ -6088,7 +6096,7 @@
       if (btn) {
         btn.disabled = !(currentPayment.method && currentPayment.agreed);
         const portOneReady = typeof PaymentData !== 'undefined' && PaymentData.isReady();
-        btn.textContent = portOneReady ? '결제하기' : '다음 단계';
+        btn.textContent = (portOneReady && currentPayment.method !== 'manual') ? '결제하기' : '다음 단계';
       }
     }
 
@@ -6096,6 +6104,9 @@
     function pmGoStep2() {
       if (!currentPayment.method || !currentPayment.agreed) return;
       currentPayment.step = 2;
+
+      // 무통장입금은 PortOne을 타지 않음 — 항상 계좌 안내 폼
+      if (currentPayment.method === 'manual') { pmRenderManualForm(); return; }
 
       const portOneReady = typeof PaymentData !== 'undefined' && PaymentData.isReady();
 
@@ -6329,6 +6340,68 @@
       pmRenderProcessing();
       const result = await processPayment(currentPayment.contractId, currentPayment.type);
       if (result !== false) pmRenderSuccess();
+    }
+
+    // ── 무통장입금 폼 ──
+    function pmRenderManualForm() {
+      const c = contracts.find(x => x.id === currentPayment.contractId);
+      if (!c) return;
+      const amount = currentPayment.type === 'deposit' ? c.deposit : c.balance;
+      const defaultHolder = [_currentUserProfile.company, _currentUserProfile.name].filter(Boolean).join(' ') || '';
+      document.getElementById('pmTitle').textContent = '무통장입금';
+      document.getElementById('pmBody').innerHTML = `
+        <div class="pm-step-indicator"><div class="pm-step done"></div><div class="pm-step active"></div><div class="pm-step"></div></div>
+        <div class="pm-amount">
+          <div class="pm-amount__label">${c.expo}</div>
+          <div class="pm-amount__value">${formatMoney(amount)}</div>
+        </div>
+        <div class="cust-payment-label">아래 계좌로 입금해주세요</div>
+        <div style="background:#f8fafc;border:1.5px solid #e5eaf2;border-radius:12px;padding:16px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#6b7689;font-size:0.82rem;">은행</span><span style="font-weight:700;color:#1f2d4a;font-size:0.9rem;">기업은행 (IBK)</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="color:#6b7689;font-size:0.82rem;">계좌번호</span><span style="font-weight:800;color:#1565c0;font-size:1rem;letter-spacing:0.3px;">078-157329-04-020</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="color:#6b7689;font-size:0.82rem;">예금주</span><span style="font-weight:700;color:#1f2d4a;font-size:0.9rem;">(주)콘텐츄어</span></div>
+        </div>
+        <div class="pm-input-group">
+          <label>입금자명</label>
+          <input class="pm-input" id="pmManualHolder" type="text" placeholder="실제 입금하실 입금자명을 입력하세요" autocomplete="name" value="${defaultHolder}">
+        </div>
+        <div class="pm-input-hint" style="margin-bottom:16px;">입금 후 아래 버튼을 누르면 관리자가 입금을 확인한 뒤 결제가 완료됩니다. 입금자명이 다르면 확인이 지연될 수 있습니다.</div>
+        <button class="pm-confirm-btn" id="pmConfirmBtn" onclick="pmSubmitManual()">입금 완료 알림</button>
+        <button class="pm-back-btn" onclick="pmRenderStep1()">이전 단계</button>
+      `;
+    }
+
+    async function pmSubmitManual() {
+      const holder = document.getElementById('pmManualHolder')?.value?.trim();
+      if (!holder) { showContractToast('입금자명을 입력해주세요.'); return; }
+      if (typeof PaymentData === 'undefined' || !PaymentData.requestManualTransfer) { showContractToast('결제 모듈을 불러오지 못했습니다.'); return; }
+      const c = contracts.find(x => x.id === currentPayment.contractId);
+      if (!c) return;
+      pmRenderProcessing('입금 신청을 접수하는 중입니다...');
+      const result = await PaymentData.requestManualTransfer(c.dbId || c.id, currentPayment.type, holder);
+      if (result && result.success) {
+        pmRenderManualPending();
+      } else {
+        showContractToast((result && result.error) || '무통장 입금 신청에 실패했습니다.');
+        pmRenderManualForm();
+      }
+    }
+
+    function pmRenderManualPending() {
+      const c = contracts.find(x => x.id === currentPayment.contractId);
+      const amount = c ? (currentPayment.type === 'deposit' ? c.deposit : c.balance) : 0;
+      document.getElementById('pmTitle').textContent = '입금 확인 대기';
+      document.getElementById('pmBody').innerHTML = `
+        <div style="text-align:center;padding:20px 8px;">
+          <div style="font-size:2.6rem;margin-bottom:10px;">&#129534;</div>
+          <div style="font-size:1.02rem;font-weight:800;color:#1f2d4a;margin-bottom:8px;">입금 신청이 접수되었습니다</div>
+          <div style="font-size:0.85rem;color:#6b7689;line-height:1.6;margin-bottom:16px;">관리자가 <b>기업은행 078-157329-04-020</b> 입금 내역을 확인한 뒤<br>결제가 완료 처리됩니다.${amount?'<br>입금 금액: <b>'+formatMoney(amount)+'</b>':''}</div>
+          <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px 14px;font-size:0.79rem;color:#5d4037;line-height:1.7;text-align:left;">
+            &bull; 아직 입금 전이라면 위 계좌로 입금해주세요.<br>&bull; 입금 확인까지 영업일 기준 다소 시간이 걸릴 수 있습니다.<br>&bull; 확인이 완료되면 알림으로 안내드립니다.
+          </div>
+          <button class="pm-confirm-btn" style="margin-top:18px;" onclick="closePaymentModal()">확인</button>
+        </div>
+      `;
     }
 
     // ── 가상계좌 폼 ──
