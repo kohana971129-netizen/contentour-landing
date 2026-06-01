@@ -2301,9 +2301,9 @@
             document.getElementById('modalDress').textContent = d.dress;
 
             // 태그
-            document.getElementById('modalLang').innerHTML = '<span class="assign-tag tag-lang">' + d.lang + '</span>';
-            document.getElementById('modalField').innerHTML = '<span class="assign-tag tag-field">' + d.field + '</span>';
-            document.getElementById('modalType').innerHTML = '<span class="assign-tag tag-type">' + d.type + '</span>';
+            document.getElementById('modalLang').innerHTML = '<span class="assign-tag tag-lang">' + CT.escHtml(d.lang) + '</span>';
+            document.getElementById('modalField').innerHTML = '<span class="assign-tag tag-field">' + CT.escHtml(d.field) + '</span>';
+            document.getElementById('modalType').innerHTML = '<span class="assign-tag tag-type">' + CT.escHtml(d.type) + '</span>';
 
             // 상태 배지
             const statusMap = {
@@ -2369,6 +2369,8 @@
                 if (stlModalEl && stlModalEl.classList.contains('open')) { closeStlModal(); return; }
                 const ctModalEl = document.getElementById('ctModal');
                 if (ctModalEl && ctModalEl.classList.contains('open')) { closeIntContractModal(); return; }
+                const intCancelEl = document.getElementById('intCancelModal');
+                if (intCancelEl && intCancelEl.classList.contains('open')) { closeIntCancelModal(); return; }
                 closeModal();
             }
         });
@@ -4668,7 +4670,7 @@
             if (d.status === 'rejected' && d.rejectReason) {
                 html += '<div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:10px;padding:14px 16px;margin-bottom:20px;">' +
                     '<div style="font-size:0.78rem;font-weight:700;color:#e53935;margin-bottom:4px;">반려 사유</div>' +
-                    '<div style="font-size:0.82rem;color:#c62828;">' + d.rejectReason + '</div>' +
+                    '<div style="font-size:0.82rem;color:#c62828;">' + CT.escHtml(d.rejectReason) + '</div>' +
                 '</div>';
             }
 
@@ -5138,10 +5140,10 @@
             // 계약 기본 정보
             var html =
                 '<div class="ct-detail-grid">' +
-                    '<div class="ct-detail-item"><span class="ct-detail-label">박람회</span><span class="ct-detail-value">' + c.expo + '</span></div>' +
-                    '<div class="ct-detail-item"><span class="ct-detail-label">고객</span><span class="ct-detail-value">' + c.client.name + ' (' + c.client.company + ')</span></div>' +
+                    '<div class="ct-detail-item"><span class="ct-detail-label">박람회</span><span class="ct-detail-value">' + CT.escHtml(c.expo) + '</span></div>' +
+                    '<div class="ct-detail-item"><span class="ct-detail-label">고객</span><span class="ct-detail-value">' + CT.escHtml(c.client.name) + ' (' + CT.escHtml(c.client.company) + ')</span></div>' +
                     '<div class="ct-detail-item"><span class="ct-detail-label">기간</span><span class="ct-detail-value">' + c.dates.start + ' ~ ' + c.dates.end + ' (' + c.days + '일)</span></div>' +
-                    '<div class="ct-detail-item"><span class="ct-detail-label">통역 언어</span><span class="ct-detail-value">' + c.lang + '</span></div>' +
+                    '<div class="ct-detail-item"><span class="ct-detail-label">통역 언어</span><span class="ct-detail-value">' + CT.escHtml(c.lang) + '</span></div>' +
                     '<div class="ct-detail-item"><span class="ct-detail-label">상태</span><span class="ct-badge ' + badgeClass + '">' + c.statusText + '</span></div>' +
                     '<div class="ct-detail-item"><span class="ct-detail-label">담당 관리자</span><span class="ct-detail-value">관리자</span></div>' +
                 '</div>';
@@ -5361,8 +5363,17 @@
 
         async function intAgreeContractFromModal(contractId, btn) {
             btn.disabled = true;
+            var _origText = btn.textContent;
             btn.textContent = '처리 중...';
-            await intAgreeContract(contractId);
+            try {
+                await intAgreeContract(contractId);
+            } catch (e) {
+                console.error('계약 동의 처리 실패:', e);
+                btn.disabled = false;
+                btn.textContent = _origText;
+                if (window.showToast) window.showToast('계약 동의 처리에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+                return;
+            }
             btn.textContent = '✅ 동의 완료';
             btn.style.background = '#9e9e9e';
             // 모달 내용 새로고침
