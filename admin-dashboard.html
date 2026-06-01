@@ -497,6 +497,7 @@
                             <div>
                                 <div style="font-size:1.1rem;font-weight:800;" id="appModalName"></div>
                                 <div style="font-size:0.82rem;opacity:0.8;margin-top:4px;" id="appModalSub"></div>
+                                <div style="font-size:0.72rem;opacity:0.7;margin-top:4px;">담당 관리자: 관리자</div>
                             </div>
                             <button onclick="closeAppModal()" aria-label="닫기" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:36px;height:36px;border-radius:10px;cursor:pointer;font-size:1.1rem;">✕</button>
                         </div>
@@ -4875,16 +4876,16 @@
                         hidden_by: null, hidden_at: null, hide_reason: null
                     }).eq('id', reviewId);
                     if (error) throw error;
-                    alert('리뷰가 유지 처리되었습니다.');
+                    showToast('리뷰가 유지 처리되었습니다.');
                     loadReviewsAdmin();
-                } catch (e) { alert('처리 실패: ' + (e.message || '')); }
+                } catch (e) { showToast('처리 실패: ' + (e.message || '')); }
             }
             window.reviewAdminKeep = reviewAdminKeep;
 
             async function reviewAdminHide(reviewId) {
                 const reason = prompt('숨김 사유를 입력해주세요:', '');
                 if (reason === null) return;
-                if (!reason.trim()) { alert('사유를 입력해주세요.'); return; }
+                if (!reason.trim()) { showToast('사유를 입력해주세요.'); return; }
                 try {
                     const me = await ContentourAuth.getCurrentUser();
                     const { error } = await supabase.from('49_통역사리뷰').update({
@@ -4895,9 +4896,9 @@
                         hide_reason: reason.trim()
                     }).eq('id', reviewId);
                     if (error) throw error;
-                    alert('리뷰가 숨김 처리되었습니다.');
+                    showToast('리뷰가 숨김 처리되었습니다.');
                     loadReviewsAdmin();
-                } catch (e) { alert('처리 실패: ' + (e.message || '')); }
+                } catch (e) { showToast('처리 실패: ' + (e.message || '')); }
             }
             window.reviewAdminHide = reviewAdminHide;
 
@@ -4910,9 +4911,9 @@
                         hidden_by: null, hidden_at: null, hide_reason: null
                     }).eq('id', reviewId);
                     if (error) throw error;
-                    alert('리뷰가 복원되었습니다.');
+                    showToast('리뷰가 복원되었습니다.');
                     loadReviewsAdmin();
-                } catch (e) { alert('처리 실패: ' + (e.message || '')); }
+                } catch (e) { showToast('처리 실패: ' + (e.message || '')); }
             }
             window.reviewAdminRestore = reviewAdminRestore;
 
@@ -6344,7 +6345,7 @@
                     actions += '<button onclick="revokeVerification(\'' + userId + '\')" style="padding:10px 20px;border:1.5px solid #999;color:#999;background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">인증 해제</button>';
                 }
                 actions += '<button onclick="closeInterpModal()" style="padding:10px 20px;border:1.5px solid var(--g200);color:var(--g600);background:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:0.85rem;">닫기</button>';
-                document.getElementById('interpModalActions').innerHTML = actions;
+                document.getElementById('interpModalActions').innerHTML = '<span style="margin-right:auto;align-self:center;font-size:0.74rem;color:var(--g600);">담당 관리자: 관리자</span>' + actions;
 
                 document.getElementById('interpDetailModal').style.display = 'block';
                 document.body.style.overflow = 'hidden';
