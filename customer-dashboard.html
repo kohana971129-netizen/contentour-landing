@@ -1759,7 +1759,8 @@
                             try {
                                 var { data: profiles } = await window.sbClient
                                     .from('40_통역사프로필')
-                                    .select('user_id, display_name');
+                                    .select('user_id, display_name')
+                                    .in('user_id', interpIds);
                                 if (profiles) profiles.forEach(function(p) { interpNames[p.user_id] = p.display_name; });
                             } catch(eP) {}
                         }
@@ -1808,7 +1809,7 @@
             banner.style.background = '#ffebee';
             banner.style.borderColor = '#ef9a9a';
             banner.style.color = '#c62828';
-            banner.innerHTML = '❌ <strong>사업자등록증 반려</strong> — 사유: ' + (reason || '-') + ' · 마이페이지에서 새 파일을 업로드해주세요.';
+            banner.innerHTML = '❌ <strong>사업자등록증 반려</strong> — 사유: ' + CT.escHtml(reason || '-') + ' · 마이페이지에서 새 파일을 업로드해주세요.';
         }
 
         // 배너는 .main 내부 topbar 바로 아래에 삽입 (body는 flex라 형제로 넣으면 좁은 컬럼으로 깨짐)
@@ -1840,10 +1841,10 @@
         var me = document.getElementById('mypProfileEmail');
         var mp = document.getElementById('mypProfilePhone');
         if (ma) ma.textContent = initial;
-        if (mn) mn.innerHTML = p.name + (p.position ? ' <span class="myp-profile-role">' + p.position + '</span>' : '');
-        if (mc) mc.innerHTML = '&#127962; ' + (p.company || '-');
-        if (me) me.innerHTML = '&#128231; ' + (p.email || '-');
-        if (mp) mp.innerHTML = '&#128222; ' + (p.phone || '-');
+        if (mn) mn.innerHTML = CT.escHtml(p.name) + (p.position ? ' <span class="myp-profile-role">' + CT.escHtml(p.position) + '</span>' : '');
+        if (mc) mc.innerHTML = '&#127962; ' + CT.escHtml(p.company || '-');
+        if (me) me.innerHTML = '&#128231; ' + CT.escHtml(p.email || '-');
+        if (mp) mp.innerHTML = '&#128222; ' + CT.escHtml(p.phone || '-');
 
         // 마이페이지 설정 폼
         var si = document.getElementById('mypSettingName');
@@ -1970,7 +1971,7 @@
                             var timeAgo = getTimeAgo(n.created_at);
                             return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f4f6fb;' + (n.is_read ? 'opacity:0.6;' : '') + '">' +
                                 '<div style="font-size:1.1rem;flex-shrink:0;">' + icon + '</div>' +
-                                '<div style="flex:1;min-width:0;"><div style="font-weight:' + (n.is_read ? '500' : '700') + ';font-size:0.82rem;color:#0a2a5e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (n.title || '') + '</div>' +
+                                '<div style="flex:1;min-width:0;"><div style="font-weight:' + (n.is_read ? '500' : '700') + ';font-size:0.82rem;color:#0a2a5e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + CT.escHtml(n.title || '') + '</div>' +
                                 '<div style="font-size:0.72rem;color:#9daec8;">' + timeAgo + '</div></div>' +
                                 (!n.is_read ? '<div style="width:8px;height:8px;border-radius:50%;background:#e53935;flex-shrink:0;"></div>' : '') + '</div>';
                         }).join('');
@@ -4622,22 +4623,22 @@
       try { adminNote = d.admin_note ? (typeof d.admin_note === 'string' ? JSON.parse(d.admin_note) : d.admin_note) : null; } catch(e) {}
 
       var html = '<table class="modal-detail-table">' +
-        '<tr><td>전시회명</td><td>' + d.exhibition_name + '</td></tr>' +
-        '<tr><td>개최지</td><td>' + (d.location || d.venue || '-') + '</td></tr>' +
+        '<tr><td>전시회명</td><td>' + CT.escHtml(d.exhibition_name) + '</td></tr>' +
+        '<tr><td>개최지</td><td>' + CT.escHtml(d.location || d.venue || '-') + '</td></tr>' +
         '<tr><td>기간</td><td>' + d.start_date + ' ~ ' + d.end_date + '</td></tr>' +
-        '<tr><td>언어</td><td>' + (d.language_pair || '-') + '</td></tr>' +
-        '<tr><td>통역 형태</td><td>' + (serviceTypeMap[d.service_type] || d.service_type || '-') + '</td></tr>' +
+        '<tr><td>언어</td><td>' + CT.escHtml(d.language_pair || '-') + '</td></tr>' +
+        '<tr><td>통역 형태</td><td>' + CT.escHtml(serviceTypeMap[d.service_type] || d.service_type || '-') + '</td></tr>' +
         '<tr><td>인원</td><td>' + (d.headcount || 1) + '명</td></tr>' +
-        '<tr><td>요청 내용</td><td>' + (d.message || '-') + '</td></tr>' +
+        '<tr><td>요청 내용</td><td>' + CT.escHtml(d.message || '-') + '</td></tr>' +
         '<tr><td>담당 관리자</td><td>관리자</td></tr>' +
         '<tr><td>접수일</td><td>' + (d.created_at ? d.created_at.split('T')[0] : '-') + '</td></tr>' +
         '</table>';
 
       if (adminNote && adminNote.interpreter) {
         html += '<div class="modal__interpreter-box">' +
-          '<div class="modal__interpreter-avatar">' + adminNote.interpreter.charAt(0) + '</div>' +
+          '<div class="modal__interpreter-avatar">' + CT.escHtml(adminNote.interpreter.charAt(0)) + '</div>' +
           '<div class="modal__interpreter-info">' +
-            '<div class="modal__interpreter-name">' + adminNote.interpreter + ' 통역사 배정</div>' +
+            '<div class="modal__interpreter-name">' + CT.escHtml(adminNote.interpreter) + ' 통역사 배정</div>' +
             '<div class="modal__interpreter-lang">' + (d.language_pair || '') + ' · ' + (adminNote.days || '') + '일간</div>' +
           '</div>' +
         '</div>';
