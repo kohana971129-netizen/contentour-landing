@@ -189,7 +189,7 @@ const InterpreterApp = {
                     event: 'UPDATE',
                     schema: 'public',
                     table: '40_통역사프로필',
-                    filter: 'id=eq.' + this.currentUser.id
+                    filter: 'user_id=eq.' + this.currentUser.id
                 }, (payload) => {
                     const oldRow = payload.old || {};
                     const newRow = payload.new || {};

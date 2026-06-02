@@ -6678,7 +6678,17 @@
                     verification_note: '관리자 경력 인증 승인'
                 }).eq('user_id', userId);
                 if (error) { showToast('⚠️ 인증 실패: ' + error.message); return; }
-                showToast('✅ 통역사 경력이 인증되었습니다.');
+                // 통역사에게 승인 알림 (반려와 대칭 — 오프라인 시에도 벨 알림 남김)
+                try {
+                    await supabase.from('24_알림').insert({
+                        user_id: userId,
+                        notification_type: 'service',
+                        title: '✅ 경력 인증 완료',
+                        message: '제출하신 경력 증빙 서류가 승인되었습니다. 이제 모든 기능을 이용하실 수 있습니다.',
+                        is_read: false
+                    });
+                } catch (e) { console.warn('승인 알림 발송 실패 (무시):', e); }
+                showToast('✅ 통역사 경력이 인증되었습니다. 통역사에게 알림이 발송되었습니다.');
                 closeInterpModal();
                 loadInterpVerifyList();
             }
