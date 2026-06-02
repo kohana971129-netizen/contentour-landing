@@ -181,6 +181,54 @@ const InterpreterApp = {
                 .subscribe();
             this._realtimeChannels.push(ch2);
 
+            // 검수(is_verified) 변경 구독 — admin 승인/반려 시 로그인 중인 통역사 화면 즉시 반영
+            // (40_통역사프로필은 본인 프로필 수정 시에도 UPDATE 발생 → 검수 컬럼 실제 변경 시에만 반응)
+            const ch3 = window.sbClient
+                .channel('interpreter-verify')
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: '40_통역사프로필',
+                    filter: 'id=eq.' + this.currentUser.id
+                }, (payload) => {
+                    const oldRow = payload.old || {};
+                    const newRow = payload.new || {};
+                    const verifyChanged = oldRow.is_verified !== newRow.is_verified
+                        || (oldRow.verification_note || '') !== (newRow.verification_note || '');
+                    if (!verifyChanged) return; // 검수 외 프로필 수정은 무시
+                    console.log('[Realtime] 검수 상태 변경:', newRow.is_verified);
+                    if (this.interpProfile) {
+                        this.interpProfile.is_verified = newRow.is_verified;
+                        this.interpProfile.verification_note = newRow.verification_note;
+                    }
+                    if (typeof loadVerifyDocs === 'function') { try { loadVerifyDocs(); } catch (e) {} }
+                    this.showToast(newRow.is_verified ? '✅ 통역사 인증이 승인되었습니다.' : '📋 검수 상태가 업데이트되었습니다.');
+                })
+                .subscribe();
+            this._realtimeChannels.push(ch3);
+
+            // 정산 상태 변경 구독 — admin 승인/입금/반려 시 정산 화면·KPI 자동 갱신
+            // (토스트는 정산 RPC가 발송하는 24_알림(ch2)이 담당 → 여기선 데이터 갱신만, 중복 토스트 방지)
+            const ch4 = window.sbClient
+                .channel('interpreter-settlements')
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: '43_정산내역',
+                    filter: 'interpreter_id=eq.' + this.currentUser.id
+                }, async (payload) => {
+                    console.log('[Realtime] 정산 상태 변경:', payload.new && payload.new.status);
+                    const settlements = await this.loadSettlements();
+                    this._settlements = settlements;
+                    this.renderHomeKPI(this._assignments || [], this._contracts || [], settlements);
+                    const stView = document.getElementById('view-settlement');
+                    if (stView && stView.classList.contains('active') && typeof this.loadSettlementView === 'function') {
+                        await this.loadSettlementView();
+                    }
+                })
+                .subscribe();
+            this._realtimeChannels.push(ch4);
+
             console.log('[InterpreterApp] Realtime 구독 시작');
         } catch (e) {
             console.warn('[InterpreterApp] Realtime 구독 실패:', e);
