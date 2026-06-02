@@ -2306,6 +2306,8 @@
             location: j.buyer_country || '',
             countries: extra.countries || [],
             period: '',
+            periodStart: extra.periodStart || '',
+            periodEnd: extra.periodEnd || '',
             total: extra.total || 0,
             contract: extra.contract || 0,
             sample: extra.sample || 0,
@@ -2382,6 +2384,9 @@
         ib.id = 'interpDetailBox';
         ib.style.cssText = 'margin:16px 0;padding:18px 22px;background:#f6f9ff;border:1px solid #c5d4ec;border-left:4px solid #1565c0;border-radius:10px;';
         var html = '<div style="font-weight:800;color:#0d47a1;margin-bottom:10px;font-size:0.92rem;">📝 통역사 작성 내용</div>';
+        if (j.periodStart || j.periodEnd) {
+          html += '<div style="font-size:0.82rem;color:#1565c0;margin-bottom:8px;">📆 상담 기간: ' + (j.periodStart || '—') + ' ~ ' + (j.periodEnd || '—') + '</div>';
+        }
         if (j.startTime || j.endTime || j.durationMinutes) {
           html += '<div style="font-size:0.82rem;color:#1565c0;margin-bottom:8px;">🕐 상담 시간: ' + (j.startTime || '—') + ' ~ ' + (j.endTime || '—') +
             (j.durationMinutes ? ' <strong>(' + Math.floor(j.durationMinutes/60) + '시간 ' + (j.durationMinutes%60) + '분)</strong>' : '') + '</div>';

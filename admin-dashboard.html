@@ -2412,6 +2412,8 @@
                                 startTime: extra.startTime || '',
                                 endTime: extra.endTime || '',
                                 durationMinutes: extra.durationMinutes || 0,
+                                periodStart: extra.periodStart || '',
+                                periodEnd: extra.periodEnd || '',
                                 issues: extra.issues || [],
                                 customerSurvey: extra.customerSurvey || null,
                                 customerSurveyText: extra.customerSurveyText || '',
@@ -2851,6 +2853,9 @@
                     '<div class="jv-stat"><div class="jv-stat__n">' + j.sample + '</div><div class="jv-stat__l">샘플 요청</div></div>' +
                     '<div class="jv-stat"><div class="jv-stat__n">' + j.follow + '</div><div class="jv-stat__l">팔로업 예정</div></div>' +
                   '</div>' +
+                  ((j.periodStart || j.periodEnd) ? (
+                    '<div class="jv-text" style="margin-top:8px;">📆 상담 기간: ' + (j.periodStart || '—') + ' ~ ' + (j.periodEnd || '—') + '</div>'
+                  ) : '') +
                   ((j.startTime || j.endTime || j.durationMinutes) ? (
                     '<div class="jv-text" style="margin-top:8px;">' +
                       '🕐 상담 시간: ' + (j.startTime || '—') + ' ~ ' + (j.endTime || '—') +
