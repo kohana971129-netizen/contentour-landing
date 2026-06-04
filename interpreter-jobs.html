@@ -58,7 +58,7 @@
     <link rel="stylesheet" href="styles.css?v=1.5">
 
     <!-- Twemoji: Windows의 Segoe UI Emoji가 국기 이모지 미지원 → 모든 이모지를 SVG 이미지로 변환 -->
-    <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
     <style>
         /* twemoji가 변환한 이모지 img 크기 조정 (텍스트 라인과 정렬) */
         img.emoji { height: 1em; width: 1em; margin: 0 .05em 0 .1em; vertical-align: -0.1em; display: inline-block; }
@@ -1362,21 +1362,6 @@
         </div>
     </div>
 
-    <!-- 공고 상세 모달 -->
-    <div class="ij-modal" id="detailModal" aria-hidden="true">
-        <div class="ij-modal__backdrop" id="detailBackdrop"></div>
-        <div class="ij-modal__sheet" role="dialog" aria-labelledby="detailModalTitle" aria-modal="true">
-            <button class="ij-modal__close" type="button" id="detailCloseBtn" aria-label="닫기">×</button>
-            <header class="ij-modal__head">
-                <div id="detailBadges" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;"></div>
-                <h3 id="detailModalTitle">공고 상세</h3>
-                <p id="detailSubtitle"></p>
-            </header>
-            <div id="detailModalBody" class="ij-detail__body"></div>
-            <div class="ij-modal__actions" id="detailActions"></div>
-        </div>
-    </div>
-
     <!-- Footer -->
     <footer class="footer-professional">
         <div class="footer-container-pro">
@@ -2198,12 +2183,6 @@
             toggleDetailRow(row);
         });
 
-        // ══════════════ 공고 상세 모달 ══════════════
-        var detailModal = document.getElementById('detailModal');
-        var detailModalLastFocus = null;
-
-        function escAttr(s) { return escapeHtml(s); }
-
         // 메모 글자수 카운터
         function updatePfMessageCounter() {
             var el = document.getElementById('pf-message');
@@ -2213,98 +2192,6 @@
             counter.textContent = len + ' / 2000';
             counter.style.color = len > 1800 ? '#c62828' : len > 1500 ? '#e65100' : 'var(--gray-400)';
         }
-
-        function openDetailModal(id) {
-            var req = showcaseData.find(function (r) { return r.id === id; });
-            if (!req) return;
-            detailModalLastFocus = document.activeElement;
-
-            var isRecruit = req.status === 'recruiting';
-            var statusBadge = isRecruit
-                ? '<span class="ij-badge ij-badge--recruit">모집중</span>'
-                : '<span class="ij-badge ij-badge--matched">매칭완료</span>';
-            var ownBadge = req.isOwn ? '<span class="ij-badge ij-badge--own">내 공고</span>' : '';
-            document.getElementById('detailBadges').innerHTML = statusBadge + ownBadge;
-
-            document.getElementById('detailModalTitle').textContent = req.label || '공고 상세';
-            var industry = req.industry || '';
-            var subtitle = industry ? industry + ' · ' + (req.isAnonymous ? '익명 등재' : '실명 공개') : (req.isAnonymous ? '익명 등재' : '실명 공개');
-            document.getElementById('detailSubtitle').textContent = subtitle;
-
-            var languages = Array.isArray(req.languages) ? req.languages : [];
-            var locDisplay = [req.location, req.venue].filter(Boolean).join(' · ') || '-';
-            var rows = [
-                ['전시회', escAttr(req.exhibition) || '-'],
-                ['국가', isoToFlag(req.countryCode) || '-'],
-                ['개최지', escAttr(locDisplay)],
-                ['기간', escAttr(fmtDate(req.startDate) + ' ~ ' + fmtDate(req.endDate))],
-                ['언어', escAttr(languages.join(' · ')) || '-'],
-                ['필요 인원', (req.needed || 0) + '명'],
-                ['관심', (req.interestCount || 0) + '회 조회됨']
-            ];
-            if (!isRecruit && typeof req.daysLeft === 'number') {
-                rows.push(['파견 시작', 'D-' + req.daysLeft]);
-            }
-
-            var body = rows.map(function (r) {
-                return '<div class="ij-detail__row"><div class="ij-detail__label">' + r[0] + '</div><div class="ij-detail__value">' + r[1] + '</div></div>';
-            }).join('');
-
-            if (req.message) {
-                body += '<div>' +
-                    '<div class="ij-detail__memo-label">고객사 메모</div>' +
-                    '<div class="ij-detail__memo">' + escAttr(req.message) + '</div>' +
-                '</div>';
-            }
-            document.getElementById('detailModalBody').innerHTML = body;
-
-            // 액션 버튼 (지원 버튼 동일 분기)
-            var actionsEl = document.getElementById('detailActions');
-            var actionsHtml = '<button type="button" class="ij-modal__btn ij-modal__btn-secondary" id="detailCloseBtn2">닫기</button>';
-            if (isRecruit && req.sourceType === 'direct_posting' && req.id && !req.isOwn) {
-                if (viewerRole === 'interpreter') {
-                    var done = appliedSet.has(req.id);
-                    actionsHtml += '<button type="button" class="ij-modal__btn ij-modal__btn-primary" data-apply-id="' + escAttr(req.id) + '" id="detailApplyBtn"' + (done ? ' disabled' : '') + '>' + (done ? '✓ 지원 완료' : '지원하기') + '</button>';
-                } else if (!viewerRole) {
-                    actionsHtml += '<button type="button" class="ij-modal__btn ij-modal__btn-primary" data-apply-id="' + escAttr(req.id) + '" id="detailApplyBtn">🔒 로그인 후 지원</button>';
-                }
-            }
-            actionsEl.innerHTML = actionsHtml;
-
-            detailModal.classList.add('is-open');
-            detailModal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-
-            setTimeout(function () {
-                var first = document.getElementById('detailCloseBtn');
-                if (first) first.focus();
-            }, 30);
-
-            // 모달 안 액션 핸들러
-            var closeBtn2 = document.getElementById('detailCloseBtn2');
-            if (closeBtn2) closeBtn2.addEventListener('click', closeDetailModal);
-            var applyBtnInModal = document.getElementById('detailApplyBtn');
-            if (applyBtnInModal) {
-                applyBtnInModal.addEventListener('click', function () {
-                    handleApply(req.id, applyBtnInModal);
-                });
-            }
-        }
-
-        function closeDetailModal() {
-            detailModal.classList.remove('is-open');
-            detailModal.setAttribute('aria-hidden', 'true');
-            document.body.style.overflow = '';
-            if (detailModalLastFocus && typeof detailModalLastFocus.focus === 'function') {
-                try { detailModalLastFocus.focus(); } catch (e) {}
-            }
-            detailModalLastFocus = null;
-        }
-        document.getElementById('detailCloseBtn').addEventListener('click', closeDetailModal);
-        document.getElementById('detailBackdrop').addEventListener('click', closeDetailModal);
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && detailModal.classList.contains('is-open')) closeDetailModal();
-        });
 
         // 페이지 초기 로드 시 국기 이모지 변환 (필터 칩 + 정적 콘텐츠)
         if (window.twemoji) {
