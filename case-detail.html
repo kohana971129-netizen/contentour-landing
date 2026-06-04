@@ -107,10 +107,10 @@
         .review-card:last-child { border-bottom: none; }
         .review-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .review-card__author { font-weight: 700; font-size: 0.9rem; }
-        .review-card__date { font-size: 0.78rem; color: #999; }
+        .review-card__date { font-size: 0.78rem; color: #6b7280; }
         .review-card__stars { color: #f9a825; font-size: 0.9rem; }
         .review-card__text { font-size: 0.88rem; color: #444; line-height: 1.6; margin-top: 8px; }
-        .review-card__detail-ratings { display: flex; gap: 16px; margin-top: 8px; font-size: 0.75rem; color: #999; }
+        .review-card__detail-ratings { display: flex; gap: 16px; margin-top: 8px; font-size: 0.75rem; color: #6b7280; }
         .review-form textarea { width: 100%; padding: 14px; border: 2px solid #e0e5ec; border-radius: 12px; font-family: inherit; font-size: 0.9rem; resize: vertical; min-height: 80px; box-sizing: border-box; }
         .review-form textarea:focus { border-color: #1565c0; outline: none; }
         .review-stars-input { display: flex; gap: 4px; cursor: pointer; font-size: 1.5rem; margin-bottom: 8px; }
@@ -209,6 +209,13 @@
                 }
 
                 document.title = '[' + c.client_company + '] ' + c.exhibition_name + ' - 콘텐츄어 성과사례';
+
+                // 사례별 canonical / og:url 동기화 (중복 canonical 방지)
+                var detailUrl = 'https://contentour-landing.vercel.app/case-detail?id=' + encodeURIComponent(caseId);
+                var canonicalEl = document.querySelector('link[rel="canonical"]');
+                if (canonicalEl) canonicalEl.setAttribute('href', detailUrl);
+                var ogUrlEl = document.querySelector('meta[property="og:url"]');
+                if (ogUrlEl) ogUrlEl.setAttribute('content', detailUrl);
 
                 var typeTagClass = { '부스 통역':'expo', '미팅 통역':'buyer', '현장 통역':'expo', '동시통역':'buyer', '수행 통역':'expo' };
                 var tagClass = typeTagClass[c.case_type] || 'expo';
@@ -325,7 +332,7 @@
                 // 고객 리뷰 섹션
                 html += '<div class="detail-section" id="reviewSection">' +
                     '<div class="detail-section__title"><span>⭐</span> 고객 후기</div>' +
-                    '<div id="reviewList"><div style="text-align:center;padding:20px;color:#aaa;font-size:0.85rem;">후기를 불러오는 중...</div></div>' +
+                    '<div id="reviewList"><div style="text-align:center;padding:20px;color:#6b7280;font-size:0.85rem;">후기를 불러오는 중...</div></div>' +
                     '<div id="reviewFormArea"></div>' +
                 '</div>';
 
@@ -379,7 +386,7 @@
                 });
 
                 if (!reviews || reviews.length === 0) {
-                    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:0.85rem;">아직 후기가 없습니다.</div>';
+                    listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#6b7280;font-size:0.85rem;">아직 후기가 없습니다.</div>';
                 } else {
                     listEl.innerHTML = reviews.map(function(r) {
                         return '<div class="review-card">' +
@@ -399,7 +406,7 @@
 
             } catch (e) {
                 console.error('리뷰 로드 실패:', e);
-                listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#ccc;">후기를 불러오지 못했습니다.</div>';
+                listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#6b7280;">후기를 불러오지 못했습니다.</div>';
             }
         }
 
