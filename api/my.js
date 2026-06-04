@@ -50,7 +50,7 @@ async function handleMyInquiries(req, res) {
         return res.status(200).json(filtered);
     } catch (e) {
         console.error('My inquiries error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 }
 
@@ -105,7 +105,7 @@ async function handleMyContracts(req, res) {
         return res.status(200).json(result);
     } catch (e) {
         console.error('Contracts query error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 }
 
@@ -154,7 +154,7 @@ async function handleMyShowcasePostings(req, res) {
         return res.status(200).json(result);
     } catch (e) {
         console.error('My showcase postings error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 }
 
@@ -220,7 +220,7 @@ async function handleMyShowcaseApplications(req, res) {
         return res.status(200).json(result);
     } catch (e) {
         console.error('My showcase applications error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 }
 
@@ -285,7 +285,7 @@ async function handleMyShowcaseApplicants(req, res) {
         return res.status(200).json(result);
     } catch (e) {
         console.error('My showcase applicants error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 }
 
@@ -346,7 +346,7 @@ async function handleAcceptAssignment(req, res) {
         return res.status(200).json({ success: true });
     } catch (e) {
         console.error('accept-assignment 예외:', e);
-        return res.status(500).json({ success: false, error: e.message || '오류' });
+        return res.status(500).json({ success: false, error: '요청 처리 중 오류가 발생했습니다.' });
     }
 }
 

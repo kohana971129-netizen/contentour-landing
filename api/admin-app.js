@@ -551,7 +551,7 @@ module.exports = async function handler(req, res) {
                 }).select('id').single();
                 if (cErr) {
                     console.error('계약 생성 실패:', cErr);
-                    return res.status(500).json({ error: '계약 생성 실패: ' + cErr.message });
+                    console.error('계약 생성 실패:', cErr); return res.status(500).json({ error: '계약 생성에 실패했습니다.' });
                 }
                 newContractId = newContract.id;
 
@@ -688,7 +688,7 @@ module.exports = async function handler(req, res) {
                 admin_note: '관리자 승인',
                 updated_at: new Date().toISOString()
             }).eq('id', cancelId);
-            if (updErr) return res.status(500).json({ error: '승인 처리 실패: ' + updErr.message });
+            if (updErr) { console.error('승인 처리 실패:', updErr); return res.status(500).json({ error: '승인 처리에 실패했습니다.' }); }
 
             await recordAudit(req, superAdmin, {
                 action: 'cancel_approve',
@@ -720,7 +720,7 @@ module.exports = async function handler(req, res) {
                 admin_note: prevNote + '[' + new Date().toISOString().slice(0,10) + '] 환불 완료 처리',
                 updated_at: new Date().toISOString()
             }).eq('id', cancelId);
-            if (updErr) return res.status(500).json({ error: '환불 처리 실패: ' + updErr.message });
+            if (updErr) { console.error('환불 처리 실패:', updErr); return res.status(500).json({ error: '환불 처리에 실패했습니다.' }); }
 
             // 47_결제기록 동기화 (webhook 미수신 케이스 대비)
             if (cancel.contract_id) {
@@ -762,7 +762,7 @@ module.exports = async function handler(req, res) {
                 admin_note: trimmed,
                 updated_at: new Date().toISOString()
             }).eq('id', cancelId);
-            if (updErr) return res.status(500).json({ error: '거절 처리 실패: ' + updErr.message });
+            if (updErr) { console.error('거절 처리 실패:', updErr); return res.status(500).json({ error: '거절 처리에 실패했습니다.' }); }
 
             // 계약 상태 복구
             if (cancel.contract_id) {
@@ -846,6 +846,7 @@ module.exports = async function handler(req, res) {
             return res.status(400).json({ error: 'Unknown action' });
         }
     } catch (err) {
-        return res.status(500).json({ error: err.message });
+        console.error('admin-app error:', err);
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 };

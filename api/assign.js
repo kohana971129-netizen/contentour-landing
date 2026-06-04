@@ -156,7 +156,7 @@ module.exports = async function handler(req, res) {
                     .select().single();
                 if (cErr) {
                     console.error('계약 생성 실패:', cErr);
-                    return res.status(500).json({ error: '계약 생성 실패: ' + cErr.message });
+                    return res.status(500).json({ error: '계약 생성에 실패했습니다.' });
                 }
                 contractId = newContract.id;
                 await sb.from('46_ITQ견적문의').update({ contract_id: contractId }).eq('id', inquiryId);
@@ -220,6 +220,6 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true, contractId });
     } catch (e) {
         console.error('Assign error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 };

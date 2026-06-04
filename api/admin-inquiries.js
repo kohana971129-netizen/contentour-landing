@@ -42,6 +42,6 @@ module.exports = async function handler(req, res) {
         return res.status(200).json(data || []);
     } catch (e) {
         console.error('Inquiries query error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 };

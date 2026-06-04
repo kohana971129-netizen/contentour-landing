@@ -2051,10 +2051,13 @@
             var statusMap = {
                 pending: '검토중',
                 deposit_paid: '견적도착',
+                balance_paid: '파견확정',
+                paid: '파견확정',
                 in_progress: '파견확정',
                 completed: '파견확정',
                 settled: '파견확정',
-                cancelled: '취소'
+                cancelled: '취소',
+                refunded: '취소'
             };
             var statusClsMap = {
                 '파견확정': 'st-confirmed',
@@ -2065,7 +2068,7 @@
 
             schData.length = 0; // 기존 데이터 클리어
             contractData.forEach(function(c, i) {
-                if (c.status === 'cancelled' || c.status === 'pending') return;
+                if (c.status === 'cancelled' || c.status === 'refunded' || c.status === 'pending') return;
                 var interpName = interpMap[c.interpreter_id] || '배정 대기';
                 var uiStatus = statusMap[c.status] || '검토중';
                 schData.push({

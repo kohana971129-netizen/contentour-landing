@@ -46,16 +46,33 @@ module.exports = async function handler(req, res) {
         message
     } = req.body;
 
-    if (!company || !contactName || !email || !phone || !exhibitionName || !message) {
+    // 입력 검증 (길이 제한 · 이메일 형식)
+    const _t = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+    const company_ = _t(company, 200);
+    const contactName_ = _t(contactName, 100);
+    const email_ = _t(email, 200);
+    const phone_ = _t(phone, 50);
+    const exhibitionName_ = _t(exhibitionName, 200);
+    const location_ = _t(location, 200);
+    const period_ = _t(period, 100);
+    const message_ = _t(message, 2000);
+    const interpreterName_ = _t(interpreterName, 100);
+    const interpreterLang_ = _t(interpreterLang, 100);
+    const interpreterField_ = _t(interpreterField, 100);
+
+    if (!company_ || !contactName_ || !email_ || !phone_ || !exhibitionName_ || !message_) {
         return res.status(400).json({ error: '필수 항목이 누락되었습니다.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_)) {
+        return res.status(400).json({ error: '올바른 이메일 형식이 아닙니다.' });
     }
 
     try {
         // 기간 텍스트에서 날짜 파싱 (예: "2026.05.01 ~ 05.03", "2026.11.17~11.20")
         let startDate = new Date().toISOString().slice(0, 10);
         let endDate = startDate;
-        if (period) {
-            const cleaned = period.replace(/\s/g, '');
+        if (period_) {
+            const cleaned = period_.replace(/\s/g, '');
             const parts = cleaned.split('~');
             if (parts.length === 2) {
                 const p1 = parts[0].replace(/\./g, '-');
@@ -73,27 +90,27 @@ module.exports = async function handler(req, res) {
             .from('46_ITQ견적문의')
             .insert({
                 user_id: user.id,
-                company,
-                contact_name: contactName,
-                email,
-                phone,
-                exhibition_name: exhibitionName,
-                location: location || null,
+                company: company_,
+                contact_name: contactName_,
+                email: email_,
+                phone: phone_,
+                exhibition_name: exhibitionName_,
+                location: location_ || null,
                 start_date: startDate,
                 end_date: endDate,
-                language_pair: interpreterLang || null,
+                language_pair: interpreterLang_ || null,
                 service_type: serviceType || null,
-                message,
+                message: message_,
                 consent: true,
                 status: '접수',
                 admin_note: JSON.stringify({
                     inquiry_type: 'direct',
                     customer_user_id: user.id,
                     requested_interpreter_id: interpreterId || null,
-                    interpreter_name: interpreterName || '',
-                    interpreter_lang: interpreterLang || '',
-                    interpreter_field: interpreterField || '',
-                    period: period || ''
+                    interpreter_name: interpreterName_,
+                    interpreter_lang: interpreterLang_,
+                    interpreter_field: interpreterField_,
+                    period: period_
                 })
             })
             .select()
@@ -101,7 +118,7 @@ module.exports = async function handler(req, res) {
 
         if (insertErr) {
             console.error('견적문의 저장 실패:', insertErr);
-            return res.status(500).json({ error: '저장 실패: ' + insertErr.message });
+            return res.status(500).json({ error: '견적 저장에 실패했습니다. 잠시 후 다시 시도해주세요.' });
         }
 
         // 2. 통역사 user_id 검증·조회 (임의 user_id로 알림 발송 방지)
@@ -118,11 +135,11 @@ module.exports = async function handler(req, res) {
             if (byId) interpreterUserId = byId.user_id;
         }
 
-        if (!interpreterUserId && interpreterName) {
+        if (!interpreterUserId && interpreterName_) {
             const { data: interpProfile } = await sb
                 .from('40_통역사프로필')
                 .select('user_id')
-                .eq('display_name', interpreterName)
+                .eq('display_name', interpreterName_)
                 .eq('is_active', true)
                 .limit(1)
                 .single();
@@ -138,7 +155,7 @@ module.exports = async function handler(req, res) {
                 user_id: interpreterUserId,
                 notification_type: 'service',
                 title: '📩 새로운 직접 견적 의뢰',
-                message: `${company}에서 "${exhibitionName}" 건으로 직접 견적을 의뢰했습니다. 견적 요청 탭에서 확인해주세요.`,
+                message: `${company_}에서 "${exhibitionName_}" 건으로 직접 견적을 의뢰했습니다. 견적 요청 탭에서 확인해주세요.`,
                 is_read: false
             });
         }
@@ -151,6 +168,6 @@ module.exports = async function handler(req, res) {
 
     } catch (e) {
         console.error('Direct inquiry error:', e);
-        return res.status(500).json({ error: e.message });
+        return res.status(500).json({ error: '요청 처리 중 오류가 발생했습니다.' });
     }
 };

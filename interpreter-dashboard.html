@@ -4765,11 +4765,10 @@
             if (d.status === 'approved') {
                 var hasBankAccount = isBankAccountRegistered();
                 if (hasBankAccount) {
-                    html += '<div style="margin-top:16px;text-align:center;">' +
-                        '<div id="autoDepositArea-' + d.id + '">' +
-                            '<button onclick="simulateAutoDeposit(' + d.id + ')" style="padding:10px 28px;background:linear-gradient(135deg,#2e7d32,#1b5e20);color:#fff;border:none;border-radius:10px;font-size:0.85rem;font-weight:700;font-family:inherit;cursor:pointer;">💰 자동 입금 실행 (시뮬레이션)</button>' +
-                            '<div style="font-size:0.68rem;color:#999;margin-top:6px;">* 실제 서비스에서는 승인 후 자동으로 입금이 진행됩니다.</div>' +
-                        '</div>' +
+                    html += '<div style="margin-top:16px;background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1.5px solid #a5d6a7;border-radius:14px;padding:18px;text-align:center;">' +
+                        '<div style="font-size:1.4rem;margin-bottom:6px;">🏦</div>' +
+                        '<div style="font-size:0.85rem;font-weight:800;color:#2e7d32;margin-bottom:4px;">입금 대기 중</div>' +
+                        '<div style="font-size:0.74rem;color:#558b2f;line-height:1.5;">정산이 승인되었습니다. 콘텐츄어에서 등록하신 계좌로 입금을 진행하며,<br>입금이 완료되면 상태가 자동으로 업데이트됩니다.</div>' +
                     '</div>';
                 } else {
                     // 계좌 미등록 → 입금 불가 안내
@@ -4826,68 +4825,8 @@
             showToast('📥 정산 내역을 다운로드합니다. (데모)');
         }
 
-        function simulateAutoDeposit(id) {
-            var d = stlData.find(function(x) { return x.id === id; });
-            if (!d || d.status !== 'approved') return;
-
-            // 계좌 미등록 시 입금 차단
-            if (!isBankAccountRegistered()) {
-                showToast('⚠️ 계좌 정보를 먼저 등록해주세요. 프로필 설정에서 등록할 수 있습니다.');
-                return;
-            }
-
-            var area = document.getElementById('autoDepositArea-' + id);
-            if (area) {
-                area.innerHTML =
-                    '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;">' +
-                        '<div class="stl-spinner"></div>' +
-                        '<span style="font-size:0.85rem;font-weight:700;color:#2e7d32;">입금 처리 중...</span>' +
-                    '</div>';
-            }
-
-            // 3초 후 입금 완료 처리
-            setTimeout(function() {
-                var today = new Date().toISOString().split('T')[0];
-                d.status = 'paid';
-                d.statusText = '입금 완료';
-                d.paidDate = today;
-                d.timeline = d.timeline.map(function(t) {
-                    if (t.step === '입금' || t.step === '입금 완료') {
-                        return { step: '입금 완료', date: today, done: true, active: false };
-                    }
-                    if (t.step === '관리자 승인') { t.active = false; }
-                    return t;
-                });
-
-                // 연동된 계약도 업데이트
-                var contractId = d.contractId;
-                if (contractId) {
-                    var c = interpreterContracts.find(function(x){ return x.id === contractId; });
-                    if (c) {
-                        c.status = 'settled';
-                        c.statusText = '정산 완료';
-                        c.settlementStatus = 'paid';
-                        renderInterpreterContracts();
-                    }
-                }
-
-                stlInit();
-
-                // 관리자 대시보드에 입금 완료 알림 브로드캐스트
-                try {
-                    localStorage.setItem('contentour_auto_deposit_done', JSON.stringify({
-                        settlementId: id, expo: d.expo, paidDate: today,
-                        amount: d.amount, tax: d.tax, net: d.amount - d.tax,
-                        bank: document.getElementById('bankName') ? document.getElementById('bankName').value : '',
-                        ts: Date.now()
-                    }));
-                } catch(e) {}
-
-                // 모달 다시 열기 (입금 완료 상태 반영)
-                openStlDetail(id);
-                showToast('💰 ₩' + (d.amount - d.tax).toLocaleString() + '이 입금 완료되었습니다! 계좌를 확인해주세요.');
-            }, 3000);
-        }
+        // simulateAutoDeposit(데모) 제거됨 — 입금은 관리자(stlMarkPaid → settleContract 서버 액션)가 처리하며,
+        // 통역사는 정산 상세에서 '입금 대기 중' 안내만 표시됨 (에스크로 B안).
 
         // ═══ Cross-tab: 관리자 정산 승인/반려/입금 이벤트 수신 ═══
         // 정산 건이 없으면 자동 생성 후 상태 반영
@@ -5390,21 +5329,26 @@
         async function intAgreeContract(contractId) {
             var c = interpreterContracts.find(function(x) { return x.id === contractId; });
             if (!c) return;
-            c.interpreterAgreed = true;
-            c.status = 'contract_sign';
 
-            // DB에 통역사 동의 저장
+            // DB에 통역사 동의 저장 — 성공한 경우에만 로컬 상태/계약 체결 반영 (실패 은폐 방지)
             if (window.sbClient) {
                 try {
                     var { error } = await window.sbClient.from('42_통역계약').update({
                         interpreter_accepted: true,
                         accepted_at: new Date().toISOString()
                     }).eq('id', contractId);
-                    if (error) console.error('통역사 계약 동의 DB 저장 실패:', error);
+                    if (error) {
+                        console.error('통역사 계약 동의 DB 저장 실패:', error);
+                        throw new Error('계약 동의 저장 실패');
+                    }
                 } catch (e) {
                     console.error('통역사 계약 동의 예외:', e);
+                    throw e;
                 }
             }
+
+            c.interpreterAgreed = true;
+            c.status = 'contract_sign';
 
             if (c.customerAgreed && c.interpreterAgreed) {
                 finalizeIntContractSign(c);

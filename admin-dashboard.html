@@ -5751,10 +5751,16 @@
                                 quoteId: quoteData.quoteId
                             })
                         }).eq('id', dbId);
-                        if (qErr) console.error('견적 DB 저장 실패:', qErr);
-                        else console.log('견적 DB 저장 성공:', dbId);
+                        if (qErr) {
+                            console.error('견적 DB 저장 실패:', qErr);
+                            showToast('❌ 견적 저장 실패. 다시 시도해주세요.');
+                            return;
+                        }
+                        console.log('견적 DB 저장 성공:', dbId);
                     } catch (e) {
                         console.error('견적 DB 저장 예외:', e);
+                        showToast('❌ 견적 저장 중 오류가 발생했습니다.');
+                        return;
                     }
                 }
 
@@ -6709,12 +6715,13 @@
             async function revokeVerification(userId) {
                 if (!confirm('인증을 해제하시겠습니까?')) return;
                 if (!supabase) return;
-                await supabase.from('40_통역사프로필').update({
+                var { error: rvErr } = await supabase.from('40_통역사프로필').update({
                     is_verified: false,
                     verified_at: null,
                     verified_by: null,
                     verification_note: '관리자에 의해 인증 해제됨'
                 }).eq('user_id', userId);
+                if (rvErr) { console.error('인증 해제 실패:', rvErr); showToast('❌ 인증 해제 실패: ' + (rvErr.message || '다시 시도해주세요.')); return; }
                 showToast('인증이 해제되었습니다.');
                 closeInterpModal();
                 loadInterpVerifyList();
