@@ -198,12 +198,22 @@ function openIpModal(countryCode, idx) {
     html += '<div class="ip-modal__cta" id="ipCtaArea"><button class="ip-modal__cta-btn" onclick="checkLoginAndInquiry(\'' + p.name.replace(/'/g, "\\'") + '\',\'' + d.lang.replace(/'/g, "\\'") + '\',\'' + (p.fieldTag || '').replace(/'/g, "\\'") + '\',\'' + d.country.replace(/'/g, "\\'") + '\',\'' + (p.photo || '').replace(/'/g, "\\'") + '\',\'' + (p.role || '').replace(/'/g, "\\'") + '\')">이 통역사에게 직접 견적 의뢰</button></div>';
 
     document.getElementById('ipModalBody').innerHTML = html;
-    document.getElementById('ipModalOverlay').classList.add('open');
+    _ipLastFocus = document.activeElement;
+    var ipOverlay = document.getElementById('ipModalOverlay');
+    ipOverlay.setAttribute('role', 'dialog');
+    ipOverlay.setAttribute('aria-modal', 'true');
+    ipOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
+    // 모달 열릴 때 닫기 버튼으로 포커스 이동 (접근성)
+    setTimeout(function () {
+        var closeBtn = ipOverlay.querySelector('.ip-modal__close');
+        if (closeBtn) closeBtn.focus();
+    }, 30);
 }
 
 // 로그인 상태 캐시
 var _cachedUser = null;
+var _ipLastFocus = null;
 
 async function checkLoginAndInquiry(name, lang, field, country, photo, role) {
     // 로그인 여부 확인
@@ -337,6 +347,10 @@ async function submitDirectInquiry(interpName, lang, field) {
 function closeIpModal() {
     document.getElementById('ipModalOverlay').classList.remove('open');
     document.body.style.overflow = '';
+    if (_ipLastFocus && typeof _ipLastFocus.focus === 'function') {
+        try { _ipLastFocus.focus(); } catch (e) {}
+        _ipLastFocus = null;
+    }
 }
 
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeIpModal(); });

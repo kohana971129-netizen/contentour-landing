@@ -429,7 +429,7 @@
     </div>
 
     <!-- 비밀번호 찾기 모달 -->
-    <div id="resetModal" class="reset-modal-overlay">
+    <div id="resetModal" class="reset-modal-overlay" role="dialog" aria-modal="true" aria-label="비밀번호 재설정">
         <div class="reset-modal">
             <div class="reset-modal__header">
                 <div class="reset-modal__title">비밀번호 재설정</div>
@@ -958,18 +958,28 @@
 
         // ══════════════ 비밀번호 재설정 ══════════════
 
+        var _resetLastFocus = null;
         function openResetModal() {
             document.getElementById('resetStep1').style.display = 'block';
             document.getElementById('resetStep2').style.display = 'none';
             document.getElementById('resetStep3').style.display = 'none';
             document.getElementById('resetModalSub').textContent = '가입한 이메일 주소를 입력하세요.';
             document.getElementById('reset-email').value = document.getElementById('login-email').value || '';
+            _resetLastFocus = document.activeElement;
             document.getElementById('resetModal').style.display = 'flex';
+            setTimeout(function () { try { document.getElementById('reset-email').focus(); } catch (e) {} }, 30);
         }
 
         function closeResetModal() {
             document.getElementById('resetModal').style.display = 'none';
+            if (_resetLastFocus && typeof _resetLastFocus.focus === 'function') {
+                try { _resetLastFocus.focus(); } catch (e) {}
+                _resetLastFocus = null;
+            }
         }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && document.getElementById('resetModal').style.display === 'flex') closeResetModal();
+        });
 
         async function sendResetEmail() {
             const email = document.getElementById('reset-email').value.trim();
