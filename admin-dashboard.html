@@ -3200,6 +3200,12 @@
             let stlAdminQuery_ = '';
             let stlLoadedFromDb = false;
 
+            // 정산 건의 계약번호를 CT-YYYYMMDD-XXXX로 (계약·결제 페이지와 동일 형식)
+            function stlContractNo(d) {
+                if (!d || (!d.contractNo && !d.contractId)) return '-';
+                return contractDisplayNumber({ contractNo: d.contractNo, id: d.contractId, created_at: d.contractCreatedAt });
+            }
+
             async function stlAdminInit() {
                 // 첫 호출 시 DB에서 정산 내역 로드 (이후 호출은 로컬 캐시 사용)
                 if (!stlLoadedFromDb && typeof AdminData !== 'undefined' && AdminData.loadSettlements) {
@@ -3265,7 +3271,8 @@
                     data = data.filter(d =>
                         d.interpreter.toLowerCase().includes(stlAdminQuery_) ||
                         d.expo.toLowerCase().includes(stlAdminQuery_) ||
-                        d.client.toLowerCase().includes(stlAdminQuery_)
+                        d.client.toLowerCase().includes(stlAdminQuery_) ||
+                        stlContractNo(d).toLowerCase().includes(stlAdminQuery_)
                     );
                 }
 
@@ -3291,7 +3298,7 @@
 
                     return '<tr onclick="openStlApproval(\'' + d.id + '\')">' +
                         '<td><div class="t-interp"><div class="t-interp-avatar" style="background:' + d.interpColor + ';">' + initial + '</div><div><div style="font-weight:700;">' + d.interpreter + '</div></div></div></td>' +
-                        '<td><div class="t-expo">' + d.expo + '</div><div class="t-sub">' + d.lang + '</div></td>' +
+                        '<td><div class="t-expo">' + d.expo + '</div><div class="t-sub">' + d.lang + '</div><div class="t-sub" style="font-size:0.7rem;color:#9aa3b2;letter-spacing:0.2px;">' + stlContractNo(d) + '</div></td>' +
                         '<td>' + d.client + '</td>' +
                         '<td><div class="t-sub">' + d.start.slice(5).replace('-', '.') + ' ~ ' + d.end.slice(5).replace('-', '.') + '</div></td>' +
                         '<td style="text-align:center;font-weight:700;">' + d.days + '일</td>' +
@@ -3308,11 +3315,12 @@
                 if (!d) return;
 
                 document.getElementById('stlMTitle').textContent = d.expo;
-                document.getElementById('stlMSub').textContent = d.interpreter + ' | ' + d.client + ' | ' + d.start + ' ~ ' + d.end;
+                document.getElementById('stlMSub').textContent = stlContractNo(d) + ' | ' + d.interpreter + ' | ' + d.client + ' | ' + d.start + ' ~ ' + d.end;
 
                 const net = d.amount - d.tax;
 
                 let html = '<div class="stl-modal-grid">' +
+                    '<div class="stl-modal-item"><span class="stl-modal-label">계약번호</span><span class="stl-modal-value">' + stlContractNo(d) + '</span></div>' +
                     '<div class="stl-modal-item"><span class="stl-modal-label">통역사</span><span class="stl-modal-value">' + d.interpreter + '</span></div>' +
                     '<div class="stl-modal-item"><span class="stl-modal-label">고객사</span><span class="stl-modal-value">' + d.client + '</span></div>' +
                     '<div class="stl-modal-item"><span class="stl-modal-label">통역 언어</span><span class="stl-modal-value">' + d.lang + '</span></div>' +

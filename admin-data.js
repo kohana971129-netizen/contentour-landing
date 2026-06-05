@@ -134,7 +134,7 @@ const AdminData = {
                     *,
                     interpreter:interpreter_id (id, name),
                     bank:bank_account_id (bank_name, account_holder, account_number),
-                    contract:contract_id (id)
+                    contract:contract_id (id, contract_no, created_at)
                 `)
                 .order('requested_at', { ascending: false })
                 .limit(1000);
@@ -169,6 +169,8 @@ const AdminData = {
                 rejectReason: d.reject_reason,
                 journalSubmitted: true,
                 contractId: d.contract_id,
+                contractNo: d.contract?.contract_no || null,
+                contractCreatedAt: d.contract?.created_at || null,
                 bankInfo: d.bank ? {
                     name: d.bank.bank_name,
                     holder: d.bank.account_holder,
