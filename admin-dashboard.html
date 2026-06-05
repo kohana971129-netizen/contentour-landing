@@ -1322,11 +1322,11 @@
                                 <div class="qm-field"><label>일당 단가 (원) *</label><input type="number" id="nc-rate" min="0" placeholder="예: 400000" onchange="calcNewContract()" oninput="calcNewContract()"></div>
                             </div>
                             <div class="qm-calc" id="ncCalc">
-                                <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="ncSubtotal">₩0</span></div>
-                                <div class="qm-calc-row"><span class="label">부가가치세 (10%)</span><span class="value" id="ncFee">₩0</span></div>
-                                <div class="qm-calc-row total"><span class="label">총 계약 금액</span><span class="value" id="ncTotal">₩0</span></div>
-                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="ncDeposit">₩0</span></div>
-                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="ncBalance">₩0</span></div>
+                                <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="ncSubtotal">0원</span></div>
+                                <div class="qm-calc-row"><span class="label">부가가치세 (10%)</span><span class="value" id="ncFee">0원</span></div>
+                                <div class="qm-calc-row total"><span class="label">총 계약 금액</span><span class="value" id="ncTotal">0원</span></div>
+                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="ncDeposit">0원</span></div>
+                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="ncBalance">0원</span></div>
                             </div>
 
                             <div class="qm-section">계약 조건</div>
@@ -3852,7 +3852,7 @@
                     '<table class="cm-quote-table">' +
                         '<tr><th>\uD56D\uBAA9</th><th style="text-align:right;">\uAE08\uC561</th></tr>' +
                         '<tr><td>\uC77C\uB2F9 '+ctFmt(c.dailyRate)+' x '+c.days+'\uC77C</td><td>'+ctFmt(c.subtotal)+'</td></tr>' +
-                        '<tr><td>\uD50C\uB7AB\uD3FC \uC218\uC218\uB8CC (10%)</td><td>'+ctFmt(c.platformFee)+'</td></tr>' +
+                        '<tr><td>\uBD80\uAC00\uAC00\uCE58\uC138 (10%)</td><td>'+ctFmt(c.platformFee)+'</td></tr>' +
                         '<tr class="total"><td>\uCD1D \uAE08\uC561</td><td>'+ctFmt(c.total)+'</td></tr>' +
                         '<tr class="sub"><td>\uC120\uACB0\uC81C (100%) \u2014 \uACC4\uC57D \uCCB4\uACB0 \uC2DC '+(c.depositPaid || c.balancePaid ? '\u2705 \uACB0\uC81C\uC644\uB8CC' : '')+'</td><td>'+ctFmt(c.total)+'</td></tr>' +
                     '</table>' +
@@ -5429,7 +5429,7 @@
                 var total = subtotal + fee;
                 var deposit = total; // A안: 100% 선결제
                 var balance = 0;
-                var fmt = function(n) { return '₩' + n.toLocaleString(); };
+                var fmt = ctFmt; // 계약·결제 페이지 통일 통화표기(원 접미)
                 document.getElementById('ncSubtotal').textContent = fmt(subtotal);
                 document.getElementById('ncFee').textContent = fmt(fee);
                 document.getElementById('ncTotal').textContent = fmt(total);
