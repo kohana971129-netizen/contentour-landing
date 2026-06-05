@@ -3612,6 +3612,7 @@
                         return {
                             id: c.id,
                             contractNo: c.contract_no,
+                            createdAt: c.created_at,
                             expo: c.exhibition_name || '-',
                             client: {
                                 // 회사명: 01_회원.company_name 우선, 없으면 계약 스냅샷 client_company (출처 통일)
@@ -3793,7 +3794,7 @@
                     }
                     return '<div class="contract-card" onclick="openCtDetail(\''+c.id+'\')">' +
                         '<div style="flex:1;min-width:0;">' +
-                            '<div class="contract-card__id">'+c.id+'</div>' +
+                            '<div class="contract-card__id">'+escapeHtml(contractDisplayNumber(c))+'</div>' +
                             '<div class="contract-card__expo">'+escapeHtml(c.expo)+'</div>' +
                             '<div class="contract-card__meta">' +
                                 '<span>\uD83C\uDFE2 '+escapeHtml(c.client.company)+(c.client.name ? ' ('+escapeHtml(c.client.name)+')' : '')+'</span>' +
@@ -3836,7 +3837,7 @@
                         '<div class="cm-info-item"><div class="cm-info-label">\uD1B5\uC5ED\uC0AC</div><div class="cm-info-value">'+c.interpreter.name+'</div></div>' +
                         '<div class="cm-info-item"><div class="cm-info-label">\uC5B8\uC5B4</div><div class="cm-info-value">'+c.lang+'</div></div>' +
                         '<div class="cm-info-item"><div class="cm-info-label">\uD30C\uACAC \uAE30\uAC04</div><div class="cm-info-value">'+c.dates.start+' ~ '+c.dates.end+' ('+c.days+'\uC77C)</div></div>' +
-                        '<div class="cm-info-item"><div class="cm-info-label">\uACC4\uC57D\uBC88\uD638</div><div class="cm-info-value">'+c.id+'</div></div>' +
+                        '<div class="cm-info-item"><div class="cm-info-label">\uACC4\uC57D\uBC88\uD638</div><div class="cm-info-value">'+escapeHtml(contractDisplayNumber(c))+'</div></div>' +
                         '<div class="cm-info-item"><div class="cm-info-label">\uC0C1\uD0DC</div><div class="cm-info-value"><span class="contract-status-badge '+ctAdminGetStatusBadgeClass(c.status)+'">'+c.statusText+'</span></div></div>' +
                     '</div>' +
                     '<div class="cm-section">\uACAC\uC801\uC11C</div>' +
