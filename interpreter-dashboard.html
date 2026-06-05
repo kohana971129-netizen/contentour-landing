@@ -6759,7 +6759,7 @@
                     var hint = document.createElement('div');
                     hint.id = 'rate-hint-' + type;
                     hint.style.cssText = 'font-size:0.7rem;color:#6b7280;margin-top:4px;';
-                    hint.textContent = '허용 범위: ' + Number(RATE_LIMITS[type].min).toLocaleString() + '원 ~ ' + Number(RATE_LIMITS[type].max).toLocaleString() + '원';
+                    hint.textContent = '허용 범위: ₩' + Number(RATE_LIMITS[type].min).toLocaleString() + ' ~ ₩' + Number(RATE_LIMITS[type].max).toLocaleString();
                     rateRow.appendChild(hint);
                 }
 
@@ -6777,7 +6777,7 @@
                         else { color = '#f57c00'; icon = '🟡'; }
                     }
                     rec.style.cssText = 'font-size:0.7rem;color:' + color + ';margin-top:2px;font-weight:600;';
-                    rec.textContent = icon + ' 추천 (' + tier.label + '): ' + Number(rMin).toLocaleString() + '원 ~ ' + Number(rMax).toLocaleString() + '원';
+                    rec.textContent = icon + ' 추천 (' + tier.label + '): ₩' + Number(rMin).toLocaleString() + ' ~ ₩' + Number(rMax).toLocaleString();
                     rateRow.appendChild(rec);
                 }
             });
@@ -6792,7 +6792,7 @@
                 var min = RATE_LIMITS[type].min;
                 var max = RATE_LIMITS[type].max;
                 if (val < min || val > max) {
-                    errors.push(RATE_TYPE_NAMES[type] + ': ' + Number(min).toLocaleString() + '원 ~ ' + Number(max).toLocaleString() + '원 범위로 설정해주세요. (현재: ' + Number(val).toLocaleString() + '원)');
+                    errors.push(RATE_TYPE_NAMES[type] + ': ₩' + Number(min).toLocaleString() + ' ~ ₩' + Number(max).toLocaleString() + ' 범위로 설정해주세요. (현재: ₩' + Number(val).toLocaleString() + ')');
                 }
             });
             return errors.length > 0 ? errors : null;

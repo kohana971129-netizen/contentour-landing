@@ -1236,11 +1236,11 @@
 
                             <div class="qm-section">견적 요약</div>
                             <div class="qm-calc" id="qmCalc">
-                                <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="qmSubtotal">0원</span></div>
-                                <div class="qm-calc-row"><span class="label">부가가치세 (10%)</span><span class="value" id="qmFee">0원</span></div>
-                                <div class="qm-calc-row total"><span class="label">총 견적 금액</span><span class="value" id="qmTotal">0원</span></div>
-                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="qmDeposit">0원</span></div>
-                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="qmBalance">0원</span></div>
+                                <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="qmSubtotal">₩0</span></div>
+                                <div class="qm-calc-row"><span class="label">부가가치세 (10%)</span><span class="value" id="qmFee">₩0</span></div>
+                                <div class="qm-calc-row total"><span class="label">총 견적 금액</span><span class="value" id="qmTotal">₩0</span></div>
+                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="qmDeposit">₩0</span></div>
+                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="qmBalance">₩0</span></div>
                             </div>
 
                             <div class="qm-field full" style="margin-top:12px;">
@@ -1322,11 +1322,11 @@
                                 <div class="qm-field"><label>일당 단가 (원) *</label><input type="number" id="nc-rate" min="0" placeholder="예: 400000" onchange="calcNewContract()" oninput="calcNewContract()"></div>
                             </div>
                             <div class="qm-calc" id="ncCalc">
-                                <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="ncSubtotal">0원</span></div>
-                                <div class="qm-calc-row"><span class="label">부가가치세 (10%)</span><span class="value" id="ncFee">0원</span></div>
-                                <div class="qm-calc-row total"><span class="label">총 계약 금액</span><span class="value" id="ncTotal">0원</span></div>
-                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="ncDeposit">0원</span></div>
-                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="ncBalance">0원</span></div>
+                                <div class="qm-calc-row"><span class="label">통역 서비스</span><span class="value" id="ncSubtotal">₩0</span></div>
+                                <div class="qm-calc-row"><span class="label">부가가치세 (10%)</span><span class="value" id="ncFee">₩0</span></div>
+                                <div class="qm-calc-row total"><span class="label">총 계약 금액</span><span class="value" id="ncTotal">₩0</span></div>
+                                <div class="qm-calc-row sub"><span class="label">선결제 (100%) — 계약 체결 시</span><span class="value" id="ncDeposit">₩0</span></div>
+                                <div class="qm-calc-row sub" style="display:none;"><span class="label">잔금</span><span class="value" id="ncBalance">₩0</span></div>
                             </div>
 
                             <div class="qm-section">계약 조건</div>
@@ -3660,7 +3660,7 @@
 
             let ctAdminFilter = 'all';
 
-            function ctFmt(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '\uC6D0'; }
+            function ctFmt(n) { return '\u20A9' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
             function ctAdminGetStatusBadgeClass(status) {
                 var map = { quote_review:'csb-quote', contract_sign:'csb-quote', deposit_pay:'csb-deposit', deposit_review:'csb-review', balance_review:'csb-review', in_progress:'csb-progress', balance_pay:'csb-balance', complete:'csb-complete', settled:'csb-settled' };
@@ -4200,9 +4200,9 @@
                             '<div style="font-weight:700;font-size:0.92rem;margin-bottom:4px;">' + (d._expoName || '전시회') + '</div>' +
                             '<div style="font-size:0.8rem;color:#666;">신청자: ' + d._userName + (d._company ? ' (' + d._company + ')' : '') + '</div>' +
                             '<div style="font-size:0.8rem;color:#666;">사유: ' + d.cancel_reason + '</div>' +
-                            '<div style="font-size:0.78rem;color:#999;margin-top:4px;">남은 일수: ' + d.days_remaining + '일 | 위약금: ' + (d.penalty_amount||0).toLocaleString() + '원 (' + d.penalty_rate + '%) | 환불: ' + (d.refund_amount||0).toLocaleString() + '원</div>' +
+                            '<div style="font-size:0.78rem;color:#999;margin-top:4px;">남은 일수: ' + d.days_remaining + '일 | 위약금: ₩' + (d.penalty_amount||0).toLocaleString() + ' (' + d.penalty_rate + '%) | 환불: ₩' + (d.refund_amount||0).toLocaleString() + '</div>' +
                             // 분쟁 대비: 취소 당시 계약액 동결값(없으면 live 계약 폴백) + 상대방 통지 시각
-                            '<div style="font-size:0.74rem;color:#aab1bf;margin-top:2px;">취소 당시 계약액: ' + ((d.amount_snapshot != null ? d.amount_snapshot : ((d.contract && d.contract.total_amount) || 0)) || 0).toLocaleString() + '원' + (d.notified_at ? ' | 상대방 통지: ' + String(d.notified_at).replace('T',' ').slice(0,16) : '') + '</div>' +
+                            '<div style="font-size:0.74rem;color:#aab1bf;margin-top:2px;">취소 당시 계약액: ₩' + ((d.amount_snapshot != null ? d.amount_snapshot : ((d.contract && d.contract.total_amount) || 0)) || 0).toLocaleString() + (d.notified_at ? ' | 상대방 통지: ' + String(d.notified_at).replace('T',' ').slice(0,16) : '') + '</div>' +
                             '<div style="margin-top:10px;"><button onclick="viewCancelCert(\'' + d.id + '\')" style="padding:7px 14px;background:#fff;color:#0a2a5e;border:1.5px solid #0a2a5e;border-radius:8px;font-size:0.76rem;font-weight:700;cursor:pointer;font-family:inherit;">📄 취소 확인서</button></div>' +
                             actions +
                         '</div>' +
@@ -4361,7 +4361,7 @@
             async function markCancelRefunded(cancelId) {
                 if (!_isSuperAdmin) { showToast('환불 완료 처리는 super_admin 권한이 필요합니다.'); return; }
                 var cancel = cancelAdminData.find(function(d) { return d.id === cancelId; });
-                var refundAmt = (cancel && cancel.refund_amount) ? cancel.refund_amount.toLocaleString() + '원' : '환불 금액';
+                var refundAmt = (cancel && cancel.refund_amount) ? '₩' + cancel.refund_amount.toLocaleString() : '환불 금액';
                 if (!confirm('PortOne 콘솔에서 ' + refundAmt + ' 환불을 실제로 완료하셨나요?\n시스템에 "환불완료" 상태로 반영됩니다.')) return;
                 try {
                     // 서버측 super_admin 검증 + 51_취소내역·47_결제기록 동기화 + 감사로그 (admin-app.js)
@@ -5430,7 +5430,7 @@
                 var total = subtotal + fee;
                 var deposit = total; // A안: 100% 선결제
                 var balance = 0;
-                var fmt = ctFmt; // 계약·결제 페이지 통일 통화표기(원 접미)
+                var fmt = ctFmt; // 통화표기 통일(₩ 접두) — ctFmt 사용
                 document.getElementById('ncSubtotal').textContent = fmt(subtotal);
                 document.getElementById('ncFee').textContent = fmt(fee);
                 document.getElementById('ncTotal').textContent = fmt(total);
@@ -5972,7 +5972,7 @@
                 var all = [];
                 depositReview.forEach(function(c){ all.push({type:'deposit', id:c.id, title:c.expo, sub:'선결제 '+ctFmt(c.deposit)+' 결제 확인', client:c.client.company}); });
                 balanceReview.forEach(function(c){ all.push({type:'balance', id:c.id, title:c.expo, sub:'잔금 '+ctFmt(c.balance)+' 결제 확인', client:c.client.company}); });
-                stlRequest.forEach(function(d){ all.push({type:'settlement', id:d.id, title:d.expo, sub:'정산 '+d.amount.toLocaleString()+'원 승인 대기', client:d.interpreter||'통역사'}); });
+                stlRequest.forEach(function(d){ all.push({type:'settlement', id:d.id, title:d.expo, sub:'정산 ₩'+d.amount.toLocaleString()+' 승인 대기', client:d.interpreter||'통역사'}); });
 
                 var body = document.getElementById('adminPanelBody');
                 var badge = document.getElementById('fabBadge');
@@ -7570,7 +7570,7 @@
                 return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #ffe082;background:#fffdf5;border-radius:10px;margin-bottom:8px;flex-wrap:wrap;">' +
                     '<div style="flex:1;min-width:200px;">' +
                         '<div style="font-weight:700;color:#1f2d4a;font-size:0.9rem;">' + esc(c.client_company || '고객사') + ' &middot; ' + esc(c.exhibition_name || '계약') + '</div>' +
-                        '<div style="font-size:0.78rem;color:#6b7689;margin-top:3px;">입금자: <b>' + esc(holder) + '</b> &middot; 금액: <b>' + (Number(r.amount) || 0).toLocaleString() + '원</b> &middot; ' + esc(when) + '</div>' +
+                        '<div style="font-size:0.78rem;color:#6b7689;margin-top:3px;">입금자: <b>' + esc(holder) + '</b> &middot; 금액: <b>₩' + (Number(r.amount) || 0).toLocaleString() + '</b> &middot; ' + esc(when) + '</div>' +
                     '</div>' +
                     '<div style="display:flex;gap:8px;">' +
                         '<button onclick="manualDepositApprove(\'' + r.id + '\')" style="padding:8px 16px;background:#2e7d32;color:#fff;border:none;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;font-family:inherit;">입금 확인 · 승인</button>' +

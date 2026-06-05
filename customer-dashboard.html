@@ -5084,7 +5084,7 @@
     let contractFilter = 'all';
 
     function formatMoney(num) {
-      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원';
+      return '₩' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 
     function getStatusBadgeClass(status) {
@@ -6058,7 +6058,7 @@
               return '<div style="background:#f0f5ff;border:1.5px solid #c5d8f5;border-radius:10px;padding:14px 16px;margin-bottom:16px;">' +
                 '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">' +
                 '<span style="font-size:0.82rem;font-weight:700;color:var(--text);">&#127775; 적립금 사용</span>' +
-                '<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">보유: ' + formatMoney(ld.balance).replace('원','') + 'P</span></div>' +
+                '<span style="font-size:0.78rem;color:var(--blue);font-weight:600;">보유: ' + formatMoney(ld.balance).replace('₩','') + 'P</span></div>' +
                 '<div style="display:flex;gap:8px;align-items:center;">' +
                 '<input type="number" id="pmPointsInput" value="0" min="0" max="' + maxUse + '" style="flex:1;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:0.88rem;font-family:inherit;outline:none;" onchange="pmUpdatePointsDiscount()">' +
                 '<button onclick="document.getElementById(\'pmPointsInput\').value=' + maxUse + ';pmUpdatePointsDiscount();" style="padding:7px 12px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">최대 사용</button></div>' +
@@ -6118,7 +6118,7 @@
       if (pts > maxUse) { pts = maxUse; input.value = pts; }
       currentPayment.pointsUsed = pts;
       if (pts > 0) {
-        el.textContent = '적립금 ' + formatMoney(pts).replace('원','') + 'P 차감 (수수료에서 할인)';
+        el.textContent = '적립금 ' + formatMoney(pts).replace('₩','') + 'P 차감 (수수료에서 할인)';
       } else {
         el.textContent = '';
       }
@@ -6985,9 +6985,9 @@
     function loyRenderKpi(data, tier) {
       var el = document.getElementById('loyKpiCards');
       if (!el) return;
-      el.innerHTML = '<div class="loy-kpi-card"><div class="loy-kpi-card__deco" style="background:#1565c0;"></div><div class="loy-kpi-card__icon" style="width:40px;height:40px;border-radius:10px;background:#e3f0ff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;">💰</div><div class="loy-kpi-card__num">' + formatMoney(data.balance).replace('원','') + '<span style="font-size:0.7rem;font-weight:600;color:var(--gray-400);">P</span></div><div class="loy-kpi-card__label">보유 적립금</div></div>' +
-        '<div class="loy-kpi-card"><div class="loy-kpi-card__deco" style="background:#2e7d32;"></div><div class="loy-kpi-card__icon" style="width:40px;height:40px;border-radius:10px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;">📥</div><div class="loy-kpi-card__num">' + formatMoney(data.totalEarned).replace('원','') + '<span style="font-size:0.7rem;font-weight:600;color:var(--gray-400);">P</span></div><div class="loy-kpi-card__label">총 적립</div></div>' +
-        '<div class="loy-kpi-card"><div class="loy-kpi-card__deco" style="background:#f57c00;"></div><div class="loy-kpi-card__icon" style="width:40px;height:40px;border-radius:10px;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;">📤</div><div class="loy-kpi-card__num">' + formatMoney(data.totalUsed).replace('원','') + '<span style="font-size:0.7rem;font-weight:600;color:var(--gray-400);">P</span></div><div class="loy-kpi-card__label">총 사용</div></div>' +
+      el.innerHTML = '<div class="loy-kpi-card"><div class="loy-kpi-card__deco" style="background:#1565c0;"></div><div class="loy-kpi-card__icon" style="width:40px;height:40px;border-radius:10px;background:#e3f0ff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;">💰</div><div class="loy-kpi-card__num">' + formatMoney(data.balance).replace('₩','') + '<span style="font-size:0.7rem;font-weight:600;color:var(--gray-400);">P</span></div><div class="loy-kpi-card__label">보유 적립금</div></div>' +
+        '<div class="loy-kpi-card"><div class="loy-kpi-card__deco" style="background:#2e7d32;"></div><div class="loy-kpi-card__icon" style="width:40px;height:40px;border-radius:10px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;">📥</div><div class="loy-kpi-card__num">' + formatMoney(data.totalEarned).replace('₩','') + '<span style="font-size:0.7rem;font-weight:600;color:var(--gray-400);">P</span></div><div class="loy-kpi-card__label">총 적립</div></div>' +
+        '<div class="loy-kpi-card"><div class="loy-kpi-card__deco" style="background:#f57c00;"></div><div class="loy-kpi-card__icon" style="width:40px;height:40px;border-radius:10px;background:#fff3e0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;">📤</div><div class="loy-kpi-card__num">' + formatMoney(data.totalUsed).replace('₩','') + '<span style="font-size:0.7rem;font-weight:600;color:var(--gray-400);">P</span></div><div class="loy-kpi-card__label">총 사용</div></div>' +
         '<div class="loy-kpi-card"><div class="loy-kpi-card__deco" style="background:' + tier.color + ';"></div><div class="loy-kpi-card__icon" style="width:40px;height:40px;border-radius:10px;background:#f0f5ff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:12px;">' + tier.icon + '</div><div class="loy-kpi-card__num" style="color:' + tier.color + ';">' + tier.name + '</div><div class="loy-kpi-card__label">현재 등급 (적립률 ' + tier.rate + '%)</div></div>';
     }
 
@@ -7036,7 +7036,7 @@
         return '<div class="loy-event-item">' +
           '<div class="loy-event-item__icon">' + ev.icon + '</div>' +
           '<div class="loy-event-item__info"><div class="loy-event-item__name">' + ev.name + '</div><div class="loy-event-item__desc">' + ev.desc + '</div></div>' +
-          '<div class="loy-event-item__pts">+' + formatMoney(ev.pts).replace('원','') + 'P</div>' +
+          '<div class="loy-event-item__pts">+' + formatMoney(ev.pts).replace('₩','') + 'P</div>' +
           '</div>';
       }).join('');
     }
@@ -7064,7 +7064,7 @@
         list.map(function(h) {
           var cls = h.type === 'earn' ? 'loy-pts-earn' : 'loy-pts-use';
           var sign = h.type === 'earn' ? '+' : '-';
-          return '<tr><td>' + h.date + '</td><td><span class="badge ' + (h.type === 'earn' ? 'badge-blue' : 'badge-orange') + '">' + (h.type === 'earn' ? '적립' : '사용') + '</span></td><td>' + h.desc + '</td><td style="text-align:right;" class="' + cls + '">' + sign + formatMoney(h.pts).replace('원','') + 'P</td></tr>';
+          return '<tr><td>' + h.date + '</td><td><span class="badge ' + (h.type === 'earn' ? 'badge-blue' : 'badge-orange') + '">' + (h.type === 'earn' ? '적립' : '사용') + '</span></td><td>' + h.desc + '</td><td style="text-align:right;" class="' + cls + '">' + sign + formatMoney(h.pts).replace('₩','') + 'P</td></tr>';
         }).join('') + '</tbody></table>';
     }
 
